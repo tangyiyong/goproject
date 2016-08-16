@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<skills count="5">
+	<Skill id="1" cd="" duration="0" radius="" buffid="" target="1敌方2友方3全体">
+	<Hurt level="1" percent="" fixed=""/>
+	<Hurt level="2" percent="" fixed=""/>
+	<Hurt level="3" percent="" fixed=""/>
+	<Hurt level="4" percent="" fixed=""/>
+	<Hurt level="5" percent="" fixed=""/>
+	<Hurt level="6" percent="" fixed=""/>
+	<Hurt level="7" percent="" fixed=""/>
+	<Hurt level="8" percent="" fixed=""/>
+	<Hurt level="9" percent="" fixed=""/>
+	<Hurt level="10" percent="" fixed=""/>
+	<Hurt level="11" percent="" fixed=""/>
+	<Hurt level="12" percent="" fixed=""/>
+	</Skill>
+</skills>

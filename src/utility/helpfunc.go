@@ -1,0 +1,124 @@
+package utility
+
+import (
+	"crypto/md5"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"time"
+)
+
+var G_CurPath string
+var G_CurCsvPath string
+
+/*获取当前文件执行的路径*/
+func GetCurrPath() string {
+	if len(G_CurPath) <= 0 {
+		file, _ := exec.LookPath(os.Args[0])
+		G_CurPath, _ = filepath.Abs(file)
+		G_CurPath = string(G_CurPath[0 : 1+strings.LastIndex(G_CurPath, "\\")])
+	}
+
+	return G_CurPath
+}
+
+func GetCurrCsvPath() string {
+	if len(G_CurCsvPath) <= 0 {
+		file, _ := exec.LookPath(os.Args[0])
+		G_CurCsvPath, _ = filepath.Abs(file)
+		G_CurCsvPath = string(G_CurCsvPath[0 : 1+strings.LastIndex(G_CurCsvPath, "\\")])
+		G_CurCsvPath += "csv/"
+	}
+	return G_CurCsvPath
+}
+
+func GetCurrPath2() string {
+	file, _ := exec.LookPath(os.Args[0])
+	path, _ := filepath.Abs(file)
+	splitstring := strings.Split(path, "\\")
+	size := len(splitstring)
+	splitstring = strings.Split(path, splitstring[size-1])
+	ret := strings.Replace(splitstring[0], "\\", "/", size-1)
+	return ret
+}
+
+func IsDirExists(path string) bool {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return os.IsExist(err)
+	} else {
+		return fi.IsDir()
+	}
+
+	return true
+}
+
+func GetCurDay() int {
+	day := time.Now().Day()
+	year, week := time.Now().ISOWeek()
+	var curday = year
+	curday = curday << 8
+	curday += int(week)
+	curday = curday << 8
+	curday += day
+	return curday
+}
+
+// Activity系统中：
+// 今天是奇数则 data[0]昨日积分、data[1]今日积分；偶数反之
+func GetCurDayMod() int {
+	day := time.Now().Unix() / 86400
+
+	return int(day % 2)
+}
+
+func IsSameDay(day int) bool {
+	if GetCurDay() != day {
+		return false
+	}
+
+	return true
+}
+
+func IsSameWeek(day int) bool {
+	nowYear, nowWeek := time.Now().ISOWeek()
+	dayYear2, dayWeek := day&0xffff0000>>16, day&0x0000ff00>>8
+
+	if nowYear == dayYear2 && nowWeek == dayWeek {
+		return true
+	}
+
+	return false
+}
+
+func TestBit(value int, nPos uint8) bool {
+	nRet := value & (1 << (31 - nPos))
+	return nRet != 0
+}
+
+func SetBit(value int, nPos uint8) int {
+	value |= 1 << (31 - nPos)
+	return value
+}
+
+func MsgDataCheck(buffer []byte) bool {
+	Lenth := len(buffer)
+	if Lenth <= 16 {
+		return false
+	}
+	retmd5 := md5.Sum(buffer[:Lenth-16])
+	Lenth -= 16
+	for i := 0; i < 16; i++ {
+		if retmd5[i] != buffer[Lenth+i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+func GetCurDayByUnix() int {
+	day := time.Now().Unix() / 86400
+	return int(day)
+}

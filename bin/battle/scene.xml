@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Scene>
+	<Rect left="-2.500" right="-2.500" top="-2.500" bottom="-2.500"/>
+	<Camp batcamp="1">
+		<BornPt x="-28.700" y="1.540" z="124.700"/>
+		<Safe left="-2.500" right="-2.500" top="-2.500" bottom="-2.500"/>
+		<MoveBegin left="-2.500" right="-2.500" top="-2.500" bottom="-2.500"/>
+		<MoveEnd left="-2.500" right="-2.500" top="-2.500" bottom="-2.500"/>
+	</Camp>
+		
+	<Camp batcamp="2"> 
+		<BornPt x="-106.800" y="1.070" z="-36.330"/>
+		<Safe left="-2.500" right="-2.500" top="-2.500" bottom="-2.500"/>
+		<MoveBegin left="-2.500" right="-2.500" top="-2.500" bottom="-2.500"/>
+		<MoveEnd left="-2.500" right="-2.500" top="-2.500" bottom="-2.500"/>
+	</Camp>
+	
+	<Camp batcamp="3">
+		<BornPt x="50.240" y="1.040" z="-41.300"/>
+		<Safe left="-2.500" right="-2.500" top="-2.500" bottom="-2.500"/>
+		<MoveBegin left="-2.500" right="-2.500" top="-2.500" bottom="-2.500"/>
+		<MoveEnd left="-2.500" right="-2.500" top="-2.500" bottom="-2.500"/>
+	</Camp>
+	<SkillFix>31000011</SkillFix>
+<SkillFix>31000012</SkillFix>
+<SkillFix>31000013</SkillFix>
+	
+	<SkillRand>31000021</SkillRand>
+	<SkillRand>31000022</SkillRand>
+	<SkillRand>31000023</SkillRand>
+	<SkillRand>31000024</SkillRand>
+</Scene>
