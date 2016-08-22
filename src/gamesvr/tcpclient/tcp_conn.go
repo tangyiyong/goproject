@@ -149,3 +149,8 @@ func (tcpConn *TCPConn) ReadRoutine() {
 
 	msgDispatcher(tcpConn, msg.MSG_DISCONNECT, nil)
 }
+
+//连接的读协程
+func (tcpConn *TCPConn) IsConnected() bool {
+	return tcpConn.closeFlag
+}

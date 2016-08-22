@@ -30,7 +30,6 @@ func Hand_GetRobList(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -84,7 +83,6 @@ func Hand_RefreshRobList(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -141,7 +139,6 @@ func Hand_GetFreeWarTime(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -389,6 +386,10 @@ func Hand_RobTreasure(w http.ResponseWriter, r *http.Request) {
 	response.MoneyNum = copyInfo.MoneyNum * player.GetLevel()
 	response.RetCode = msg.RE_SUCCESS
 	response.FreeWarTime = player.RobModule.FreeWarTime
+
+	//! 限时日常相关
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ROB_TIMES, 1)
+
 }
 
 //! 玩家请求合成宝物
@@ -413,7 +414,6 @@ func Hand_TreasureComposed(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -464,8 +464,7 @@ func Hand_TreasureComposed(w http.ResponseWriter, r *http.Request) {
 		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_COMPOSITION_ORANGE, req.Num)
 	}
 
-	//! 增加任务进度
-	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_COMPOSITION_ORANGE, req.Num)
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_COMPOSITION, req.Num)
 }
 
 //! 宝物熔炼
@@ -490,7 +489,6 @@ func Hand_TreasureMelting(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查

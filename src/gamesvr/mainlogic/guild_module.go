@@ -45,8 +45,6 @@ type TGuildSkill struct {
 type TGuildModule struct {
 	PlayerID int `bson:"_id"`
 
-	GuildID           int    //! 所属军团ID
-	Role              int    //! 角色
 	SacrificeStatus   int    //! 祭天状态
 	SacrificeAwardLst IntLst //! 祭天奖励领取
 
@@ -79,8 +77,6 @@ func (self *TGuildModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
 func (self *TGuildModule) OnCreate(playerid int) {
 	//! 初始化各类参数
 	self.SacrificeStatus = 0
-	self.Role = 0
-	self.GuildID = 0
 	self.ActionTimes = 10
 	hour := gamedata.GuildCopyBattleTimeBegin / 3600
 	min := (gamedata.GuildCopyBattleTimeBegin - hour*3600) / 60
@@ -170,7 +166,7 @@ func (self *TGuildModule) OnNewDay(newday int) {
 //! 检测会长是否弃坑
 func (self *TGuildModule) CheckGuildLeader() {
 	//! 获取会长信息
-	guild := GetGuildByID(self.GuildID)
+	guild := GetGuildByID(self.ownplayer.pSimpleInfo.GuildID)
 	boss := guild.GetGuildLeader()
 
 	bossInfo := G_SimpleMgr.GetSimpleInfoByID(boss.PlayerID)
@@ -196,9 +192,7 @@ func (self *TGuildModule) CheckGuildLeader() {
 
 	if role == 0 {
 		//! 公会空无一人,删除公会
-		RemoveGuild(self.GuildID)
-		self.Role = 0
-		self.GuildID = 0
+		RemoveGuild(self.ownplayer.pSimpleInfo.GuildID)
 		self.ActionRecoverTime = 0
 		self.ExitGuildTime = time.Now().Unix()
 		go self.DB_ExitGuild()
@@ -279,7 +273,7 @@ func (self *TGuildModule) RecoverAction() {
 		return
 	}
 
-	if self.GuildID == 0 {
+	if self.ownplayer.pSimpleInfo.GuildID == 0 {
 		//! 玩家不存在公会
 		return
 	}
@@ -339,11 +333,11 @@ func (self *TGuildModule) AddPlayerGuildSkillLevel(skillID int) {
 //! 红点提示
 func (self *TGuildModule) RedTip() bool {
 	//! 加入公会
-	if self.GuildID == 0 {
+	if self.ownplayer.pSimpleInfo.GuildID == 0 {
 		return true
 	}
 
-	guild := GetGuildByID(self.GuildID)
+	guild := GetGuildByID(self.ownplayer.pSimpleInfo.GuildID)
 
 	//! 祭天
 	if self.SacrificeStatus == 0 {

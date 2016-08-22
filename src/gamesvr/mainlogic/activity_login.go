@@ -14,7 +14,6 @@ type TActivityLogin struct {
 
 	LoginDay   int  //! 登录天数
 	LoginAward Mark //! 登录奖励
-	IsLogin    bool //! 是否登录
 
 	VersionCode    int              //! 版本号
 	ResetCode      int              //! 迭代号
@@ -41,8 +40,6 @@ func (self *TActivityLogin) Init(activityID int, mPtr *TActivityModule, vercode 
 //! 刷新数据
 func (self *TActivityLogin) Refresh(versionCode int) {
 	//! 累计登陆
-	self.IsLogin = false
-
 	self.VersionCode = versionCode
 
 	go self.DB_Refresh()
@@ -51,7 +48,6 @@ func (self *TActivityLogin) Refresh(versionCode int) {
 //! 活动结束
 func (self *TActivityLogin) End(versionCode int, resetCode int) {
 	self.LoginDay = 0
-	self.IsLogin = false
 	self.LoginAward = 0
 
 	self.VersionCode = versionCode
@@ -73,19 +69,11 @@ func (self *TActivityLogin) RedTip() bool {
 		return false
 	}
 
-	if self.IsLogin == true {
-		return false
-	}
-
 	return true
 }
 
 func (self *TActivityLogin) AddLoginDay(index int) {
-	if self.IsLogin == true {
-		return
-	}
 	self.LoginDay++
-	self.IsLogin = true
 	go self.DB_AddLoginDay(index)
 }
 
@@ -105,13 +93,11 @@ func (self *TActivityLogin) DB_Reset() bool {
 
 	filedName1 := fmt.Sprintf("login.%d.loginday", index)
 	filedName2 := fmt.Sprintf("login.%d.loginaward", index)
-	filedName3 := fmt.Sprintf("login.%d.islogin", index)
 	filedName4 := fmt.Sprintf("login.%d.versioncode", index)
 	filedName5 := fmt.Sprintf("login.%d.resetcode", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName1: self.LoginDay,
 		filedName2: self.LoginAward,
-		filedName3: self.IsLogin,
 		filedName4: self.VersionCode,
 		filedName5: self.ResetCode}})
 	return true
@@ -120,11 +106,9 @@ func (self *TActivityLogin) DB_Reset() bool {
 func (self *TActivityLogin) DB_AddLoginDay(index int) {
 
 	filedName := fmt.Sprintf("login.%d.loginday", index)
-	filedName2 := fmt.Sprintf("login.%d.islogin", index)
 	filedName3 := fmt.Sprintf("login.%d.versioncode", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName:  self.LoginDay,
-		filedName2: self.IsLogin,
 		filedName3: self.VersionCode}})
 
 }
@@ -145,11 +129,9 @@ func (self *TActivityLogin) DB_Refresh() bool {
 	}
 
 	filedName := fmt.Sprintf("login.%d.loginday", index)
-	filedName2 := fmt.Sprintf("login.%d.islogin", index)
 	filedName3 := fmt.Sprintf("login.%d.versioncode", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName:  self.LoginDay,
-		filedName2: self.IsLogin,
 		filedName3: self.VersionCode}})
 
 	return true

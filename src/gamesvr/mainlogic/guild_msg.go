@@ -53,7 +53,7 @@ func Hand_GetGuildStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_SUCCESS
 		return
 	}
@@ -64,9 +64,9 @@ func Hand_GetGuildStatus(w http.ResponseWriter, r *http.Request) {
 	response.ActionTimes = player.GuildModule.ActionTimes
 	response.NextRecoverTime = player.GuildModule.ActionRecoverTime
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	if guild == nil {
-		gamelog.Error("Hand_GetGuildCopyStatus Error: invalid guild %d", player.GuildModule.GuildID)
+		gamelog.Error("Hand_GetGuildCopyStatus Error: invalid guild %d", player.pSimpleInfo.GuildID)
 		return
 	}
 
@@ -140,7 +140,7 @@ func Hand_GetGuildStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.SkillLst = []msg.TGuildSkill{}
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.SkillLst = []msg.TGuildSkill{}
 		response.RetCode = msg.RE_SUCCESS
 	}
@@ -184,7 +184,7 @@ func Hand_CreateGuild(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID != 0 {
+	if player.pSimpleInfo.GuildID != 0 {
 		response.RetCode = msg.RE_ALEADY_HAVE_GUILD
 		return
 	}
@@ -206,10 +206,9 @@ func Hand_CreateGuild(w http.ResponseWriter, r *http.Request) {
 	player.RoleMoudle.CostMoney(gamedata.CreateGuildMoneyID, gamedata.CreateGuildMoneyNum)
 
 	//! 设置玩家公会ID
+
 	guild := CreateNewGuild(req.PlayerID, req.Name, req.Icon)
-	player.GuildModule.GuildID = guild.GuildID
-	player.GuildModule.Role = Pose_Boss
-	go player.GuildModule.DB_SaveGuildInfo()
+	G_SimpleMgr.Set_GuildID(player.GetPlayerID(), guild.GuildID)
 
 	//! 移除其他帮派收到目标玩家申请记录
 	for i, v := range G_Guild_List {
@@ -269,7 +268,7 @@ func Hand_GetGuild(w http.ResponseWriter, r *http.Request) {
 	//! 检测帮会重置
 	player.GuildModule.CheckReset()
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.IsHaveGuild = false
 
 		//! 获取前五名公会
@@ -300,12 +299,12 @@ func Hand_GetGuild(w http.ResponseWriter, r *http.Request) {
 		response.IsHaveGuild = true
 
 		//! 获取公会信息
-		guildInfo := GetGuildByID(player.GuildModule.GuildID)
+		guildInfo := GetGuildByID(player.pSimpleInfo.GuildID)
 
 		//! 检测重置
 		guildInfo.CheckReset()
 		var guild msg.MSG_GuildInfo
-		guild.GuildID = player.GuildModule.GuildID
+		guild.GuildID = player.pSimpleInfo.GuildID
 		guild.Icon = guildInfo.Icon
 		guild.CurExp = guildInfo.CurExp
 		guild.Level = guildInfo.Level
@@ -406,7 +405,7 @@ func Hand_EnterGuild(w http.ResponseWriter, r *http.Request) {
 	player.GuildModule.CheckReset()
 
 	//! 判断玩家是否拥有公会
-	if player.GuildModule.GuildID != 0 {
+	if player.pSimpleInfo.GuildID != 0 {
 		gamelog.Error("Hand_EnterGuild Error: Player don't have guild")
 		response.RetCode = msg.RE_ALEADY_HAVE_GUILD
 		return
@@ -672,17 +671,18 @@ func Hand_GetApplyGuildMemberList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	if gamedata.HasPermission(player.GuildModule.Role, gamedata.Permission_Income) == false {
+	guildInfo := GetGuildByID(player.pSimpleInfo.GuildID)
+	guildMemberInfo := guildInfo.GetGuildMember(player.GetPlayerID())
+
+	if gamedata.HasPermission(guildMemberInfo.Pose, gamedata.Permission_Income) == false {
 		response.RetCode = msg.RE_NOT_HAVE_PERMISSION
 		return
 	}
-
-	guildInfo := GetGuildByID(player.GuildModule.GuildID)
 
 	for _, v := range guildInfo.ApplyList {
 		simpleInfo := G_SimpleMgr.GetSimpleInfoByID(v)
@@ -737,12 +737,12 @@ func Hand_GetGuildMemberList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
 	for _, v := range guild.MemberList {
 		simpleInfo := G_SimpleMgr.GetSimpleInfoByID(v.PlayerID)
@@ -754,19 +754,16 @@ func Hand_GetGuildMemberList(w http.ResponseWriter, r *http.Request) {
 		targetPlayer := GetPlayerByID(v.PlayerID)
 		if targetPlayer == nil {
 			targetPlayer = LoadPlayerFromDB(v.PlayerID)
-			member.IsOnline = false
-		} else {
-			member.IsOnline = true
 		}
 
-		member.PlayerID = simpleInfo.PlayerID
+		member.PlayerID = v.PlayerID
 		member.Name = simpleInfo.Name
 		member.OfflineTime = simpleInfo.LogoffTime
 		member.Quality = simpleInfo.Quality
 		member.Level = simpleInfo.Level
 		member.Role = v.Pose
 		member.FightValue = simpleInfo.FightValue
-
+		member.IsOnline = simpleInfo.isOnline
 		member.Contribution = targetPlayer.GuildModule.HistoryContribution
 		response.MemberLst = append(response.MemberLst, member)
 	}
@@ -845,7 +842,7 @@ func Hand_ApplicationThrough(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断玩家是否拥有帮派
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
@@ -855,19 +852,21 @@ func Hand_ApplicationThrough(w http.ResponseWriter, r *http.Request) {
 		targetPlayer = LoadPlayerFromDB(req.TargetPlayerID)
 	}
 
-	if targetPlayer.GuildModule.GuildID != 0 {
+	if targetPlayer.pSimpleInfo.GuildID != 0 {
 		response.RetCode = msg.RE_ALEADY_HAVE_GUILD
 		return
 	}
 
 	//! 判断玩家权限
-	if gamedata.HasPermission(player.GuildModule.Role, gamedata.Permission_Income) == false {
+	guildInfo := GetGuildByID(player.pSimpleInfo.GuildID)
+	guildMemberInfo := guildInfo.GetGuildMember(player.GetPlayerID())
+
+	if gamedata.HasPermission(guildMemberInfo.Pose, gamedata.Permission_Income) == false {
 		response.RetCode = msg.RE_NOT_HAVE_PERMISSION
 		return
 	}
 
 	//! 判断目标玩家是否在申请列表
-	guildInfo := GetGuildByID(player.GuildModule.GuildID)
 	isExist := false
 	for _, v := range guildInfo.ApplyList {
 		if v == req.TargetPlayerID {
@@ -889,13 +888,11 @@ func Hand_ApplicationThrough(w http.ResponseWriter, r *http.Request) {
 
 	//! 增加新成员
 	guildInfo.AddGuildMember(req.TargetPlayerID)
-
-	SendGuildChangeMsg(req.TargetPlayerID, player.GuildModule.GuildID)
+	G_SimpleMgr.DB_SetGuildID(req.TargetPlayerID, player.pSimpleInfo.GuildID)
+	SendGuildChangeMsg(req.TargetPlayerID, player.pSimpleInfo.GuildID)
 
 	//! 移除目标玩家申请列表
-	targetPlayer.GuildModule.GuildID = player.GuildModule.GuildID
 	targetPlayer.GuildModule.ApplyGuildList = []int{}
-	targetPlayer.GuildModule.Role = Pose_Member
 
 	hour := gamedata.GuildCopyBattleTimeBegin / 60 * 60
 	min := (gamedata.GuildCopyBattleTimeBegin - hour*3600) / 60
@@ -973,15 +970,15 @@ func Hand_ExitGuild(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断玩家是否拥有帮派
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
 	//! 删除公会成员
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	if guild == nil {
-		gamelog.Error("Hand_ExitGuild Error: Invalid guild id %v", player.GuildModule.GuildID)
+		gamelog.Error("Hand_ExitGuild Error: Invalid guild id %v", player.pSimpleInfo.GuildID)
 		return
 	}
 
@@ -1003,8 +1000,7 @@ func Hand_ExitGuild(w http.ResponseWriter, r *http.Request) {
 	player.RoleMoudle.ClearGuildSkillExpIncLevel()
 	player.HeroMoudle.ClearGuildSkillProLevel()
 
-	player.GuildModule.Role = 0
-	player.GuildModule.GuildID = 0
+	G_SimpleMgr.Set_GuildID(player.GetPlayerID(), 0)
 	player.GuildModule.ActionRecoverTime = 0
 	player.GuildModule.ExitGuildTime = time.Now().Unix()
 	go player.GuildModule.DB_ExitGuild()
@@ -1048,14 +1044,14 @@ func Hand_GetSacrificeStatus(w http.ResponseWriter, r *http.Request) {
 	player.GuildModule.CheckGuildLeader()
 
 	//! 判断玩家是否拥有帮派
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	if guild == nil {
-		gamelog.Error("Hand_GetSacrificeStatus Error: invalid GuildID %v", player.GuildModule.GuildID)
+		gamelog.Error("Hand_GetSacrificeStatus Error: invalid GuildID %v", player.pSimpleInfo.GuildID)
 		return
 	}
 
@@ -1113,7 +1109,7 @@ func Hand_GuildSacrifice(w http.ResponseWriter, r *http.Request) {
 	player.GuildModule.CheckReset()
 
 	//! 判断玩家是否拥有帮派
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
@@ -1125,7 +1121,7 @@ func Hand_GuildSacrifice(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测祭天次数是否已满
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	guild.CheckReset()
 	guildData := gamedata.GetGuildBaseInfo(guild.Level)
 
@@ -1214,14 +1210,14 @@ func Hand_GetSacrificeAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	if guild == nil {
-		gamelog.Error("Hand_GetSacrificeAward Error: invalid guildid %v", player.GuildModule.GuildID)
+		gamelog.Error("Hand_GetSacrificeAward Error: invalid guildid %v", player.pSimpleInfo.GuildID)
 		return
 	}
 
@@ -1287,12 +1283,12 @@ func Hand_GetGuildStoreInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	guild.CheckReset()
 
 	for _, v := range player.GuildModule.ShoppingLst {
@@ -1333,12 +1329,12 @@ func Hand_BuyGuildItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	guild.CheckReset()
 
 	//! 获取商品信息
@@ -1428,7 +1424,7 @@ func Hand_GetGuildCopyStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_SUCCESS
 		return
 	}
@@ -1439,9 +1435,9 @@ func Hand_GetGuildCopyStatus(w http.ResponseWriter, r *http.Request) {
 	response.ActionTimes = player.GuildModule.ActionTimes
 	response.NextRecoverTime = player.GuildModule.ActionRecoverTime
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	if guild == nil {
-		gamelog.Error("Hand_GetGuildCopyStatus Error: invalid guild %d", player.GuildModule.GuildID)
+		gamelog.Error("Hand_GetGuildCopyStatus Error: invalid guild %d", player.pSimpleInfo.GuildID)
 		return
 	}
 
@@ -1520,7 +1516,7 @@ func Hand_AttackGuildCopy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
@@ -1538,7 +1534,7 @@ func Hand_AttackGuildCopy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	if guild.GetCopyLifeInfo(req.CopyID) <= 0 {
 		response.RetCode = msg.RE_CAMP_IS_KILLED
 		return
@@ -1642,12 +1638,12 @@ func Hand_GetGuildCopyTreasure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
 	//! 检查参数
 	if req.Chapter > guild.PassChapter {
@@ -1731,7 +1727,7 @@ func Hand_GetGuildChapterRecvLst(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RecvLst = []int{}
 		response.RetCode = msg.RE_SUCCESS
 		return
@@ -1770,12 +1766,12 @@ func Hand_GetAllGuildChapterAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	for i := 1; i < guild.PassChapter; i++ {
 		if player.GuildModule.CopyAwardMark.IsExist(i) >= 0 {
 			continue
@@ -1826,7 +1822,7 @@ func Hand_GetGuildChapterAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
@@ -1836,7 +1832,7 @@ func Hand_GetGuildChapterAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
 	if req.Chapter > guild.PassChapter {
 		response.RetCode = msg.RE_CANNOT_BE_RECV
@@ -1882,15 +1878,16 @@ func Hand_UpdateGuildInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
+	memberInfo := guild.GetGuildMember(player.GetPlayerID())
 
 	//! 判断权限
-	if gamedata.HasPermission(player.GuildModule.Role, gamedata.Permission_UpdateNotice) == false {
+	if gamedata.HasPermission(memberInfo.Pose, gamedata.Permission_UpdateNotice) == false {
 		response.RetCode = msg.RE_NOT_HAVE_PERMISSION
 		return
 	}
@@ -1932,18 +1929,20 @@ func Hand_UpdateGuildChapterBackStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
 	//! 判断权限
-	if gamedata.HasPermission(player.GuildModule.Role, gamedata.Permission_ResetCopy) == false {
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
+	memberInfo := guild.GetGuildMember(player.GetPlayerID())
+
+	if gamedata.HasPermission(memberInfo.Pose, gamedata.Permission_ResetCopy) == false {
 		response.RetCode = msg.RE_NOT_HAVE_PERMISSION
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
 	if req.IsBack == 0 {
 		guild.IsBack = false
 	} else {
@@ -1984,13 +1983,16 @@ func Hand_UpdateGuildName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
 	//! 判断权限
-	if gamedata.HasPermission(player.GuildModule.Role, gamedata.Permission_UpdateNotice) == false {
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
+	memberInfo := guild.GetGuildMember(player.GetPlayerID())
+
+	if gamedata.HasPermission(memberInfo.Pose, gamedata.Permission_UpdateNotice) == false {
 		response.RetCode = msg.RE_NOT_HAVE_PERMISSION
 		return
 	}
@@ -2005,8 +2007,6 @@ func Hand_UpdateGuildName(w http.ResponseWriter, r *http.Request) {
 	player.RoleMoudle.CostMoney(gamedata.UpdateGuildNameMoneyID, gamedata.UpdateGuildNameMoneyNum)
 
 	//! 修改公会名
-	guild := GetGuildByID(player.GuildModule.GuildID)
-
 	guild.Name = req.Name
 	go guild.DB_UpdateGuildName()
 
@@ -2042,25 +2042,25 @@ func Hand_KickGuildMember(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
 	//! 检测操作权限
-	if gamedata.HasPermission(player.GuildModule.Role, gamedata.Permission_Kick) == false {
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
+	memberInfo := guild.GetGuildMember(player.GetPlayerID())
+	if gamedata.HasPermission(memberInfo.Pose, gamedata.Permission_Kick) == false {
 		response.RetCode = msg.RE_NOT_HAVE_PERMISSION
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
 	guild.RemoveGuildMember(req.KickPlayerID)
 
 	//! 修改身份参数
 	targetPlayer := GetPlayerByID(req.KickPlayerID)
 	if targetPlayer != nil {
-		targetPlayer.GuildModule.GuildID = 0
-		targetPlayer.GuildModule.Role = 0
+		G_SimpleMgr.Set_GuildID(req.KickPlayerID, 0)
 		targetPlayer.GuildModule.ActionRecoverTime = 0
 	}
 	player.GuildModule.DB_KickPlayer(req.KickPlayerID)
@@ -2099,7 +2099,7 @@ func Hand_UseGuildMsgBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
@@ -2111,7 +2111,7 @@ func Hand_UseGuildMsgBoard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 生成留言
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
 	guild.AddMsgBoard(req.PlayerID, req.Message)
 
@@ -2146,12 +2146,12 @@ func Hand_RemoveGuildMsgBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
 	//! 删除留言
 	guild.RemoveMsgBoard(req.PlayerID, req.TargetTime)
@@ -2186,12 +2186,12 @@ func Hand_QueryGuildMsgBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
 	for _, v := range guild.MsgBoard {
 		var message msg.MSG_GuildBoard
@@ -2242,12 +2242,12 @@ func Hand_QueryGuildCopyRank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
 	guild.SortDamage()
 
@@ -2298,12 +2298,12 @@ func Hand_QueryGuildCopyTreasure(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	for _, v := range guild.CopyTreasure {
 		awardInfo := gamedata.GetGuildCampAwardInfo(v.AwardID)
 		if awardInfo.Chapter == req.Chapter {
@@ -2349,20 +2349,21 @@ func Hnad_ResearchGuildSkill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
 	//! 判断权限
-	if gamedata.HasPermission(player.GuildModule.Role, gamedata.Permission_Research) == false {
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
+	memberInfo := guild.GetGuildMember(player.GetPlayerID())
+
+	if gamedata.HasPermission(memberInfo.Pose, gamedata.Permission_Research) == false {
 		response.RetCode = msg.RE_NOT_HAVE_PERMISSION
 		return
 	}
 
 	//! 判断公会等级
-	guild := GetGuildByID(player.GuildModule.GuildID)
-
 	guildSkillLimit := 0
 	if req.SkillID == 15 {
 		guildSkillLimit = gamedata.GetGuildExpIncSKillLimit(guild.Level)
@@ -2424,13 +2425,13 @@ func Hand_StudyGuildSkill(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
 	//! 获取公会技能等级上限
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
 	playerSkillLevel := player.GuildModule.GetPlayerGuildSKillLevel(req.SkillID)
 	if playerSkillLevel+1 > guild.GetGuildSkillLevel(req.SkillID) {
@@ -2494,7 +2495,7 @@ func Hand_GetGuildSkillInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.SkillLst = []msg.TGuildSkill{}
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.SkillLst = []msg.TGuildSkill{}
 		response.RetCode = msg.RE_SUCCESS
 		return
@@ -2539,13 +2540,13 @@ func Hand_GetGuildSkillResearchInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.SkillLst = []msg.TGuildSkill{}
 		response.RetCode = msg.RE_SUCCESS
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
 	for _, v := range guild.SkillLst {
 		var skill msg.TGuildSkill
@@ -2586,13 +2587,13 @@ func Hand_GetGuildLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.LogLst = []msg.GuildEvent{}
 		response.RetCode = msg.RE_SUCCESS
 		return
 	}
 
-	guild := GetGuildByID(player.GuildModule.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
 	for _, v := range guild.EventLst {
 		var log msg.GuildEvent
@@ -2640,38 +2641,30 @@ func Hand_ChangeGuildMemberPose(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
 	//! 检查权限
-	if gamedata.HasPermission(player.GuildModule.Role, gamedata.Permission_Change) == false {
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
+
+	memberInfo := guild.GetGuildMember(player.GetPlayerID())
+
+	if gamedata.HasPermission(memberInfo.Pose, gamedata.Permission_Change) == false {
 		response.RetCode = msg.RE_NOT_HAVE_PERMISSION
 		return
 	}
 
 	//! 获取目标玩家
-	targetPlayer := GetPlayerByID(req.TargetPlayerID)
-	if targetPlayer == nil {
-		targetPlayer = LoadPlayerFromDB(req.TargetPlayerID)
-	}
 
-	if targetPlayer.GuildModule.GuildID != player.GuildModule.GuildID {
-		response.RetCode = msg.RE_INVALID_PARAM
-		return
-	}
-
-	if targetPlayer.GuildModule.Role < player.GuildModule.Role {
-		response.RetCode = msg.RE_INVALID_PARAM
-		return
-	}
-
-	guild := GetGuildByID(player.GuildModule.GuildID)
-
-	memberInfo := guild.GetGuildMember(player.GetPlayerID())
 	targetmemeberInfo := guild.GetGuildMember(req.TargetPlayerID)
 	if memberInfo == nil || targetmemeberInfo == nil {
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
+	if targetmemeberInfo.Pose < memberInfo.Pose {
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
@@ -2696,25 +2689,18 @@ func Hand_ChangeGuildMemberPose(w http.ResponseWriter, r *http.Request) {
 	if memberInfo.Pose == req.Role && memberInfo.Pose == Pose_Boss {
 
 		//! 赋予职位
-		targetPlayer.GuildModule.Role = player.GuildModule.Role
 		targetmemeberInfo.Pose = memberInfo.Pose
-		targetPlayer.GuildModule.DB_UpdateRole()
-		guild.UpdateGuildMemeber(targetPlayer.GetPlayerID(), targetmemeberInfo.Pose, targetmemeberInfo.Contribute)
+		guild.UpdateGuildMemeber(req.TargetPlayerID, targetmemeberInfo.Pose, targetmemeberInfo.Contribute)
 
 		//! 解除自身职位
-		player.GuildModule.Role = Pose_Member
 		memberInfo.Pose = Pose_Member
-		player.GuildModule.DB_UpdateRole()
 		guild.UpdateGuildMemeber(player.GetPlayerID(), Pose_Member, memberInfo.Contribute)
 
 	} else {
 
 		//gamelog.Info("curNum: %d  limitNum: %d", curNum, limitNum)
 		if curNum < limitNum {
-			targetPlayer.GuildModule.Role = req.Role
-			targetmemeberInfo.Pose = req.Role
-			targetPlayer.GuildModule.DB_UpdateRole()
-			guild.UpdateGuildMemeber(targetPlayer.GetPlayerID(), targetmemeberInfo.Pose, targetmemeberInfo.Contribute)
+			guild.UpdateGuildMemeber(req.TargetPlayerID, targetmemeberInfo.Pose, targetmemeberInfo.Contribute)
 		} else {
 			response.RetCode = msg.RE_GUILD_MEMBER_MAX
 			return
@@ -2757,18 +2743,18 @@ func Hand_GuildLevelUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GuildModule.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
 
 	//! 检查权限
-	if gamedata.HasPermission(player.GuildModule.Role, gamedata.Permission_UpdateGuild) == false {
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
+	memberInfo := guild.GetGuildMember(player.GetPlayerID())
+	if gamedata.HasPermission(memberInfo.Pose, gamedata.Permission_UpdateGuild) == false {
 		response.RetCode = msg.RE_NOT_HAVE_PERMISSION
 		return
 	}
-
-	guild := GetGuildByID(player.GuildModule.GuildID)
 
 	//! 检测经验是否足够
 	guildData := gamedata.GetGuildBaseInfo(guild.Level + 1)

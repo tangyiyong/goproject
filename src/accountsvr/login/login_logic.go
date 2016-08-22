@@ -133,7 +133,7 @@ func Handle_TouristRegister(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	var name string = "youke" + strconv.Itoa(rand.Intn(100000))
-	var password string = strconv.Itoa(rand.Intn(100000))
+	var password string = strconv.Itoa(rand.Intn(100000) + 100000)
 
 	var pAccount *TAccount = nil
 	pAccount, response.RetCode = G_AccountMgr.AddNewAccount(name, password)

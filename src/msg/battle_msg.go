@@ -74,6 +74,7 @@ type MSG_EnterRoom_Ack struct {
 	KillHonor int
 	LeftTimes int
 	MoveEndTime int
+	BeginMsgNo int
 	SkillID[4] int
 	Heros[6] MSG_HeroObj
 }
@@ -85,6 +86,7 @@ func (self *MSG_EnterRoom_Ack) Read(reader *PacketReader) bool {
 	self.KillHonor = reader.ReadInt32()
 	self.LeftTimes = reader.ReadInt32()
 	self.MoveEndTime = reader.ReadInt32()
+	self.BeginMsgNo = reader.ReadInt32()
 	for i := 0; i < int(4); i++ {
 		self.SkillID[i] = reader.ReadInt32()
 	}
@@ -101,6 +103,7 @@ func (self *MSG_EnterRoom_Ack) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.KillHonor)
 	writer.WriteInt32(self.LeftTimes)
 	writer.WriteInt32(self.MoveEndTime)
+	writer.WriteInt32(self.BeginMsgNo)
 	for i := 0; i < int(4); i++ {
 		writer.WriteInt32(self.SkillID[i]);
 	}
@@ -332,15 +335,18 @@ func (self *MSG_HeroState_Nty) Write(writer *PacketWriter) {
 
 type MSG_PlayerQuery_Req struct {
 	PlayerID int
+	MsgNo int
 }
 
 func (self *MSG_PlayerQuery_Req) Read(reader *PacketReader) bool {
 	self.PlayerID = reader.ReadInt32()
+	self.MsgNo = reader.ReadInt32()
 	return true
 }
 
 func (self *MSG_PlayerQuery_Req) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.PlayerID)
+	writer.WriteInt32(self.MsgNo)
 	return
 }
 
@@ -364,60 +370,111 @@ func (self *MSG_PlayerQuery_Ack) Write(writer *PacketWriter) {
 	return
 }
 
-type MSG_PlayerCarry_Req struct {
+type MSG_StartCarry_Req struct {
 	PlayerID int
-	CarryEvt int
+	MsgNo int
 }
 
-func (self *MSG_PlayerCarry_Req) Read(reader *PacketReader) bool {
+func (self *MSG_StartCarry_Req) Read(reader *PacketReader) bool {
 	self.PlayerID = reader.ReadInt32()
-	self.CarryEvt = reader.ReadInt32()
+	self.MsgNo = reader.ReadInt32()
 	return true
 }
 
-func (self *MSG_PlayerCarry_Req) Write(writer *PacketWriter) {
+func (self *MSG_StartCarry_Req) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.PlayerID)
-	writer.WriteInt32(self.CarryEvt)
+	writer.WriteInt32(self.MsgNo)
 	return
 }
 
-type MSG_PlayerCarry_Ack struct {
+type MSG_StartCarry_Ack struct {
 	RetCode int
-	CarryEvt int
+	PlayerID int
 	EndTime int
 	LeftTimes int
 }
 
-func (self *MSG_PlayerCarry_Ack) Read(reader *PacketReader) bool {
+func (self *MSG_StartCarry_Ack) Read(reader *PacketReader) bool {
 	self.RetCode = reader.ReadInt32()
-	self.CarryEvt = reader.ReadInt32()
+	self.PlayerID = reader.ReadInt32()
 	self.EndTime = reader.ReadInt32()
 	self.LeftTimes = reader.ReadInt32()
 	return true
 }
 
-func (self *MSG_PlayerCarry_Ack) Write(writer *PacketWriter) {
+func (self *MSG_StartCarry_Ack) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.RetCode)
-	writer.WriteInt32(self.CarryEvt)
+	writer.WriteInt32(self.PlayerID)
 	writer.WriteInt32(self.EndTime)
 	writer.WriteInt32(self.LeftTimes)
+	return
+}
+
+type MSG_FinishCarry_Req struct {
+	PlayerID int
+	MsgNo int
+}
+
+func (self *MSG_FinishCarry_Req) Read(reader *PacketReader) bool {
+	self.PlayerID = reader.ReadInt32()
+	self.MsgNo = reader.ReadInt32()
+	return true
+}
+
+func (self *MSG_FinishCarry_Req) Write(writer *PacketWriter) {
+	writer.WriteInt32(self.PlayerID)
+	writer.WriteInt32(self.MsgNo)
+	return
+}
+
+type MSG_FinishCarry_Ack struct {
+	RetCode int
+	PlayerID int
+	MoneyID[2] int
+	MoneyNum[2] int
+}
+
+func (self *MSG_FinishCarry_Ack) Read(reader *PacketReader) bool {
+	self.RetCode = reader.ReadInt32()
+	self.PlayerID = reader.ReadInt32()
+	for i := 0; i < int(2); i++ {
+		self.MoneyID[i] = reader.ReadInt32()
+	}
+	for i := 0; i < int(2); i++ {
+		self.MoneyNum[i] = reader.ReadInt32()
+	}
+	return true
+}
+
+func (self *MSG_FinishCarry_Ack) Write(writer *PacketWriter) {
+	writer.WriteInt32(self.RetCode)
+	writer.WriteInt32(self.PlayerID)
+	for i := 0; i < int(2); i++ {
+		writer.WriteInt32(self.MoneyID[i]);
+	}
+	for i := 0; i < int(2); i++ {
+		writer.WriteInt32(self.MoneyNum[i]);
+	}
 	return
 }
 
 type MSG_PlayerChange_Req struct {
 	PlayerID int
 	HighQuality int
+	MsgNo int
 }
 
 func (self *MSG_PlayerChange_Req) Read(reader *PacketReader) bool {
 	self.PlayerID = reader.ReadInt32()
 	self.HighQuality = reader.ReadInt32()
+	self.MsgNo = reader.ReadInt32()
 	return true
 }
 
 func (self *MSG_PlayerChange_Req) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.PlayerID)
 	writer.WriteInt32(self.HighQuality)
+	writer.WriteInt32(self.MsgNo)
 	return
 }
 
@@ -443,17 +500,20 @@ func (self *MSG_PlayerChange_Ack) Write(writer *PacketWriter) {
 
 type MSG_PlayerRevive_Req struct {
 	PlayerID int
+	MsgNo int
 	ReviveOpt int
 }
 
 func (self *MSG_PlayerRevive_Req) Read(reader *PacketReader) bool {
 	self.PlayerID = reader.ReadInt32()
+	self.MsgNo = reader.ReadInt32()
 	self.ReviveOpt = reader.ReadInt32()
 	return true
 }
 
 func (self *MSG_PlayerRevive_Req) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.PlayerID)
+	writer.WriteInt32(self.MsgNo)
 	writer.WriteInt32(self.ReviveOpt)
 	return
 }
@@ -830,17 +890,20 @@ func (self *MSG_SvrLogData) Write(writer *PacketWriter) {
 type MSG_HeartBeat_Req struct {
 	SendID int
 	BeatCode int
+	MsgNo int
 }
 
 func (self *MSG_HeartBeat_Req) Read(reader *PacketReader) bool {
 	self.SendID = reader.ReadInt32()
 	self.BeatCode = reader.ReadInt32()
+	self.MsgNo = reader.ReadInt32()
 	return true
 }
 
 func (self *MSG_HeartBeat_Req) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.SendID)
 	writer.WriteInt32(self.BeatCode)
+	writer.WriteInt32(self.MsgNo)
 	return
 }
 
@@ -860,12 +923,14 @@ func (self *MSG_HeroAllDie_Nty) Write(writer *PacketWriter) {
 
 type MSG_CmapBatChat_Req struct {
 	PlayerID int
+	MsgNo int
 	Name string
 	Content string
 }
 
 func (self *MSG_CmapBatChat_Req) Read(reader *PacketReader) bool {
 	self.PlayerID = reader.ReadInt32()
+	self.MsgNo = reader.ReadInt32()
 	self.Name = reader.ReadString()
 	self.Content = reader.ReadString()
 	return true
@@ -873,6 +938,7 @@ func (self *MSG_CmapBatChat_Req) Read(reader *PacketReader) bool {
 
 func (self *MSG_CmapBatChat_Req) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.PlayerID)
+	writer.WriteInt32(self.MsgNo)
 	writer.WriteString(self.Name)
 	writer.WriteString(self.Content)
 	return

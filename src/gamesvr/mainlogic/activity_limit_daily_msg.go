@@ -43,7 +43,7 @@ func Hand_GetLimitDailyTaskInfo(w http.ResponseWriter, r *http.Request) {
 	//! 获取活动信息
 	var activity *TActivityLimitDaily
 	for i, v := range player.ActivityModule.LimitDaily {
-		if v.ActivityID == activity.ActivityID {
+		if v.ActivityID == req.ActivityID {
 			activity = &player.ActivityModule.LimitDaily[i]
 			break
 		}
@@ -61,11 +61,10 @@ func Hand_GetLimitDailyTaskInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, v := range activity.TaskLst {
+	for i, v := range activity.TaskLst {
 		var task msg.TLimitDailyTask
-		task.TaskType = v.TaskType
+		task.Index = i + 1
 		task.Count = v.Count
-		task.Need = v.Need
 		task.Status = v.Status
 		response.TaskLst = append(response.TaskLst, task)
 	}
@@ -110,7 +109,7 @@ func Hand_GetLimitDailyTaskAward(w http.ResponseWriter, r *http.Request) {
 	var activity *TActivityLimitDaily
 	activityIndex := 0
 	for i, v := range player.ActivityModule.LimitDaily {
-		if v.ActivityID == activity.ActivityID {
+		if v.ActivityID == req.ActivityID {
 			activityIndex = i
 			activity = &player.ActivityModule.LimitDaily[i]
 			break
@@ -129,13 +128,13 @@ func Hand_GetLimitDailyTaskAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(activity.TaskLst) <= req.Index || req.Index < 0 {
+	if len(activity.TaskLst) < req.Index || req.Index <= 0 {
 		gamelog.Error("Hand_GetLimitDailyTaskAward Error: Invalid param")
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
 
-	task := &activity.TaskLst[req.Index]
+	task := &activity.TaskLst[req.Index-1]
 	if task.Status != 1 {
 		gamelog.Error("Hand_GetLimitDailyTaskAward Error: Aleady receive or not done")
 		response.RetCode = msg.RE_TASK_NOT_COMPLETE
@@ -162,7 +161,7 @@ func Hand_GetLimitDailyTaskAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 更新任务状态
 	task.Status = 2
-	activity.DB_UpdateTaskStatus(activityIndex, req.Index)
+	activity.DB_UpdateTaskStatus(activityIndex, req.Index-1)
 
 	response.RetCode = msg.RE_SUCCESS
 }

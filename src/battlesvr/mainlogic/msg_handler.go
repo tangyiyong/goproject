@@ -61,7 +61,7 @@ func CreateBattleObject(loadack *msg.MSG_LoadCampBattle_Ack) *TBattleObj {
 	pBattleObj.PlayerID = loadack.PlayerID
 	pBattleObj.Level = loadack.Level
 	pBattleObj.BatCamp = loadack.BattleCamp
-	pBattleObj.MoveEndTime = int64(loadack.MoveEndTime)
+	pBattleObj.MoveEndTime = loadack.MoveEndTime
 	for i := 0; i < 6; i++ {
 		if loadack.Heros[i].HeroID == 0 {
 			break
@@ -91,8 +91,8 @@ func Hand_EnterRoom(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	if req.PlayerID == 0 {
-		gamelog.Error("Hand_EnterRoom : req.PlayerID == 0")
+	if req.PlayerID < 10000 {
+		gamelog.Error("Hand_EnterRoom : req.PlayerID :%d", req.PlayerID)
 		return
 	}
 
@@ -108,12 +108,18 @@ func Hand_EnterRoom(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	if poldConn != nil {
 		DelConnByID(req.PlayerID)
 		pBattleData := poldConn.Data.(*TBattleData)
-		var leaventy msg.MSG_LeaveRoom_Notify
-		leaventy.ObjectIDs = G_RoomMgr.GetPlayerHeroIDs(pBattleData.RoomID, req.PlayerID)
-		SendMessageToRoom(req.PlayerID, pBattleData.RoomID, msg.MSG_LEAVE_ROOM_NTY, &leaventy)
-		G_RoomMgr.RemovePlayerFromRoom(pBattleData.RoomID, req.PlayerID)
+		if pBattleData != nil && pBattleData.RoomID > 0 {
+			var leaventy msg.MSG_LeaveRoom_Notify
+			leaventy.ObjectIDs = G_RoomMgr.GetPlayerHeroIDs(pBattleData.RoomID, req.PlayerID)
+			SendMessageToRoom(req.PlayerID, pBattleData.RoomID, msg.MSG_LEAVE_ROOM_NTY, &leaventy)
+			G_RoomMgr.RemovePlayerFromRoom(pBattleData.RoomID, req.PlayerID)
+		} else {
+			gamelog.Error("Hand_EnterRoom : old BattleData roomid <= 0  not in a room yet!!!")
+		}
+
 		poldConn.Cleaned = true
 		poldConn.Close()
+
 		gamelog.Info("CheckAndClean Error: Clean the unclosed Connection:%d", req.PlayerID)
 	}
 
@@ -184,28 +190,38 @@ func Hand_LeaveRoom(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	if req.PlayerID == 0 {
-		gamelog.Error("Hand_LeaveRoom Error: req.PlayerID == 0")
+	var roomID = 0
+	var playerid = 0
+	if pTcpConn != nil && pTcpConn.Data != nil {
+		roomID = pTcpConn.Data.(*TBattleData).RoomID
+		playerid = pTcpConn.Data.(*TBattleData).PlayerID
+	}
+
+	if req.PlayerID == 0 || req.PlayerID != playerid {
+		gamelog.Error("Hand_LeaveRoom Error: req.PlayerID :%d, playerid:%d", req.PlayerID, playerid)
 		return
 	}
 
-	var roomID = 0
-	if pTcpConn != nil && pTcpConn.Data != nil {
-		roomID = pTcpConn.Data.(*TBattleData).RoomID
-	}
+	G_RoomMgr.RemovePlayerFromRoom(roomID, req.PlayerID)
+	DelConnByID(req.PlayerID)
 
 	var response msg.MSG_LeaveRoom_Notify
 	response.ObjectIDs = G_RoomMgr.GetPlayerHeroIDs(roomID, req.PlayerID)
 	SendMessageToRoom(req.PlayerID, roomID, msg.MSG_LEAVE_ROOM_NTY, &response)
-	CheckAndClean(req.PlayerID)
+	pTcpConn.Cleaned = true
+	pTcpConn.Close()
 	return
 }
 
 func Hand_MoveState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	//gamelog.Info("message: MSG_MOVE_STATE")
+	if pTcpConn.Data == nil {
+		gamelog.Info("Hand_MoveState Error: pTcpConn.Data == nil")
+		return
+	}
+
 	playerid := pTcpConn.Data.(*TBattleData).PlayerID
 	roomid := pTcpConn.Data.(*TBattleData).RoomID
-
 	var req msg.MSG_Move_Req
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
 		gamelog.Error("Hand_MoveState : Message Reader Error!!!!")
@@ -243,6 +259,10 @@ func Hand_BuffState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 
 func Hand_PlayerQueryReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	gamelog.Info("message: MSG_PLAYER_QUERY_REQ")
+	if pTcpConn.Data == nil {
+		gamelog.Info("Hand_PlayerQueryReq Error: pTcpConn.Data == nil")
+		return
+	}
 	playerid := pTcpConn.Data.(*TBattleData).PlayerID
 	roomid := pTcpConn.Data.(*TBattleData).RoomID
 	if playerid <= 0 || roomid <= 0 {
@@ -256,8 +276,7 @@ func Hand_PlayerQueryReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	G_GameSvrConns.WriteMsgData(pdata)
-
+	G_GameSvrConns.WriteMsg(msg.MSG_PLAYER_QUERY_REQ, pdata)
 	return
 }
 
@@ -276,7 +295,7 @@ func Hand_PlayerQueryAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	pConn.WriteMsgData(pdata)
+	pConn.WriteMsg(msg.MSG_PLAYER_QUERY_ACK, pdata)
 
 	return
 }
@@ -296,7 +315,10 @@ func Hand_LoadCampBatAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	}
 
 	pBattleObj := CreateBattleObject(&req)
-	RoomID := G_RoomMgr.AddPlayerToRoom(req.RoomType, pBattleObj.BatCamp, pBattleObj)
+
+	//
+	//
+	RoomID := G_RoomMgr.AddPlayerToRoom(1 /*req.RoomType*/, pBattleObj.BatCamp, pBattleObj)
 	if RoomID <= 0 {
 		gamelog.Error("Hand_LoadCampBatAck Error AddPlayerToRoom Failed!!!")
 		return
@@ -304,6 +326,7 @@ func Hand_LoadCampBatAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	pConn.Data.(*TBattleData).RoomID = RoomID
 
 	var resAck msg.MSG_EnterRoom_Ack
+	resAck.MoveEndTime = req.MoveEndTime
 	resAck.BatCamp = pBattleObj.BatCamp
 	resAck.LeftTimes = req.LeftTimes
 	resAck.CurRank = req.CurRank
@@ -352,7 +375,7 @@ func Hand_LoadCampBatAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 				obj.Heros[j].HeroID = pRoom.Players[i].HeroObj[j].HeroID
 				obj.Heros[j].ObjectID = pRoom.Players[i].HeroObj[j].ObjectID
 				obj.Heros[j].Position = pRoom.Players[i].HeroObj[j].Position
-				obj.Heros[i].CurHp = pRoom.Players[i].HeroObj[j].CurProperty[0]
+				obj.Heros[j].CurHp = pRoom.Players[i].HeroObj[j].CurProperty[0]
 			}
 			resNotify2.BatObjs_Cnt += 1
 			resNotify2.BatObjs = append(resNotify2.BatObjs, obj)
@@ -370,72 +393,189 @@ func Hand_LoadCampBatAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 
 }
 
-func Hand_PlayerCarryReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
-	gamelog.Info("message: MSG_PLAYER_CARRY_REQ")
+func Hand_StartCarryReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+	gamelog.Info("message: MSG_START_CARRY_REQ")
+	if pTcpConn.Data == nil {
+		gamelog.Info("Hand_PlayerChatReq Error: pTcpConn.Data == nil")
+		return
+	}
 	playerid := pTcpConn.Data.(*TBattleData).PlayerID
 	roomid := pTcpConn.Data.(*TBattleData).RoomID
 	if playerid <= 0 || roomid <= 0 {
-		gamelog.Info("Hand_PlayerCarryReq Error: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
+		gamelog.Info("Hand_StartCarryReq Error: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
 		return
 	}
 
 	pRoom := G_RoomMgr.GetRoomByID(roomid)
 	if pRoom == nil {
-		gamelog.Info("Hand_PlayerCarryReq Error2: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
+		gamelog.Info("Hand_StartCarryReq Error2: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
 		return
 	}
 
 	pBattleObj := pRoom.GetBattleByPID(playerid)
 	if pBattleObj == nil {
-		gamelog.Error("Hand_PlayerCarryReq Error: Invalid playerid:%d", playerid)
+		gamelog.Error("Hand_StartCarryReq Error: Invalid playerid:%d", playerid)
 		return
 	}
 
-	var req msg.MSG_PlayerCarry_Req
+	if pBattleObj.MoveEndTime > 0 {
+		gamelog.Error("Hand_StartCarryReq Error: Has Already Carry a Ctystal:%d", playerid)
+		return
+	}
+
+	pRect := &gamedata.GetSceneInfo().Camps[pBattleObj.BatCamp-1].MoveBegin
+	if !pBattleObj.IsTeamIn(pRect) {
+		gamelog.Error("Hand_StartCarryReq Error: Not In The Start Carry Rect:%d", playerid)
+		return
+	}
+
+	G_GameSvrConns.WriteMsg(msg.MSG_START_CARRY_REQ, pdata)
+
+	return
+}
+
+func Hand_FinishCarryReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+	gamelog.Info("message: MSG_FINISH_CARRY_REQ")
+	if pTcpConn.Data == nil {
+		gamelog.Info("Hand_PlayerChatReq Error: pTcpConn.Data == nil")
+		return
+	}
+	playerid := pTcpConn.Data.(*TBattleData).PlayerID
+	roomid := pTcpConn.Data.(*TBattleData).RoomID
+	if playerid <= 0 || roomid <= 0 {
+		gamelog.Info("Hand_FinishCarryReq Error: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
+		return
+	}
+
+	pRoom := G_RoomMgr.GetRoomByID(roomid)
+	if pRoom == nil {
+		gamelog.Info("Hand_FinishCarryReq Error2: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
+		return
+	}
+
+	pBattleObj := pRoom.GetBattleByPID(playerid)
+	if pBattleObj == nil {
+		gamelog.Error("Hand_FinishCarryReq Error: Invalid playerid:%d", playerid)
+		return
+	}
+
+	var req msg.MSG_FinishCarry_Req
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
-		gamelog.Error("Hand_PlayerCarryReq Error: Message Reader Error!!!!")
+		gamelog.Error("Hand_FinishCarryReq Error: Message Reader Error!!!!")
 		return
 	}
 
-	if req.CarryEvt == 1 { //开始搬运
-		if pBattleObj.MoveEndTime > 0 {
-			gamelog.Error("Hand_PlayerCarryReq Error: Has Already Carry a Ctystal:%d", playerid)
-			return
-		}
-
-		pRect := &gamedata.GetSceneInfo().Camps[pBattleObj.BatCamp-1].MoveBegin
-		if !pBattleObj.IsTeamIn(pRect) {
-			gamelog.Error("Hand_PlayerCarryReq Error: Not In The Start Carry Rect:%d", playerid)
-			return
-		}
-	} else if req.CarryEvt == 2 { //完成搬运
-		if pBattleObj.MoveEndTime <= 0 {
-			gamelog.Error("Hand_PlayerCarryReq Error: Has not start:%d", playerid)
-			return
-		}
-
-		if time.Now().Unix() > pBattleObj.MoveEndTime {
-			gamelog.Error("Hand_PlayerCarryReq Error: Too late:%d", playerid)
-			return
-		}
-
-		pRect := &gamedata.GetSceneInfo().Camps[pBattleObj.BatCamp-1].MoveEnd
-		if !pBattleObj.IsTeamIn(pRect) {
-			gamelog.Error("Hand_PlayerCarryReq Error: Not In The Start Carry Rect:%d", playerid)
-			return
-		}
-	} else {
-		gamelog.Error("Hand_PlayerCarryReq Error: Invalid Carry Event :%d", req.CarryEvt)
+	if pBattleObj.MoveEndTime <= 0 {
+		gamelog.Error("Hand_FinishCarryReq Error: Has not start:%d", playerid)
 		return
 	}
 
-	G_GameSvrConns.WriteMsgData(pdata)
+	if int(time.Now().Unix()) > pBattleObj.MoveEndTime {
+		gamelog.Error("Hand_FinishCarryReq Error: Too late:%d", playerid)
+		return
+	}
+
+	pRect := &gamedata.GetSceneInfo().Camps[pBattleObj.BatCamp-1].MoveEnd
+	if !pBattleObj.IsTeamIn(pRect) {
+		gamelog.Error("Hand_FinishCarryReq Error: Not In The Start Carry Rect:%d", playerid)
+		return
+	}
+
+	G_GameSvrConns.WriteMsg(msg.MSG_FINISH_CARRY_REQ, pdata)
+
+	return
+}
+
+func Hand_StartCarryAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+	gamelog.Info("message: MSG_START_CARRY_ACK")
+	var req msg.MSG_StartCarry_Ack
+	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
+		gamelog.Error("Hand_StartCarryAck Error: Message Reader Error!!!!")
+		return
+	}
+
+	pConn := GetConnByID(req.PlayerID)
+	if pConn == nil {
+		gamelog.Error("Hand_StartCarryAck : Invalid PlayerID:%d!!!!", req.PlayerID)
+		return
+	}
+
+	playerid := pConn.Data.(*TBattleData).PlayerID
+	roomid := pConn.Data.(*TBattleData).RoomID
+	if playerid <= 0 || roomid <= 0 {
+		gamelog.Info("Hand_StartCarryAck Error: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
+		return
+	}
+
+	pRoom := G_RoomMgr.GetRoomByID(roomid)
+	if pRoom == nil {
+		gamelog.Info("Hand_StartCarryAck Error2: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
+		return
+	}
+
+	pBattleObj := pRoom.GetBattleByPID(playerid)
+	if pBattleObj == nil {
+		gamelog.Error("Hand_StartCarryAck Error: Invalid playerid:%d", playerid)
+		return
+	}
+
+	if req.RetCode == msg.RE_SUCCESS {
+		pBattleObj.MoveEndTime = req.EndTime
+	}
+
+	pConn.WriteMsg(msg.MSG_START_CARRY_ACK, pdata)
+
+	return
+}
+
+func Hand_FinishCarryAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+	gamelog.Info("message: MSG_FINISH_CARRY_ACK")
+	var req msg.MSG_FinishCarry_Ack
+	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
+		gamelog.Error("Hand_FinishCarryAck Error: Message Reader Error!!!!")
+		return
+	}
+
+	pConn := GetConnByID(req.PlayerID)
+	if pConn == nil {
+		gamelog.Error("Hand_FinishCarryAck : Invalid PlayerID:%d!!!!", req.PlayerID)
+		return
+	}
+
+	if req.RetCode == msg.RE_SUCCESS {
+		playerid := pConn.Data.(*TBattleData).PlayerID
+		roomid := pConn.Data.(*TBattleData).RoomID
+		if playerid <= 0 || roomid <= 0 {
+			gamelog.Info("Hand_FinishCarryAck Error: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
+			return
+		}
+
+		pRoom := G_RoomMgr.GetRoomByID(roomid)
+		if pRoom == nil {
+			gamelog.Info("Hand_FinishCarryAck Error2: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
+			return
+		}
+
+		pBattleObj := pRoom.GetBattleByPID(playerid)
+		if pBattleObj == nil {
+			gamelog.Error("Hand_FinishCarryAck Error: Invalid playerid:%d", playerid)
+			return
+		}
+
+		pBattleObj.MoveEndTime = 0
+	}
+
+	pConn.WriteMsg(msg.MSG_FINISH_CARRY_ACK, pdata)
 
 	return
 }
 
 func Hand_PlayerChangeReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	gamelog.Info("message: MSG_PLAYER_CHANGE_REQ")
+	if pTcpConn.Data == nil {
+		gamelog.Info("Hand_PlayerChatReq Error: pTcpConn.Data == nil")
+		return
+	}
 	playerid := pTcpConn.Data.(*TBattleData).PlayerID
 	roomid := pTcpConn.Data.(*TBattleData).RoomID
 	if playerid <= 0 || roomid <= 0 {
@@ -449,7 +589,7 @@ func Hand_PlayerChangeReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	G_GameSvrConns.WriteMsgData(pdata)
+	G_GameSvrConns.WriteMsg(msg.MSG_PLAYER_CHANGE_REQ, pdata)
 
 	return
 }
@@ -468,13 +608,17 @@ func Hand_PlayerChangeAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	pConn.WriteMsgData(pdata)
+	pConn.WriteMsg(msg.MSG_PLAYER_CHANGE_ACK, pdata)
 
 	return
 }
 
 func Hand_PlayerReviveReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	gamelog.Info("message: MSG_PLAYER_REVIVE_REQ")
+	if pTcpConn.Data == nil {
+		gamelog.Info("Hand_PlayerChatReq Error: pTcpConn.Data == nil")
+		return
+	}
 	playerid := pTcpConn.Data.(*TBattleData).PlayerID
 	roomid := pTcpConn.Data.(*TBattleData).RoomID
 	if playerid <= 0 || roomid <= 0 {
@@ -488,7 +632,7 @@ func Hand_PlayerReviveReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	G_GameSvrConns.WriteMsgData(pdata)
+	G_GameSvrConns.WriteMsg(msg.MSG_PLAYER_REVIVE_REQ, pdata)
 
 	return
 }
@@ -560,6 +704,10 @@ func Hand_PlayerReviveAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 
 func Hand_HeartBeat(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	gamelog.Info("message: MSG_HEART_BEAT")
+	if pTcpConn.Data == nil {
+		gamelog.Info("Hand_PlayerChatReq Error: pTcpConn.Data == nil")
+		return
+	}
 	var req msg.MSG_HeartBeat_Req
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
 		gamelog.Error("Hand_HeartBeat : Message Reader Error!!!!")
@@ -571,6 +719,11 @@ func Hand_HeartBeat(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 
 func Hand_PlayerChatReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	gamelog.Info("message: MSG_CAMPBAT_CHAT_REQ")
+	if pTcpConn.Data == nil {
+		gamelog.Info("Hand_PlayerChatReq Error: pTcpConn.Data == nil")
+		return
+	}
+
 	var req msg.MSG_CmapBatChat_Req
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
 		gamelog.Error("Hand_PlayerChatReq : Message Reader Error!!!!")

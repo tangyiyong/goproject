@@ -18,10 +18,10 @@ type TActivityLst []TActivityData
 
 type TActivityData struct {
 	ActivityID   int   //! 唯一活动ID
-	ActivityType int   //! 活动所用类型模板
+	activityType int   //! 活动所用类型模板
 	beginTime    int64 //! 活动开启时间
 	endTime      int64 //! 活动结束时间
-	Award        int   //! 当前活动使用奖励版本
+	award        int   //! 当前活动使用奖励版本
 	Status       int   //! 状态: 1:有效活动，0:无效活动。
 	VersionCode  int   //! 活动刷新版本号
 	ResetCode    int   //! 活动迭代版本号
@@ -43,6 +43,7 @@ type TGlobalVariables struct {
 	ExcitedMoneyPoor int                  //! 豪华奖金池
 	GroupPurchaseLst []TGroupPurchaseInfo //! 团购货物列表
 	SevenDayLimit    []TSevenDayBuyInfo   //! 七日活动已购买限购的人数列表
+	LimitSaleNum     int                  //! 限时特惠道具购买人次
 
 	ActivityLst TActivityLst //! 活动列表
 
@@ -65,7 +66,7 @@ func (self *TGlobalVariables) Init() {
 		openDay := GetOpenServerDay()
 		for _, v := range gamedata.GT_ActivityLst {
 			if v.ID == 0 {
-				//gamelog.Error("TGlobalVariables::Init Error Invalid ActivityID:%d", v.ID)
+				gamelog.Error("TGlobalVariables::Init Error Invalid ActivityID:%d", v.ID)
 				continue
 			}
 
@@ -78,8 +79,8 @@ func (self *TGlobalVariables) Init() {
 
 			var activity TActivityData
 			activity.ActivityID = v.ID
-			activity.ActivityType = v.ActivityType
-			activity.Award = v.AwardType
+			activity.activityType = v.ActivityType
+			activity.award = v.AwardType
 			activity.beginTime, activity.endTime = gamedata.GetActivityEndTime(v.ID, openDay)
 			activity.VersionCode = 0
 			activity.ResetCode = 0
@@ -95,6 +96,9 @@ func (self *TGlobalVariables) Init() {
 
 	//! 计算活动状态
 	self.CalcActivityTime()
+
+	//! 赋值活动奖励模板
+	self.SetActivityAwardType()
 
 }
 
@@ -115,7 +119,7 @@ func (self *TGlobalVariables) GetActivityAwardType(activityID int) int {
 	//! 根据活动模板获取对应ID
 	for i := 0; i < len(self.ActivityLst); i++ {
 		if self.ActivityLst[i].ActivityID == activityID {
-			return self.ActivityLst[i].Award
+			return self.ActivityLst[i].award
 		}
 	}
 
@@ -129,7 +133,9 @@ func (self *TGlobalVariables) IsActivityOpen(activityID int) bool {
 	length := len(self.ActivityLst)
 	for i := 0; i < length; i++ {
 		data := &self.ActivityLst[i]
-		if activityID == data.ActivityID && data.Status == 1 && ((data.beginTime <= now && now <= data.endTime) || (data.beginTime == 0 && data.endTime == 0)) {
+		if activityID == data.ActivityID &&
+			data.Status == 1 &&
+			((data.beginTime <= now && now <= data.endTime) || (data.beginTime == 0 && data.endTime == 0)) {
 			return true
 		}
 	}
@@ -145,6 +151,10 @@ func (self *TGlobalVariables) IsActivityTime(activityID int) (bool, int) {
 	for _, v := range G_GlobalVariables.ActivityLst {
 		activityInfo := gamedata.GetActivityInfo(v.ActivityID)
 		if G_GlobalVariables.IsActivityOpen(v.ActivityID) == true && activityID == v.ActivityID {
+			if v.beginTime == 0 && v.endTime == 0 {
+				return true, 0 //! 永久开启
+			}
+
 			endCountDown = int(v.endTime) - activityInfo.AwardTime*24*60*60
 
 			// gamelog.Info("EndTime: %v    endCountDown: %v", v.endTime, endCountDown)
@@ -168,6 +178,14 @@ func (self *TGlobalVariables) IsActivityValid(activityID int) bool {
 	}
 
 	return false
+}
+
+func (self *TGlobalVariables) SetActivityAwardType() {
+	for i, v := range self.ActivityLst {
+		activityInfo := gamedata.GetActivityInfo(v.ActivityID)
+		self.ActivityLst[i].award = activityInfo.AwardType
+		self.ActivityLst[i].activityType = activityInfo.ActivityType
+	}
 }
 
 //! 计算开启时间与关闭时间
@@ -232,7 +250,7 @@ func (self *TGlobalVariables) InitSevenDayBuyLst() bool {
 
 	index := 0
 	for i := 0; i < len(G_GlobalVariables.ActivityLst); i++ {
-		if G_GlobalVariables.ActivityLst[i].ActivityType == gamedata.Activity_Seven {
+		if G_GlobalVariables.ActivityLst[i].activityType == gamedata.Activity_Seven {
 			if G_GlobalVariables.IsActivityOpen(G_GlobalVariables.ActivityLst[i].ActivityID) == true {
 				filedName := fmt.Sprintf("sevenday.%d.buylst", index)
 				err := s.DB(appconfig.GameDbName).C("PlayerActivity").Find(bson.M{filedName: bson.M{"$exists": true}}).All(&sevenDayLst)
@@ -356,10 +374,8 @@ func (self *TGlobalVariables) DB_SaveSevenDayLimit(index int) {
 
 func (self *TGlobalVariables) DB_UpdateActivityInfo(index int) {
 	filedName := fmt.Sprintf("activitylst.%d.status", index)
-	filedName2 := fmt.Sprintf("activitylst.%d.award", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "GlobalVariables", bson.M{"_id": 1}, bson.M{"$set": bson.M{
-		filedName:  self.ActivityLst[index].Status,
-		filedName2: self.ActivityLst[index].Award}})
+		filedName: self.ActivityLst[index].Status}})
 }
 
 // GM调用的增删全服奖励接口
@@ -388,4 +404,9 @@ func (self *TGlobalVariables) db_DelAward(id int) {
 }
 func (self *TGlobalVariables) db_SaveIncrementID() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "SvrAwardCenter", bson.M{"_id": 0}, bson.M{"$set": bson.M{"svrawardincid": self.SvrAwardIncID}})
+}
+
+func (self *TGlobalVariables) DB_UpdateLimitSaleNum() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "GlobalVariables", bson.M{"_id": 1}, bson.M{"$set": bson.M{
+		"limitsalenum": self.LimitSaleNum}})
 }

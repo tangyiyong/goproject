@@ -53,14 +53,13 @@ func Hand_GetActivity(w http.ResponseWriter, r *http.Request) {
 		activityInfo := gamedata.GetActivityInfo(v.ActivityID)
 		openday := GetOpenServerDay()
 		if activityInfo == nil {
-			gamelog.Error("GetActivityType Fail: type: %d", v.ActivityType)
+			gamelog.Error("GetActivityType Fail: type: %d", v.activityType)
 			continue
 		}
 
 		activity.Icon = activityInfo.Icon
-		activity.Type = v.ActivityType
-		activity.Name = activityInfo.Name
-		activity.AwardType = v.Award
+		activity.Type = v.activityType
+		activity.AwardType = v.award
 		activity.BeginTime = v.beginTime
 		activity.EndTime = v.endTime
 		activity.AwardTime = int(v.endTime)

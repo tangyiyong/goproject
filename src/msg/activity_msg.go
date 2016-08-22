@@ -14,15 +14,14 @@ type TActivityDiscount struct {
 
 type MSG_ActivityInfo struct {
 	ID        int
-	Icon      int    //! 活动图标
-	Type      int    //! 活动套用模板
-	Name      string //! 名称
-	AwardType int    //! 活动套用奖励
-	RedTip    bool   //! 是否存在操作提示
-	BeginTime int64  //! 开始时间
-	EndTime   int64  //! 结束时间
-	AwardTime int    //! 领奖时间
-	IsInside  int    //! 是否在里面
+	Icon      int   //! 活动图标
+	Type      int   //! 活动套用模板
+	AwardType int   //! 活动套用奖励
+	RedTip    bool  //! 是否存在操作提示
+	BeginTime int64 //! 开始时间
+	EndTime   int64 //! 结束时间
+	AwardTime int   //! 领奖时间
+	IsInside  int   //! 是否在里面
 }
 
 type MSG_GetActivity_Ack struct {
@@ -87,11 +86,11 @@ type MSG_QueryActivity_TotalRecharge_Req struct {
 
 type MSG_QueryActivity_TotalRecharge_Ack struct {
 	//! 充值回馈
-	RetCode          int
-	ActivityID       int
-	AwardType        int
-	RechargeValue    int //! 活动期间累积充值数额
-	RechargeAwardLst int //! 累积充值领取标记 (索引 按位运算)
+	RetCode     int
+	ActivityID  int
+	AwardType   int
+	RechargeNum int //! 活动期间累积充值数额
+	AwardMark   int //! 累积充值领取标记 (索引 按位运算)
 }
 
 //! 查询月卡天数
@@ -140,10 +139,9 @@ type MSG_GetActivity_LoginAward_Req struct {
 }
 
 type MSG_GetActivity_LoginAward_Ack struct {
-	AwardItem  []MSG_ItemData
-	Index      int
-	ActivityID int
-	RetCode    int
+	AwardItem []MSG_ItemData
+	AwardMark int
+	RetCode   int
 }
 
 //! 请求领取首充奖励
@@ -416,11 +414,9 @@ type MSG_GetLimitDailyTask_Req struct {
 
 //! 限时日常任务类型
 type TLimitDailyTask struct {
-	TaskType int //! 任务类型
-	Count    int //! 当前次数
-	Need     int //! 需要次数
-	Status   int //! 状态: 0->未完成 1->已完成 2->已领取
-	Award    int //! 奖励
+	Index  int //! 任务类型
+	Count  int //! 当前次数
+	Status int //! 状态: 0->未完成 1->已完成 2->已领取
 }
 
 type MSG_GetLimitDailyTask_Ack struct {
@@ -652,7 +648,7 @@ type MSG_GetWeekAwardStatus_Ack struct {
 	RetCode     int //! 返回码
 	LoginDay    int //! 登录天数
 	RechargeNum int //! 充值数目
-	AwardMark   int //! 奖励标记 位运算
+	AwardMark   int //! 奖励标记 包含已领取奖励ID
 }
 
 //! 玩家请求领取周周盈奖励
@@ -660,12 +656,13 @@ type MSG_GetWeekAwardStatus_Ack struct {
 type MSG_GetWeekAward_Req struct {
 	PlayerID   int
 	SessionKey string
-	Day        int //! 第几天的奖励, 从1开始
+	Index      int //! Index  从1开始
 	Select     int //! 选择哪个奖励
 }
 
 type MSG_GetWeekAward_Ack struct {
 	RetCode   int
+	AwardMark int //! 奖励标记 包含已领取奖励ID
 	AwardItem []MSG_ItemData
 }
 
@@ -746,6 +743,7 @@ type MSG_RankGiftInfo struct {
 type MSG_GetRankGiftInfo_Ack struct {
 	RetCode int
 	GiftLst []MSG_RankGiftInfo
+	Rank    int //! 历史最高名次
 }
 
 //! 玩家请求购买等级礼包
@@ -762,4 +760,51 @@ type MSG_BuyRankGift_Ack struct {
 	CostMoneyID  int
 	CostMoneyNum int
 	BuyTimes     int //! 剩余可购买次数
+}
+
+//! 玩家查询限时特惠物品信息
+//! 消息: /get_limit_sale_info
+type MSG_GetLimitSaleInfo_Req struct {
+	PlayerID   int
+	SessionKey string
+}
+
+type MSG_LimitSaleItemInfo struct {
+	ID     int
+	Status bool
+}
+
+type MSG_GetLimitSaleInfo_Ack struct {
+	RetCode   int
+	Score     int //! 玩家积分
+	ItemLst   []MSG_LimitSaleItemInfo
+	AwardMark int
+}
+
+//! 玩家购买限时特惠
+//! 消息: /buy_limit_sale_item
+type MSG_BuyLimitSaleItem_Req struct {
+	PlayerID   int
+	SessionKey string
+	Index      int //! 索引, 从1开始
+}
+
+type MSG_BuyLimitSaleItem_Ack struct {
+	RetCode  int
+	AwardLst []MSG_ItemData
+	Score    int //! 玩家积分
+}
+
+//! 玩家请求领取全民奖励
+//! 消息: /get_limitsale_all_award
+type MSG_GetLimitSale_AllAward_Req struct {
+	PlayerID   int
+	SessionKey string
+	ID         int
+}
+
+type MSG_GetLimitSale_AllAward_Ack struct {
+	RetCode   int
+	AwardMark int
+	AwardItem []MSG_ItemData
 }

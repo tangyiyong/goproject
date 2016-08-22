@@ -66,7 +66,12 @@ func Hand_GetSevenActivityInfo(w http.ResponseWriter, r *http.Request) {
 		taskInfo.TaskCount = v.TaskCount
 		response.SevenActivityLst = append(response.SevenActivityLst, taskInfo)
 	}
+
+	response.BuyLst = activity.BuyLst
+	response.LimitInfo = G_GlobalVariables.GetSevenDayLimit(req.ActivityID).LimitBuy
 	response.RetCode = msg.RE_SUCCESS
+	response.ActivityID = activity.ActivityID
+	response.OpenDay = GetOpenServerDay()
 }
 
 //! 玩家请求领取七日活动奖励
@@ -84,6 +89,8 @@ func Hand_GetSevenActivityAward(w http.ResponseWriter, r *http.Request) {
 		gamelog.Error("Hand_GetSevenActivityAward : Unmarshal fail, Error: %s", err.Error())
 		return
 	}
+
+	gamelog.Info("Receive: %s", buffer)
 
 	var response msg.MSG_GetSevenActivityAward_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
@@ -171,7 +178,7 @@ func Hand_GetSevenActivityAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 设置状态
 	taskInfo.TaskStatus = Task_Received
-	go activity.DB_UpdatePlayerSevenTaskStatus(taskData.TaskID, Task_Received)
+	go activity.DB_UpdatePlayerSevenTask(taskData.TaskID, taskInfo.TaskCount, taskInfo.TaskStatus)
 
 	for _, v := range awardItems {
 		var item msg.MSG_ItemData
@@ -181,62 +188,7 @@ func Hand_GetSevenActivityAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.RetCode = msg.RE_SUCCESS
-}
-
-//! 玩家请求限购信息
-func Hand_GetSevenActivityLimitInfo(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message: %s", r.URL.String())
-
-	//! 接收消息
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-
-	//! 解析消息
-	var req msg.MSG_GetSevenActivityLimitInfo_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_GetSevenActivityLimitInfo : Unmarshal fail, Error: %s", err.Error())
-		return
-	}
-
-	var response msg.MSG_GetSevenActivityLimitInfo_Ack
-	response.RetCode = msg.RE_UNKNOWN_ERR
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-	}()
-
-	//! 常规检查
-	var player *TPlayer = nil
-	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if player == nil {
-		return
-	}
-
-	player.ActivityModule.CheckReset()
-	var activity *TActivitySevenDay
-	for i, v := range player.ActivityModule.SevenDay {
-		if v.ActivityID == req.ActivityID {
-			activity = &player.ActivityModule.SevenDay[i]
-			break
-		}
-	}
-
-	if activity == nil {
-		gamelog.Error("Hand_GetSevenDay Error: Activity not exist ID: %d", req.ActivityID)
-		response.RetCode = msg.RE_INVALID_PARAM
-		return
-	}
-
-	if G_GlobalVariables.IsActivityOpen(activity.ActivityID) == false {
-		gamelog.Error("Hand_GetSevenDay Error: Activity not open ID: %d", req.ActivityID)
-		response.RetCode = msg.RE_ACTIVITY_NOT_OPEN
-		return
-	}
-
-	response.BuyLst = activity.BuyLst
-	response.LimitInfo = G_GlobalVariables.GetSevenDayLimit(req.ActivityID).LimitBuy
-	response.RetCode = msg.RE_SUCCESS
+	response.ActivityID = req.ActivityID
 }
 
 //! 玩家请求购买限购商品
@@ -338,4 +290,5 @@ func Hand_BuySevenActivityLimit(w http.ResponseWriter, r *http.Request) {
 	response.RetCode = msg.RE_SUCCESS
 
 	response.BuyTimes = limitInfo.LimitBuy[req.OpenDay-1]
+	response.ActivityID = req.ActivityID
 }

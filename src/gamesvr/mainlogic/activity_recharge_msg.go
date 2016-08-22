@@ -58,8 +58,8 @@ func Hand_QueryActivityTotalRechargeInfo(w http.ResponseWriter, r *http.Request)
 	response.RetCode = msg.RE_SUCCESS
 
 	//! 充值回馈
-	response.RechargeValue = totalRechargeInfo.RechargeValue
-	response.RechargeAwardLst = int(totalRechargeInfo.RechargeAwardLst)
+	response.RechargeNum = totalRechargeInfo.RechargeValue
+	response.AwardMark = int(totalRechargeInfo.AwardMark)
 	response.ActivityID = req.ActivityID
 	response.AwardType = G_GlobalVariables.GetActivityAwardType(req.ActivityID)
 }
@@ -124,7 +124,7 @@ func Hand_GetRechargeAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断是否有过领取
-	if totalRechargeInfo.RechargeAwardLst.Get(uint(req.Index)) == true {
+	if totalRechargeInfo.AwardMark.Get(uint(req.Index)) == true {
 		gamelog.Error("Hand_GetRechargeAward Error: Aleady reveice")
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
@@ -144,8 +144,8 @@ func Hand_GetRechargeAward(w http.ResponseWriter, r *http.Request) {
 	player.BagMoudle.AddAwardItems(award)
 
 	//! 修改标记
-	totalRechargeInfo.RechargeAwardLst.Set(uint(req.Index))
-	go totalRechargeInfo.DB_UpdateRechargeMark(activityIndex, int(totalRechargeInfo.RechargeAwardLst))
+	totalRechargeInfo.AwardMark.Set(uint(req.Index))
+	go totalRechargeInfo.DB_UpdateRechargeMark(activityIndex, int(totalRechargeInfo.AwardMark))
 
 	response.RetCode = msg.RE_SUCCESS
 
@@ -156,5 +156,5 @@ func Hand_GetRechargeAward(w http.ResponseWriter, r *http.Request) {
 		response.AwardItem = append(response.AwardItem, awardData)
 	}
 
-	response.AwardMark = int(totalRechargeInfo.RechargeAwardLst)
+	response.AwardMark = int(totalRechargeInfo.AwardMark)
 }

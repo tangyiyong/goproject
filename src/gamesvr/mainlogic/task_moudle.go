@@ -230,11 +230,12 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 					if taskmodule.AchievementList[i].TaskCount >= info.Count && taskmodule.AchievementList[i].TaskStatus != Task_Received {
 						//! 任务完成
 						taskmodule.AchievementList[i].TaskStatus = Task_Finished
-						taskmodule.UpdatePlayerAchievementStatus(taskmodule.AchievementList[i].ID, taskmodule.AchievementList[i].TaskStatus)
 					}
 
 					//! 更新数据
-					taskmodule.UpdatePlayerAchievementCount(taskmodule.AchievementList[i].ID, taskmodule.AchievementList[i].TaskCount)
+					taskmodule.UpdatePlayerAchievement(taskmodule.AchievementList[i].ID,
+						taskmodule.AchievementList[i].TaskCount,
+						taskmodule.AchievementList[i].TaskStatus)
 				}
 			}
 
@@ -261,11 +262,12 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 					if taskmodule.TaskList[i].TaskCount >= info.Count {
 						//! 任务完成
 						taskmodule.TaskList[i].TaskStatus = Task_Finished
-						taskmodule.UpdatePlayerTaskStatus(taskmodule.TaskList[i].TaskID, taskmodule.TaskList[i].TaskStatus)
 					}
 
 					//! 更新数据
-					taskmodule.UpdatePlayerTaskCount(taskmodule.TaskList[i].TaskID, taskmodule.TaskList[i].TaskCount)
+					taskmodule.UpdatePlayerTask(taskmodule.TaskList[i].TaskID,
+						taskmodule.TaskList[i].TaskCount,
+						taskmodule.TaskList[i].TaskStatus)
 				}
 			}
 		} else if taskKind == Task_Kind_SevenDay {
@@ -284,7 +286,7 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 
 							if taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount >= info.Count {
 								//! 已达次数上限
-								break
+								continue
 							}
 
 							//! 特殊处理
@@ -315,15 +317,13 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 							if taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount >= info.Count {
 								//! 任务完成
 								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskStatus = Task_Finished
-								taskmodule.ownplayer.ActivityModule.SevenDay[n].DB_UpdatePlayerSevenTaskStatus(
-									taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskID,
-									taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskStatus)
 							}
 
 							//! 更新数据
-							taskmodule.ownplayer.ActivityModule.SevenDay[n].DB_UpdatePlayerSevenTaskCount(
+							taskmodule.ownplayer.ActivityModule.SevenDay[n].DB_UpdatePlayerSevenTask(
 								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskID,
-								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount)
+								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount,
+								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskStatus)
 						}
 					}
 				}
@@ -333,44 +333,55 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 			//! 遍历目前所有开启活动
 			for i, v := range taskmodule.ownplayer.ActivityModule.LimitDaily {
 				for j, m := range v.TaskLst {
-					//! 特殊处理任务
-					if m.TaskType == gamedata.TASK_COMPLETE_ALL_TASK && m.Status == 0 {
-						if taskmodule.ownplayer.ActivityModule.LimitDaily[i].IsAllComplete() {
-							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = 1
-							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status = 1
-							go taskmodule.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
+
+					if m.TaskType == taskType {
+						//! 特殊处理任务
+						if taskType == gamedata.TASK_COMPLETE_ALL_TASK && m.Status == 0 {
+							if taskmodule.ownplayer.ActivityModule.LimitDaily[i].IsAllComplete() {
+								taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = 1
+								taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status = 1
+								go taskmodule.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
+							}
+							continue
 						}
-						continue
-					}
 
-					//! 遍历限时日常活动
-					if m.TaskType == taskType && m.Status == 0 {
-						taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count += count
-					} else if taskType == gamedata.TASK_HERO_EQUI_STRENGTH ||
-						taskType == gamedata.TASK_HERO_EQUI_QUALITY ||
-						taskType == gamedata.TASK_ARENA_RANK ||
-						taskType == gamedata.TASK_SGWS_RANK ||
-						taskType == gamedata.TASK_HERO_EQUI_REFINED ||
-						taskType == gamedata.TASK_HERO_EQUI_REFINED_MAX ||
-						taskType == gamedata.TASK_HERO_DESTINY_LEVEL ||
-						taskType == gamedata.TASK_HERO_DESTINY_LEVEL_MAX ||
-						taskType == gamedata.TASK_ATTACK_REBEL_DAMAGE ||
-						taskType == gamedata.TASK_REBEL_EXPLOIT ||
-						taskType == gamedata.TASK_PASS_EPIC_COPY ||
-						taskType == gamedata.TASK_SGWS_STAR ||
-						taskType == gamedata.TASK_HERO_GEM_REFINED ||
-						taskType == gamedata.TASK_HERO_GEM_REFINED_MAX ||
-						taskType == gamedata.TASK_FIGHT_VALUE {
-						taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = count
-					} else if taskType == gamedata.TASK_SINGLE_RECHARGE && m.Need == count {
-						taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count += 1
-					}
+						//! 遍历限时日常活动
+						if taskType == gamedata.TASK_HERO_EQUI_STRENGTH ||
+							taskType == gamedata.TASK_HERO_EQUI_QUALITY ||
+							taskType == gamedata.TASK_ARENA_RANK ||
+							taskType == gamedata.TASK_SGWS_RANK ||
+							taskType == gamedata.TASK_HERO_EQUI_REFINED ||
+							taskType == gamedata.TASK_HERO_EQUI_REFINED_MAX ||
+							taskType == gamedata.TASK_HERO_DESTINY_LEVEL ||
+							taskType == gamedata.TASK_HERO_DESTINY_LEVEL_MAX ||
+							taskType == gamedata.TASK_ATTACK_REBEL_DAMAGE ||
+							taskType == gamedata.TASK_REBEL_EXPLOIT ||
+							taskType == gamedata.TASK_PASS_EPIC_COPY ||
+							taskType == gamedata.TASK_SGWS_STAR ||
+							taskType == gamedata.TASK_HERO_GEM_REFINED ||
+							taskType == gamedata.TASK_HERO_GEM_REFINED_MAX ||
+							taskType == gamedata.TASK_FIGHT_VALUE && m.Status == 0 {
+							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = count
+						} else if taskType == gamedata.TASK_SINGLE_RECHARGE && m.Need == count && m.Status == 0 {
+							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count += 1
+						} else {
+							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count += count
+						}
 
-					if taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count >= m.Need {
-						taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status = Task_Finished
-					}
+						if taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count >= m.Need {
+							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status = Task_Finished
+						}
 
-					if taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status == Task_Unfinished {
+						// gamelog.Error("LimitDailyTask taskType: %d  TaskCount: %d   Status: %d", taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].TaskType,
+						// 	taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count,
+						// 	taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status)
+
+						taskInfo := taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j]
+
+						if taskInfo.Status == Task_Received {
+							continue
+						}
+
 						go taskmodule.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
 					}
 
@@ -405,10 +416,13 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 					taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Status = Task_Finished
 				}
 
-				if taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Status == Task_Unfinished {
-					go taskmodule.ownplayer.ActivityModule.Festival.DB_UpdateTaskStatus(j)
+				taskInfo := taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j]
+
+				if taskInfo.Status == Task_Received {
+					continue
 				}
 
+				go taskmodule.ownplayer.ActivityModule.Festival.DB_UpdateTaskStatus(j)
 			}
 		}
 	}

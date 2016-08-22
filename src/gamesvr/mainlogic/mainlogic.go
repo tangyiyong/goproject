@@ -2,6 +2,7 @@ package mainlogic
 
 func Init() bool {
 	g_Players = make(map[int]*TPlayer, 1)
+	g_SelectPlayers = make([]*TPlayer, 0, 10000)
 
 	G_SimpleMgr.Init()
 

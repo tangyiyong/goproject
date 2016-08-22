@@ -98,6 +98,8 @@ func (self *TActivityMonthFund) SetMonthFund(rmb int) {
 		return
 	}
 
+	return
+
 	if self.activityModule.MonthCard.CardDays[0] == 0 ||
 		self.activityModule.MonthCard.CardDays[1] == 0 {
 		//! 必须激活双月卡

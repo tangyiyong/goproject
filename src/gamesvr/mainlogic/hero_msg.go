@@ -1270,7 +1270,7 @@ func Hand_ChangeEquip(w http.ResponseWriter, r *http.Request) {
 	targetEquipData := pPlayer.HeroMoudle.CurEquips[req.TargetPos]
 	if targetEquipData.EquipID != req.TargetID {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_ChangeEquip : Invalid TargetID :%d", req.TargetID)
+		gamelog.Error("Hand_ChangeEquip : Invalid req.ID :%d, equipID:%d", req.TargetID, targetEquipData.EquipID)
 		return
 	}
 
@@ -4373,13 +4373,14 @@ func Hand_FashionStrength(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if nIndex < 0 {
-		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
+		response.RetCode = msg.RE_INVALID_PARAM
 		gamelog.Error("Hand_FashionStrength Error: No this Fashion %d", req.FashionID)
 		return
 	}
 
 	pFashionInfo := gamedata.GetFashionInfo(req.FashionID)
 	if pFashionInfo == nil {
+		response.RetCode = msg.RE_INVALID_PARAM
 		gamelog.Error("Hand_FashionStrength Error: Invalid Fashion ID %d", req.FashionID)
 		return
 	}
@@ -4407,6 +4408,12 @@ func Hand_FashionStrength(w http.ResponseWriter, r *http.Request) {
 
 	pPlayer.BagMoudle.FashionBag.Fashions[nIndex].Level += 1
 	pPlayer.BagMoudle.DB_SaveFashionAt(nIndex)
+	pPlayer.BagMoudle.RemoveNormalItem(pFashionLevel.CostItemID, pFashionLevel.CostItemNum)
+	pPlayer.RoleMoudle.CostMoney(pFashionLevel.CostMoneyID, pFashionLevel.CostMoneyNum)
+	if pPlayer.HeroMoudle.FashionID == pPlayer.BagMoudle.FashionBag.Fashions[nIndex].ID {
+		pPlayer.HeroMoudle.FashionLvl = pPlayer.BagMoudle.FashionBag.Fashions[nIndex].Level
+		pPlayer.HeroMoudle.DB_SaveFashionInfo()
+	}
 
 }
 
@@ -4418,7 +4425,7 @@ func Hand_FashionRecast(w http.ResponseWriter, r *http.Request) {
 
 	var req msg.MSG_FashionRecast_Req
 	if json.Unmarshal(buffer, &req) != nil {
-		gamelog.Error("Hand_ComposePet : Unmarshal error!!!!")
+		gamelog.Error("Hand_FashionRecast : Unmarshal error!!!!")
 		return
 	}
 
@@ -4430,6 +4437,24 @@ func Hand_FashionRecast(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
+func IsFashionMapOK(pMap *gamedata.ST_FashionMapInfo, Fashions []TFashionData) bool {
+	for i := 0; i < 3; i++ {
+		bFind := false
+		for j := 0; j < len(Fashions); j++ {
+			if pMap.FashionIds[i] == int(Fashions[j].ID) || pMap.FashionIds[i] == 0 {
+				bFind = true
+				break
+			}
+		}
+
+		if bFind == false {
+			return false
+		}
+	}
+
+	return true
+}
+
 //时装合成
 func Hand_FashionCompose(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
@@ -4438,7 +4463,7 @@ func Hand_FashionCompose(w http.ResponseWriter, r *http.Request) {
 
 	var req msg.MSG_FashionCompose_Req
 	if json.Unmarshal(buffer, &req) != nil {
-		gamelog.Error("Hand_ComposePet : Unmarshal error!!!!")
+		gamelog.Error("Hand_FashionCompose : Unmarshal error!!!!")
 		return
 	}
 
@@ -4458,20 +4483,20 @@ func Hand_FashionCompose(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < len(pPlayer.BagMoudle.FashionBag.Fashions); i++ {
 		if pPlayer.BagMoudle.FashionBag.Fashions[i].ID == req.FashionID {
 			response.RetCode = msg.RE_NOT_ENOUGH_ITEM
-			gamelog.Error("Hand_ComposePet Error: Fashion %d already exist", req.FashionID)
+			gamelog.Error("Hand_FashionCompose Error: Fashion %d already exist", req.FashionID)
 			return
 		}
 	}
 
 	pFashionInfo := gamedata.GetFashionInfo(req.FashionID)
 	if pFashionInfo == nil {
-		gamelog.Error("Hand_ComposePet Error: Invalid Fashion ID %d", req.FashionID)
+		gamelog.Error("Hand_FashionCompose Error: Invalid Fashion ID %d", req.FashionID)
 		return
 	}
 
 	if pPlayer.BagMoudle.GetFashionPieceCount(pFashionInfo.PieceID) < pFashionInfo.PieceNum {
 		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
-		gamelog.Error("Hand_ComposePet Error: Not Enouth Piece Num %d", pFashionInfo.PieceNum)
+		gamelog.Error("Hand_FashionCompose Error: Not Enouth Piece Num %d", pFashionInfo.PieceNum)
 		return
 	}
 
@@ -4480,6 +4505,24 @@ func Hand_FashionCompose(w http.ResponseWriter, r *http.Request) {
 
 	response.RetCode = msg.RE_SUCCESS
 	response.FashionID = req.FashionID
+
+	bAdd := false
+	for j := 0; j < len(gamedata.GT_FashionMap_List); j++ {
+		for k := 0; k < 3; k++ {
+			if gamedata.GT_FashionMap_List[j].FashionIds[k] == req.FashionID && IsFashionMapOK(&gamedata.GT_FashionMap_List[j], pPlayer.BagMoudle.FashionBag.Fashions) {
+				bAdd = true
+				for _, n := range gamedata.GT_FashionMap_List[j].Buffs {
+					if n.PropertyID != 0 {
+						pPlayer.HeroMoudle.AddExtraProperty(n.PropertyID, n.Value, n.IsPercent, 0)
+					}
+				}
+			}
+		}
+	}
+
+	if bAdd {
+		pPlayer.HeroMoudle.DB_SaveExtraProperty()
+	}
 }
 
 //时装熔炼
@@ -4490,7 +4533,7 @@ func Hand_FashionMelting(w http.ResponseWriter, r *http.Request) {
 
 	var req msg.MSG_FashionMelting_Req
 	if json.Unmarshal(buffer, &req) != nil {
-		gamelog.Error("Hand_ComposePet : Unmarshal error!!!!")
+		gamelog.Error("Hand_FashionMelting : Unmarshal error!!!!")
 		return
 	}
 
@@ -4500,4 +4543,36 @@ func Hand_FashionMelting(w http.ResponseWriter, r *http.Request) {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
 	}()
+
+	var pPlayer *TPlayer = nil
+	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if pPlayer == nil {
+		return
+	}
+
+	MeltingValue := 0
+
+	//检查所有有碎片是不是足够
+	for i := 0; i < len(req.PieceIDs); i++ {
+		if pPlayer.BagMoudle.GetFashionPieceCount(req.PieceIDs[i]) < req.PieceNums[i] {
+			response.RetCode = msg.RE_NOT_ENOUGH_ITEM
+			gamelog.Error("Hand_FashionMelting : Not Enought Piece Item!!!!")
+			return
+		}
+
+		pItemInfo := gamedata.GetItemInfo(req.PieceIDs[i])
+		if pItemInfo == nil {
+			response.RetCode = msg.RE_INVALID_PARAM
+			gamelog.Error("Hand_FashionMelting : Invalid PieceID:%d!!!!", req.PieceIDs[i])
+			return
+		}
+
+		MeltingValue += pItemInfo.Data2
+	}
+
+	if MeltingValue < 500 {
+		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
+		gamelog.Error("Hand_FashionMelting : Not Enought Piece Item!!!!")
+		return
+	}
 }

@@ -19,7 +19,7 @@ func main() {
 	gamelog.SetLevel(appconfig.AccountLogLevel)
 
 	//设置mongodb的服务器地址
-	mongodb.Init(appconfig.AccountDbAddr + ":27017")
+	mongodb.Init(appconfig.AccountDbAddr)
 
 	//初始化工具系统
 	utility.Init()

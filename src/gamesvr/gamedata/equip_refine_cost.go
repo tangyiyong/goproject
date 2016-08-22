@@ -10,8 +10,16 @@ type ST_EquipRefineCost struct {
 	TotalExp [10]int
 }
 
+type ST_ShenBinInfo struct {
+	Pos        int
+	Level      int //等级
+	Propertyid int //属性ID
+	PropertyV  int //属性值
+}
+
 var (
-	GT_EquipRefineCostList []ST_EquipRefineCost = nil
+	GT_EquipRefineCostList []ST_EquipRefineCost  = nil
+	GT_ShenBinList         [7][51]ST_ShenBinInfo //最大精练等级装备50， 宝物20, 六个位置
 )
 
 func InitEquipRefineCostParser(total int) bool {
@@ -54,4 +62,40 @@ func GetEquipRefineCostInfo(level int) *ST_EquipRefineCost {
 	}
 
 	return &GT_EquipRefineCostList[level]
+}
+
+func InitShenBinParser(total int) bool {
+	return true
+}
+
+func ParseShenBinRecord(rs *RecordSet) {
+	pos := rs.GetFieldInt("pos")
+	level := rs.GetFieldInt("level")
+	GT_ShenBinList[pos][level].Pos = pos
+	GT_ShenBinList[pos][level].Level = level
+	GT_ShenBinList[pos][level].Propertyid = rs.GetFieldInt("p_id")
+	GT_ShenBinList[pos][level].PropertyV = rs.GetFieldInt("p_value")
+
+	return
+}
+
+func FinishShenBinParser() bool {
+	for i := 1; i < 7; i++ {
+		for j := 1; j < 51; j++ {
+			if GT_ShenBinList[i][j].Level == 0 {
+				GT_ShenBinList[i][j] = GT_ShenBinList[i][j-1]
+			}
+		}
+	}
+
+	return true
+}
+
+func GetShenBinInfo(pos int, level int) *ST_ShenBinInfo {
+	if level >= len(GT_ShenBinList) {
+		gamelog.Error("GetShenBinInfo Error : Invalid level %d and pos :%d", level, pos)
+		return nil
+	}
+
+	return &GT_ShenBinList[pos][level]
 }

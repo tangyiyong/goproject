@@ -119,7 +119,11 @@ type MSG_GetSevenActivity_Req struct {
 
 type MSG_GetSevenActivity_Ack struct {
 	RetCode          int
+	ActivityID       int
+	OpenDay          int         //! 当天为第几天
 	SevenActivityLst []TTaskInfo //! 只发送进度不为0的任务信息,结构参考上面TTaskInfo结构
+	LimitInfo        [7]int
+	BuyLst           []int
 }
 
 //! 玩家请求领取七日活动奖励
@@ -133,22 +137,9 @@ type MSG_GetSevenActivityAward_Req struct {
 }
 
 type MSG_GetSevenActivityAward_Ack struct {
-	RetCode int
-	ItemLst []MSG_ItemData
-}
-
-//! 玩家请求半价限购剩余件数与自己已购买信息
-//! 消息: /get_seven_activity_limit_num
-type MSG_GetSevenActivityLimitInfo_Req struct {
-	PlayerID   int
-	SessionKey string
+	RetCode    int
 	ActivityID int
-}
-
-type MSG_GetSevenActivityLimitInfo_Ack struct {
-	RetCode   int
-	LimitInfo [7]int
-	BuyLst    []int
+	ItemLst    []MSG_ItemData
 }
 
 //! 玩家请求购买半价限购
@@ -161,6 +152,7 @@ type MSG_BuySevenActivityLimitItem_Req struct {
 }
 
 type MSG_BuySevenActivityLimitItem_Ack struct {
-	RetCode  int
-	BuyTimes int //! 当前物品已购买次数
+	RetCode    int
+	ActivityID int
+	BuyTimes   int //! 当前物品已购买次数
 }

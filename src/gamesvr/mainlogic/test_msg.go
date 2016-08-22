@@ -165,11 +165,11 @@ func Hand_TestAddGuildExp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if pPlayer.GuildModule.GuildID == 0 {
+	if pPlayer.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
-	guild := GetGuildByID(pPlayer.GuildModule.GuildID)
+	guild := GetGuildByID(pPlayer.pSimpleInfo.GuildID)
 	guild.AddExp(10000)
 	response.RetCode = msg.RE_SUCCESS
 	response.GuildExp = guild.CurExp

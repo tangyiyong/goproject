@@ -31,13 +31,13 @@ type TCampBattleModule struct {
 	KillHonor       int             //今日击杀荣誉
 	LeftTimes       int             //搬运水晶次数
 	CrystalID       int             //搬运水晶的ID
-	EndTime         int64           //搬运结束时间,  超时就是搬运失败
+	EndTime         int             //搬运结束时间,  超时就是搬运失败
 	StoreBuyRecord  []TStoreBuyData //购买商店的次数
 	AwardStoreIndex IntLst          //奖励商店的购买ID
 	ResetDay        int             //重置天
 
 	///////////////以下为临时数据
-	enterCode int      //阵营战的连接进入码
+	enterCode int32    //阵营战的连接进入码
 	ownplayer *TPlayer //玩家角色指针
 }
 
@@ -93,6 +93,7 @@ func (self *TCampBattleModule) CheckReset() {
 }
 
 func (self *TCampBattleModule) OnNewDay(newday int) {
+	self.ResetDay = newday
 	self.Kill = 0
 	self.Destroy = 0
 	self.KillHonor = 0

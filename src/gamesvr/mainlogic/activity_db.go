@@ -3,9 +3,8 @@ package mainlogic
 import (
 	"appconfig"
 	"fmt"
-	"mongodb"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 func (self *TActivityModule) DB_UpdateLimitDailySchedule(activityIndex int, taskIndex int) {

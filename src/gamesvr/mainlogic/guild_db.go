@@ -75,8 +75,6 @@ func (self *TGuildModule) DB_UpdateSacrifice() {
 func (self *TGuildModule) DB_CleanApplyList() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
 		"applyguildlist":    []int{},
-		"guildid":           self.GuildID,
-		"role":              self.Role,
 		"actionrecovertime": self.ActionRecoverTime}})
 }
 
@@ -85,18 +83,9 @@ func (self *TGuildModule) DB_ResetApplyList() {
 		"applyguildlist": []int{}}})
 }
 
-//! 创建帮派
-func (self *TGuildModule) DB_SaveGuildInfo() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
-		"role":    self.Role,
-		"guildid": self.GuildID}})
-}
-
 //! 退出帮派
 func (self *TGuildModule) DB_ExitGuild() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
-		"role":              self.Role,
-		"guildid":           self.GuildID,
 		"actionrecovertime": self.ActionRecoverTime,
 		"exitguildtime":     self.ExitGuildTime}})
 }
@@ -280,9 +269,4 @@ func (self *TGuild) DB_UpdateGuildBackStatus() {
 func (self *TGuild) DB_UpdateGuildSkillLimit(skillid int, level int) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID, "skilllst.skillid": skillid}, bson.M{"$set": bson.M{
 		"skilllst.$.level": level}})
-}
-
-//! 修改身份
-func (self *TGuildModule) DB_UpdateRole() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{"role": self.Role}})
 }

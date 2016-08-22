@@ -33,6 +33,7 @@ func (self *TCampBattleModule) DB_Reset() {
 		"endtime":   self.EndTime,
 		"killhonor": self.KillHonor,
 		"kill":      self.Kill,
+		"resetday":  self.ResetDay,
 		"destroy":   self.Destroy}})
 }
 

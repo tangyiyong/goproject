@@ -21,12 +21,13 @@ type ST_FashionMapInfo struct {
 }
 
 type ST_FashionLevel struct {
-	Quality      int //品质
-	Level        int //等级
-	CostItemID   int //道具ID
-	CostItemNum  int //道具数量
-	CostMoneyID  int //货币ID
-	CostMoneyNum int //货币数量
+	ID           int    //时装ID
+	Level        int    //等级
+	CostItemID   int    //道具ID
+	CostItemNum  int    //道具数量
+	CostMoneyID  int    //货币ID
+	CostMoneyNum int    //货币数量
+	Propertys    [5]int //五个属性加成
 }
 
 var (
@@ -96,16 +97,16 @@ func InitFashionStrengthParser(total int) bool {
 }
 
 func ParseFashionStrengthRecord(rs *RecordSet) {
-	quality := rs.GetFieldInt("quality")
+	id := rs.GetFieldInt("id")
 	level := rs.GetFieldInt("level")
-	GT_FashionStrength_List[quality][level].Quality = quality
-	GT_FashionStrength_List[quality][level].Level = level
-	GT_FashionStrength_List[quality][level].CostItemID = rs.GetFieldInt("cost_item_id")
-	GT_FashionStrength_List[quality][level].CostItemNum = rs.GetFieldInt("cost_item_num")
-	GT_FashionStrength_List[quality][level].CostMoneyID = rs.GetFieldInt("cost_money_id")
-	GT_FashionStrength_List[quality][level].CostMoneyNum = rs.GetFieldInt("cost_money_num")
+	GT_FashionStrength_List[id][level].ID = id
+	GT_FashionStrength_List[id][level].Level = level
+	GT_FashionStrength_List[id][level].CostItemID = rs.GetFieldInt("cost_item_id")
+	GT_FashionStrength_List[id][level].CostItemNum = rs.GetFieldInt("cost_item_num")
+	GT_FashionStrength_List[id][level].CostMoneyID = rs.GetFieldInt("cost_money_id")
+	GT_FashionStrength_List[id][level].CostMoneyNum = rs.GetFieldInt("cost_money_num")
 }
 
-func GetFashionLevelInfo(quality int, level int) *ST_FashionLevel {
-	return &GT_FashionStrength_List[quality][level]
+func GetFashionLevelInfo(id int, level int) *ST_FashionLevel {
+	return &GT_FashionStrength_List[id][level]
 }

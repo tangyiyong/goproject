@@ -359,13 +359,6 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 	response.HuntTurn = player.ActivityModule.HuntTreasure.HuntTurns
 	response.RetCode = msg.RE_SUCCESS
 
-	//! 限时日常相关
-	if req.IsStartTenTimes == 1 {
-		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_HUNT_TREASURE_TIMES, 10)
-	} else {
-		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_HUNT_TREASURE_TIMES, 1)
-	}
-
 }
 
 //! 玩家查询巡回奖励领取情况

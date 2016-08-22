@@ -3,9 +3,8 @@ package mainlogic
 import (
 	"appconfig"
 	"gamesvr/gamedata"
-	"mongodb"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 //! 周周盈
@@ -56,8 +55,8 @@ func (self *TActivityWeekAward) End(versionCode int, resetCode int) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 	self.LoginDay = 0
-	self.AwardMark = 0
 	self.RechargeNum = 0
+	self.AwardMark = 0
 	go self.DB_Reset()
 }
 
@@ -75,17 +74,17 @@ func (self *TActivityWeekAward) RedTip() bool {
 		return false
 	}
 
-	if self.LoginDay == 1 && self.AwardMark.Get(1) == false {
-		return true
+	awardType := G_GlobalVariables.GetActivityAwardType(self.ActivityID)
+	awardLst := gamedata.GetWeekAwardInfoLst(awardType)
+	if self.LoginDay == 1 && self.AwardMark.Get(uint(1)) == false {
+		return true //! 免费奖励未领取
 	}
 
-	awardType := G_GlobalVariables.GetActivityAwardType(self.ActivityID)
 	for i := 1; i <= 7; i++ {
-		awardInfo := gamedata.GetWeekAwardInfo(awardType, i)
-		if awardInfo == nil {
-			continue
-		}
-		if self.AwardMark.Get(uint(i)) == false && self.LoginDay >= i && self.RechargeNum >= awardInfo.RechargeNum {
+		awardInfo := awardLst[i]
+		if self.AwardMark.Get(uint(i+1)) == false &&
+			self.LoginDay >= i &&
+			self.RechargeNum >= awardInfo.RechargeNum {
 			return true
 		}
 	}
@@ -114,7 +113,7 @@ func (self *TActivityWeekAward) DB_Reset() bool {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"weekaward.activityid":  self.ActivityID,
 		"weekaward.loginday":    self.LoginDay,
-		"weekaward.awardmark":   self.AwardMark,
+		"weekaward.AwardMark":   self.AwardMark,
 		"weekaward.rechargenum": self.RechargeNum,
 		"weekaward.versioncode": self.VersionCode,
 		"weekaward.resetcode":   self.ResetCode}})
@@ -124,4 +123,9 @@ func (self *TActivityWeekAward) DB_Reset() bool {
 func (self *TActivityWeekAward) DB_UpdateRechargeNum() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"weekaward.rechargenum": self.RechargeNum}})
+}
+
+func (self *TActivityWeekAward) DB_UpdateAwardMark() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+		"weekaward.awardmark": self.AwardMark}})
 }

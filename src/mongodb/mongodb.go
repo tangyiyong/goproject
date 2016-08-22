@@ -4,6 +4,8 @@ import (
 	"gamelog"
 	"time"
 
+	//"sync"
+
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -78,12 +80,20 @@ func UpdateToDBAll(dbname string, collection string, search bson.M, stuff bson.M
 	return true
 }
 
+//var UpdateLock sync.Mutex
+//var InsertLock sync.Mutex
+
 //更新一条记录
 func UpdateToDB(dbname string, collection string, search bson.M, stuff bson.M) bool {
 	s := GetDBSession()
 	defer s.Close()
 	coll := s.DB(dbname).C(collection)
+	//UpdateLock.Lock()
+	//t1 := time.Now().UnixNano()
 	err := coll.Update(search, stuff)
+	//t2 := time.Now().UnixNano()
+	//UpdateLock.Unlock()
+	//gamelog.Error("UpdateToDB time:%d", t2-t1)
 	if err != nil {
 		gamelog.Error3("UpdateToDB Failed: DB:[%s] Collection:[%s] search:[%v], stuff:[%v], Error:%v", dbname, collection, search, stuff, err.Error())
 		return false
@@ -118,7 +128,12 @@ func InsertToDB(dbname string, collection string, data interface{}) bool {
 	s := GetDBSession()
 	defer s.Close()
 	coll := s.DB(dbname).C(collection)
+	//InsertLock.Lock()
+	//t1 := time.Now().UnixNano()
 	err := coll.Insert(&data)
+	//t2 := time.Now().UnixNano()
+	//InsertLock.Unlock()
+	//gamelog.Error("InsertToDB time:%d", t2-t1)
 	if err != nil {
 		if !mgo.IsDup(err) {
 			gamelog.Error("InsertToDB Failed: DB:[%s] Collection:[%s] Error:[%s]", dbname, collection, err.Error())

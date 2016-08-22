@@ -5,6 +5,7 @@ import (
 	"gamesvr/gamedata"
 	"sync"
 	"time"
+	"utility"
 )
 
 //玩家子模块的基类
@@ -330,6 +331,42 @@ func (player *TPlayer) OnPlayerLoad(playerid int) {
 	player.InitModules(playerid)
 }
 
+//响应玩家的加载请求
+func (player *TPlayer) OnPlayerLoadSync(playerid int) {
+	player.RoleMoudle.OnPlayerLoad(playerid, nil)
+	player.HeroMoudle.OnPlayerLoad(playerid, nil)
+	player.TaskMoudle.OnPlayerLoad(playerid, nil)
+	player.VipMoudle.OnPlayerLoad(playerid, nil)
+	player.MailMoudle.OnPlayerLoad(playerid, nil)
+	player.CopyMoudle.OnPlayerLoad(playerid, nil)
+	player.BagMoudle.OnPlayerLoad(playerid, nil)
+	player.StoreModule.OnPlayerLoad(playerid, nil)
+	player.SanGuoZhiModule.OnPlayerLoad(playerid, nil)
+	player.MallModule.OnPlayerLoad(playerid, nil)
+	player.SummonModule.OnPlayerLoad(playerid, nil)
+	player.ArenaModule.OnPlayerLoad(playerid, nil)
+	player.RobModule.OnPlayerLoad(playerid, nil)
+	player.SangokuMusouModule.OnPlayerLoad(playerid, nil)
+	player.AwardCenterModule.OnPlayerLoad(playerid, nil)
+	player.TerritoryModule.OnPlayerLoad(playerid, nil)
+	player.FriendMoudle.OnPlayerLoad(playerid, nil)
+	player.RebelModule.OnPlayerLoad(playerid, nil)
+	player.MiningModule.OnPlayerLoad(playerid, nil)
+	player.HangMoudle.OnPlayerLoad(playerid, nil)
+	player.GuildModule.OnPlayerLoad(playerid, nil)
+	player.BlackMarketModule.OnPlayerLoad(playerid, nil)
+	player.ScoreMoudle.OnPlayerLoad(playerid, nil)
+	player.FameHallModule.OnPlayerLoad(playerid, nil)
+	player.TitleModule.OnPlayerLoad(playerid, nil)
+	player.FoodWarModule.OnPlayerLoad(playerid, nil)
+	player.ActivityModule.OnPlayerLoad(playerid, nil)
+	player.WanderMoudle.OnPlayerLoad(playerid, nil)
+	player.HeroSoulsModule.OnPlayerLoad(playerid, nil)
+	player.CamBattleModule.OnPlayerLoad(playerid, nil)
+	player.ChargeModule.OnPlayerLoad(playerid, nil)
+	player.InitModules(playerid)
+}
+
 //计算战力
 func (player *TPlayer) CalcFightValue() int {
 	oldValue := player.pSimpleInfo.FightValue
@@ -381,6 +418,15 @@ func (player *TPlayer) GetVipLevel() int {
 //获取角色的VIP经验
 func (player *TPlayer) GetVipExp() int {
 	return player.RoleMoudle.GetMoney(gamedata.VipExpMoneyID)
+}
+
+//判断玩家今天是否己登录
+func (player *TPlayer) IsTodayLogin() bool {
+	if utility.GetCurDay() == player.pSimpleInfo.LoginDay {
+		return true
+	}
+
+	return false
 }
 
 func (player *TPlayer) IsHasHero(heroid int) bool {
@@ -520,7 +566,7 @@ func OnConfigChange(tbname string) bool {
 					if v.ID == G_GlobalVariables.ActivityLst[j].ActivityID {
 						//! 活动已存在, 改变状态
 						G_GlobalVariables.ActivityLst[j].Status = v.Status
-						G_GlobalVariables.ActivityLst[j].Award = v.AwardType
+						G_GlobalVariables.ActivityLst[j].award = v.AwardType
 						beginTime, endTime := gamedata.GetActivityEndTime(v.ID, openDay)
 						G_GlobalVariables.ActivityLst[j].beginTime = beginTime
 						G_GlobalVariables.ActivityLst[j].endTime = endTime
@@ -541,8 +587,8 @@ func OnConfigChange(tbname string) bool {
 
 					var activity TActivityData
 					activity.ActivityID = v.ID
-					activity.ActivityType = v.ActivityType
-					activity.Award = v.AwardType
+					activity.activityType = v.ActivityType
+					activity.award = v.AwardType
 					activity.beginTime, activity.endTime = gamedata.GetActivityEndTime(v.ID, openDay)
 					activity.VersionCode = 0
 					activity.Status = v.Status

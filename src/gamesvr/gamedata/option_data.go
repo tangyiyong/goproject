@@ -35,6 +35,7 @@ var (
 	DefencePropertyID int //防御属性ID
 	DefencePhysicID   int //物防属性ID
 	DefenceMagicID    int //魔防属性ID
+	AllPropertyID     int //全属性ID
 
 	//商店
 	StoreFreeRefreshTimes          int //商店可免费刷新次数上限
@@ -286,7 +287,7 @@ var (
 
 	//阵营战配制
 	CampBat_MoveTimes    int //每日可搬水晶次数
-	campbat_MaxMoveTime  int //每次搬水晶次的最大时间
+	Campbat_MaxMoveTime  int //每次搬水晶次的最大时间
 	CampBat_SelCampAward int //选择推荐阵营的奖励
 	CampBat_RoomMatchLvl int //高低等级房间分界线(线上的也属性低等级)
 	CampBat_NtyKillNum   int //连杀走马灯人数
@@ -377,6 +378,10 @@ func ParseOptionRecord(rs *RecordSet) {
 	case "property_defence_magic":
 		{
 			DefenceMagicID = CheckAtoiName(rs.Values[2], "property_defence_magic")
+		}
+	case "property_all":
+		{
+			AllPropertyID = CheckAtoiName(rs.Values[2], "property_all")
 		}
 	case "mall_item_money_id":
 		{
@@ -1173,7 +1178,7 @@ func ParseOptionRecord(rs *RecordSet) {
 		}
 	case "campbat_max_move_time":
 		{
-			campbat_MaxMoveTime = CheckAtoiName(rs.Values[2], "campbat_max_move_time")
+			Campbat_MaxMoveTime = CheckAtoiName(rs.Values[2], "campbat_max_move_time")
 		}
 	case "campbat_chg_money_id":
 		{

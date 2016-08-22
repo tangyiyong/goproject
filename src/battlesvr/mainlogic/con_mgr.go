@@ -66,16 +66,17 @@ func CheckAndClean(playerid int) {
 		gamelog.Error("CheckAndClean Error: Invalid PlayerID:0")
 		return
 	}
-	G_ConnsMutex.Lock()
 	pConn := GetConnByID(playerid)
-	if pConn != nil {
-		DelConnByID(playerid)
-		pBattleData := pConn.Data.(*TBattleData)
-		G_RoomMgr.RemovePlayerFromRoom(pBattleData.RoomID, playerid)
-		pConn.Cleaned = true
-		pConn.Close()
-		gamelog.Error("CheckAndClean Error: Clean the unclosed Connection:%d", playerid)
+	if pConn == nil {
+		return
 	}
+
+	DelConnByID(playerid)
+	pBattleData := pConn.Data.(*TBattleData)
+	G_RoomMgr.RemovePlayerFromRoom(pBattleData.RoomID, playerid)
+	pConn.Cleaned = true
+	pConn.Close()
+	gamelog.Error("CheckAndClean Error: Clean the unclosed Connection:%d", playerid)
 }
 
 //func SendMessageToPlayer(playerid int, msgid int16, msgdata []byte) bool {

@@ -38,7 +38,7 @@ type TBattleObj struct {
 	HeroObj  [6]THeroObj
 
 	//以下为功能属性
-	MoveEndTime int64         //搬水晶结束时间
+	MoveEndTime int           //搬水晶结束时间
 	SeriesKill  int           //连续杀人数
 	SkillState  [4]TSkillItem //四个玩家可以施放的技能
 }
@@ -89,9 +89,9 @@ func (self *TBattleObj) IsTeamIn(rc *gamedata.TRect) bool {
 			continue
 		}
 
-		if self.HeroObj[i].Position[0] > 0 {
-			return true
-		}
+		//if self.HeroObj[i].Position[0] > 0 {
+		return true
+		//}
 	}
 
 	return false

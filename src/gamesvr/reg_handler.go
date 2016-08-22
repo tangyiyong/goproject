@@ -138,7 +138,6 @@ func RegHttpMsgHandler() {
 	//! 活动消息处理
 	http.HandleFunc("/get_seven_activity", mainlogic.Hand_GetSevenActivityInfo)                       //! 玩家请求获取七日活动信息
 	http.HandleFunc("/get_seven_activity_award", mainlogic.Hand_GetSevenActivityAward)                //! 玩家获取七日活动奖励
-	http.HandleFunc("/get_seven_activity_limit_num", mainlogic.Hand_GetSevenActivityLimitInfo)        //! 玩家获取七日活动限购信息
 	http.HandleFunc("/buy_seven_activity_limit", mainlogic.Hand_BuySevenActivityLimit)                //! 玩家购买七日活动限购商品
 	http.HandleFunc("/get_activity", mainlogic.Hand_GetActivity)                                      //! 玩家请求当前开启活动
 	http.HandleFunc("/get_activity_list", mainlogic.Hand_GetActivity)                                 //! 玩家请求当前开启活动
@@ -188,6 +187,11 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/buy_rank_gift", mainlogic.Hand_BuyRankGift)                                     //! 购买排名礼包
 	http.HandleFunc("/get_monthfund_status", mainlogic.Hand_GetMonthFundStatus)                       //! 获取月基金状态
 	http.HandleFunc("/receive_month_fund", mainlogic.Hand_ReceiveMonthFund)                           //! 玩家领取月基金奖励
+	http.HandleFunc("/get_limit_daily_task", mainlogic.Hand_GetLimitDailyTaskInfo)                    //! 获取限时日常任务信息
+	http.HandleFunc("/get_limit_daily_award", mainlogic.Hand_GetLimitDailyTaskAward)                  //! 获取限时日常奖励
+	http.HandleFunc("/get_limit_sale_info", mainlogic.Hand_GetLimitSaleItemInfo)                      //! 查询限时特惠物品信息
+	http.HandleFunc("/buy_limit_sale_item", mainlogic.Hand_BuyLimitSaleItem)                          //! 购买限时特惠物品
+	http.HandleFunc("/get_limitsale_all_award", mainlogic.Hand_GetLimitSaleAllAward)                  //! 获取限时特惠全民奖励
 
 	//! 挖矿消息处理
 	http.HandleFunc("/enter_mining", mainlogic.Hand_GetMiningInfo)                             //! 获取挖矿信息
@@ -374,23 +378,20 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/get_collection_heros", mainlogic.Hand_GetCollectHeros) //获取玩家收集过的英雄
 
 	//回收
-	http.HandleFunc("/query_hero_decompose_cost", mainlogic.Hand_QueryHeroDecomposeCost) //! 查询分解英雄材料
-	http.HandleFunc("/decompose_hero", mainlogic.Hand_DecomposeHero)                     //! 分解英雄
-	http.HandleFunc("/query_hero_relive_cost", mainlogic.Hand_QueryHeroRelive)           //! 查询重生英雄材料
-	http.HandleFunc("/relive_hero", mainlogic.Hand_ReliveHero)                           //! 重生英雄
-
+	http.HandleFunc("/query_hero_decompose_cost", mainlogic.Hand_QueryHeroDecomposeCost)   //! 查询分解英雄材料
+	http.HandleFunc("/decompose_hero", mainlogic.Hand_DecomposeHero)                       //! 分解英雄
+	http.HandleFunc("/query_hero_relive_cost", mainlogic.Hand_QueryHeroRelive)             //! 查询重生英雄材料
+	http.HandleFunc("/relive_hero", mainlogic.Hand_ReliveHero)                             //! 重生英雄
 	http.HandleFunc("/query_equip_decompose_cost", mainlogic.Hand_QueryEquipDecomposeCost) //! 查询分解装备材料
 	http.HandleFunc("/decompose_equip", mainlogic.Hand_DecomposeEquip)                     //! 分解装备
 	http.HandleFunc("/query_equip_relive_cost", mainlogic.Hand_QueryEquipRelive)           //! 查询重生装备材料
 	http.HandleFunc("/relive_equip", mainlogic.Hand_ReliveEquip)                           //! 重生装备
-
-	http.HandleFunc("/query_pet_decompose_cost", mainlogic.Hand_QueryDecomposePetCost) //! 查询分解战宠材料
-	http.HandleFunc("/decompose_pet", mainlogic.Hand_DecomposePet)                     //! 分解战宠
-	http.HandleFunc("/query_pet_relive_cost", mainlogic.Hand_QueryPetRelive)           //! 查询重生战宠材料
-	http.HandleFunc("/relive_pet", mainlogic.Hand_RelivePet)                           //! 重生战宠
-
-	http.HandleFunc("/query_gem_relive_cost", mainlogic.Hand_QueryGemRelive) //! 查询宝物重生材料
-	http.HandleFunc("/relive_gem", mainlogic.Hand_ReliveGem)                 //! 重生宝物
+	http.HandleFunc("/query_pet_decompose_cost", mainlogic.Hand_QueryDecomposePetCost)     //! 查询分解战宠材料
+	http.HandleFunc("/decompose_pet", mainlogic.Hand_DecomposePet)                         //! 分解战宠
+	http.HandleFunc("/query_pet_relive_cost", mainlogic.Hand_QueryPetRelive)               //! 查询重生战宠材料
+	http.HandleFunc("/relive_pet", mainlogic.Hand_RelivePet)                               //! 重生战宠
+	http.HandleFunc("/query_gem_relive_cost", mainlogic.Hand_QueryGemRelive)               //! 查询宝物重生材料
+	http.HandleFunc("/relive_gem", mainlogic.Hand_ReliveGem)                               //! 重生宝物
 
 	//挂机
 	http.HandleFunc("/hangup_get_info", mainlogic.Hand_GetHangUpInfo) //请求挂机信息
@@ -532,8 +533,10 @@ func RegTcpMsgHandler() {
 	tcpclient.HandleFunc(msg.MSG_KILL_EVENT_REQ, mainlogic.Hand_KillEventReq)
 	tcpclient.HandleFunc(msg.MSG_PLAYER_QUERY_REQ, mainlogic.Hand_PlayerQueryReq)
 	tcpclient.HandleFunc(msg.MSG_PLAYER_CHANGE_REQ, mainlogic.Hand_PlayerChangeReq)
-	tcpclient.HandleFunc(msg.MSG_PLAYER_CARRY_REQ, mainlogic.Hand_PlayerCarryReq)
 	tcpclient.HandleFunc(msg.MSG_PLAYER_REVIVE_REQ, mainlogic.Hand_PlayerReviveReq)
+
+	tcpclient.HandleFunc(msg.MSG_START_CARRY_REQ, mainlogic.Hand_StartCarryReq)
+	tcpclient.HandleFunc(msg.MSG_FINISH_CARRY_REQ, mainlogic.Hand_FinishCarryReq)
 
 }
 

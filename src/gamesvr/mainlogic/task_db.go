@@ -7,22 +7,11 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-//! 设置玩家任务状态
-func (taskmodule *TTaskMoudle) UpdatePlayerTaskStatus(taskID int, status int) bool {
-	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerTask", bson.M{"_id": taskmodule.PlayerID, "tasklist.taskid": taskID}, bson.M{"$set": bson.M{
-		"tasklist.$.taskstatus": status}})
-}
-
 //! 设置玩家任务进度
-func (taskmodule *TTaskMoudle) UpdatePlayerTaskCount(taskID int, count int) bool {
+func (taskmodule *TTaskMoudle) UpdatePlayerTask(taskID int, count int, status int) bool {
 	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerTask", bson.M{"_id": taskmodule.PlayerID, "tasklist.taskid": taskID}, bson.M{"$set": bson.M{
-		"tasklist.$.taskcount": count}})
-}
-
-//! 设置玩家成就状态
-func (taskmodule *TTaskMoudle) UpdatePlayerAchievementStatus(taskID int, status int) bool {
-	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerTask", bson.M{"_id": taskmodule.PlayerID, "achievementlist.id": taskID}, bson.M{"$set": bson.M{
-		"achievementlist.$.taskstatus": status}})
+		"tasklist.$.taskcount":  count,
+		"tasklist.$.taskstatus": status}})
 }
 
 //! 增加玩家成就达成列表
@@ -31,9 +20,10 @@ func (taskmodule *TTaskMoudle) AddAchievementCompleteLst(achievementID int) bool
 }
 
 //! 设置玩家成就进度
-func (taskmodule *TTaskMoudle) UpdatePlayerAchievementCount(taskID int, count int) bool {
+func (taskmodule *TTaskMoudle) UpdatePlayerAchievement(taskID int, count int, status int) bool {
 	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerTask", bson.M{"_id": taskmodule.PlayerID, "achievementlist.id": taskID}, bson.M{"$set": bson.M{
-		"achievementlist.$.taskcount": count}})
+		"achievementlist.$.taskcount":  count,
+		"achievementlist.$.taskstatus": status}})
 }
 
 //! 设置玩家任务积分

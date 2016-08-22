@@ -60,6 +60,7 @@ func Hand_GetRankGiftInfo(w http.ResponseWriter, r *http.Request) {
 	player.ActivityModule.RankGift.IsHaveNewItem = false
 	go player.ActivityModule.RankGift.DB_UpdateNewItemMark()
 
+	response.Rank = player.ArenaModule.HistoryRank
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -126,24 +127,31 @@ func Hand_BuyRankGift(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测货币是否足够
-	if player.RoleMoudle.CheckMoneyEnough(rankGiftInfo.MoneyID, rankGiftInfo.MoneyNum) == false {
-		gamelog.Error("Hand_BuyRankGift Error: Not enough money")
-		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
-		return
-	}
+	if rankGiftInfo.MoneyID != 0 {
+		if player.RoleMoudle.CheckMoneyEnough(rankGiftInfo.MoneyID, rankGiftInfo.MoneyNum) == false {
+			gamelog.Error("Hand_BuyRankGift Error: Not enough money")
+			response.RetCode = msg.RE_NOT_ENOUGH_MONEY
+			return
+		}
 
-	//! 扣除货币
-	player.RoleMoudle.CostMoney(rankGiftInfo.MoneyID, rankGiftInfo.MoneyNum)
-	response.CostMoneyID = rankGiftInfo.MoneyID
-	response.CostMoneyNum = rankGiftInfo.MoneyNum
+		//! 扣除货币
+		player.RoleMoudle.CostMoney(rankGiftInfo.MoneyID, rankGiftInfo.MoneyNum)
+		response.CostMoneyID = rankGiftInfo.MoneyID
+		response.CostMoneyNum = rankGiftInfo.MoneyNum
+	}
 
 	rankGift.BuyTimes -= 1
 	go player.ActivityModule.RankGift.DB_UpdateBuyTimes(rankGift.GiftID, rankGift.BuyTimes)
 	response.BuyTimes = rankGift.BuyTimes
 
 	//! 给予商品
-	player.BagMoudle.AddAwardItem(rankGiftInfo.ItemID, rankGiftInfo.ItemNum)
-	response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{rankGiftInfo.ItemID, rankGiftInfo.ItemNum})
+	awardLst := gamedata.GetItemsFromAwardID(rankGiftInfo.Award)
+	player.BagMoudle.AddAwardItems(awardLst)
+
+	for _, v := range awardLst {
+		response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{v.ItemID, v.ItemNum})
+
+	}
 
 	response.RetCode = msg.RE_SUCCESS
 }

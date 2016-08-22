@@ -603,6 +603,30 @@ func (self *THeroMoudle) CalcExtraProperty(HeroResults []THeroResult) bool {
 	return true
 }
 
+//计算时装的属性影响
+func (self *THeroMoudle) CalcFashion(HeroResults []THeroResult) bool {
+	if self.FashionID <= 0 {
+		return false
+	}
+
+	pFashionLvlInfo := gamedata.GetFashionLevelInfo(self.FashionID, self.FashionLvl)
+	if pFashionLvlInfo == nil {
+		gamelog.Error("CalcFashion Error : Invalid ID:%d and lvl:%d", self.FashionID, self.FashionLvl)
+		return false
+	}
+
+	for k := 0; k < BATTLE_NUM; k++ {
+		if HeroResults[k].HeroID == 0 {
+			continue
+		}
+
+		for pid := 0; pid < 5; pid++ {
+			HeroResults[k].PropertyValues[pid] += pFashionLvlInfo.Propertys[pid]
+		}
+	}
+	return true
+}
+
 //计算援军系统的战力影响
 func (self *THeroMoudle) CalcHeroFriend(HeroResults []THeroResult) bool {
 	minLevel := 200
@@ -618,7 +642,6 @@ func (self *THeroMoudle) CalcHeroFriend(HeroResults []THeroResult) bool {
 
 	pHeroFriendInfo := gamedata.GetHeroFriendInfo(minLevel)
 	if pHeroFriendInfo == nil {
-		gamelog.Error("CalcHeroFriend Error: Invalid hero friend level:%d", minLevel)
 		return false
 	}
 
@@ -900,8 +923,11 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int {
 	//计算英雄援军系统的影响
 	self.CalcHeroFriend(HeroResults)
 
+	//计算时装系统的影响
+	self.CalcFashion(HeroResults)
+
 	//计算公会技能的数值影响
-	if self.ownplayer != nil && self.ownplayer.GuildModule.GuildID != 0 {
+	if self.ownplayer != nil && self.ownplayer.pSimpleInfo.GuildID != 0 {
 		for k := 0; k < BATTLE_NUM; k++ {
 			if HeroResults[k].HeroID != 0 {
 				for pid := 0; pid < 11; pid++ {

@@ -11,12 +11,12 @@ import (
 
 //! 充值活动数据
 type TActivityRecharge struct {
-	ActivityID       int              //! 活动ID
-	RechargeValue    int              //! 活动期间累积充值数额
-	RechargeAwardLst Mark             //! 累积充值领取标记 (索引)
-	VersionCode      int              //! 版本号
-	ResetCode        int              //! 迭代号
-	activityModule   *TActivityModule //! 指针
+	ActivityID     int              //! 活动ID
+	RechargeValue  int              //! 活动期间累积充值数额
+	AwardMark      Mark             //! 累积充值领取标记 (索引)
+	VersionCode    int              //! 版本号
+	ResetCode      int              //! 迭代号
+	activityModule *TActivityModule //! 指针
 }
 
 //! 赋值基础数据
@@ -45,7 +45,7 @@ func (self *TActivityRecharge) Refresh(versionCode int) {
 //! 活动结束
 func (self *TActivityRecharge) End(versionCode int, resetCode int) {
 	self.RechargeValue = 0
-	self.RechargeAwardLst = 0
+	self.AwardMark = 0
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 	go self.DB_Reset()
@@ -76,7 +76,7 @@ func (self *TActivityRecharge) RedTip() bool {
 	}
 
 	for _, v := range recvLst {
-		if self.RechargeAwardLst.Get(uint(v)) == false {
+		if self.AwardMark.Get(uint(v)) == false {
 			return true
 		}
 	}
@@ -119,19 +119,19 @@ func (self *TActivityRecharge) DB_Reset() bool {
 	}
 
 	filedName1 := fmt.Sprintf("recharge.%d.rechargevalue", index)
-	filedName2 := fmt.Sprintf("recharge.%d.rechargeawardlst", index)
+	filedName2 := fmt.Sprintf("recharge.%d.AwardMark", index)
 	filedName3 := fmt.Sprintf("recharge.%d.versioncode", index)
 	filedName4 := fmt.Sprintf("recharge.%d.resetcode", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName1: self.RechargeValue,
-		filedName2: self.RechargeAwardLst,
+		filedName2: self.AwardMark,
 		filedName3: self.VersionCode,
 		filedName4: self.ResetCode}})
 	return true
 }
 
 func (self *TActivityRecharge) DB_UpdateRechargeMark(index int, mark int) {
-	filedName := fmt.Sprintf("recharge.%d.rechargeawardlst", index)
+	filedName := fmt.Sprintf("recharge.%d.AwardMark", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName: mark}})
 }

@@ -12,6 +12,8 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+var G_GemPlayersIndex int
+
 type RobPlayerInfo struct {
 	PlayerID int             //! 玩家ID
 	Name     string          //! 名字
@@ -89,18 +91,23 @@ func (self *TRobModule) RefreshFreeWarTime() {
 
 func (self *TRobModule) GetRobList(itemID int, exclude IntLst) (robPlayerLst []RobPlayerInfo) {
 	//! 玩家取2个
-	for _, v := range g_Players {
+	count := 0
+	if G_GemPlayersIndex >= len(g_SelectPlayers) {
+		G_GemPlayersIndex = 0
+	}
+
+	for i := G_GemPlayersIndex; i < len(g_SelectPlayers); i++ {
 		//! 检查是否处于免战时间
-		if time.Now().Unix() < v.RobModule.FreeWarTime {
+		if time.Now().Unix() < g_SelectPlayers[i].RobModule.FreeWarTime {
 			continue
 		}
-		if v.BagMoudle.GetGemPieceCount(itemID) > 0 {
+		if g_SelectPlayers[i].BagMoudle.GetGemPieceCount(itemID) > 0 {
 			var info RobPlayerInfo
-			info.Name = v.RoleMoudle.Name
-			info.Level = v.GetLevel()
-			info.PlayerID = v.GetPlayerID()
+			info.Name = g_SelectPlayers[i].RoleMoudle.Name
+			info.Level = g_SelectPlayers[i].GetLevel()
+			info.PlayerID = g_SelectPlayers[i].GetPlayerID()
 			info.IsRobot = 0
-			for i, b := range v.HeroMoudle.CurHeros {
+			for i, b := range g_SelectPlayers[i].HeroMoudle.CurHeros {
 				info.HeroID[i] = b.HeroID
 			}
 
@@ -109,12 +116,17 @@ func (self *TRobModule) GetRobList(itemID int, exclude IntLst) (robPlayerLst []R
 			}
 
 			if len(robPlayerLst) == 2 {
+				G_GemPlayersIndex = i
 				break
 			}
 		}
-	}
+		count++
 
-	//	r :=
+		if count == 200 { //! 限制查找人数
+			G_GemPlayersIndex = i
+			break
+		}
+	}
 
 	//! 机器人
 	robotNum := 5 - len(robPlayerLst)

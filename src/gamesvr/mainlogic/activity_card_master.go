@@ -38,6 +38,7 @@ func (self *TCardMasterInfo) Init(activityID int, mPtr *TActivityModule, vercode
 	self.activityModule.activityPtrs[self.ActivityID] = self
 	self.CardList = make([]uint16, len(gamedata.G_CardCsv))
 	self.ExchangeTimes = make([]uint16, len(gamedata.G_CMExchangeItemCsv))
+	// gamelog.Info("！！！CardMaster Init")
 }
 func (self *TCardMasterInfo) SetModulePtr(mPtr *TActivityModule) {
 	self.activityModule = mPtr
@@ -115,6 +116,7 @@ func (self *TCardMasterInfo) AddCard(id int, count_ int) int {
 		return 0
 	}
 	self.CardList[id] += count
+	// gamelog.Info("AddCard -- addCnt:%d, resultCnt: %d", count, self.CardList[id])
 	self.db_SaveCardList(id)
 	return int(self.CardList[id])
 }
@@ -141,6 +143,8 @@ func (self *TCardMasterInfo) DelCards(cards []gamedata.ST_ItemData) bool {
 			return false
 		}
 		if self.CardList[v.ItemID] < uint16(v.ItemNum) {
+			gamelog.Error("DelCards Error : itemId:%d, haveCnt:%d, needCnt:%d", v.ItemID, self.CardList[v.ItemID], v.ItemNum)
+			// gamelog.Error("CardList: %v", self.CardList)
 			return false
 		}
 	}
@@ -329,6 +333,7 @@ func GetDrawCostData(drawType byte) (diamond int, awardID int, jifen int) {
 func (self *TCardMasterInfo) Card2Item(exchangeID int) bool {
 	csv := gamedata.GetCMExchangeItemCsvInfo(exchangeID)
 	if csv == nil {
+		gamelog.Error("Card2Item ExchangeItemCsv nil(%d)", exchangeID)
 		return false
 	}
 	if self.ExchangeTimes[exchangeID] >= csv.DailyTimes {

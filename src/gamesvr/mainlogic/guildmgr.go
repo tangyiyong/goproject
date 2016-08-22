@@ -730,7 +730,7 @@ func (self *TGuild) SubCampLife(copyID int, damage int64, playerName string) (bo
 		isKilled = true
 	}
 
-	go self.DB_CostCampLife(copyID, life)
+	self.DB_CostCampLife(copyID, life)
 
 	isVictory := true
 	for _, v := range self.CampLife {

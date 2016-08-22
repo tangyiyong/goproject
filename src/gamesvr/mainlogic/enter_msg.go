@@ -11,6 +11,7 @@ import (
 	"msg"
 	"net/http"
 	"time"
+	"utility"
 )
 
 func Hand_PlayerLoginGame(w http.ResponseWriter, r *http.Request) {
@@ -109,15 +110,27 @@ func Hand_PlayerEnterGame(w http.ResponseWriter, r *http.Request) {
 
 	pPlayer.OnPlayerOnline(req.PlayerID)
 	response.SvrTime = time.Now().Unix()
-	response.GuildID = pPlayer.GuildModule.GuildID
+
 	response.ChatSvrAddr = appconfig.ChatSvrAddr
 	response.PlayerName = pPlayer.RoleMoudle.Name
 	response.FightValue = G_SimpleMgr.Get_FightValue(req.PlayerID)
 	response.RetCode = msg.RE_SUCCESS
+
+	if pPlayer.pSimpleInfo == nil {
+		gamelog.Error("Hand_PlayerEnterGame Error : pPlayer.pSimpleInfo == nil")
+	} else {
+		response.GuildID = pPlayer.pSimpleInfo.GuildID
+	}
+
 	gamelog.Info("message: user_enter_game : %s", response.PlayerName)
+
 	//! 玩家登陆
-	pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_USER_LOGIN, 1)
-	pPlayer.ActivityModule.AddLoginDay()
+	if pPlayer.IsTodayLogin() == false {
+		pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_USER_LOGIN, 1)
+		pPlayer.ActivityModule.AddLoginDay()
+	}
+
+	G_SimpleMgr.Set_LoginDay(req.PlayerID, utility.GetCurDay())
 }
 
 func Hand_PlayerLeaveGame(w http.ResponseWriter, r *http.Request) {
@@ -198,24 +211,23 @@ func Hand_CreateNewPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pPlayer.pSimpleInfo = pSimpleInfo
 	pPlayer.OnCreate(pSimpleInfo.PlayerID)
-
 	pSimpleInfo.Quality = pPlayer.HeroMoudle.CurHeros[0].Quality
-	pSimpleInfo.FightValue = pPlayer.HeroMoudle.CalcFightValue(nil)
 	pSimpleInfo.Level = pPlayer.HeroMoudle.CurHeros[0].Level
 	pSimpleInfo.Name = req.PlayerName
 	pSimpleInfo.HeroID = req.HeroID
+	pSimpleInfo.FightValue = pPlayer.HeroMoudle.CalcFightValue(nil)
+	response.PlayerID = pSimpleInfo.PlayerID
+	response.RetCode = msg.RE_SUCCESS
+	G_LevelRanker.SetRankItem(pSimpleInfo.PlayerID, pSimpleInfo.Level)
+	G_FightRanker.SetRankItem(pSimpleInfo.PlayerID, pSimpleInfo.FightValue)
 
 	if false == mongodb.InsertToDB(appconfig.GameDbName, "PlayerSimple", pSimpleInfo) {
 		gamelog.Error("Hand_CreateNewPlayer Error: Insert to PlayserSimple Failed!!!")
 		return
 	}
 
-	pPlayer.pSimpleInfo = pSimpleInfo
-	response.PlayerID = pSimpleInfo.PlayerID
-	response.RetCode = msg.RE_SUCCESS
-	G_LevelRanker.SetRankItem(pSimpleInfo.PlayerID, pSimpleInfo.Level)
-	G_FightRanker.SetRankItem(pSimpleInfo.PlayerID, pSimpleInfo.FightValue)
 	return
 }
 

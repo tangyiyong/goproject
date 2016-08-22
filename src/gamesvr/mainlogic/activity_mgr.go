@@ -19,7 +19,7 @@ func ActivityTimerFunc(now int64) bool {
 	for i := 0; i < len(G_GlobalVariables.ActivityLst); i++ {
 		if now >= G_GlobalVariables.ActivityLst[i].endTime && G_GlobalVariables.ActivityLst[i].endTime > 0 {
 			//! 已经超过结束时间的非永久并正在运行的活动执行结束
-			EndActivity(G_GlobalVariables.ActivityLst[i].ActivityType, G_GlobalVariables.ActivityLst[i].ActivityID)
+			EndActivity(G_GlobalVariables.ActivityLst[i].activityType, G_GlobalVariables.ActivityLst[i].ActivityID)
 			G_GlobalVariables.ActivityLst[i].ResetCode += 1
 			G_GlobalVariables.ActivityLst[i].VersionCode = 0
 			go G_GlobalVariables.DB_UpdateActivityStatus(i)
@@ -30,7 +30,7 @@ func ActivityTimerFunc(now int64) bool {
 		} else if now < G_GlobalVariables.ActivityLst[i].endTime ||
 			G_GlobalVariables.ActivityLst[i].endTime == 0 {
 			//! 没有到结束时间或者永久存在并正在运行的活动执行刷新
-			RefreshActivity(G_GlobalVariables.ActivityLst[i].ActivityType, G_GlobalVariables.ActivityLst[i].ActivityID)
+			RefreshActivity(G_GlobalVariables.ActivityLst[i].activityType, G_GlobalVariables.ActivityLst[i].ActivityID)
 			G_GlobalVariables.ActivityLst[i].VersionCode += 1
 			go G_GlobalVariables.DB_UpdateActivityStatus(i)
 		}
@@ -69,8 +69,8 @@ func CheckActivityAdd() {
 
 		var activity TActivityData
 		activity.ActivityID = v.ID
-		activity.ActivityType = v.ActivityType
-		activity.Award = v.AwardType
+		activity.activityType = v.ActivityType
+		activity.award = v.AwardType
 		activity.beginTime, activity.endTime = gamedata.GetActivityEndTime(v.ID, openDay)
 		activity.VersionCode = 0
 		activity.Status = v.Status

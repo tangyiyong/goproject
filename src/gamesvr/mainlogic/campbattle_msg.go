@@ -5,10 +5,10 @@ import (
 	"gamelog"
 	"gamesvr/gamedata"
 	"gamesvr/tcpclient"
-	"math/rand"
 	"msg"
 	"net/http"
 	"time"
+	"utility"
 )
 
 func Hand_RegBattleSvr(w http.ResponseWriter, r *http.Request) {
@@ -167,8 +167,9 @@ func Hand_EnterCampBattle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player.CamBattleModule.enterCode = rand.Int()
+	player.CamBattleModule.enterCode = int32(utility.Rand())
 	response.BattleSvrAddr = GetRecommendSvrAddr()
+	gamelog.Error("Hand_EnterCampBattle Genarate EnterCode:%d", player.CamBattleModule.enterCode)
 	response.EnterCode = player.CamBattleModule.enterCode
 	response.RetCode = msg.RE_SUCCESS
 }

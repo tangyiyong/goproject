@@ -245,7 +245,7 @@ func Hand_AddGrid(w http.ResponseWriter, r *http.Request) {
 	}
 
 	player.HangMoudle.GridNum += gamedata.HangUpOpenGridNum
-	player.RoleMoudle.CostMoney(2, CostMoney)
+	player.RoleMoudle.CostMoney(gamedata.HangUpBuyGridMoneyID, CostMoney)
 	player.HangMoudle.DB_SaveGridNum()
 	response.RetCode = msg.RE_SUCCESS
 	response.GridNum = player.HangMoudle.GridNum

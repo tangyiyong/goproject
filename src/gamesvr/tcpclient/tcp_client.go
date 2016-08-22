@@ -18,6 +18,7 @@ type TCPClient struct {
 	Reconnect       int //重连次数
 	ConType         int //连接类型 1:聊天服连接，2: 战斗服连接
 	SvrID           int //连接服务器ID
+	ExtraData       interface{}
 }
 
 type MsgHanler func(pTcpConn *TCPConn, pdata []byte)

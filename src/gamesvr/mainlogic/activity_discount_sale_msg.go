@@ -180,6 +180,8 @@ func Hand_BuyDiscountSaleItem(w http.ResponseWriter, r *http.Request) {
 	response.MoneyID = goodsInfo.MoneyID
 	response.MoneyNum = goodsInfo.MoneyNum * req.Count
 
+	awardLst := gamedata.GetItemsFromAwardID(goodsInfo.Award)
+
 	//! 判断是否为多选
 	if goodsInfo.IsSelect == 1 {
 		//! 判断用户选择是否正确
@@ -189,7 +191,7 @@ func Hand_BuyDiscountSaleItem(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		item := goodsInfo.Item[req.Choice-1]
+		item := awardLst[req.Choice-1]
 		if item.ItemID == 0 {
 			gamelog.Error("Hand_BuyDiscountSaleItem Error:  invalid choice %d", req.Choice)
 			response.RetCode = msg.RE_INVALID_PARAM
@@ -201,7 +203,7 @@ func Hand_BuyDiscountSaleItem(w http.ResponseWriter, r *http.Request) {
 		response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{item.ItemID, item.ItemNum * req.Count})
 	} else {
 
-		for _, v := range goodsInfo.Item {
+		for _, v := range awardLst {
 			if v.ItemID != 0 && v.ItemNum != 0 {
 				player.BagMoudle.AddAwardItem(v.ItemID, v.ItemNum*req.Count)
 				response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{v.ItemID, v.ItemNum * req.Count})

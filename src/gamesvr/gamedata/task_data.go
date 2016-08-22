@@ -44,7 +44,7 @@ const (
 	TASK_HERO_GEM_REFINED_MAX   = 36 //! 英雄宝物精炼最高等级
 	TASK_FIGHT_VALUE            = 37 //! 战斗力
 	TASK_CARD_MASTER_SCORE      = 38 //! 获取卡牌大师积分
-	TASK_HUNT_TREASURE_TIMES    = 39 //! 今日夺宝次数
+	TASK_ROB_TIMES              = 39 //! 今日夺宝次数
 	TASK_KILL_REBEL             = 40 //! 今日击杀叛军个数
 	TASK_SPENT_MONEY            = 41 //! 消费任意金额
 	TASK_COMPLETE_ALL_TASK      = 42 //! 完成所有任务

@@ -1,7 +1,6 @@
 package gamedata
 
 import (
-	"fmt"
 	"gamelog"
 	"time"
 )
@@ -34,6 +33,7 @@ const (
 	Activity_Summon           = 24 //! 求贤若渴 (并入限时日常类型)
 	Activity_Rank_Sale        = 25 //! 巅峰特惠
 	Activity_Seven            = 26 //! 七天活动
+	Activity_LimitSale        = 27 //! 限时特惠
 )
 
 //! 活动配置表
@@ -185,11 +185,8 @@ func GetActivityEndTime(activityID int, openDay int) (beginTime int64, endTime i
 		beginDate := time.Date(now.Year(), now.Month(), activityInfo.BeginTime, 0, 0, 0, 0, now.Location())
 		endDate := time.Date(now.Year(), now.Month(), activityInfo.EndTime, 23, 59, 59, 59, now.Location())
 
-		if beginDate.Unix() <= now.Unix() {
-			beginDate = beginDate.AddDate(0, 1, 0)
-		}
-
 		if endDate.Unix() <= now.Unix() {
+			beginDate = beginDate.AddDate(0, 1, 0)
 			endDate = endDate.AddDate(0, 1, 0)
 		}
 
@@ -438,7 +435,7 @@ type ST_Activity_DiscoutSale struct {
 	AwardType int
 	MoneyID   int
 	MoneyNum  int
-	Item      [4]ST_ItemData
+	Award     int
 	IsSelect  int
 	Times     int
 }
@@ -455,13 +452,7 @@ func ParseDiscountSaleRecord(rs *RecordSet) {
 	discount.MoneyID = rs.GetFieldInt("moneyid")
 	discount.MoneyNum = rs.GetFieldInt("moneynum")
 
-	for i := 0; i < 4; i++ {
-		filedName := fmt.Sprintf("itemid%d", i+1)
-		discount.Item[i].ItemID = rs.GetFieldInt(filedName)
-
-		filedName = fmt.Sprintf("itemnum%d", i+1)
-		discount.Item[i].ItemNum = rs.GetFieldInt(filedName)
-	}
+	discount.Award = rs.GetFieldInt("award_id")
 
 	discount.IsSelect = rs.GetFieldInt("is_select")
 	discount.Times = rs.GetFieldInt("times")
@@ -632,6 +623,7 @@ func GetActivityLimitDaily(awardType int) []ST_Activity_LimitDaily {
 
 //! 周周盈
 type ST_Activity_WeekAward struct {
+	ID          int //! 唯一标识
 	AwardType   int //! 奖励模板
 	LoginDay    int //! 登录天数
 	RechargeNum int //! 累充数额
@@ -656,33 +648,41 @@ func ParseActivityWeekAwardRecord(rs *RecordSet) {
 	GT_ActivityWeekAwardMap[activity.AwardType] = append(GT_ActivityWeekAwardMap[activity.AwardType], activity)
 }
 
-func GetWeekAwardInfo(awardType int, day int) *ST_Activity_WeekAward {
+func GetWeekAwardInfoLst(awardType int) []ST_Activity_WeekAward {
 	data, ok := GT_ActivityWeekAwardMap[awardType]
 	if ok == false {
-		gamelog.Error("GetWeekAwardInfo Error: Invalid type : %d  day: %d", awardType, day)
+		gamelog.Error("GetWeekAwardInfo Error: Invalid type : %d", awardType)
 		return nil
 	}
 
-	if day > len(data) || day <= 0 {
-		gamelog.Error("GetWeekAwardInfo Error: Invalid type : %d  day: %d", awardType, day)
+	return data
+}
+
+func GetWeekAwardInfo(awardType int, index int) *ST_Activity_WeekAward {
+	data, ok := GT_ActivityWeekAwardMap[awardType]
+	if ok == false {
+		gamelog.Error("GetWeekAwardInfo Error: Invalid type : %d  index: %d", awardType, index)
 		return nil
 	}
 
-	return &data[day-1]
+	if index-1 < 0 || index > len(data) {
+		gamelog.Error("GetWeekAwardInfo Error: Invalid type : %d  index: %d", awardType, index)
+		return nil
+	}
+
+	return &data[index-1]
 }
 
 //! 等级礼包
 type ST_Activity_LevelGift struct {
-	AwardType int //! 奖励模板
-	ID        int //! ID
-	Level     int //! 需求等级
-	ItemID    int //! 物品ID
-	ItemNum   int //! 物品数量
-	MoneyID   int //! 货币ID
-	MoneyNum  int //! 货币数量
-	Discount  int //! 折扣
-	BuyTimes  int //! 可购买次数
-	DeadLine  int //! 过期时间
+	AwardType int    //! 奖励模板
+	ID        int    //! ID
+	Level     string //! 需求等级
+	Award     int    //! 奖励
+	MoneyID   int    //! 货币ID
+	MoneyNum  int    //! 货币数量
+	BuyTimes  int    //! 可购买次数
+	DeadLine  int    //! 过期时间
 }
 
 var GT_ActivityLevelGiftMap map[int][]ST_Activity_LevelGift
@@ -696,12 +696,10 @@ func ParseActivityLevelGiftRecord(rs *RecordSet) {
 	var activity ST_Activity_LevelGift
 	activity.AwardType = rs.GetFieldInt("award_type")
 	activity.ID = rs.GetFieldInt("id")
-	activity.Level = rs.GetFieldInt("level")
-	activity.ItemID = rs.GetFieldInt("item_id")
-	activity.ItemNum = rs.GetFieldInt("item_num")
+	activity.Level = rs.GetFieldString("level")
+	activity.Award = rs.GetFieldInt("award_id")
 	activity.MoneyID = rs.GetFieldInt("money_id")
 	activity.MoneyNum = rs.GetFieldInt("money_num")
-	activity.Discount = rs.GetFieldInt("discount")
 	activity.BuyTimes = rs.GetFieldInt("buy_times")
 	activity.DeadLine = rs.GetFieldInt("dead_line")
 	GT_ActivityLevelGiftMap[activity.AwardType] = append(GT_ActivityLevelGiftMap[activity.AwardType], activity)
@@ -779,4 +777,108 @@ func GetMonthFundAwardCount(awardType int) int {
 	}
 
 	return len(monthFundLst)
+}
+
+type ST_LimitSaleItem struct {
+	ID       int
+	ItemType int //! 1->普通货币 2->元宝
+	ItemID   int
+	ItemNum  int
+	MoneyID  int
+	MoneyNum int
+	Discount int //! 折扣
+	Score    int //! 购买获得积分
+	Original int //! 原价
+}
+
+var GT_LimitSaleItemLst [][]ST_LimitSaleItem
+
+func InitLimitSaleItemParser(total int) bool {
+	GT_LimitSaleItemLst = make([][]ST_LimitSaleItem, 2)
+	return true
+}
+
+func ParseLimitSaleItemRecord(rs *RecordSet) {
+	var item ST_LimitSaleItem
+
+	item.ID = CheckAtoi(rs.Values[0], 0)
+	item.ItemType = rs.GetFieldInt("item_type")
+	item.ItemID = rs.GetFieldInt("item_id")
+	item.ItemNum = rs.GetFieldInt("item_num")
+	item.MoneyID = rs.GetFieldInt("money_id")
+	item.MoneyNum = rs.GetFieldInt("money_num")
+	item.Discount = rs.GetFieldInt("discount")
+	item.Score = rs.GetFieldInt("score")
+	item.Original = rs.GetFieldInt("original")
+
+	GT_LimitSaleItemLst[item.ItemType-1] = append(GT_LimitSaleItemLst[item.ItemType-1], item)
+}
+
+func GetLimitSaleItemInfo(id int) *ST_LimitSaleItem {
+	for i, v := range GT_LimitSaleItemLst {
+		for j, n := range v {
+			if n.ID == id {
+				return &GT_LimitSaleItemLst[i][j]
+			}
+		}
+	}
+
+	gamelog.Error("GetLimitSaleIteminfo nil, Invalid ID: %d", id)
+	return nil
+}
+
+func RandLimitSaleItem() []int {
+	randIDLst := []int{}
+
+	//! 2个元宝商品
+	for i := 0; i < 2; i++ {
+		randIndex := r.Intn(len(GT_LimitSaleItemLst[1]))
+		item := GT_LimitSaleItemLst[1][randIndex]
+		randIDLst = append(randIDLst, item.ID)
+	}
+
+	//! 1个普通货币
+	randIndex := r.Intn(len(GT_LimitSaleItemLst[0]))
+	item := GT_LimitSaleItemLst[0][randIndex]
+	randIDLst = append(randIDLst, item.ID)
+
+	//! 3个元宝商品
+	for i := 0; i < 3; i++ {
+		randIndex = r.Intn(len(GT_LimitSaleItemLst[1]))
+		item = GT_LimitSaleItemLst[1][randIndex]
+		randIDLst = append(randIDLst, item.ID)
+	}
+
+	return randIDLst
+}
+
+type ST_LimitSaleAllAward struct {
+	ID      int
+	Award   int
+	NeedNum int //!  需求购买人数
+}
+
+var GT_LimitSaleAllAwardLst []ST_LimitSaleAllAward
+
+func InitLimitSaleAllAwardParser(total int) bool {
+	GT_LimitSaleAllAwardLst = make([]ST_LimitSaleAllAward, total+1)
+	return true
+}
+
+func ParseLimitSaleAllAwardRecord(rs *RecordSet) {
+
+	id := CheckAtoi(rs.Values[0], 0)
+
+	GT_LimitSaleAllAwardLst[id].ID = id
+	GT_LimitSaleAllAwardLst[id].Award = rs.GetFieldInt("award")
+	GT_LimitSaleAllAwardLst[id].NeedNum = rs.GetFieldInt("need_num")
+}
+
+func GetLimitSaleAllAwardInfo(id int) *ST_LimitSaleAllAward {
+	if id > len(GT_LimitSaleAllAwardLst)-1 {
+		gamelog.Error("GetLimitSaleAllAwardinfo Error: Invalid id %d", id)
+		return nil
+	}
+
+	return &GT_LimitSaleAllAwardLst[id]
 }

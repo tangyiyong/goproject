@@ -357,6 +357,7 @@ func Hand_GiveAction(w http.ResponseWriter, r *http.Request) {
 				ptFriendInfo.HasAct = true
 				DB_UpdateHasAct(req.TargetID, ntIndex, true)
 			} else {
+
 				gamelog.Error("Hand_GiveAction Error: Tartet Player cant find this friend t:%d, this:%d", req.TargetID, player.playerid)
 			}
 		} else {

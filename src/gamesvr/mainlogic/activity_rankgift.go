@@ -7,6 +7,8 @@ import (
 	"gamesvr/gamedata"
 	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+	"strconv"
+	"strings"
 )
 
 type TRankGiftInfo struct {
@@ -106,7 +108,19 @@ func (self *TActivityRankGift) CheckRankUp(rank int) {
 	length := len(giftLst)
 
 	for i := 0; i < length; i++ {
-		if giftLst[i].Level > rank {
+		values := strings.Split(giftLst[i].Level, "|")
+		rankValueLst := IntLst{}
+		for _, n := range values {
+			rank, _ := strconv.Atoi(n)
+			rankValueLst = append(rankValueLst, rank)
+		}
+
+		if len(rankValueLst) != 2 { //! 当前名次没有奖励, 直接返回
+			//gamelog.Error("GetLevelGiftLst Level Error: Can't split rank num %v", rankValueLst)
+			return
+		}
+
+		if rankValueLst[1] >= rank && rankValueLst[0] <= rank {
 			continue
 		}
 

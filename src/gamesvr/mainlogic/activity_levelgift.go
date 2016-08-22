@@ -7,6 +7,7 @@ import (
 	"gamesvr/gamedata"
 	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+	"strconv"
 	"time"
 )
 
@@ -113,7 +114,8 @@ func (self *TActivityLevelGift) CheckLevelUp(level int) {
 	now := time.Now().Unix()
 
 	for i := 0; i < length; i++ {
-		if giftLst[i].Level > level {
+		needLevel, _ := strconv.Atoi(giftLst[i].Level)
+		if needLevel > level {
 			continue
 		}
 

@@ -149,8 +149,13 @@ func Hand_BuyLevelGift(w http.ResponseWriter, r *http.Request) {
 	response.BuyTimes = levelGift.BuyTimes
 
 	//! 给予商品
-	player.BagMoudle.AddAwardItem(levelGiftInfo.ItemID, levelGiftInfo.ItemNum)
-	response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{levelGiftInfo.ItemID, levelGiftInfo.ItemNum})
+	awardLst := gamedata.GetItemsFromAwardID(levelGiftInfo.Award)
+	player.BagMoudle.AddAwardItems(awardLst)
+
+	for _, v := range awardLst {
+		response.AwardItem = append(response.AwardItem,
+			msg.MSG_ItemData{v.ItemID, v.ItemNum})
+	}
 
 	response.RetCode = msg.RE_SUCCESS
 }

@@ -28,6 +28,7 @@ struct MSG_EnterRoom_Ack
 	INT32 KillHonor;	   //今日杀人荣誉
 	INT32 LeftTimes;       //剩余搬动次数
 	INT32 MoveEndTime;     //搬运结束时间
+	INT32 BeginMsgNo;	   //起始消息编号
 	INT32 SkillID[4];      //四个技能ID
 	MSG_HeroObj Heros[6];
 }
@@ -104,6 +105,7 @@ struct MSG_HeroState_Nty
 struct MSG_PlayerQuery_Req  
 {
 	INT32 PlayerID;
+	INT32 MsgNo;
 }
 
 //玩家查询当前的水晶品质回复
@@ -115,18 +117,33 @@ struct MSG_PlayerQuery_Ack
 }
 
 //(Client)
-struct MSG_PlayerCarry_Req  
+struct MSG_StartCarry_Req  
 {
 	INT32 PlayerID;
-	INT32 CarryEvt; //1:表示开始搬运，2: 完成搬运
+	INT32 MsgNo;
 }
 
-struct MSG_PlayerCarry_Ack  
+struct MSG_StartCarry_Ack  
 {
 	INT32 RetCode; 		//返回码
-	INT32 CarryEvt; 	//1:表示开始搬运，2: 完成搬运
+	INT32 PlayerID;		//玩家的ID
 	INT32 EndTime; 		//搬运截止时间
 	INT32 LeftTimes; 	//剩余搬动次数
+}
+
+//(Client)
+struct MSG_FinishCarry_Req  
+{
+	INT32 PlayerID;
+	INT32 MsgNo;
+}
+
+struct MSG_FinishCarry_Ack  
+{
+	INT32 RetCode; 		//返回码
+	INT32 PlayerID;		//玩家的ID
+	INT32 MoneyID[2]; 	//货币ID
+	INT32 MoneyNum[2]; 	//货币数量
 }
 
 //(Client)
@@ -134,6 +151,7 @@ struct MSG_PlayerChange_Req
 {
 	INT32 PlayerID;
 	INT32 HighQuality; //直接选择最高品质
+	INT32 MsgNo;
 }
 
 struct MSG_PlayerChange_Ack  
@@ -147,6 +165,7 @@ struct MSG_PlayerChange_Ack
 struct MSG_PlayerRevive_Req  
 {
 	INT32 PlayerID;
+	INT32 MsgNo;
 	INT32 ReviveOpt; //复活选项
 }
 
@@ -182,7 +201,6 @@ struct MSG_Revive_Nty
 	MSG_HeroObj Heros[1];
 }
 
-//(Client)
 struct MSG_KillEvent_Req  
 {
 	INT32 Killer;		//杀手
@@ -229,7 +247,7 @@ struct MSG_LoadCampBattle_Ack {
 	INT32 CurRank;  	   //今日排名
 	INT32 KillNum;         //今日击杀
 	INT32 KillHonor;	   //今日杀人荣誉
-	MSG_LoadObject Heros[6] //英雄对象
+	MSG_LoadObject Heros[6]//英雄对象
 }
 
 //MSG_NEW_SKILL_NTY
@@ -268,6 +286,7 @@ struct MSG_SvrLogData  {
 struct MSG_HeartBeat_Req  {
 	INT32 SendID;   //客户端是玩家ID, 服务器是服务器ID
 	INT32 BeatCode; //心跳码
+	INT32 MsgNo;
 }
 
 
@@ -281,6 +300,7 @@ struct MSG_HeroAllDie_Nty
 struct MSG_CmapBatChat_Req 
 {	
 	INT32 PlayerID; //角色ID
+	INT32 MsgNo;
 	STRING Name;    //角色名
 	STRING Content; //消息内容
 }

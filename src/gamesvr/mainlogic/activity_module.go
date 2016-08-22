@@ -125,6 +125,10 @@ type TActivityModule struct {
 	//! 巅峰特惠
 	RankGift TActivityRankGift
 
+	//! 限时特惠
+
+	LimitSale TActivityLimitSale
+
 	activityPtrs map[int]TActivity
 
 	ownplayer *TPlayer
@@ -139,7 +143,7 @@ func (self *TActivityModule) OnCreate(playerID int) {
 	self.activityPtrs = make(map[int]TActivity)
 	for i, _ := range G_GlobalVariables.ActivityLst {
 		activityID := G_GlobalVariables.ActivityLst[i].ActivityID
-		activityType := G_GlobalVariables.ActivityLst[i].ActivityType
+		activityType := G_GlobalVariables.ActivityLst[i].activityType
 		verionCode := G_GlobalVariables.ActivityLst[i].VersionCode
 		resetCode := G_GlobalVariables.ActivityLst[i].ResetCode
 
@@ -240,6 +244,9 @@ func (self *TActivityModule) OnCreate(playerID int) {
 		} else if activityType == gamedata.Activity_Rank_Sale {
 			//! 巅峰特惠
 			self.RankGift.Init(activityID, self, verionCode, resetCode)
+		} else if activityType == gamedata.Activity_LimitSale {
+			//! 限时特惠
+			self.LimitSale.Init(activityID, self, verionCode, resetCode)
 		}
 	}
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerActivity", self)
@@ -357,6 +364,9 @@ func (self *TActivityModule) OnPlayerLoad(playerID int, wg *sync.WaitGroup) {
 	//! 巅峰特惠
 	self.RankGift.SetModulePtr(self)
 
+	//! 限时特惠
+	self.LimitSale.SetModulePtr(self)
+
 }
 
 func (self *TActivityModule) AddActivityPtr(activityID int, activityPtr TActivity) {
@@ -380,79 +390,79 @@ func (self *TActivityModule) CheckNewActivity() {
 			continue
 		}
 
-		if v.ActivityType == gamedata.Activity_Login {
+		if v.activityType == gamedata.Activity_Login {
 			//! 登录奖励
 			loginActivity := TActivityLogin{}
 			loginActivity.Init(v.ActivityID, self, versionCode, resetCode)
 			self.Login = append(self.Login, loginActivity)
 			go self.DB_AddNewLoginActivity(loginActivity)
 
-		} else if v.ActivityType == gamedata.Activity_Recharge_Gift {
+		} else if v.activityType == gamedata.Activity_Recharge_Gift {
 			//! 累积充值
 			rechargeActivity := TActivityRecharge{}
 			rechargeActivity.Init(v.ActivityID, self, versionCode, resetCode)
 			self.Recharge = append(self.Recharge, rechargeActivity)
 			go self.DB_AddNewRechargeActivity(rechargeActivity)
 
-		} else if v.ActivityType == gamedata.Activity_Discount_Sale {
+		} else if v.activityType == gamedata.Activity_Discount_Sale {
 			//! 折扣贩售
 			discountActivity := TActivityDiscountSale{}
 			discountActivity.Init(v.ActivityID, self, versionCode, resetCode)
 			self.DiscountSale = append(self.DiscountSale, discountActivity)
 			go self.DB_AddNewDiscountActivity(discountActivity)
 
-		} else if v.ActivityType == gamedata.Activity_Singel_Recharge {
+		} else if v.activityType == gamedata.Activity_Singel_Recharge {
 			//! 单充返利
 			singleRechargeActivity := TActivitySingleRecharge{}
 			singleRechargeActivity.Init(v.ActivityID, self, versionCode, resetCode)
 			self.SingleRecharge = append(self.SingleRecharge, singleRechargeActivity)
 			go self.DB_AddNewSingleRechargeActivity(singleRechargeActivity)
 
-		} else if v.ActivityType == gamedata.Activity_Limit_Daily_Task {
+		} else if v.activityType == gamedata.Activity_Limit_Daily_Task {
 			//! 限时日常
 			limitDailyActivity := TActivityLimitDaily{}
 			limitDailyActivity.Init(v.ActivityID, self, versionCode, resetCode)
 			self.LimitDaily = append(self.LimitDaily, limitDailyActivity)
 			go self.DB_AddNewLimitDailyActivity(limitDailyActivity)
-		} else if v.ActivityType == gamedata.Activity_Hunt_Treasure && v.ActivityID != self.HuntTreasure.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_Hunt_Treasure && v.ActivityID != self.HuntTreasure.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.HuntTreasure.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.HuntTreasure.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_Luckly_Wheel && v.ActivityID != self.LuckyWheel.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_Luckly_Wheel && v.ActivityID != self.LuckyWheel.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.LuckyWheel.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.LuckyWheel.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_Group_Purchase && v.ActivityID != self.GroupPurchase.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_Group_Purchase && v.ActivityID != self.GroupPurchase.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.GroupPurchase.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.GroupPurchase.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_Card_Master && v.ActivityID != self.CardMaster.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_Card_Master && v.ActivityID != self.CardMaster.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.CardMaster.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.CardMaster.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_Festival && v.ActivityID != self.Festival.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) {
+		} else if v.activityType == gamedata.Activity_Festival && v.ActivityID != self.Festival.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) {
 			self.Festival.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.Festival.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_MoonlightShop && v.ActivityID != self.MoonlightShop.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_MoonlightShop && v.ActivityID != self.MoonlightShop.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.MoonlightShop.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.MoonlightShop.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_Beach_Baby && v.ActivityID != self.BeachBaby.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_Beach_Baby && v.ActivityID != self.BeachBaby.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.BeachBaby.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.BeachBaby.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_Seven {
+		} else if v.activityType == gamedata.Activity_Seven {
 			sevenDay := TActivitySevenDay{}
 			sevenDay.Init(v.ActivityID, self, versionCode, resetCode)
 			self.SevenDay = append(self.SevenDay, sevenDay)
 			go self.DB_AddNewSevenDay(sevenDay)
-		} else if v.ActivityType == gamedata.Activity_Week_Award && v.ActivityID != self.WeekAward.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_Week_Award && v.ActivityID != self.WeekAward.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.WeekAward.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.WeekAward.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_Level_Gift && v.ActivityID != self.LevelGift.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_Level_Gift && v.ActivityID != self.LevelGift.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.LevelGift.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.LevelGift.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_Month_Fund && v.ActivityID != self.MonthFund.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_Month_Fund && v.ActivityID != self.MonthFund.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.MonthFund.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.MonthFund.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_Rank_Sale && v.ActivityID != self.RankGift.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_Rank_Sale && v.ActivityID != self.RankGift.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.RankGift.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.RankGift.DB_Reset()
-		} else if v.ActivityType == gamedata.Activity_Sign && v.ActivityID != self.Sign.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+		} else if v.activityType == gamedata.Activity_Sign && v.ActivityID != self.Sign.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.Sign.Init(v.ActivityID, self, versionCode, resetCode)
 			go self.Sign.DB_Reset()
 		}
@@ -502,14 +512,14 @@ func (self *TActivityModule) AddLoginDay() {
 
 func (self *TActivityModule) AddRechargeValue(value int) {
 	for _, v := range G_GlobalVariables.ActivityLst {
-		if v.ActivityType == gamedata.Activity_Recharge_Gift {
+		if v.activityType == gamedata.Activity_Recharge_Gift {
 			for i, n := range self.Recharge {
 				if n.ActivityID == v.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 					self.Recharge[i].RechargeValue += value
 					go self.DB_UpdateTotalRecharge(i, self.Recharge[i].RechargeValue)
 				}
 			}
-		} else if v.ActivityType == gamedata.Activity_Singel_Recharge {
+		} else if v.activityType == gamedata.Activity_Singel_Recharge {
 			for i, n := range self.SingleRecharge {
 				if n.ActivityID == v.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 					self.SingleRecharge[i].RechargeRecord = append(self.SingleRecharge[i].RechargeRecord, TSingleRechargeRecord{value, 0})

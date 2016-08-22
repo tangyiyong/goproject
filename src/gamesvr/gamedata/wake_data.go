@@ -84,6 +84,77 @@ func ParseWakeComposeRecord(rs *RecordSet) {
 	GT_WakeComposeList[id] = compose
 }
 
+func FinishWakeLevelParser() bool {
+	for level := 0; level <= MaxWakeLevel; level++ {
+		pWakeLevel := GT_WakeLevelList[level]
+		if level == 0 {
+			for i := 0; i < len(pWakeLevel.NeedItem); i++ {
+				itemid := pWakeLevel.NeedItem[i]
+				if itemid != 0 {
+					pItemInfo := GetItemInfo(itemid)
+					if pItemInfo == nil {
+						return false
+					}
+					pWakeLevel.PropertyValues[0] += pItemInfo.Propertys[0]
+					pWakeLevel.PropertyValues[1] += pItemInfo.Propertys[1]
+					pWakeLevel.PropertyValues[2] += pItemInfo.Propertys[2]
+					pWakeLevel.PropertyValues[3] += pItemInfo.Propertys[1]
+					pWakeLevel.PropertyValues[4] += pItemInfo.Propertys[2]
+				}
+			}
+
+			if pWakeLevel.ExtraProperty == AllPropertyID {
+				pWakeLevel.PropertyPercents[0] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyPercents[1] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyPercents[2] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyPercents[3] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyPercents[4] += pWakeLevel.ExtraValue
+			} else if pWakeLevel.ExtraProperty == AttackPropertyID {
+				pWakeLevel.PropertyValues[AttackMagicID] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[AttackPhysicID] += pWakeLevel.ExtraValue
+			} else if pWakeLevel.ExtraProperty == DefencePropertyID {
+				pWakeLevel.PropertyValues[DefenceMagicID] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[DefencePhysicID] += pWakeLevel.ExtraValue
+			} else if pWakeLevel.ExtraProperty > 0 && pWakeLevel.ExtraProperty <= 11 {
+				pWakeLevel.PropertyValues[pWakeLevel.ExtraProperty] += pWakeLevel.ExtraValue
+			}
+
+		} else {
+			pWakeLevel.PropertyValues = GT_WakeLevelList[level-1].PropertyValues
+			pWakeLevel.PropertyPercents = GT_WakeLevelList[level-1].PropertyPercents
+			for i := 0; i < len(pWakeLevel.NeedItem); i++ {
+				itemid := pWakeLevel.NeedItem[i]
+				if itemid != 0 {
+					pItemInfo := GetItemInfo(itemid)
+					pWakeLevel.PropertyValues[0] += pItemInfo.Propertys[0]
+					pWakeLevel.PropertyValues[1] += pItemInfo.Propertys[1]
+					pWakeLevel.PropertyValues[2] += pItemInfo.Propertys[2]
+					pWakeLevel.PropertyValues[3] += pItemInfo.Propertys[1]
+					pWakeLevel.PropertyValues[4] += pItemInfo.Propertys[2]
+				}
+			}
+
+			if pWakeLevel.ExtraProperty == AllPropertyID {
+				pWakeLevel.PropertyPercents[0] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyPercents[1] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyPercents[2] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyPercents[3] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyPercents[4] += pWakeLevel.ExtraValue
+			} else if pWakeLevel.ExtraProperty == AttackPropertyID {
+				pWakeLevel.PropertyValues[AttackMagicID] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[AttackPhysicID] += pWakeLevel.ExtraValue
+			} else if pWakeLevel.ExtraProperty == DefencePropertyID {
+				pWakeLevel.PropertyValues[DefenceMagicID] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[DefencePhysicID] += pWakeLevel.ExtraValue
+			} else if pWakeLevel.ExtraProperty > 0 && pWakeLevel.ExtraProperty <= 11 {
+				pWakeLevel.PropertyValues[pWakeLevel.ExtraProperty] += pWakeLevel.ExtraValue
+			}
+
+		}
+	}
+	return true
+}
+
 func GetWakeLevelItem(level int) *ST_WakeLevel {
 	if level >= len(GT_WakeLevelList) {
 		gamelog.Error("GetWakeLevelItem Error : Invalid level  %d", level)
@@ -91,87 +162,6 @@ func GetWakeLevelItem(level int) *ST_WakeLevel {
 	}
 
 	return &GT_WakeLevelList[level]
-}
-
-func CalcWakeLevelConfig() {
-	for i := 0; i <= MaxWakeLevel; i++ {
-		CalcWakeLevelItem(i)
-	}
-}
-
-func CalcWakeLevelItem(level int) bool {
-	if level < 0 || level >= len(GT_WakeLevelList) {
-		gamelog.Error("CalcWakeLevelItem Error : Invalid level  %d", level)
-		return false
-	}
-	pWakeLevel := GT_WakeLevelList[level]
-	if level == 0 {
-		for i := 0; i < len(pWakeLevel.NeedItem); i++ {
-			itemid := pWakeLevel.NeedItem[i]
-			if itemid != 0 {
-				pItemInfo := GetItemInfo(itemid)
-				if pItemInfo == nil {
-					return false
-				}
-				pWakeLevel.PropertyValues[0] += pItemInfo.Propertys[0]
-				pWakeLevel.PropertyValues[1] += pItemInfo.Propertys[1]
-				pWakeLevel.PropertyValues[2] += pItemInfo.Propertys[2]
-				pWakeLevel.PropertyValues[3] += pItemInfo.Propertys[1]
-				pWakeLevel.PropertyValues[4] += pItemInfo.Propertys[2]
-			}
-		}
-
-		if pWakeLevel.ExtraProperty != -1 {
-			if pWakeLevel.ExtraProperty == 0 {
-				pWakeLevel.PropertyPercents[0] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyPercents[1] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyPercents[2] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyPercents[3] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyPercents[4] += pWakeLevel.ExtraValue
-			} else if pWakeLevel.ExtraProperty == AttackPropertyID {
-				pWakeLevel.PropertyValues[AttackMagicID] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyValues[AttackPhysicID] += pWakeLevel.ExtraValue
-			} else if pWakeLevel.ExtraProperty == DefencePropertyID {
-				pWakeLevel.PropertyValues[DefenceMagicID] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyValues[DefencePhysicID] += pWakeLevel.ExtraValue
-			} else {
-				pWakeLevel.PropertyValues[pWakeLevel.ExtraProperty] += pWakeLevel.ExtraValue
-			}
-		}
-	} else {
-		pWakeLevel.PropertyValues = GT_WakeLevelList[level-1].PropertyValues
-		pWakeLevel.PropertyPercents = GT_WakeLevelList[level-1].PropertyPercents
-		for i := 0; i < len(pWakeLevel.NeedItem); i++ {
-			itemid := pWakeLevel.NeedItem[i]
-			if itemid != 0 {
-				pItemInfo := GetItemInfo(itemid)
-				pWakeLevel.PropertyValues[0] += pItemInfo.Propertys[0]
-				pWakeLevel.PropertyValues[1] += pItemInfo.Propertys[1]
-				pWakeLevel.PropertyValues[2] += pItemInfo.Propertys[2]
-				pWakeLevel.PropertyValues[3] += pItemInfo.Propertys[1]
-				pWakeLevel.PropertyValues[4] += pItemInfo.Propertys[2]
-			}
-		}
-		if pWakeLevel.ExtraProperty != -1 {
-			if pWakeLevel.ExtraProperty == 0 {
-				pWakeLevel.PropertyPercents[0] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyPercents[1] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyPercents[2] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyPercents[3] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyPercents[4] += pWakeLevel.ExtraValue
-			} else if pWakeLevel.ExtraProperty == AttackPropertyID {
-				pWakeLevel.PropertyValues[AttackMagicID] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyValues[AttackPhysicID] += pWakeLevel.ExtraValue
-			} else if pWakeLevel.ExtraProperty == DefencePropertyID {
-				pWakeLevel.PropertyValues[DefenceMagicID] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyValues[DefencePhysicID] += pWakeLevel.ExtraValue
-			} else {
-				pWakeLevel.PropertyValues[pWakeLevel.ExtraProperty] += pWakeLevel.ExtraValue
-			}
-		}
-	}
-
-	return true
 }
 
 func GetWakeComposeInfo(itemid int) *ST_WakeCompose {

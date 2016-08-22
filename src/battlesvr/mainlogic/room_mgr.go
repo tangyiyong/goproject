@@ -51,6 +51,11 @@ func (mgr *TRoomMgr) GetRoomByID(roomid int) *TBattleRoom {
 }
 
 func (mgr *TRoomMgr) GetPlayerHeroIDs(roomid int, playerid int) (ret [6]int) {
+	if roomid <= 0 || playerid <= 0 {
+		gamelog.Error("GetPlayerHeroIDs Error : Invalid roomid :%d and playerid:%d", roomid, playerid)
+		return
+	}
+
 	mgr.Lock()
 	defer mgr.Unlock()
 
@@ -102,6 +107,11 @@ func (mgr *TRoomMgr) AddPlayerToRoom(roomtype int, batcamp int, pBattleObj *TBat
 }
 
 func (mgr *TRoomMgr) RemovePlayerFromRoom(roomid int, playerid int) bool {
+	if roomid <= 0 || playerid <= 0 {
+		gamelog.Error("GetPlayerHeroIDs Error : Invalid roomid :%d and playerid:%d", roomid, playerid)
+		return false
+	}
+
 	mgr.Lock()
 	defer mgr.Unlock()
 

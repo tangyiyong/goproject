@@ -158,7 +158,6 @@ func Hand_GetActivityLoginAward(w http.ResponseWriter, r *http.Request) {
 	go activity.DB_UpdateLoginAward(activityIndex)
 
 	//! 返回成功
-	response.Index = req.Index
 	response.RetCode = msg.RE_SUCCESS
-	response.ActivityID = req.ActivityID
+	response.AwardMark = int(activity.LoginAward)
 }

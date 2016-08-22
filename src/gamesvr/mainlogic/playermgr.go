@@ -2,9 +2,12 @@ package mainlogic
 
 import (
 	"appconfig"
+	//"fmt"
 	"gamelog"
 	"mongodb"
 	"sync"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 var (
@@ -58,7 +61,6 @@ func LoadPlayerFromDB(playerid int) *TPlayer {
 	pPlayer := new(TPlayer)
 	g_Players[playerid] = pPlayer
 	g_SelectPlayers = append(g_SelectPlayers, pPlayer)
-	pPlayer.InitModules(playerid)
 	mMutex.Unlock()
 	pPlayer.OnPlayerLoad(playerid)
 	pPlayer.pSimpleInfo = G_SimpleMgr.GetSimpleInfoByID(playerid)
@@ -86,20 +88,37 @@ func DestroyPlayer(playerid int) bool {
 	return true
 }
 
+type TReslutID struct {
+	ID int "_id"
+}
+
 //将一些有价值的玩家预先加载到服务器中
 func PreLoadPlayers() {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	query := s.DB(appconfig.GameDbName).C("PlayerRole").Find(nil).Sort("-Level").Limit(10000)
+	query := s.DB(appconfig.GameDbName).C("PlayerRole").Find(nil).Select(bson.M{"_id": 1}).Sort("-Level").Limit(10000)
 	iter := query.Iter()
 
-	result := TRoleMoudle{}
+	//fmt.Printf("PreLoadPlayers:%10d", 1)
+	var result TReslutID
 	for iter.Next(&result) {
-		if result.PlayerID > 0 {
-			LoadPlayerFromDB(result.PlayerID)
+		if result.ID < 10000 {
+			gamelog.Error("PreLoadPlayers Error: Invalid PlayerID:%d", result.ID)
+			continue
 		}
+
+		//fmt.Printf("\b\b\b\b\b\b\b\b")
+		//fmt.Printf("%8d", result.ID)
+
+		pPlayer := new(TPlayer)
+		g_Players[result.ID] = pPlayer
+		g_SelectPlayers = append(g_SelectPlayers, pPlayer)
+		pPlayer.OnPlayerLoadSync(result.ID)
+		pPlayer.pSimpleInfo = G_SimpleMgr.GetSimpleInfoByID(result.ID)
 	}
+	//fmt.Printf("\b\b\b\b\b\b\b\b")
+	//fmt.Printf("Successed!!\n")
 }
 
 func GetSelectPlayer(selectfunc func(p *TPlayer, value int) bool, selectvalue int) *TPlayer {

@@ -49,7 +49,7 @@ type MSG_EnterCampBattle_Req struct {
 
 type MSG_EnterCampBattle_Ack struct {
 	RetCode       int    //
-	EnterCode     int    //进入阵营战协议码
+	EnterCode     int32  //进入阵营战协议码
 	BattleSvrAddr string //阵营战服务器
 }
 

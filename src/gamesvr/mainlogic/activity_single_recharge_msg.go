@@ -60,13 +60,13 @@ func Hand_QueryActivitySingleRechargeInfo(w http.ResponseWriter, r *http.Request
 	response.ActivityID = req.ActivityID
 	response.AwardType = G_GlobalVariables.GetActivityAwardType(req.ActivityID)
 	activtiyInfo := gamedata.GetActivityInfo(req.ActivityID)
-	rechargeAwardLst := gamedata.GetRechargeInfo(activtiyInfo.AwardType)
-	if len(rechargeAwardLst) <= 0 {
+	AwardMark := gamedata.GetRechargeInfo(activtiyInfo.AwardType)
+	if len(AwardMark) <= 0 {
 		gamelog.Error("Hand_GetActivity Error: GetRechargeInfo nil")
 		return
 	}
 
-	for i, v := range rechargeAwardLst {
+	for i, v := range AwardMark {
 		var info msg.MSG_SingleRecharge
 		info.Index = i + 1
 
@@ -144,15 +144,15 @@ func Hand_GetSingleRechargeAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	awardType := G_GlobalVariables.GetActivityAwardType(req.ActivityID)
-	rechargeAwardLst := gamedata.GetRechargeInfo(awardType)
+	AwardMark := gamedata.GetRechargeInfo(awardType)
 
-	if len(rechargeAwardLst) < req.Index {
+	if len(AwardMark) < req.Index {
 		gamelog.Error("Hand_GetSingleRechargeAward Error: Inavlid index")
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
 
-	award := rechargeAwardLst[req.Index-1]
+	award := AwardMark[req.Index-1]
 
 	//! 判断次数是否足够
 	activityTimes, infoIndex := singleRecharge.GetSingleRechargeAwardTimes(req.Index)

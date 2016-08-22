@@ -13,21 +13,20 @@ import (
 )
 
 type TDataParser struct {
-	OnInitParser func(total int) bool
-	OnParseData  func(rs *RecordSet)
+	OnInit      func(total int) bool
+	OnParseData func(rs *RecordSet)
+	OnFinish    func() bool
 }
 
 var DataParserMap = make(map[string]TDataParser)
 var G_ReflectParserMap map[string]interface{}
-var NullParser = TDataParser{nil, nil}
+var NullParser = TDataParser{nil, nil, nil}
 
 func LoadGameData() {
 	InitDataParser()
 	InitReflectParser()
-
 	LoadAllFiles()
-
-	CalcWakeLevelConfig()
+	FinishWakeLevelParser()
 }
 
 type RecordSet struct {
@@ -235,7 +234,7 @@ func LoadOneFile(file *os.File) {
 	}
 
 	//明确表示不需要解析的表
-	if DataParser.OnInitParser == nil {
+	if DataParser.OnInit == nil {
 		return
 	}
 
@@ -258,7 +257,7 @@ func LoadOneFile(file *os.File) {
 	}
 
 	nCount := len(records) - 1 //实际有效数据的长度
-	if !DataParser.OnInitParser(nCount) {
+	if !DataParser.OnInit(nCount) {
 		gamelog.Error("table: %-30s OnInitParser error!!", tblname)
 		return
 	}
@@ -283,6 +282,10 @@ func LoadOneFile(file *os.File) {
 	for line = 1; line <= nCount; line++ {
 		rs.Values = records[line]
 		DataParser.OnParseData(&rs)
+	}
+
+	if DataParser.OnFinish != nil {
+		DataParser.OnFinish()
 	}
 
 	ColMap = nil

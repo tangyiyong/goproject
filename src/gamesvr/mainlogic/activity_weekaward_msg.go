@@ -94,15 +94,15 @@ func Hand_GetWeekAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 获取奖励信息
 	awardType := G_GlobalVariables.GetActivityAwardType(player.ActivityModule.WeekAward.ActivityID)
-	awardInfo := gamedata.GetWeekAwardInfo(awardType, req.Day)
+	awardInfo := gamedata.GetWeekAwardInfo(awardType, req.Index)
 	if awardInfo == nil {
-		gamelog.Error("GetWeekAwardInfo Error: Invalid Param %d", req.Day)
+		gamelog.Error("GetWeekAwardInfo Error: Invalid Param %d", req.Index)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
 
 	//! 检查是否领取
-	if player.ActivityModule.WeekAward.AwardMark.Get(uint(req.Day)) == true {
+	if player.ActivityModule.WeekAward.AwardMark.Get(uint(req.Index)) != false {
 		gamelog.Error("Hand_GetWeekAward Error: Aleady received")
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
@@ -143,5 +143,10 @@ func Hand_GetWeekAward(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	player.ActivityModule.WeekAward.AwardMark.Set(uint(req.Index))
+	go player.ActivityModule.WeekAward.DB_UpdateAwardMark()
+
 	response.RetCode = msg.RE_SUCCESS
+	response.AwardMark = int(player.ActivityModule.WeekAward.AwardMark)
+
 }

@@ -39,6 +39,7 @@ func (tcpConn *TCPConn) Close() {
 
 func (tcpConn *TCPConn) doWrite(b []byte) {
 	if tcpConn.closeFlag {
+		gamelog.Error("TCPConn.doWrite Error: tcpConn.closeFlag:%v", tcpConn.closeFlag)
 		return
 	}
 
@@ -54,6 +55,7 @@ func (tcpConn *TCPConn) doWrite(b []byte) {
 // b must not be modified by other goroutines
 func (tcpConn *TCPConn) write(b []byte) {
 	if tcpConn.closeFlag || b == nil {
+		gamelog.Error("TCPConn.Write Error: b == nil or closeFlag:%v", tcpConn.closeFlag)
 		return
 	}
 
@@ -66,15 +68,10 @@ func (tcpConn *TCPConn) WriteMsg(msgID int16, msgdata []byte) bool {
 	}
 
 	msgLen := len(msgdata)
-
-	msgbuffer := make([]byte, 6+msgLen)
-
+	msgbuffer := make([]byte, 6, 6+msgLen)
 	binary.LittleEndian.PutUint32(msgbuffer, uint32(msgLen))
-
 	binary.LittleEndian.PutUint16(msgbuffer[4:], uint16(msgID))
-
-	copy(msgbuffer[6:], msgdata)
-
+	msgbuffer = append(msgbuffer[:6], msgdata...)
 	tcpConn.write(msgbuffer)
 
 	return true

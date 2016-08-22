@@ -131,8 +131,8 @@ func (self *TActivitySevenDay) DB_Reset() bool {
 	return true
 }
 
-//! 设置玩家任务状态
-func (self *TActivitySevenDay) DB_UpdatePlayerSevenTaskStatus(taskID int, status int) bool {
+//! 设置玩家任务进度
+func (self *TActivitySevenDay) DB_UpdatePlayerSevenTask(taskID int, count int, status int) bool {
 	index := -1
 	for i, v := range self.activityModule.SevenDay {
 		if v.ActivityID == self.ActivityID {
@@ -142,7 +142,7 @@ func (self *TActivitySevenDay) DB_UpdatePlayerSevenTaskStatus(taskID int, status
 	}
 
 	if index < 0 {
-		gamelog.Error("Sevenday DB_UpdatePlayerSevenTaskStatus fail: Not find activityID: %d", self.ActivityID)
+		gamelog.Error("Sevenday DB_UpdatePlayerSevenTask fail: Not find activityID: %d ", self.ActivityID)
 		return false
 	}
 
@@ -160,40 +160,9 @@ func (self *TActivitySevenDay) DB_UpdatePlayerSevenTaskStatus(taskID int, status
 	}
 
 	filedName := fmt.Sprintf("sevenday.%d.tasklist.%d.taskstatus", index, indexTask)
-	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
-		filedName: status}})
-}
-
-//! 设置玩家任务进度
-func (self *TActivitySevenDay) DB_UpdatePlayerSevenTaskCount(taskID int, count int) bool {
-	index := -1
-	for i, v := range self.activityModule.SevenDay {
-		if v.ActivityID == self.ActivityID {
-			index = i
-			break
-		}
-	}
-
-	if index < 0 {
-		gamelog.Error("Sevenday DB_UpdatePlayerSevenTaskCount fail: Not find activityID: %d ", self.ActivityID)
-		return false
-	}
-
-	indexTask := -1
-	for i, v := range self.TaskList {
-		if v.TaskID == taskID {
-			indexTask = i
-			break
-		}
-	}
-
-	if indexTask < 0 {
-		gamelog.Error("Sevenday DB_UpdatePlayerSevenTaskStatus fail: Not find activityID: %d  taskID: %d", self.ActivityID, taskID)
-		return false
-	}
-
 	filedName2 := fmt.Sprintf("sevenday.%d.tasklist.%d.taskcount", index, indexTask)
 	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+		filedName:  status,
 		filedName2: count}})
 }
 
