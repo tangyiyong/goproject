@@ -3,21 +3,21 @@ package msg
 //玩家登录游戏服务器
 //消息:/user_login_game
 type MSG_LoginGameSvr_Req struct {
-	AccountID int    //账号ID
+	AccountID int32  //账号ID
 	LoginKey  string //登录key
 }
 
 //玩家登录游戏服务器返回
 type MSG_LoginGameSvr_Ack struct {
 	RetCode    int    // 0 表示登录成功   1 无效的登录key ,玩家需要从新登录
-	PlayerID   int    //玩家角色ID
+	PlayerID   int32  //玩家角色ID
 	SessionKey string //SessionKey
 }
 
 //玩家创建角色请求
 //消息:/create_new_player
 type MSG_CreateNewPlayerReq struct {
-	AccountID  int    //账号ID
+	AccountID  int32  //账号ID
 	SessionKey string //玩家角色ID
 	PlayerName string //玩家角色名
 	HeroID     int    //英雄ID
@@ -25,13 +25,13 @@ type MSG_CreateNewPlayerReq struct {
 
 type MSG_CreateNewPlayerAck struct {
 	RetCode  int // 0 表示创建成功   1 表示无效的SessionKey, 2 表示角色不合法,3 表示创建角色失败
-	PlayerID int
+	PlayerID int32
 }
 
 //玩家进入游戏服
 //消息:/user_enter_game
 type MSG_EnterGameSvr_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -47,7 +47,7 @@ type MSG_EnterGameSvr_Ack struct {
 //玩家获取角色数据
 //消息:/get_role_data
 type MSG_GetRoleData_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -65,7 +65,7 @@ type MSG_GetRoleData_Ack struct {
 //玩家离开游戏服
 //消息:/user_leave_game
 type MSG_LeaveGameSvr_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -74,7 +74,7 @@ type MSG_LeaveGameSvr_Ack struct {
 }
 
 type MSG_QueryServerTime_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -86,7 +86,7 @@ type MSG_QueryServerTime_Ack struct {
 //玩家更换装备
 //消息:/change_equip
 type MSG_ChangeEquip_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	TargetPos  int    //目标位置索引
 	TargetID   int    //目标位置装备ID
@@ -102,7 +102,7 @@ type MSG_ChangeEquip_Ack struct {
 //玩家强化装备
 //消息:/equip_strengthen
 type MSG_EquipStrengthen_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	PosType    int    //位置类型 1:上阵  2:背包中
 	PosIndex   int    //位置索引
@@ -121,7 +121,7 @@ type MSG_EquipStrengthen_Ack struct {
 //玩家精炼装备
 //消息:/equip_refine
 type MSG_EquipRefine_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	PosType    int    //位置类型 1:上阵  3:背包中
 	PosIndex   int    //位置索引
@@ -140,7 +140,7 @@ type MSG_EquipRefine_Ack struct {
 //玩家升星装备
 //消息:/equip_risestar
 type MSG_EquipRiseStar_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	PosType    int    //位置类型 1:上阵  3:背包中
 	PosIndex   int    //位置索引
@@ -159,7 +159,7 @@ type MSG_EquipRiseStar_Ack struct {
 //玩家合成装备
 //消息:/compose_equip
 type MSG_ComposeEquip_Req struct {
-	PlayerID     int    //玩家ID
+	PlayerID     int32  //玩家ID
 	SessionKey   string //Sessionkey
 	EquipPieceID int    //装备碎片ID
 }
@@ -172,7 +172,7 @@ type MSG_ComposeEquip_Ack struct {
 //使用物品
 //消息:/use_item
 type MSG_UseItem_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	ItemID     int    //物品ID
 	ItemNum    int    //物品数量
@@ -192,7 +192,7 @@ type MSG_SellItem struct {
 //使用物品
 //消息:/sell_item
 type MSG_SellItem_Req struct {
-	PlayerID   int            //玩家ID
+	PlayerID   int32          //玩家ID
 	SessionKey string         //Sessionkey
 	ItemType   int            //物品类型
 	Items      []MSG_SellItem //物器列表
@@ -207,7 +207,7 @@ type MSG_SellItem_Ack struct {
 //玩家更换宝物
 //消息:/change_gem
 type MSG_ChangeGem_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	TargetPos  int    //目标位置索引
 	TargetID   int    //目标位置装备ID
@@ -228,7 +228,7 @@ type Cost_Gem struct {
 //玩家强化宝物
 //消息:/gem_strengthen
 type MSG_GemStrengthen_Req struct {
-	PlayerID   int        //玩家ID
+	PlayerID   int32      //玩家ID
 	SessionKey string     //Sessionkey
 	GemPosType int        //位置类型 1:上阵  3:背包中
 	GemIndex   int        //位置索引
@@ -249,7 +249,7 @@ type MSG_GemStrengthen_Ack struct {
 //玩家精炼宝物
 //消息:/gem_refine
 type MSG_GemRefine_Req struct {
-	PlayerID   int        //玩家ID
+	PlayerID   int32      //玩家ID
 	SessionKey string     //Sessionkey
 	GemPosType int        //位置类型 1:上阵  2:援军中 3:背包中
 	GemIndex   int        //位置索引
@@ -268,7 +268,7 @@ type MSG_GemRefine_Ack struct {
 //玩家更改职业
 //消息:/change_career
 type MSG_ChangeCareer_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 }
 
@@ -280,7 +280,7 @@ type MSG_ChangeCareer_Ack struct {
 //玩家查询英雄培养与天命消耗
 //消息: /query_hero_decompose_cost
 type MSG_QueryHeroDecomposeCost_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	CostHeros  []Cost_Hero
 }
@@ -293,7 +293,7 @@ type MSG_QueryHeroDecomposeCost_Ack struct {
 //玩家分解英雄
 //消息:/decompose_hero
 type MSG_DecomposeHero_Req struct {
-	PlayerID   int         //玩家ID
+	PlayerID   int32       //玩家ID
 	SessionKey string      //Sessionkey
 	CostHeros  []Cost_Hero //分解英雄列表
 }
@@ -306,7 +306,7 @@ type MSG_DecomposeHero_Ack struct {
 //! 玩家查询分解宠物所得
 //! 消息: /query_pet_decompose_cost
 type MSG_QueryPetDecomposeCost_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PetID      int
 	PetPos     int
@@ -320,7 +320,7 @@ type MSG_QueryPetDecomposeCost_Ack struct {
 //! 玩家分解宠物
 //! 消息: /decompose_pet
 type MSG_DecomposePet_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PetID      int
 	PetPos     int
@@ -334,7 +334,7 @@ type MSG_DecomposePet_Ack struct {
 //! 玩家重生宠物
 //! 消息: /relive_pet
 type MSG_RelivePet_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PetID      int
 	PetPos     int
@@ -353,7 +353,7 @@ type Cost_Equip struct {
 //! 玩家查询分解装备所得
 //! 消息: /query_equip_decompose_cost
 type MSG_QueryEquipDecomposeCost_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	CostEquips []Cost_Equip
 }
@@ -366,7 +366,7 @@ type MSG_QueryEquipDecomposeCost_Ack struct {
 //! 玩家查询重生战宠所得
 //! 消息: /query_pet_relive_cost
 type MSG_QueryPetReliveCost_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PetID      int
 	PetPos     int
@@ -380,7 +380,7 @@ type MSG_QueryPetReliveCost_Ack struct {
 //! 玩家查询重生英雄所得
 //! 消息: /query_hero_relive_cost
 type MSG_QueryHeroReliveCost_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	HeroID     int    //英雄ID
 	HeroPos    int    //英雄位置
@@ -394,7 +394,7 @@ type MSG_QueryHeroReliveCost_Ack struct {
 //! 玩家查询重生装备所得
 //! 消息: /query_equip_relive_cost
 type MSG_QueryEquipReliveCost_Req struct {
-	PlayerID     int
+	PlayerID     int32
 	SessionKey   string
 	CostEquipID  int
 	CostEquipNum int
@@ -408,7 +408,7 @@ type MSG_QueryEquipReliveCost_Ack struct {
 //! 玩家查询重生宝物所得
 //! 消息: /query_gem_relive_cost
 type MSG_QueryGemReliveCost_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	GemID      int    //宝物ID
 	GemPos     int    //宝物位置
@@ -422,7 +422,7 @@ type MSG_QueryGemReliveCost_Ack struct {
 //玩家分解装备
 //消息:/decompose_equip
 type MSG_DecomposeEquip_Req struct {
-	PlayerID   int          //玩家ID
+	PlayerID   int32        //玩家ID
 	SessionKey string       //Sessionkey
 	CostEquips []Cost_Equip //分解英雄列表
 }
@@ -435,7 +435,7 @@ type MSG_DecomposeEquip_Ack struct {
 //玩家重生英雄
 //消息:/relive_hero
 type MSG_ReliveHero_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	HeroID     int    //英雄ID
 	HeroPos    int    //英雄位置
@@ -449,7 +449,7 @@ type MSG_ReliveHero_Ack struct {
 //玩家重生装备
 //消息:/relive_equip
 type MSG_ReliveEquip_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	EquipID    int    //装备ID
 	EquipPos   int    //装备位置
@@ -463,7 +463,7 @@ type MSG_ReliveEquip_Ack struct {
 //玩家重生宝物
 //消息:/relive_gem
 type MSG_ReliveGem_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	GemID      int    //宝物ID
 	GemPos     int    //宝物位置
@@ -477,7 +477,7 @@ type MSG_ReliveGem_Ack struct {
 //请求挂机信息
 //消息:/hangup_get_info
 type MSG_GetHangUp_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 }
 
@@ -500,7 +500,7 @@ type MSG_GetHangUp_Ack struct {
 //设置新的挂机Boss
 //消息:/hangup_set_boss
 type MSG_SetHangUpBoss_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	BossID     int    //
 }
@@ -513,7 +513,7 @@ type MSG_SetHangUpBoss_Ack struct {
 //一键使用经验丹
 //消息:/hangup_use_exp
 type MSG_UseExpItem_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 }
 
@@ -525,7 +525,7 @@ type MSG_UseExpItem_Ack struct {
 //增加格子数
 //消息:/hangup_add_grid
 type MSG_AddGridNum_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 }
 
@@ -537,7 +537,7 @@ type MSG_AddGridNum_Ack struct {
 //快速战斗请法语
 //消息:/hangup_quick_fight
 type MSG_QuickFight_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 }
 
@@ -549,7 +549,7 @@ type MSG_QuickFight_Ack struct {
 }
 
 type MSG_PlayerInfo struct {
-	PlayerID   int
+	PlayerID   int32
 	HeroID     int    //英雄ID
 	Name       string //名字
 	GuildName  string //工会名
@@ -563,7 +563,7 @@ type MSG_PlayerInfo struct {
 //请求等级排行榜
 //消息:/get_level_rank
 type MSG_GetLevelRank_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 }
 
@@ -576,7 +576,7 @@ type MSG_GetLevelRank_Ack struct {
 //请求等级排行榜
 //消息:/get_fight_rank
 type MSG_GetFightRank_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 }
 
@@ -589,7 +589,7 @@ type MSG_GetFightRank_Ack struct {
 //! 请求三国无双全服排行榜
 //! 消息: /get_sanguows_rank
 type MSG_GetSanguows_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -609,7 +609,7 @@ type MSG_GetSanguows_Ack struct {
 }
 
 type MSG_ArenaInfo struct {
-	PlayerID   int
+	PlayerID   int32
 	Name       string //角色名字
 	HeroID     int    //英雄ID
 	FightValue int    //战力
@@ -620,7 +620,7 @@ type MSG_ArenaInfo struct {
 //! 玩家请求竞技场名次排行榜信息
 //! 消息: /get_arena_rank
 type MSG_GetArenaRank_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -631,7 +631,7 @@ type MSG_GetArenaRank_Ack struct {
 }
 
 type MSG_RebelRankInfo struct {
-	PlayerID   int    //! 角色ID
+	PlayerID   int32  //! 角色ID
 	HeroID     int    //! 英雄ID
 	Name       string //! 角色名字
 	FightValue int    //! 战力值
@@ -643,7 +643,7 @@ type MSG_RebelRankInfo struct {
 //! 玩家请求查询排行榜
 //! 消息: /get_rebel_rank
 type MSG_GetRebelRank_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -669,7 +669,7 @@ type MSG_GuildRankInfo struct {
 //! 玩家请求公会等级排行榜
 //! 消息: /get_guild_level_rank
 type MSG_GetGuildLevelRank_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -681,7 +681,7 @@ type MSG_GetGuildLevelRank_Ack struct {
 //! 玩家请求公会副本排行榜
 //! 消息: /get_guild_copy_rank
 type MSG_GetGuildCopyRank_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -693,7 +693,7 @@ type MSG_GetGuildCopyRank_Ack struct {
 //! 玩家请求己收积过的英雄列表
 //! 消息: /get_collection_heros
 type MSG_GetCollectionHeros_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -705,7 +705,7 @@ type MSG_GetCollectionHeros_Ack struct {
 //! 玩家请求重置云游信息
 //! 消息: /wander_getinfo
 type MSG_WanderGetInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -720,7 +720,7 @@ type MSG_WanderGetInfo_Ack struct {
 //! 玩家请求重置云游战斗次数
 //! 消息: /wander_reset
 type MSG_WanderReset_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -734,7 +734,7 @@ type MSG_WanderReset_Ack struct {
 //! 玩家请求开云游宝箱
 //! 消息: /wander_openbox
 type MSG_WanderOpenBox_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	DrawType   int // 1 : 单抽， 2 : 十连抽
 }
@@ -747,7 +747,7 @@ type MSG_WanderOpenBox_Ack struct {
 //! 玩家请求扫荡云游战斗次数
 //! 消息: /wander_sweep
 type MSG_WanderSweep_Req struct {
-	PlayerID     int
+	PlayerID     int32
 	SessionKey   string
 	TargetCopyID int //目标副本ID
 }
@@ -761,7 +761,7 @@ type MSG_WanderSweep_Ack struct {
 //请求云游排行榜
 //消息:/get_wander_rank
 type MSG_GetWanderRank_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 }
 
@@ -774,7 +774,7 @@ type MSG_GetWanderRank_Ack struct {
 //请求阵营战排行榜
 //消息:/get_campbat_rank
 type MSG_GetCampBatRank_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	RankType   int    //排榜类型
 }
@@ -788,7 +788,7 @@ type MSG_GetCampBatRank_Ack struct {
 //! 玩家请求云游战斗检查
 //! 消息: /wander_check
 type MSG_WanderCheck_Req struct {
-	PlayerID     int
+	PlayerID     int32
 	SessionKey   string
 	TargetCopyID int //
 }
@@ -800,7 +800,7 @@ type MSG_WanderCheck_Ack struct {
 //! 玩家请求云游战斗结果
 //! 消息: /wander_result
 type MSG_WanderResult_Req struct {
-	PlayerID     int
+	PlayerID     int32
 	SessionKey   string
 	TargetCopyID int //副本ID
 	Win          int //战斗结果 0: 失败 ,1 胜利
@@ -815,7 +815,7 @@ type MSG_WanderResult_Ack struct {
 //! 请求全部的红点提示
 //! 消息: /get_mainui_tip
 type MSG_GetMainUITip_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -840,7 +840,7 @@ type MSG_RegBattleSvr_Ack struct {
 //! 玩家请求设置时装
 //! 消息: /fashion_set
 type MSG_FashionSet_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	FashionID  int //时装ID
 }
@@ -853,7 +853,7 @@ type MSG_FashionSet_Ack struct {
 //! 玩家请求强化时装
 //! 消息: /fashion_strength
 type MSG_FashionStrength_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	FashionID  int //时装ID
 }
@@ -865,7 +865,7 @@ type MSG_FashionStrength_Ack struct {
 //! 玩家请求重铸时装
 //! 消息: /fashion_recast
 type MSG_FashionRecast_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	FashionID  int //时装ID
 }
@@ -877,7 +877,7 @@ type MSG_FashionRecast_Ack struct {
 //! 玩家请求合成时装
 //! 消息: /fashion_compose
 type MSG_FashionCompose_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	FashionID  int //时装ID
 }
@@ -890,7 +890,7 @@ type MSG_FashionCompose_Ack struct {
 //! 时装熔炼
 //! 消息: /fashion_melting
 type MSG_FashionMelting_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PieceIDs   []int //碎片ID
 	PieceNums  []int //碎片个数

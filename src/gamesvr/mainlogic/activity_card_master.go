@@ -23,13 +23,13 @@ type TCardMasterInfo struct {
 	IsGetTotalRankAward bool // 累计排行奖励
 
 	ActivityID     int              //! 活动ID
-	VersionCode    int              //! 版本号
-	ResetCode      int              //! 迭代号
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 
 //！ 活动框架代码
-func (self *TCardMasterInfo) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TCardMasterInfo) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -44,7 +44,7 @@ func (self *TCardMasterInfo) SetModulePtr(mPtr *TActivityModule) {
 	self.activityModule = mPtr
 	self.activityModule.activityPtrs[self.ActivityID] = self
 }
-func (self *TCardMasterInfo) Refresh(versionCode int) {
+func (self *TCardMasterInfo) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
 
 	self.FreeNormalDrawTimes = gamedata.CardMaster_FreeTimes
@@ -56,7 +56,7 @@ func (self *TCardMasterInfo) Refresh(versionCode int) {
 
 	self.DB_Refresh()
 }
-func (self *TCardMasterInfo) End(versionCode int, resetCode int) {
+func (self *TCardMasterInfo) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 
@@ -74,11 +74,11 @@ func (self *TCardMasterInfo) End(versionCode int, resetCode int) {
 	self.DB_Refresh()
 }
 
-func (self *TCardMasterInfo) GetRefreshV() int {
+func (self *TCardMasterInfo) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TCardMasterInfo) GetResetV() int {
+func (self *TCardMasterInfo) GetResetV() int32 {
 	return self.ResetCode
 }
 

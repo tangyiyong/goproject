@@ -54,12 +54,12 @@ func IsDirExists(path string) bool {
 	return true
 }
 
-func GetCurDay() int {
-	day := time.Now().Day()
+func GetCurDay() uint32 {
+	day := uint32(time.Now().Day())
 	year, week := time.Now().ISOWeek()
-	var curday = year
+	var curday = uint32(year)
 	curday = curday << 8
-	curday += int(week)
+	curday += uint32(week)
 	curday = curday << 8
 	curday += day
 	return curday
@@ -73,7 +73,7 @@ func GetCurDayMod() int {
 	return int(day % 2)
 }
 
-func IsSameDay(day int) bool {
+func IsSameDay(day uint32) bool {
 	if GetCurDay() != day {
 		return false
 	}
@@ -81,11 +81,11 @@ func IsSameDay(day int) bool {
 	return true
 }
 
-func IsSameWeek(day int) bool {
+func IsSameWeek(day uint32) bool {
 	nowYear, nowWeek := time.Now().ISOWeek()
 	dayYear2, dayWeek := day&0xffff0000>>16, day&0x0000ff00>>8
 
-	if nowYear == dayYear2 && nowWeek == dayWeek {
+	if uint32(nowYear) == dayYear2 && uint32(nowWeek) == dayWeek {
 		return true
 	}
 
@@ -118,7 +118,7 @@ func MsgDataCheck(buffer []byte) bool {
 	return true
 }
 
-func GetCurDayByUnix() int {
+func GetCurDayByUnix() uint32 {
 	day := time.Now().Unix() / 86400
-	return int(day)
+	return uint32(day)
 }

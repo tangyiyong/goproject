@@ -3,7 +3,7 @@ package msg
 //! 获取副本数据
 //消息: /get_copy_data
 type MSG_GetCopyData_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -24,7 +24,7 @@ type MSG_GetCopyData_Ack struct {
 //玩家副本战斗检查
 //消息:/battle_check
 type MSG_BattleCheck_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	CopyType   int //副本类型
 	CopyID     int //副本ID
@@ -38,7 +38,7 @@ type MSG_BattleCheck_Ack struct {
 //玩家副本战斗结果
 //消息:/battle_result
 type MSG_BattleResult_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	CopyType   int //副本类型
 	CopyID     int //副本ID
@@ -65,7 +65,7 @@ type MSG_BattleResult_Ack struct {
 //! 请求叛军信息
 //! 消息: /get_rebel_find_info
 type MSG_GetRebelFindInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -78,7 +78,7 @@ type MSG_GetRebelFindInfo_Ack struct {
 //玩家挑战挂机BOSS
 //消息:/challenge_guaji_boss
 type MSG_ChallenGuaJi_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32    //玩家ID
 	SessionKey string //Sessionkey
 	Chapter    int    //章节
 	CopyID     int    //副本ID
@@ -96,7 +96,7 @@ type MSG_ChallenGuaJi_Ack struct {
 //! 玩家请求查询主线副本信息
 //! 消息: /get_main_chapter_info
 type MSG_GetMainChapterInfo_Req struct {
-	PlayerID   int    //! 玩家ID
+	PlayerID   int32    //! 玩家ID
 	SessionKey string //! Session Key
 }
 
@@ -162,7 +162,7 @@ type MSG_GetEliteChapterInfo_Ack struct {
 //! 玩家请求入侵信息
 //! 消息: /get_elite_invade_status
 type MSG_GetEliteInvadeStatus_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -174,7 +174,7 @@ type MSG_GetEliteInvadeStatus_Ack struct {
 //! 玩家请求获取主线关卡星级奖励
 //! 消息: /get_main_star_award
 type MSG_GetMainStarAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int
 	StarAward  int
@@ -187,7 +187,7 @@ type MSG_GetMainStarAward_Ack struct {
 //! 玩家请求获取精英关卡星级奖励
 //! 消息: /get_elite_star_award
 type MSG_GetEliteStarAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int
 	StarAward  int
@@ -200,7 +200,7 @@ type MSG_GetEliteStarAward_Ack struct {
 //! 玩家请求获取主线关卡场景奖励
 //! 消息: /get_main_scene_award
 type MSG_GetMainSceneAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int
 	SceneAward int
@@ -213,7 +213,7 @@ type MSG_GetMainSceneAward_Ack struct {
 //! 玩家请求获取精英关卡场景奖励
 //! 消息: /get_elite_scene_award
 type MSG_GetEliteSceneAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int
 }
@@ -225,7 +225,7 @@ type MSG_GetEliteSceneAward_Ack struct {
 //! 玩家查询重置主线副本次数
 //! 消息: /get_main_reset_times
 type MSG_GetMainRefreshTimes_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int
 	CopyID     int
@@ -239,7 +239,7 @@ type MSG_GetMainRefreshTimes_Ack struct {
 //! 玩家查询重置精英副本次数
 //! 消息: /get_elite_reset_times
 type MSG_GetEliteRefreshTimes_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int
 	CopyID     int
@@ -253,7 +253,7 @@ type MSG_GetEliteRefreshTimes_Ack struct {
 //! 玩家请求重置主线副本挑战次数
 //! 消息: /reset_main_battletimes
 type MSG_ResetMainBattleTimes_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int //! 章节
 	CopyID     int //! 副本ID
@@ -268,7 +268,7 @@ type MSG_ResetMainBattleTimes_Ack struct {
 //! 玩家请求重置精英副本挑战次数
 //! 消息: /reset_elite_battletimes
 type MSG_ResetEliteBattleTimes_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int //! 章节
 	CopyID     int //! 副本ID
@@ -283,7 +283,7 @@ type MSG_ResetEliteBattleTimes_Ack struct {
 //! 玩家请求攻击入侵
 //! 消息: /attack_elite_invade
 type MSG_AttackEliteInvade_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int
 }
@@ -297,7 +297,7 @@ type MSG_AttackEliteInvade_Ack struct {
 //! 玩家请求获取日常副本信息
 //! 消息: /get_daily_copy
 type MSG_GetDailyCopyInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -314,7 +314,7 @@ type MSG_GetDailyCopyInfo_Ack struct {
 //! 玩家请求获取名将副本章节信息
 //! 消息: /get_famous_chapter
 type MSG_GetFamousCopyChapterInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -328,7 +328,7 @@ type MSG_GetFamousCopyChapterInfo_Ack struct {
 //! 玩家请求获取名将副本详细信息
 //! 消息: /get_famous_detail
 type MSG_GetFamousCopyDetailInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int //! 章节
 }
@@ -346,7 +346,7 @@ type MSG_GetFamousCopyDetailInfo_Ack struct {
 //! 玩家请求获取名将副本章节宝箱
 //! 消息: /get_famous_award
 type MSG_GetFamousCopyAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int
 }

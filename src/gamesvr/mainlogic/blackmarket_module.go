@@ -19,24 +19,24 @@ type TBlackMarketGoods struct {
 
 //! 黑市
 type TBlackMarketModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	GoodsLst    []TBlackMarketGoods //! 商品
 	RefreshTime int64               //! 刷新时间
 
-	IsOpen      bool  //! 是否开启
-	OpenEndTime int64 //! 商店结束时间
-	ResetDay    int   //! 隔天刷新
+	IsOpen      bool   //! 是否开启
+	OpenEndTime int64  //! 商店结束时间
+	ResetDay    uint32 //! 隔天刷新
 
 	ownplayer *TPlayer
 }
 
-func (self *TBlackMarketModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TBlackMarketModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
-func (self *TBlackMarketModule) OnCreate(playerid int) {
+func (self *TBlackMarketModule) OnCreate(playerid int32) {
 	//! 初始化各类参数
 	self.ResetDay = utility.GetCurDay()
 	self.IsOpen = false
@@ -81,7 +81,7 @@ func (self *TBlackMarketModule) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *TBlackMarketModule) OnNewDay(newday int) {
+func (self *TBlackMarketModule) OnNewDay(newday uint32) {
 	self.IsOpen = false
 	self.OpenEndTime = 0
 	self.ResetDay = newday
@@ -118,21 +118,21 @@ func (self *TBlackMarketModule) GetNextRefreshTime() int64 {
 	return refreshTime.Unix()
 }
 
-func (self *TBlackMarketModule) OnDestroy(playerid int) {
+func (self *TBlackMarketModule) OnDestroy(playerid int32) {
 
 }
 
-func (self *TBlackMarketModule) OnPlayerOnline(playerid int) {
+func (self *TBlackMarketModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离开游戏
-func (self *TBlackMarketModule) OnPlayerOffline(playerid int) {
+func (self *TBlackMarketModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 读取玩家
-func (self *TBlackMarketModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TBlackMarketModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 

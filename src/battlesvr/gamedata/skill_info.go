@@ -10,17 +10,17 @@ import (
 )
 
 type ST_Hurts struct {
-	Level   int `xml:"level,attr"`
-	Percent int `xml:"percent,attr"`
-	Fixed   int `xml:"fixed,attr"`
+	Level   int32 `xml:"level,attr"`
+	Percent int32 `xml:"percent,attr"`
+	Fixed   int32 `xml:"fixed,attr"`
 }
 
 type ST_SkillInfo struct {
-	ID       int        `xml:"id,attr"`       //技能ID
-	CD       int        `xml:"cd,attr"`       //技能CD
-	Duration int        `xml:"duration,attr"` //技能时长
-	Radius   int        `xml:"radius,attr"`   //半径
-	BuffID   int        `xml:"buffid,attr"`   //BuffID
+	ID       int32      `xml:"id,attr"`       //技能ID
+	CD       int32      `xml:"cd,attr"`       //技能CD
+	Duration int32      `xml:"duration,attr"` //技能时长
+	Radius   int32      `xml:"radius,attr"`   //半径
+	BuffID   int32      `xml:"buffid,attr"`   //BuffID
 	Hurts    []ST_Hurts `xml:"Hurt"`
 }
 
@@ -54,7 +54,7 @@ func LoadSkills() bool {
 	return true
 }
 
-func GetSkillInfo(id int) *ST_SkillInfo {
+func GetSkillInfo(id int32) *ST_SkillInfo {
 	i := sort.Search(len(G_SkillMgr.Skills), func(i int) bool { return G_SkillMgr.Skills[i].ID >= id })
 	if i < len(G_SkillMgr.Skills) && G_SkillMgr.Skills[i].ID == id {
 		return &G_SkillMgr.Skills[i]

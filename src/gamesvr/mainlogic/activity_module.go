@@ -22,22 +22,22 @@ func (self *Mark) Get(index uint) bool {
 
 type TActivity interface {
 	//! 创建初始化
-	Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int)
+	Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32)
 
 	//! 设置父模块指针
 	SetModulePtr(mPtr *TActivityModule)
 
 	//! 刷新数据
-	Refresh(versionCode int)
+	Refresh(versionCode int32)
 
 	//! 活动结束(活动重置)
-	End(versionCode int, resetCode int)
+	End(versionCode int32, resetCode int32)
 
 	//取活动的刷新版本
-	GetRefreshV() int
+	GetRefreshV() int32
 
 	//取重置版本
-	GetResetV() int
+	GetResetV() int32
 
 	//活动是否存在玩家操作机会， 用于客户端的红点提示。
 	RedTip() bool
@@ -51,7 +51,7 @@ type TActivity interface {
 
 //! 活动模块
 type TActivityModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	//! 首充/次充
 	FirstRecharge TActivityFirstRecharge
@@ -134,12 +134,12 @@ type TActivityModule struct {
 	ownplayer *TPlayer
 }
 
-func (self *TActivityModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TActivityModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
-func (self *TActivityModule) OnCreate(playerID int) {
+func (self *TActivityModule) OnCreate(playerid int32) {
 	self.activityPtrs = make(map[int]TActivity)
 	for i, _ := range G_GlobalVariables.ActivityLst {
 		activityID := G_GlobalVariables.ActivityLst[i].ActivityID
@@ -252,32 +252,32 @@ func (self *TActivityModule) OnCreate(playerID int) {
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerActivity", self)
 }
 
-func (self *TActivityModule) OnDestroy(playerID int) {
+func (self *TActivityModule) OnDestroy(playerid int32) {
 
 }
 
-func (self *TActivityModule) OnPlayerOnline(playerID int) {
+func (self *TActivityModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离开游戏
-func (self *TActivityModule) OnPlayerOffline(playerID int) {
+func (self *TActivityModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 读取玩家
-func (self *TActivityModule) OnPlayerLoad(playerID int, wg *sync.WaitGroup) {
+func (self *TActivityModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerActivity").Find(bson.M{"_id": playerID}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerActivity").Find(bson.M{"_id": playerid}).One(self)
 	if err != nil {
-		gamelog.Error("PlayerActivity Load Error :%s， PlayerID: %d", err.Error(), playerID)
+		gamelog.Error("PlayerActivity Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
 	if wg != nil {
 		wg.Done()
 	}
-	self.PlayerID = playerID
+	self.PlayerID = playerid
 	self.activityPtrs = make(map[int]TActivity)
 
 	//! 签到

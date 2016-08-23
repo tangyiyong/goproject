@@ -100,14 +100,14 @@ func Hand_QueryLuckyWheel(w http.ResponseWriter, r *http.Request) {
 	response.TotalRank = -1
 	response.TodayRank = -1
 	for i, v := range G_LuckyWheelTotalRanker.List {
-		if v.RankID == player.GetPlayerID() {
+		if v.RankID == player.playerid {
 			response.TotalRank = i + 1
 			break
 		}
 	}
 
 	for i, v := range G_LuckyWheelTodayRanker.List {
-		if v.RankID == player.GetPlayerID() {
+		if v.RankID == player.playerid {
 			response.TodayRank = i + 1
 			break
 		}
@@ -235,9 +235,9 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 
 		response.TodayRank = -1
 		response.TotalRank = -1
-		response.TodayRank = G_LuckyWheelTodayRanker.SetRankItem(player.GetPlayerID(), player.ActivityModule.LuckyWheel.TodayScore[indexToday])
+		response.TodayRank = G_LuckyWheelTodayRanker.SetRankItem(player.playerid, player.ActivityModule.LuckyWheel.TodayScore[indexToday])
 
-		response.TotalRank = G_LuckyWheelTotalRanker.SetRankItem(player.GetPlayerID(), player.ActivityModule.LuckyWheel.TotalScore)
+		response.TotalRank = G_LuckyWheelTotalRanker.SetRankItem(player.playerid, player.ActivityModule.LuckyWheel.TotalScore)
 
 		go player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelScore()
 
@@ -312,9 +312,9 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 
 		response.TodayRank = -1
 		response.TotalRank = -1
-		response.TodayRank = G_LuckyWheelTodayRanker.SetRankItem(player.GetPlayerID(), player.ActivityModule.LuckyWheel.TodayScore[indexToday])
+		response.TodayRank = G_LuckyWheelTodayRanker.SetRankItem(player.playerid, player.ActivityModule.LuckyWheel.TodayScore[indexToday])
 
-		response.TotalRank = G_LuckyWheelTotalRanker.SetRankItem(player.GetPlayerID(), player.ActivityModule.LuckyWheel.TotalScore)
+		response.TotalRank = G_LuckyWheelTotalRanker.SetRankItem(player.playerid, player.ActivityModule.LuckyWheel.TotalScore)
 
 		go player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelScore()
 

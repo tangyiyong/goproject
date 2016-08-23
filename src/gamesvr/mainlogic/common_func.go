@@ -9,7 +9,7 @@ import (
 )
 
 //! 常规检查
-func GetPlayerAndCheck(playerID int, sessionKey string, url string) (*TPlayer, int) {
+func GetPlayerAndCheck(playerID int32, sessionKey string, url string) (*TPlayer, int) {
 	//! 检查SessionKey
 	if !sessionmgr.CheckSessionKey(playerID, sessionKey) {
 		gamelog.Error("message %s error : Invalid Session Key!", url)
@@ -93,4 +93,34 @@ func (self *Int64Lst) IsExist(value int64) int {
 		}
 	}
 	return -1
+}
+
+//! 自定义类型
+type Int32Lst []int32
+
+func (self *Int32Lst) IsExist(value int32) int {
+	for i := 0; i < len(*self); i++ {
+		if value == (*self)[i] {
+			return i
+		}
+	}
+	return -1
+}
+
+func (self *Int32Lst) Add(value int32) {
+	*self = append(*self, value)
+}
+
+func (self Int32Lst) Len() int {
+	return len(self)
+}
+
+func (self Int32Lst) Less(i int32, j int32) bool {
+	return (self)[i] < (self)[j]
+}
+
+func (self Int32Lst) Swap(i int32, j int32) {
+	temp := (self)[i]
+	(self)[i] = (self)[j]
+	(self)[j] = temp
 }

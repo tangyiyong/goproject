@@ -11,13 +11,13 @@ const (
 )
 
 type TBattleRoom struct {
-	RoomID   int                          //房间ID
-	RoomType int                          //等级类型
+	RoomID   int32                        //房间ID
+	RoomType int32                        //等级类型
 	Players  [max_room_player]*TBattleObj //三个阵营的人员
-	CampNum  [max_room_camp]int           //各个阵营人数
+	CampNum  [max_room_camp]int32         //各个阵营人数
 }
 
-func (room *TBattleRoom) Init(id int, roomtype int) bool {
+func (room *TBattleRoom) Init(id int32, roomtype int32) bool {
 	room.RoomID = id
 	room.RoomType = roomtype
 	return true
@@ -31,11 +31,11 @@ func (room *TBattleRoom) AddPlayer(pBattleObj *TBattleObj) bool {
 		return false
 	}
 
-	var i = 0
+	var i int32 = 0
 	for ; i < max_room_player; i++ {
 		if room.Players[i] == nil {
 			room.Players[i] = pBattleObj
-			for j := 0; j < 6; j++ {
+			for j := int32(0); j < 6; j++ {
 				pBattleObj.HeroObj[j].ObjectID = (i+2)<<16 | j
 			}
 			break
@@ -51,7 +51,7 @@ func (room *TBattleRoom) AddPlayer(pBattleObj *TBattleObj) bool {
 	return true
 }
 
-func (room *TBattleRoom) RemovePlayer(playerid int) bool {
+func (room *TBattleRoom) RemovePlayer(playerid int32) bool {
 	if playerid <= 0 {
 		gamelog.Error("RemovePlayer Error Invalid Parameter!!!")
 		return false
@@ -73,8 +73,8 @@ func (room *TBattleRoom) RemovePlayer(playerid int) bool {
 	return true
 }
 
-func (room *TBattleRoom) GetHeroObject(objectid int) *THeroObj {
-	idx_player := (objectid>>16) - 2
+func (room *TBattleRoom) GetHeroObject(objectid int32) *THeroObj {
+	idx_player := (objectid >> 16) - 2
 	idx_hero := objectid & 0x00ff
 
 	if idx_player >= max_room_player || idx_player < 0 {
@@ -95,7 +95,7 @@ func (room *TBattleRoom) GetHeroObject(objectid int) *THeroObj {
 	return &room.Players[idx_player].HeroObj[idx_hero]
 }
 
-func (room *TBattleRoom) GetBattleByPID(playerid int) *TBattleObj {
+func (room *TBattleRoom) GetBattleByPID(playerid int32) *TBattleObj {
 	for i := 0; i < max_room_player; i++ {
 		if room.Players[i] != nil && room.Players[i].PlayerID == playerid {
 			return room.Players[i]
@@ -104,7 +104,7 @@ func (room *TBattleRoom) GetBattleByPID(playerid int) *TBattleObj {
 
 	return nil
 }
-func (room *TBattleRoom) GetBattleByOID(objectid int) *TBattleObj {
-	idx_player := (objectid>>16) - 2
+func (room *TBattleRoom) GetBattleByOID(objectid int32) *TBattleObj {
+	idx_player := (objectid >> 16) - 2
 	return room.Players[idx_player]
 }

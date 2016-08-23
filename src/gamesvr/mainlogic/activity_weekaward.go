@@ -3,8 +3,9 @@ package mainlogic
 import (
 	"appconfig"
 	"gamesvr/gamedata"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 //! 周周盈
@@ -15,8 +16,8 @@ type TActivityWeekAward struct {
 	RechargeNum int  //! 充值数目
 	AwardMark   Mark //! 奖励标记 位运算
 
-	VersionCode int //! 版本号
-	ResetCode   int //! 迭代号
+	VersionCode int32 //! 版本号
+	ResetCode   int32 //! 迭代号
 
 	activityModule *TActivityModule //! 指针
 }
@@ -28,7 +29,7 @@ func (self *TActivityWeekAward) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityWeekAward) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityWeekAward) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -43,15 +44,15 @@ func (self *TActivityWeekAward) Init(activityID int, mPtr *TActivityModule, verc
 }
 
 //! 刷新数据
-func (self *TActivityWeekAward) Refresh(versionCode int) {
+func (self *TActivityWeekAward) Refresh(versionCode int32) {
 	//! 刷新签到标记
-	self.LoginDay += (versionCode - self.VersionCode)
+	self.LoginDay += int(versionCode - self.VersionCode)
 	self.VersionCode = versionCode
 	go self.DB_Refresh()
 }
 
 //! 结束
-func (self *TActivityWeekAward) End(versionCode int, resetCode int) {
+func (self *TActivityWeekAward) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 	self.LoginDay = 0
@@ -60,11 +61,11 @@ func (self *TActivityWeekAward) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityWeekAward) GetRefreshV() int {
+func (self *TActivityWeekAward) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityWeekAward) GetResetV() int {
+func (self *TActivityWeekAward) GetResetV() int32 {
 	return self.ResetCode
 }
 

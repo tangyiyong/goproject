@@ -62,19 +62,19 @@ func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 
 	var response msg.MSG_KillEvent_Ack
 
-	pPlayer.CamBattleModule.Kill += req.Kill
-	response.CurRank = G_CampBat_TodayKill.SetRankItem(req.Killer, pPlayer.CamBattleModule.Kill)
+	pPlayer.CamBattleModule.Kill += int(req.Kill)
+	response.CurRank = int32(G_CampBat_TodayKill.SetRankItem(req.Killer, pPlayer.CamBattleModule.Kill))
 	G_CampBat_KillSum.SetRankItem(req.Killer, pPlayer.CamBattleModule.Kill)
 	G_CampBat_CampKill[pPlayer.CamBattleModule.BattleCamp-1].SetRankItem(req.Killer, pPlayer.CamBattleModule.Kill)
 	if req.Destroy > 0 {
-		pPlayer.CamBattleModule.Destroy += req.Destroy
-		pPlayer.CamBattleModule.DestroySum += req.Destroy
+		pPlayer.CamBattleModule.Destroy += int(req.Destroy)
+		pPlayer.CamBattleModule.DestroySum += int(req.Destroy)
 		G_CampBat_TodayDestroy.SetRankItem(req.Killer, pPlayer.CamBattleModule.Destroy)
 		G_CampBat_DestroySum.SetRankItem(req.Killer, pPlayer.CamBattleModule.DestroySum)
 		G_CampBat_CampDestroy[pPlayer.CamBattleModule.BattleCamp-1].SetRankItem(req.Killer, pPlayer.CamBattleModule.Kill)
 	}
 
-	if req.SeriesKill == gamedata.CampBat_NtyKillNum {
+	if req.SeriesKill == int32(gamedata.CampBat_NtyKillNum) {
 		var nty msg.MSG_HorseLame_Notify
 		nty.TextType = TextCampBatHorseLamp
 		nty.Camps = append(nty.Camps, pPlayer.CamBattleModule.BattleCamp)
@@ -84,7 +84,7 @@ func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	}
 
 	if pPlayer.CamBattleModule.KillHonor < gamedata.CampBat_KillHonorMax {
-		AddHonor := req.Kill * gamedata.Campbat_KillHonorOne
+		AddHonor := int(req.Kill) * gamedata.Campbat_KillHonorOne
 		if (AddHonor + pPlayer.CamBattleModule.KillHonor) <= gamedata.CampBat_KillHonorMax {
 			pPlayer.CamBattleModule.KillHonor += AddHonor
 			pPlayer.RoleMoudle.AddMoney(4, AddHonor)
@@ -95,8 +95,8 @@ func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	}
 
 	pPlayer.CamBattleModule.DB_SaveKillData()
-	response.KillHonor = pPlayer.CamBattleModule.KillHonor
-	response.KillNum = pPlayer.CamBattleModule.Kill
+	response.KillHonor = int32(pPlayer.CamBattleModule.KillHonor)
+	response.KillNum = int32(pPlayer.CamBattleModule.Kill)
 
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_KILL_EVENT_ACK)
@@ -138,7 +138,7 @@ func Hand_PlayerQueryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		pPlayer.CamBattleModule.CrystalID = utility.Rand()%2 + 1
 	}
 
-	response.Quality = pPlayer.CamBattleModule.CrystalID
+	response.Quality = int32(pPlayer.CamBattleModule.CrystalID)
 	response.PlayerID = req.PlayerID
 
 	var writer msg.PacketWriter
@@ -166,7 +166,7 @@ func Hand_PlayerReviveReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	pReviveInfo := gamedata.GetReviveInfo(req.ReviveOpt)
+	pReviveInfo := gamedata.GetReviveInfo(int(req.ReviveOpt))
 	if pReviveInfo == nil {
 		gamelog.Error("Hand_PlayerReviveReq : Invalid ReviveOpt :%d!!!!", req.ReviveOpt)
 		return
@@ -183,9 +183,9 @@ func Hand_PlayerReviveReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	var response msg.MSG_ServerRevive_Ack
 	response.RetCode = msg.RE_SUCCESS
 	response.PlayerID = req.PlayerID
-	response.Stay = pReviveInfo.Stay
-	response.ProInc = pReviveInfo.IncRatio
-	response.BuffTime = pReviveInfo.BuffTime
+	response.Stay = int32(pReviveInfo.Stay)
+	response.ProInc = int32(pReviveInfo.IncRatio)
+	response.BuffTime = int32(pReviveInfo.BuffTime)
 
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_PLAYER_REVIVE_ACK)
@@ -242,7 +242,7 @@ func Hand_PlayerChangeReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		response.NewQuality = 4
 	} else {
 		pPlayer.CamBattleModule.CrystalID = utility.Rand()%2 + 1
-		response.NewQuality = pPlayer.CamBattleModule.CrystalID
+		response.NewQuality = int32(pPlayer.CamBattleModule.CrystalID)
 	}
 
 	response.PlayerID = req.PlayerID
@@ -286,9 +286,9 @@ func Hand_StartCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 
 	var response msg.MSG_StartCarry_Ack
 	response.PlayerID = req.PlayerID
-	response.EndTime = pPlayer.CamBattleModule.EndTime
+	response.EndTime = int32(pPlayer.CamBattleModule.EndTime)
 	response.RetCode = msg.RE_SUCCESS
-	response.LeftTimes = pPlayer.CamBattleModule.LeftTimes
+	response.LeftTimes = int32(pPlayer.CamBattleModule.LeftTimes)
 
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_START_CARRY_ACK)
@@ -340,8 +340,10 @@ func Hand_FinishCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	var response msg.MSG_FinishCarry_Ack
 	response.PlayerID = req.PlayerID
 	response.RetCode = msg.RE_SUCCESS
-	response.MoneyID = pCrystal.MoneyID
-	response.MoneyNum = pCrystal.MoneyNum
+	response.MoneyID[0] = int32(pCrystal.MoneyID[0])
+	response.MoneyID[1] = int32(pCrystal.MoneyID[1])
+	response.MoneyNum[0] = int32(pCrystal.MoneyNum[0])
+	response.MoneyNum[1] = int32(pCrystal.MoneyNum[1])
 
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_FINISH_CARRY_ACK)
@@ -370,7 +372,7 @@ func Hand_LoadCampBatInfo(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	if req.EnterCode != int(player.CamBattleModule.enterCode) {
+	if req.EnterCode != player.CamBattleModule.enterCode {
 		gamelog.Error("Hand_LoadCampBatInfo Error: Invalide enterCode, req.EnterCode:%d, player.EnterCode:%d", req.EnterCode, player.CamBattleModule.enterCode)
 	}
 
@@ -379,21 +381,21 @@ func Hand_LoadCampBatInfo(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	var response msg.MSG_LoadCampBattle_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 
-	response.BattleCamp = player.CamBattleModule.BattleCamp
-	response.Level = player.GetLevel()
-	response.LeftTimes = player.CamBattleModule.LeftTimes
-	response.CurRank = G_CampBat_TodayKill.SetRankItem(req.PlayerID, player.CamBattleModule.Kill)
-	response.KillNum = player.CamBattleModule.Kill
-	response.KillHonor = player.CamBattleModule.KillHonor
-	response.PlayerID = player.GetPlayerID()
+	response.BattleCamp = int32(player.CamBattleModule.BattleCamp)
+	response.Level = int32(player.GetLevel())
+	response.LeftTimes = int32(player.CamBattleModule.LeftTimes)
+	response.CurRank = int32(G_CampBat_TodayKill.SetRankItem(player.playerid, player.CamBattleModule.Kill))
+	response.KillNum = int32(player.CamBattleModule.Kill)
+	response.KillHonor = int32(player.CamBattleModule.KillHonor)
+	response.PlayerID = player.playerid
 	if int(time.Now().Unix()) > player.CamBattleModule.EndTime {
 		player.CamBattleModule.EndTime = 0
 	}
 
-	response.MoveEndTime = player.CamBattleModule.EndTime
+	response.MoveEndTime = int32(player.CamBattleModule.EndTime)
 	response.RetCode = msg.RE_SUCCESS
 
-	if response.Level <= gamedata.CampBat_RoomMatchLvl {
+	if response.Level <= int32(gamedata.CampBat_RoomMatchLvl) {
 		response.RoomType = 1
 	} else {
 		response.RoomType = 2
@@ -402,20 +404,26 @@ func Hand_LoadCampBatInfo(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	var HeroResults = make([]THeroResult, BATTLE_NUM)
 	player.HeroMoudle.CalcFightValue(HeroResults)
 	for i := 0; i < BATTLE_NUM; i++ {
-		response.Heros[i].HeroID = HeroResults[i].HeroID
-		response.Heros[i].Camp = HeroResults[i].Camp
-		response.Heros[i].PropertyValue = HeroResults[i].PropertyValues
-		response.Heros[i].PropertyPercent = HeroResults[i].PropertyPercents
-		response.Heros[i].CampDef = HeroResults[i].CampDef
-		response.Heros[i].CampKill = HeroResults[i].CampKill
+		response.Heros[i].HeroID = int32(HeroResults[i].HeroID)
+		response.Heros[i].Camp = int32(HeroResults[i].Camp)
+		for j := 0; j < 11; j++ {
+			response.Heros[i].PropertyValue[j] = int32(HeroResults[i].PropertyValues[j])
+			response.Heros[i].PropertyPercent[j] = int32(HeroResults[i].PropertyPercents[j])
+		}
+
+		for j := 0; j < 5; j++ {
+			response.Heros[i].CampDef[j] = int32(HeroResults[i].CampDef[j])
+			response.Heros[i].CampKill[j] = int32(HeroResults[i].CampKill[j])
+		}
+
 		if response.Heros[i].HeroID != 0 {
-			pHeroInfo := gamedata.GetHeroInfo(response.Heros[i].HeroID)
+			pHeroInfo := gamedata.GetHeroInfo(int(HeroResults[i].HeroID))
 			if pHeroInfo != nil {
-				response.Heros[i].SkillID = pHeroInfo.Skills[0]
+				response.Heros[i].SkillID = int32(pHeroInfo.Skills[0])
 				if pHeroInfo.AttackType == 1 || pHeroInfo.AttackType == 3 {
-					response.Heros[i].AttackID = gamedata.AttackPhysicID
+					response.Heros[i].AttackID = int32(gamedata.AttackPhysicID)
 				} else {
-					response.Heros[i].AttackID = gamedata.AttackMagicID
+					response.Heros[i].AttackID = int32(gamedata.AttackMagicID)
 				}
 
 			} else {

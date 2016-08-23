@@ -3,12 +3,12 @@ package msg
 //! 玩家请求夺粮战挑战玩家列表
 //! 消息: /get_foodwar_challenger
 type MSG_FoodWar_GetChallenger_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
 type MSG_FoodWar_Challenger struct {
-	PlayerID   int
+	PlayerID   int32
 	PlayerName string
 	HeroID     int
 	Quality    int
@@ -26,7 +26,7 @@ type MSG_FoodWar_GetChallenger_Ack struct {
 //! 玩家请求查询夺粮战状态
 //! 消息: /get_foodwar_status
 type MSG_FoodWar_GetStatus_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -47,7 +47,7 @@ type MSG_FoodWar_GetStatus_Ack struct {
 //! 玩家请求查询复仇状态
 //! 消息: /get_foodwar_revenge_status
 type MSG_FoodWar_RevengeStatus_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -62,7 +62,7 @@ type MSG_FoodWar_RevengeStatus_Ack struct {
 //! 玩家请求查询次数以及恢复时间
 //! 消息: /get_foodwar_time
 type MSG_FoodWar_GetFoodWarTime_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -78,9 +78,9 @@ type MSG_FoodWar_GetFoodWarTime_Ack struct {
 //! 玩家请求掠夺粮草
 //! 消息: /rob_food
 type MSG_FoodWar_RobFood_Req struct {
-	PlayerID       int
+	PlayerID       int32
 	SessionKey     string
-	TargetPlayerID int
+	TargetPlayerID int32
 	IsWin          int //! 1->胜利 0->失败
 }
 
@@ -97,9 +97,9 @@ type MSG_FoodWar_RobFood_Ack struct {
 //! 玩家请求复仇
 //! 消息: /revenge_rob
 type MSG_FoodWar_RevengeRob_Req struct {
-	PlayerID       int
+	PlayerID       int32
 	SessionKey     string
-	TargetPlayerID int
+	TargetPlayerID int32
 	IsWin          int //! 1->胜利 0->失败
 }
 
@@ -116,7 +116,7 @@ type MSG_FoodWar_RevengeRob_Ack struct {
 //! 玩家请求查询排行榜信息
 //! 消息: /get_food_rank
 type MSG_FoodWar_GetRank_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -128,7 +128,7 @@ type MSG_FoodWar_GetRank_Ack struct {
 //! 请求购买次数
 //! 消息: /buy_food_times
 type MSG_FoodWar_BuyTimes_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	TimesType  int //! 1->掠夺次数 2->复仇次数
 	Times      int //! 购买次数
@@ -143,7 +143,7 @@ type MSG_FoodWar_BuyTimes_Ack struct {
 //! 请求领取粮草奖励
 //! 消息: /recv_food_award
 type MSG_FoodWar_GetFoodAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int
 }
@@ -156,7 +156,7 @@ type MSG_FoodWar_GetFoodAward_Ack struct {
 //! 请求查询粮草奖励领取状况
 //! 消息: /query_food_award
 type MSG_FoodWar_QueryFoodAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 

@@ -42,7 +42,7 @@ type MSG_SvrAward_Del_Ack struct {
 type MSG_Send_Award_Player_Req struct {
 	SessionID  string         //GM SessionID
 	SessionKey string         //GM SessionKey
-	TargetID   int            //目标玩家
+	TargetID   int32          //目标玩家
 	Value      string         //参数
 	ItemLst    []MSG_ItemData //奖励内容
 }

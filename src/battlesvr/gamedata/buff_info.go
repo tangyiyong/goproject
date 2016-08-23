@@ -10,11 +10,11 @@ import (
 )
 
 type ST_BuffInfo struct {
-	ID       int        `xml:"id,attr"`       //技能ID
-	CD       int        `xml:"cd,attr"`       //技能CD
-	Duration int        `xml:"duration,attr"` //技能时长
-	Radius   int        `xml:"radius,attr"`   //半径
-	BuffID   int        `xml:"buffid,attr"`   //BuffID
+	ID       int32      `xml:"id,attr"`       //技能ID
+	CD       int32      `xml:"cd,attr"`       //技能CD
+	Duration int32      `xml:"duration,attr"` //技能时长
+	Radius   int32      `xml:"radius,attr"`   //半径
+	BuffID   int32      `xml:"buffid,attr"`   //BuffID
 	Hurts    []ST_Hurts `xml:"Hurt"`
 }
 
@@ -48,7 +48,7 @@ func LoadBuffs() bool {
 	return true
 }
 
-func (mgr *ST_BuffMgr) GetBuffInfo(id int) *ST_BuffInfo {
+func (mgr *ST_BuffMgr) GetBuffInfo(id int32) *ST_BuffInfo {
 	i := sort.Search(len(mgr.Buffs), func(i int) bool { return mgr.Buffs[i].ID >= id })
 	if i < len(mgr.Buffs) && mgr.Buffs[i].ID == id {
 		return &mgr.Buffs[i]
@@ -57,8 +57,8 @@ func (mgr *ST_BuffMgr) GetBuffInfo(id int) *ST_BuffInfo {
 	return nil
 }
 
-func RandSkill() int {
-	id := 31000021
+func RandSkill() int32 {
+	var id int32 = 31000021
 	rvalue := utility.Rand()
 	nCount := len(G_SceneInfo.SkillRand)
 	nIndex := rvalue % nCount

@@ -35,7 +35,7 @@ type TFashionBag struct {
 }
 
 type TBagMoudle struct {
-	PlayerID        int         `bson:"_id"` //玩家ID
+	PlayerID        int32       `bson:"_id"` //玩家ID
 	HeroBag         THeroBag    //英雄包
 	HeroPieceBag    TItemBag    //英雄碎片包
 	EquipBag        TEquipBag   //装备包
@@ -56,7 +56,7 @@ type TBagMoudle struct {
 	ownplayer *TPlayer //父player指针
 }
 
-func (self *TBagMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TBagMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	if pPlayer == nil {
 		gamelog.Error("TBagMoudle SetPlayerPtr pPlayer is nil")
 		return
@@ -67,7 +67,7 @@ func (self *TBagMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
 }
 
 //响应玩家创建
-func (self *TBagMoudle) OnCreate(playerid int) {
+func (self *TBagMoudle) OnCreate(playerid int32) {
 	//初始化各个成员数值
 	self.PlayerID = playerid
 	//创建数据库记录
@@ -96,20 +96,20 @@ func (self *TBagMoudle) InitAddItem() {
 }
 
 //玩家对象销毁
-func (self *TBagMoudle) OnDestroy(playerid int) {
+func (self *TBagMoudle) OnDestroy(playerid int32) {
 }
 
 //玩家进入游戏
-func (self *TBagMoudle) OnPlayerOnline(playerid int) {
+func (self *TBagMoudle) OnPlayerOnline(playerid int32) {
 }
 
 //玩家离开游戏
-func (self *TBagMoudle) OnPlayerOffline(playerid int) {
+func (self *TBagMoudle) OnPlayerOffline(playerid int32) {
 	return
 }
 
 //玩家数据从数据库加载
-func (self *TBagMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TBagMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 	err := s.DB(appconfig.GameDbName).C("PlayerBag").Find(bson.M{"_id": playerid}).One(self)

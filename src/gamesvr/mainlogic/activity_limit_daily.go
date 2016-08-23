@@ -24,8 +24,8 @@ type TLimitDailyTask struct {
 type TActivityLimitDaily struct {
 	ActivityID     int               //! 活动ID
 	TaskLst        []TLimitDailyTask //! 任务链
-	VersionCode    int               //! 版本号
-	ResetCode      int               //! 迭代号
+	VersionCode    int32             //! 版本号
+	ResetCode      int32             //! 迭代号
 	activityModule *TActivityModule  //! 活动模块指针
 }
 
@@ -36,7 +36,7 @@ func (self *TActivityLimitDaily) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityLimitDaily) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityLimitDaily) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -61,7 +61,7 @@ func (self *TActivityLimitDaily) Init(activityID int, mPtr *TActivityModule, ver
 }
 
 //! 刷新数据
-func (self *TActivityLimitDaily) Refresh(versionCode int) {
+func (self *TActivityLimitDaily) Refresh(versionCode int32) {
 	//! 清空限时任务
 	for j, _ := range self.TaskLst {
 		if self.TaskLst[j].TaskType != gamedata.TASK_RECHARGE {
@@ -75,7 +75,7 @@ func (self *TActivityLimitDaily) Refresh(versionCode int) {
 }
 
 //! 活动结束
-func (self *TActivityLimitDaily) End(versionCode int, resetCode int) {
+func (self *TActivityLimitDaily) End(versionCode int32, resetCode int32) {
 	for j, _ := range self.TaskLst {
 		self.TaskLst[j].Count = 0
 		self.TaskLst[j].Status = 0
@@ -99,11 +99,11 @@ func (self *TActivityLimitDaily) IsAllComplete() bool {
 	return true
 }
 
-func (self *TActivityLimitDaily) GetRefreshV() int {
+func (self *TActivityLimitDaily) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityLimitDaily) GetResetV() int {
+func (self *TActivityLimitDaily) GetResetV() int32 {
 	return self.ResetCode
 }
 

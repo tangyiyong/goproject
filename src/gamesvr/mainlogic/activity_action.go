@@ -14,8 +14,8 @@ type TActivityReceiveAction struct {
 	ActivityID int  //! 活动ID
 	RecvAction Mark //! 领取体力标记
 
-	VersionCode    int              //! 版本号
-	ResetCode      int              //! 迭代号
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 
@@ -26,7 +26,7 @@ func (self *TActivityReceiveAction) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityReceiveAction) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityReceiveAction) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -37,7 +37,7 @@ func (self *TActivityReceiveAction) Init(activityID int, mPtr *TActivityModule, 
 }
 
 //! 刷新数据
-func (self *TActivityReceiveAction) Refresh(versionCode int) {
+func (self *TActivityReceiveAction) Refresh(versionCode int32) {
 	//! 重置体力领取标记
 	self.RecvAction = 0
 	self.VersionCode = versionCode
@@ -45,18 +45,18 @@ func (self *TActivityReceiveAction) Refresh(versionCode int) {
 }
 
 //! 活动结束
-func (self *TActivityReceiveAction) End(versionCode int, resetCode int) {
+func (self *TActivityReceiveAction) End(versionCode int32, resetCode int32) {
 	self.RecvAction = 0
 	self.ResetCode = resetCode
 	self.VersionCode = versionCode
 	go self.DB_Reset()
 }
 
-func (self *TActivityReceiveAction) GetRefreshV() int {
+func (self *TActivityReceiveAction) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityReceiveAction) GetResetV() int {
+func (self *TActivityReceiveAction) GetResetV() int32 {
 	return self.ResetCode
 }
 

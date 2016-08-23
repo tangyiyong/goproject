@@ -15,8 +15,8 @@ type TActivityMonthFund struct {
 	Day       int  //! 基金领取天数
 	AwardMark Mark //! 基金领取标记
 
-	VersionCode int //! 版本号
-	ResetCode   int //! 迭代号
+	VersionCode int32 //! 版本号
+	ResetCode   int32 //! 迭代号
 
 	activityModule *TActivityModule //! 指针
 }
@@ -28,7 +28,7 @@ func (self *TActivityMonthFund) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityMonthFund) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityMonthFund) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -41,16 +41,16 @@ func (self *TActivityMonthFund) Init(activityID int, mPtr *TActivityModule, verc
 }
 
 //! 刷新数据
-func (self *TActivityMonthFund) Refresh(versionCode int) {
+func (self *TActivityMonthFund) Refresh(versionCode int32) {
 	if self.Day != 0 {
-		self.Day -= (versionCode - self.VersionCode)
+		self.Day -= int(versionCode - self.VersionCode)
 	}
 
 	self.VersionCode = versionCode
 	go self.DB_Refresh()
 }
 
-func (self *TActivityMonthFund) End(versionCode int, resetCode int) {
+func (self *TActivityMonthFund) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 
@@ -63,11 +63,11 @@ func (self *TActivityMonthFund) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityMonthFund) GetRefreshV() int {
+func (self *TActivityMonthFund) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityMonthFund) GetResetV() int {
+func (self *TActivityMonthFund) GetResetV() int32 {
 	return self.ResetCode
 }
 
@@ -98,10 +98,12 @@ func (self *TActivityMonthFund) SetMonthFund(rmb int) {
 		return
 	}
 
-	return
+	if len(self.activityModule.MonthCard.CardDays) < 3 {
+		return
+	}
 
-	if self.activityModule.MonthCard.CardDays[0] == 0 ||
-		self.activityModule.MonthCard.CardDays[1] == 0 {
+	if self.activityModule.MonthCard.CardDays[1] == 0 ||
+		self.activityModule.MonthCard.CardDays[2] == 0 {
 		//! 必须激活双月卡
 		return
 	}

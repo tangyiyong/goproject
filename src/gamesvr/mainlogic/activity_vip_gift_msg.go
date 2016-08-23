@@ -96,7 +96,7 @@ func Hand_DailyVipWelfare(w http.ResponseWriter, r *http.Request) {
 
 	if player.ActivityModule.VipGift.IsRecvWelfare == true {
 		response.RetCode = msg.RE_ALREADY_RECEIVED
-		gamelog.Error("Hand_DailyVipWelfare already recevied. playerID: %v ", player.GetPlayerID())
+		gamelog.Error("Hand_DailyVipWelfare already recevied. playerID: %v ", player.playerid)
 		return
 	}
 

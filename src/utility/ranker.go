@@ -7,7 +7,7 @@ import (
 )
 
 type TRankItem struct {
-	RankID    int
+	RankID    int32
 	RankValue int
 }
 
@@ -57,7 +57,7 @@ func (ranker *TRanker) Clear() {
 	}
 }
 
-func (ranker *TRanker) SetRankItem(rankid int, rankvalue int) int {
+func (ranker *TRanker) SetRankItem(rankid int32, rankvalue int) int {
 	ranker.Lock()
 	defer ranker.Unlock()
 	nCount := len(ranker.List)
@@ -98,7 +98,7 @@ func (ranker *TRanker) SetRankItem(rankid int, rankvalue int) int {
 }
 
 //战力排行榜专用, 其它的排行榜暂时不要用
-func (ranker *TRanker) SetRankItemEx(rankid int, orgvalue int, newvalue int) int {
+func (ranker *TRanker) SetRankItemEx(rankid int32, orgvalue int, newvalue int) int {
 	ranker.Lock()
 	defer ranker.Unlock()
 	nCount := len(ranker.List)
@@ -131,7 +131,7 @@ func (ranker *TRanker) SetRankItemEx(rankid int, orgvalue int, newvalue int) int
 	return -1
 }
 
-func (ranker *TRanker) GetRankIndex(rankid int, rankvalue int) int {
+func (ranker *TRanker) GetRankIndex(rankid int32, rankvalue int) int {
 	nCount := len(ranker.List)
 	MinValue := ranker.List[nCount-1].RankValue
 	if rankvalue <= MinValue {
@@ -159,7 +159,7 @@ func (ranker *TRanker) GetRankIndex(rankid int, rankvalue int) int {
 	return -1
 }
 
-func (ranker *TRanker) ForeachShow(handler func(int, int)) {
+func (ranker *TRanker) ForeachShow(handler func(int32, int)) {
 	sum := 0
 	for _, v := range ranker.List {
 		if sum >= ranker.ShowNum || v.RankID == 0 {

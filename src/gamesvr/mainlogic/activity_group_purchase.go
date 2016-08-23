@@ -22,8 +22,8 @@ type TActivityGroupPurchase struct {
 	Score               int                     //! 积分
 	ScoreAwardMark      IntLst                  //! 积分奖励领取标记
 	IsDifferenceReceive bool                    //! 差价领取标记
-	VersionCode         int                     //! 更新号
-	ResetCode           int                     //! 迭代号
+	VersionCode         int32                   //! 更新号
+	ResetCode           int32                   //! 迭代号
 	activityModule      *TActivityModule        //! 活动模块指针
 }
 
@@ -34,7 +34,7 @@ func (self *TActivityGroupPurchase) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityGroupPurchase) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityGroupPurchase) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -49,13 +49,13 @@ func (self *TActivityGroupPurchase) Init(activityID int, mPtr *TActivityModule, 
 }
 
 //! 刷新数据
-func (self *TActivityGroupPurchase) Refresh(versionCode int) {
+func (self *TActivityGroupPurchase) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
 	go self.DB_Refresh()
 }
 
 //! 活动结束
-func (self *TActivityGroupPurchase) End(versionCode int, resetCode int) {
+func (self *TActivityGroupPurchase) End(versionCode int32, resetCode int32) {
 	self.PurchaseCostLst = []TActivityPurchaseCost{}
 	self.Score = 0
 	self.ScoreAwardMark = IntLst{}
@@ -67,11 +67,11 @@ func (self *TActivityGroupPurchase) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityGroupPurchase) GetRefreshV() int {
+func (self *TActivityGroupPurchase) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityGroupPurchase) GetResetV() int {
+func (self *TActivityGroupPurchase) GetResetV() int32 {
 	return self.ResetCode
 }
 

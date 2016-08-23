@@ -3,7 +3,7 @@ package msg
 //! 玩家请求查询奖励中心信息
 //! 消息: /query_award_center
 type MSG_AwardCenter_Query_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -23,7 +23,7 @@ type MSG_AwardCenter_Query_Ack struct {
 //! 玩家请求领取奖励中心奖励
 //! 消息: /get_award_center
 type MSG_AwardCenter_Get_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	AwardID    int
 }

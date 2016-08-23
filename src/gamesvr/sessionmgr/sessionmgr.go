@@ -9,12 +9,12 @@ import (
 )
 
 var (
-	SessionKeyMap map[int]string = make(map[int]string, 1024)
-	LoginTimeMap  map[int]int64  = make(map[int]int64, 1024)
+	SessionKeyMap map[int32]string = make(map[int32]string, 1024)
+	LoginTimeMap  map[int32]int64  = make(map[int32]int64, 1024)
 	SessionMutex  sync.Mutex
 )
 
-func AddSessionKey(playerid int, sessionkey string) {
+func AddSessionKey(playerid int32, sessionkey string) {
 	SessionMutex.Lock()
 	defer SessionMutex.Unlock()
 
@@ -26,7 +26,7 @@ func NewSessionKey() string {
 	return bson.NewObjectId().Hex()
 }
 
-func CheckLoginTime(playerid int) bool {
+func CheckLoginTime(playerid int32) bool {
 	SessionMutex.Lock()
 	defer SessionMutex.Unlock()
 	logintime, ok := LoginTimeMap[playerid]
@@ -41,7 +41,7 @@ func CheckLoginTime(playerid int) bool {
 	return true
 }
 
-func CheckSessionKey(playerid int, sessionkey string) bool {
+func CheckSessionKey(playerid int32, sessionkey string) bool {
 	SessionMutex.Lock()
 	defer SessionMutex.Unlock()
 	key, ok := SessionKeyMap[playerid]
@@ -57,7 +57,7 @@ func CheckSessionKey(playerid int, sessionkey string) bool {
 	return false
 }
 
-func DeleteSessionKey(playerid int) bool {
+func DeleteSessionKey(playerid int32) bool {
 	SessionMutex.Lock()
 	defer SessionMutex.Unlock()
 	_, ok := SessionKeyMap[playerid]

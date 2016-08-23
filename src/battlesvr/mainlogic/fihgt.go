@@ -41,7 +41,7 @@ func Hand_SkillState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	bNewSkill := false
 	var ackHeroState msg.MSG_HeroState_Nty
 	for i := 0; i < len(req.SkillEvents); i++ {
-		if req.SkillEvents[i].S_Skill_ID == pSrcBatObj.SkillState[3].ID {
+		if req.SkillEvents[i].S_Skill_ID == int32(pSrcBatObj.SkillState[3].ID) {
 			pSrcBatObj.SkillState[3].ID = gamedata.RandSkill()
 			gamelog.Error("Hand_SkillState Error: New Skill ID :%d", pSrcBatObj.SkillState[3].ID)
 			bNewSkill = true
@@ -125,7 +125,7 @@ func Hand_SkillState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		}
 	}
 
-	ackHeroState.Heros_Cnt = len(ackHeroState.Heros)
+	ackHeroState.Heros_Cnt = int32(len(ackHeroState.Heros))
 	if ackHeroState.Heros_Cnt > 0 {
 		SendMessageToRoom(0, roomid, msg.MSG_HERO_STATE, &ackHeroState)
 	}
@@ -154,21 +154,21 @@ func Hand_SkillState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 //10 暴击率
 //11 抗暴率
 
-func HeroFight(pAttacker *THeroObj, skillid int, pDefender *THeroObj) (bkill bool) {
+func HeroFight(pAttacker *THeroObj, skillid int32, pDefender *THeroObj) (bkill bool) {
 	if pAttacker == nil || pDefender == nil {
 		gamelog.Error("HeroFight Error: pAttacker == nil || pDefender == nil ")
 		return
 	}
 
 	bkill = false
-	value := utility.Rand() % 1000
+	value := int32(utility.Rand() % 1000)
 	//先判断是否命中
 	if value > (800+pAttacker.CurProperty[8]-pDefender.CurProperty[7]) && value > 500 {
 		return
 	}
 
 	//判断是否爆击
-	value = utility.Rand() % 1000
+	value = int32(utility.Rand() % 1000)
 	bSuperHit := false
 	if value < (pAttacker.CurProperty[9]-pAttacker.CurProperty[10]) || value < 10 {
 		bSuperHit = true
@@ -185,7 +185,7 @@ func HeroFight(pAttacker *THeroObj, skillid int, pDefender *THeroObj) (bkill boo
 	finaladd := pAttacker.CurProperty[6] - pDefender.CurProperty[5] + 1000
 
 	//伤害随机
-	fightrand := 900 + utility.Rand()%200
+	fightrand := int32(900 + utility.Rand()%200)
 	//hurt := (pSkillInfo.Hurts[0].Percent*(pAttacker.CurProperty[pAttacker.AttackPID-1]-pDefender.CurProperty[pAttacker.AttackPID]) + pSkillInfo.Hurts[0].Fixed)
 	hurt := pAttacker.CurProperty[pAttacker.AttackPID-1] - pDefender.CurProperty[pAttacker.AttackPID]
 	if hurt <= 0 {

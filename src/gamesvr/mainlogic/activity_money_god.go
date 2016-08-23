@@ -15,8 +15,8 @@ type TActivityMoneyGod struct {
 	CumulativeTimes int              //! 当前累积次数
 	TotalMoney      int              //! 累积银币
 	NextTime        int64            //! 下次迎财神时间
-	VersionCode     int              //! 版本号
-	ResetCode       int              //! 迭代号
+	VersionCode     int32            //! 版本号
+	ResetCode       int32            //! 迭代号
 	activityModule  *TActivityModule //! 活动模块指针
 }
 
@@ -27,7 +27,7 @@ func (self *TActivityMoneyGod) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityMoneyGod) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityMoneyGod) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.CurrentTimes = 3
@@ -38,7 +38,7 @@ func (self *TActivityMoneyGod) Init(activityID int, mPtr *TActivityModule, verco
 }
 
 //! 刷新数据
-func (self *TActivityMoneyGod) Refresh(versionCode int) {
+func (self *TActivityMoneyGod) Refresh(versionCode int32) {
 	if self.CurrentTimes != 0 {
 		//! 迎财神中断,奖金池清空
 		self.TotalMoney = 0
@@ -53,17 +53,17 @@ func (self *TActivityMoneyGod) Refresh(versionCode int) {
 }
 
 //! 活动结束
-func (self *TActivityMoneyGod) End(versionCode int, resetCode int) {
+func (self *TActivityMoneyGod) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 	go self.DB_Reset()
 }
 
-func (self *TActivityMoneyGod) GetRefreshV() int {
+func (self *TActivityMoneyGod) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityMoneyGod) GetResetV() int {
+func (self *TActivityMoneyGod) GetResetV() int32 {
 	return self.ResetCode
 }
 

@@ -3,7 +3,7 @@ package msg
 //! 玩家请求当前领地状态
 //! 消息: /get_territory_status
 type MSG_GetTerritoryStatus_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -29,7 +29,7 @@ type MSG_GetTerritoryStatus_Ack struct {
 //! 玩家回馈挑战领地结果
 //! 消息: /challenge_territory
 type MSG_ChallengeTerritory_Req struct {
-	PlayerID    int
+	PlayerID    int32
 	SessionKey  string
 	TerritoryID int
 }
@@ -41,12 +41,12 @@ type MSG_ChallengeTerritory_Ack struct {
 //! 玩家请求好友领地状态
 //! 消息: /get_friend_territory_status
 type MSG_GetFriendTerritoryStatus_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
 type MSG_FriendTerritoryStatus struct {
-	PlayerID      int                 //! 好友ID
+	PlayerID      int32               //! 好友ID
 	Level         int                 //! 好友等级
 	Quality       int                 //! 好友品质
 	TerritoryLst  []MSG_TerritoryInfo //! 领地信息
@@ -61,10 +61,10 @@ type MSG_GetFriendTerritoryStatus_Ack struct {
 //! 玩家请求查看好友领地详情
 //! 消息: /get_friend_territory_info
 type MSG_GetFriendTerritoryInfo_Req struct {
-	PlayerID    int
+	PlayerID    int32
 	SessionKey  string
-	FriendID    int //! 朋友ID
-	TerritoryID int //! 领地ID
+	FriendID    int32 //! 朋友ID
+	TerritoryID int   //! 领地ID
 }
 
 //! 暴动信息
@@ -84,10 +84,10 @@ type MSG_GetFriendTerritoryInfo_Ack struct {
 //! 玩家请求帮忙好友镇压暴动
 //! 消息: /help_riot
 type MSG_HelpRiot_Req struct {
-	PlayerID          int
+	PlayerID          int32
 	SessionKey        string
-	TargetID          int //! 好友ID
-	TargetTerritoryID int //! 好友领地ID
+	TargetID          int32 //! 好友ID
+	TargetTerritoryID int   //! 好友领地ID
 }
 
 type MSG_HelpRiot_Ack struct {
@@ -99,7 +99,7 @@ type MSG_HelpRiot_Ack struct {
 //! 玩家请求收获领地奖励
 //! 消息: /get_territory_award
 type MSG_GetTerritoryAward_Req struct {
-	PlayerID    int
+	PlayerID    int32
 	SessionKey  string
 	TerritoryID int
 }
@@ -111,7 +111,7 @@ type MSG_GetTerritoryAward_Ack struct {
 //! 玩家置放武将到领地巡逻
 //! 消息: /patrol_territory
 type MSG_PatrolTerritory_Req struct {
-	PlayerID    int
+	PlayerID    int32
 	SessionKey  string
 	HeroID      int
 	TerritoryID int
@@ -131,7 +131,7 @@ type MSG_PatrolTerritory_Ack struct {
 //! 玩家请求升级领地技能
 //! 消息: /territory_skill_up
 type MSG_TerritorySkillUp_Req struct {
-	PlayerID    int
+	PlayerID    int32
 	SessionKey  string
 	TerritoryID int
 }
@@ -143,7 +143,7 @@ type MSG_TerritorySkillUp_Ack struct {
 //! 玩家请求查询领地暴动状态
 //! 消息: /query_territory_riot
 type MSG_GetTerritoryRiot_Req struct { //! 需要每次请求
-	PlayerID    int
+	PlayerID    int32
 	SessionKey  string
 	TerritoryID int
 }

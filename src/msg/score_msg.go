@@ -1,7 +1,7 @@
 package msg
 
 type MSG_Target struct {
-	PlayerID   int    //角色ID
+	PlayerID   int32  //角色ID
 	HeroID     int    //英雄ID
 	Name       string //角色名
 	FightValue int    //战力
@@ -13,7 +13,7 @@ type MSG_Target struct {
 //请求积分赛目标信息
 //get_score_target
 type MSG_GetScoreTarget_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -25,7 +25,7 @@ type MSG_GetScoreTarget_Ack struct {
 }
 
 type MSG_ScoreRankInfo struct {
-	PlayerID   int    //! 角色ID
+	PlayerID   int32  //! 角色ID
 	HeroID     int    //! 英雄ID
 	Name       string //! 角色名字
 	FightValue int    //! 战力值
@@ -37,7 +37,7 @@ type MSG_ScoreRankInfo struct {
 //! 玩家请求积分赛排行榜
 //! 消息: /get_score_rank
 type MSG_GetScoreRank_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -51,7 +51,7 @@ type MSG_GetScoreRank_Ack struct {
 //请求发送积分赛结果
 //set_score_battle_result
 type MSG_SetScoreBattleResult_Req struct {
-	PlayerID    int
+	PlayerID    int32
 	SessionKey  string
 	TargetIndex int //目标玩家索引
 	WinBattle   int //是否占胜对手 1: 胜, 0: 失败
@@ -67,7 +67,7 @@ type MSG_SetScoreBattleResult_Ack struct {
 //! 玩家购买积分赛战斗次数
 //! 消息: /buy_score_fight_time
 type MSG_BuyScoreTime_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -81,7 +81,7 @@ type MSG_BuyScoreTime_Ack struct {
 //! 玩家请求积分赛战斗次数奖励
 //! 消息: /get_score_time_award
 type MSG_GetScoreTimeAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -94,7 +94,7 @@ type MSG_GetScoreTimeAward_Ack struct {
 //! 玩家收取积分赛战斗次数奖励
 //! 消息: /rcv_score_time_award
 type MSG_RcvScoreTimeAward_Req struct {
-	PlayerID    int
+	PlayerID    int32
 	SessionKey  string
 	TimeAwardID int //次数奖励的ID
 }
@@ -107,7 +107,7 @@ type MSG_RcvScoreTimeAward_Ack struct {
 //! 玩家请求积分商店的状态
 //! 消息: /get_score_store_state
 type MSG_GetScoreStoreState_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -120,7 +120,7 @@ type MSG_GetScoreStoreState_Ack struct {
 //! 玩家请求购买积分商店道具
 //! 消息: /buy_score_store_item
 type MSG_BuyScoreStoreItem_Req struct {
-	PlayerID    int
+	PlayerID    int32
 	SessionKey  string
 	StoreItemID int //商店道具ID
 	BuyNum      int //购买数量
@@ -144,7 +144,7 @@ type MSG_CrossQueryScoreRank_Ack struct {
 //! 游戏服向积分服请求目标玩家排行榜
 //! 消息: /cross_query_score_target
 type MSG_CrossQueryScoreTarget_Req struct {
-	PlayerID   int    //角色ID
+	PlayerID   int32  //角色ID
 	HeroID     int    //英雄ID
 	SvrID      int    //服务器ID
 	SvrName    string //服务器名
@@ -173,14 +173,14 @@ type MSG_GameSelectPlayer_Ack struct {
 
 //! 向跨服服务器请求战斗目标数据
 type MSG_GetFightTarget_Req struct {
-	SvrID    int //服务器ID
-	PlayerID int //角色ID
+	SvrID    int   //服务器ID
+	PlayerID int32 //角色ID
 }
 
 //! 积分赛挑战检测
 //! 消息:/get_score_battle_check
 type MSG_GetScoreBattleCheck_Req struct {
-	PlayerID    int
+	PlayerID    int32
 	SessionKey  string
 	TargetIndex int //! 挑战的玩家索引
 }

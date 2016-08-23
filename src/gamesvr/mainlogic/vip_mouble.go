@@ -12,18 +12,18 @@ import (
 
 //角色基本数据表结构
 type TVipMoudle struct {
-	PlayerID     int    `bson:"_id"` //主键 玩家ID
+	PlayerID     int32  `bson:"_id"` //主键 玩家ID
 	FirstCharges []bool //己完成的首充表
 
 	ownplayer *TPlayer //父player指针
 }
 
-func (playerVip *TVipMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (playerVip *TVipMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	playerVip.PlayerID = playerid
 	playerVip.ownplayer = pPlayer
 }
 
-func (playerVip *TVipMoudle) OnCreate(playerid int) {
+func (playerVip *TVipMoudle) OnCreate(playerid int32) {
 	//初始化各个成员数值
 	playerVip.PlayerID = playerid
 
@@ -35,22 +35,22 @@ func (playerVip *TVipMoudle) OnCreate(playerid int) {
 }
 
 //玩家对象销毁
-func (playerVip *TVipMoudle) OnDestroy(playerid int) {
+func (playerVip *TVipMoudle) OnDestroy(playerid int32) {
 	playerVip = nil
 }
 
 //玩家进入游戏
-func (playerVip *TVipMoudle) OnPlayerOnline(playerid int) {
+func (playerVip *TVipMoudle) OnPlayerOnline(playerid int32) {
 	//
 }
 
 //OnPlayerOffline 玩家离开游戏
-func (playerVip *TVipMoudle) OnPlayerOffline(playerid int) {
+func (playerVip *TVipMoudle) OnPlayerOffline(playerid int32) {
 	//
 }
 
 //! 预取玩家数据
-func (playerVip *TVipMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (playerVip *TVipMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 

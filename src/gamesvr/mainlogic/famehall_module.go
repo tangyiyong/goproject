@@ -12,7 +12,7 @@ import (
 )
 
 type TFameHallInfo struct {
-	PlayerID   int
+	PlayerID   int32
 	HeroID     int
 	CharmValue int
 }
@@ -22,22 +22,22 @@ var G_FameHallLst [2][6]TFameHallInfo
 
 //! 名人堂
 type TFameHallModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	CharmValue  int    //! 魅力值
 	FreeTimes   int    //! 免费次数
-	ResetDay    int    //! 重置天数
+	ResetDay    uint32 //! 重置天数
 	SendFightID IntLst //! 已送花朵
 	SendLevelID IntLst //! 已送花朵
 	ownplayer   *TPlayer
 }
 
-func (self *TFameHallModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TFameHallModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
-func (self *TFameHallModule) OnCreate(playerID int) {
+func (self *TFameHallModule) OnCreate(playerid int32) {
 	//! 初始化各类参数
 	self.FreeTimes = gamedata.FameHallFreeTimes
 	self.CharmValue = 0
@@ -47,21 +47,21 @@ func (self *TFameHallModule) OnCreate(playerID int) {
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerFameHall", self)
 }
 
-func (self *TFameHallModule) OnDestroy(playerID int) {
+func (self *TFameHallModule) OnDestroy(playerid int32) {
 
 }
 
-func (self *TFameHallModule) OnPlayerOnline(playerID int) {
+func (self *TFameHallModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离开游戏
-func (self *TFameHallModule) OnPlayerOffline(playerID int) {
+func (self *TFameHallModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 读取玩家
-func (self *TFameHallModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TFameHallModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -84,7 +84,7 @@ func (self *TFameHallModule) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *TFameHallModule) OnNewDay(newday int) {
+func (self *TFameHallModule) OnNewDay(newday uint32) {
 	//! 重置参数
 	self.SendFightID = IntLst{}
 	self.SendLevelID = IntLst{}

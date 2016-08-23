@@ -258,7 +258,7 @@ func Hand_QueryServerTime(w http.ResponseWriter, r *http.Request) {
 	response.SvrTime = time.Now().Unix()
 }
 
-func CheckCreatePlayer(accountid int, name string) (int, *TSimpleInfo) {
+func CheckCreatePlayer(accountid int32, name string) (int, *TSimpleInfo) {
 	G_SimpleMgr.SimpleLock.Lock()
 	defer G_SimpleMgr.SimpleLock.Unlock()
 
@@ -280,7 +280,7 @@ func CheckCreatePlayer(accountid int, name string) (int, *TSimpleInfo) {
 	pInfo.isOnline = false
 	pInfo.Name = name
 
-	G_SimpleMgr.SimpleList[accountid] = pInfo
+	G_SimpleMgr.SimpleList[pInfo.PlayerID] = pInfo
 	G_SimpleMgr.NameIDMap[pInfo.Name] = pInfo.PlayerID
 
 	return msg.RE_SUCCESS, pInfo
@@ -294,7 +294,7 @@ func CheckPlayerName(name string) int {
 	return msg.RE_SUCCESS
 }
 
-func CheckUserIsLogin(accountid int, accountname string, loginkey string) bool {
+func CheckUserIsLogin(accountid int32, accountname string, loginkey string) bool {
 	var verifyuserReq msg.MSG_VerifyUserLogin_Req
 	verifyuserReq.AccountID = accountid
 	verifyuserReq.AccountName = accountname

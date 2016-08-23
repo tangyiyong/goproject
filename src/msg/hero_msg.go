@@ -14,7 +14,7 @@ type Cost_Hero struct {
 //玩家升级英雄
 //消息:/upgrade_hero
 type MSG_UpgradeHero_Req struct {
-	PlayerID   int         //玩家ID
+	PlayerID   int32       //玩家ID
 	SessionKey string      //Sessionkey
 	TargetHero Target_Hero //目标英雄
 	CostHeros  []Cost_Hero //英雄列表
@@ -32,7 +32,7 @@ type MSG_UpgradeHero_Ack struct {
 //玩家更换英雄
 //消息:/change_hero
 type MSG_ChangeHero_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	TargetID   int    //上阵英雄ID
 	TargetPos  int    //上阵位置
@@ -48,7 +48,7 @@ type MSG_ChangeHero_Ack struct {
 //玩家更换援军英雄
 //消息:/change_back_hero
 type MSG_ChangeBackHero_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	TargetID   int    //上阵英雄ID
 	TargetPos  int    //上阵位置
@@ -64,7 +64,7 @@ type MSG_ChangeBackHero_Ack struct {
 //玩家英雄突破
 //消息:/breakout_hero
 type MSG_BreakOut_Req struct {
-	PlayerID   int         //玩家ID
+	PlayerID   int32       //玩家ID
 	SessionKey string      //Sessionkey
 	TargetHero Target_Hero //目标英雄位置
 	CostHeros  []Cost_Hero //英雄列表
@@ -81,7 +81,7 @@ type MSG_BreakOut_Ack struct {
 //玩家培养英雄
 //消息:/culture_hero
 type MSG_CultureHero_Req struct {
-	PlayerID   int         //玩家ID
+	PlayerID   int32       //玩家ID
 	SessionKey string      //Sessionkey
 	TargetHero Target_Hero //目标英雄位置
 	Times      int         //培养次数
@@ -97,7 +97,7 @@ type MSG_CultureHero_Ack struct {
 //玩家天命英雄
 //消息:/destiny_hero
 type MSG_DestinyHero_Req struct {
-	PlayerID   int         //玩家ID
+	PlayerID   int32       //玩家ID
 	SessionKey string      //Sessionkey
 	TargetHero Target_Hero //目标英雄位置
 }
@@ -112,7 +112,7 @@ type MSG_DestinyHero_Ack struct {
 //玩家查询天命信息
 //消息:/query_destiny
 type MSG_QueryDestinyState_Req struct {
-	PlayerID   int         //玩家ID
+	PlayerID   int32       //玩家ID
 	SessionKey string      //Sessionkey
 	TargetHero Target_Hero //目标英雄位置
 }
@@ -126,7 +126,7 @@ type MSG_QueryDestinyState_Ack struct {
 //玩家合成英雄
 //消息:/compose_hero
 type MSG_ComposeHero_Req struct {
-	PlayerID    int    //玩家ID
+	PlayerID    int32  //玩家ID
 	SessionKey  string //Sessionkey
 	HeroPieceID int    //英雄碎片ID
 }
@@ -139,7 +139,7 @@ type MSG_ComposeHero_Ack struct {
 //客户端通知服务器玩家升级
 //消息:/levelup_notify
 type MSG_LevelUpNotify_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -154,7 +154,7 @@ type MSG_LevelUpNotify_Ack struct {
 //玩家设置觉醒道具
 //消息:/set_wake_item
 type MSG_SetWakeItem_Req struct {
-	PlayerID      int         //玩家ID
+	PlayerID      int32       //玩家ID
 	SessionKey    string      //Sessionkey
 	TargetHero    Target_Hero //目标英雄
 	TargetItemPos int         //目标位置
@@ -170,7 +170,7 @@ type MSG_SetWakeItem_Ack struct {
 //玩家觉醒等级
 //消息:/up_wake_level
 type MSG_UpWakeLevel_Req struct {
-	PlayerID   int         //玩家ID
+	PlayerID   int32       //玩家ID
 	SessionKey string      //Sessionkey
 	TargetHero Target_Hero //目标英雄
 	SourcePos  int         //消耗英雄的位置
@@ -185,7 +185,7 @@ type MSG_UpWakeLevel_Ack struct {
 //玩家合成觉醒道具
 //消息:/compose_wake_item
 type MSG_ComposeWakeItem_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	ItemID     int    //觉醒道具ID
 }
@@ -198,7 +198,7 @@ type MSG_ComposeWakeItem_Ack struct {
 //玩家升品雕文
 //消息:/upgrade_diaowen
 type MSG_UpgradeDiaoWen_Req struct {
-	PlayerID   int         //玩家ID
+	PlayerID   int32       //玩家ID
 	SessionKey string      //Sessionkey
 	TargetHero Target_Hero //目标英雄
 	DiaoWenID  int         //雕文ID
@@ -214,7 +214,7 @@ type MSG_UpgradeDiaoWen_Ack struct {
 //玩家洗炼雕文
 //消息:/xilian_diaowen
 type MSG_XiLianDiaoWen_Req struct {
-	PlayerID   int         //玩家ID
+	PlayerID   int32       //玩家ID
 	SessionKey string      //Sessionkey
 	TargetHero Target_Hero //目标英雄
 	DiaoWenID  int         //雕文ID
@@ -232,7 +232,7 @@ type MSG_XiLianDiaoWen_Ack struct {
 //玩家洗炼替换雕文
 //消息:/xilian_tihuan
 type MSG_XiLianTiHuan_Req struct {
-	PlayerID   int         //玩家ID
+	PlayerID   int32       //玩家ID
 	SessionKey string      //Sessionkey
 	TargetHero Target_Hero //目标英雄
 	DiaoWenID  int         //雕文ID
@@ -248,7 +248,7 @@ type MSG_XiLianTiHuan_Ack struct {
 //玩家升级宠物
 //消息:/upgrade_pet
 type MSG_UpgradePet_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	PosType    int    //位置类型 1:护佑  2:背包中
 	PosIndex   int    //位置索引
@@ -268,7 +268,7 @@ type MSG_UpgradePet_Ack struct {
 //玩家升星宠物
 //消息:/upstar_pet
 type MSG_UpstarPet_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	PosType    int    //位置类型 1:护佑  2:背包中
 	PosIndex   int    //位置索引
@@ -285,7 +285,7 @@ type MSG_UpstarPet_Ack struct {
 //玩家神炼宠物
 //消息:/upgod_pet
 type MSG_UpgodPet_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	PosType    int    //位置类型 1:护佑  2:背包中
 	PosIndex   int    //位置索引
@@ -303,7 +303,7 @@ type MSG_UpgodPet_Ack struct {
 //玩家更换宠物
 //消息:/change_pet
 type MSG_ChangePet_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	TargetID   int    //上阵宠物ID
 	TargetPos  int    //上阵位置
@@ -319,7 +319,7 @@ type MSG_ChangePet_Ack struct {
 //玩家下阵宠物
 //消息:/unset_pet
 type MSG_UnsetPet_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	TargetID   int    //上阵宠物ID
 	TargetPos  int    //上阵位置
@@ -333,7 +333,7 @@ type MSG_UnsetPet_Ack struct {
 //玩家合成宠物
 //消息:/compose_pet
 type MSG_ComposePet_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	PetPieceID int    //宠物碎片ID
 }
@@ -346,7 +346,7 @@ type MSG_ComposePet_Ack struct {
 //玩家化神英雄
 //消息:/upgod_hero
 type MSG_UpgodHero_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	PosType    int    //位置类型 1:上阵， 2:援军， 3:背包
 	PosIndex   int    //位置索引

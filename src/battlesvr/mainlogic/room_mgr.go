@@ -28,14 +28,14 @@ func InitRoomMgr() bool {
 	//两个等级房间都创建1000间， 每个等级都可以容纳15000人，基本够用。
 	G_RoomMgr.LowRooms = make([]TBattleRoom, 1000, 1000)
 	G_RoomMgr.HighRooms = make([]TBattleRoom, 1000, 1000)
-	for i := 0; i < 1000; i++ {
+	for i := int32(0); i < 1000; i++ {
 		G_RoomMgr.LowRooms[i].Init(i+1, Room_Type_Low)
 		G_RoomMgr.HighRooms[i].Init(i+HighRooM_StartID, Room_Type_High)
 	}
 	return true
 }
 
-func (mgr *TRoomMgr) GetRoomByID(roomid int) *TBattleRoom {
+func (mgr *TRoomMgr) GetRoomByID(roomid int32) *TBattleRoom {
 	if roomid <= 0 {
 		gamelog.Error("GetRoomByID Error : Invalid roomid :%d", roomid)
 		return nil
@@ -50,7 +50,7 @@ func (mgr *TRoomMgr) GetRoomByID(roomid int) *TBattleRoom {
 	return nil
 }
 
-func (mgr *TRoomMgr) GetPlayerHeroIDs(roomid int, playerid int) (ret [6]int) {
+func (mgr *TRoomMgr) GetPlayerHeroIDs(roomid int32, playerid int32) (ret [6]int32) {
 	if roomid <= 0 || playerid <= 0 {
 		gamelog.Error("GetPlayerHeroIDs Error : Invalid roomid :%d and playerid:%d", roomid, playerid)
 		return
@@ -77,7 +77,7 @@ func (mgr *TRoomMgr) GetPlayerHeroIDs(roomid int, playerid int) (ret [6]int) {
 	return
 }
 
-func (mgr *TRoomMgr) AddPlayerToRoom(roomtype int, batcamp int, pBattleObj *TBattleObj) int {
+func (mgr *TRoomMgr) AddPlayerToRoom(roomtype int32, batcamp int32, pBattleObj *TBattleObj) int32 {
 	mgr.Lock()
 	defer mgr.Unlock()
 
@@ -106,7 +106,7 @@ func (mgr *TRoomMgr) AddPlayerToRoom(roomtype int, batcamp int, pBattleObj *TBat
 	return 0
 }
 
-func (mgr *TRoomMgr) RemovePlayerFromRoom(roomid int, playerid int) bool {
+func (mgr *TRoomMgr) RemovePlayerFromRoom(roomid int32, playerid int32) bool {
 	if roomid <= 0 || playerid <= 0 {
 		gamelog.Error("GetPlayerHeroIDs Error : Invalid roomid :%d and playerid:%d", roomid, playerid)
 		return false

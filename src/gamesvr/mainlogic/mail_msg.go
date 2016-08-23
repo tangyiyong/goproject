@@ -10,7 +10,7 @@ import (
 //收到所有的邮件请求
 //消息:/receive_all_mails
 type MSG_ReceiveAllMails_Req struct {
-	PlayerID   int    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 }
 

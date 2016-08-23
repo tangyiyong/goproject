@@ -3,7 +3,7 @@ package msg
 //! 玩家请求获取VIP礼包信息
 //! 消息: /get_vip_gift
 type MSG_GetVipGifts_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -15,7 +15,7 @@ type MSG_GetVipGifts_Ack struct {
 //! 玩家请求购买VIP礼包
 //! 消息: /buy_vip_gift
 type MSG_BuyVipGift_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int //! ID
 }
@@ -30,7 +30,7 @@ type MSG_BuyVipGift_Ack struct {
 //! 玩家请求查询道具商品购买次数
 //! 消息: /get_goods_buy_times
 type MSG_GetGoodsBuyTimes_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -47,7 +47,7 @@ type MSG_GetGoodsBuyTimes_Ack struct {
 //! 玩家请求购买普通商品
 //! 消息: /buy_goods
 type MSG_BuyGoods_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int //! 物品
 	Num        int //! 数量

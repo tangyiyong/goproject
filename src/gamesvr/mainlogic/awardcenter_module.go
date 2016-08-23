@@ -22,7 +22,7 @@ type TAwardData struct {
 
 //! 领奖中心模块
 type TAwardCenterModule struct {
-	PlayerID   int          `bson:"_id"`
+	PlayerID   int32        `bson:"_id"`
 	AwardLst   []TAwardData //! 奖励列表
 	SvrAwardID int          //! 已领取的全服奖励
 
@@ -30,13 +30,13 @@ type TAwardCenterModule struct {
 }
 
 //! 设置指针
-func (self *TAwardCenterModule) SetPlayerPtr(playerid int, player *TPlayer) {
+func (self *TAwardCenterModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = player
 }
 
 //! 玩家创建角色
-func (self *TAwardCenterModule) OnCreate(playerID int) {
+func (self *TAwardCenterModule) OnCreate(playerid int32) {
 	//! 初始化信息
 	self.AwardLst = make([]TAwardData, 0)
 	self.SvrAwardID = G_GlobalVariables.SvrAwardIncID
@@ -45,22 +45,22 @@ func (self *TAwardCenterModule) OnCreate(playerID int) {
 }
 
 //! 玩家销毁角色
-func (self *TAwardCenterModule) OnDestroy(playerID int) {
+func (self *TAwardCenterModule) OnDestroy(playerid int32) {
 
 }
 
 //! 玩家进入游戏
-func (self *TAwardCenterModule) OnPlayerOnline(playerID int) {
+func (self *TAwardCenterModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离线
-func (self *TAwardCenterModule) OnPlayerOffline(playerID int) {
+func (self *TAwardCenterModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 预取玩家信息
-func (self *TAwardCenterModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TAwardCenterModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -84,7 +84,7 @@ func (self *TAwardCenterModule) RedTip() bool {
 	return false
 }
 
-func SendAwardMail(playerID int, textType int, awardLst []gamedata.ST_ItemData, value []string) {
+func SendAwardMail(playerID int32, textType int, awardLst []gamedata.ST_ItemData, value []string) {
 	var awardData TAwardData
 	awardData.TextType = textType
 	awardData.ItemLst = awardLst
@@ -93,7 +93,7 @@ func SendAwardMail(playerID int, textType int, awardLst []gamedata.ST_ItemData, 
 	SendAwardToPlayer(playerID, &awardData)
 }
 
-func SendAwardToPlayer(playerid int, pAwardData *TAwardData) {
+func SendAwardToPlayer(playerid int32, pAwardData *TAwardData) {
 	if playerid <= 0 {
 		gamelog.Error("SendAwardToPlayer Error :Invalid PlayerID: %d", playerid)
 		return
@@ -161,7 +161,7 @@ func (self *TAwardCenterModule) AddToDatabaseLst(award TAwardData) {
 	mongodb.AddToArray(appconfig.GameDbName, "PlayerAwardCenter", bson.M{"_id": self.PlayerID}, "awardlst", award)
 }
 
-func DB_SaveAwardToPlayer(playerid int, award TAwardData) {
+func DB_SaveAwardToPlayer(playerid int32, award TAwardData) {
 	if playerid <= 0 {
 		gamelog.Error3("DB_SaveAwardToPlayer error. Invalid PlayerID:%d", playerid)
 		return
@@ -174,7 +174,7 @@ func (self *TAwardCenterModule) RemoveDatabaseLst(id int) {
 	mongodb.RemoveFromArray(appconfig.GameDbName, "PlayerAwardCenter", bson.M{"_id": self.PlayerID}, "awardlst", bson.M{"id": id})
 }
 
-func SendSvrAwardToPlayer(playerid int) {
+func SendSvrAwardToPlayer(playerid int32) {
 	if playerid <= 0 {
 		gamelog.Error("SendSvrAwardToPlayer Error :Invalid PlayerID: %d", playerid)
 		return

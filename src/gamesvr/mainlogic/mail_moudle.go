@@ -55,19 +55,19 @@ type TScoreResult struct {
 
 //角色邮件基本数据表结构
 type TMailMoudle struct {
-	PlayerID    int            `bson:"_id"`
+	PlayerID    int32          `bson:"_id"`
 	MailList    []TMailInfo    //邮件列表
 	ScoreResult []TScoreResult //积分战报
 
 	ownplayer *TPlayer //父player指针
 }
 
-func (playermail *TMailMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (playermail *TMailMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	playermail.PlayerID = playerid
 	playermail.ownplayer = pPlayer
 }
 
-func (playermail *TMailMoudle) OnCreate(playerid int) {
+func (playermail *TMailMoudle) OnCreate(playerid int32) {
 	//初始化各个成员数值
 	playermail.PlayerID = playerid
 	//创建数据库记录
@@ -76,22 +76,22 @@ func (playermail *TMailMoudle) OnCreate(playerid int) {
 }
 
 //玩家对象销毁
-func (playermail *TMailMoudle) OnDestroy(playerid int) {
+func (playermail *TMailMoudle) OnDestroy(playerid int32) {
 	playermail = nil
 }
 
 //玩家进入游戏
-func (playermail *TMailMoudle) OnPlayerOnline(playerid int) {
+func (playermail *TMailMoudle) OnPlayerOnline(playerid int32) {
 	//
 }
 
 //OnPlayerOffline 玩家离开游戏
-func (playermail *TMailMoudle) OnPlayerOffline(playerid int) {
+func (playermail *TMailMoudle) OnPlayerOffline(playerid int32) {
 	//
 }
 
 //玩家离开游戏
-func (playermail *TMailMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (playermail *TMailMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -116,7 +116,7 @@ func (self *TMailMoudle) RedTip() bool {
 }
 
 //发邮件给角色
-func SendMailToPlayer(playerid int, pMailInfo *TMailInfo) {
+func SendMailToPlayer(playerid int32, pMailInfo *TMailInfo) {
 	pPlayer := GetPlayerByID(playerid)
 	if pPlayer != nil {
 		pPlayer.MailMoudle.MailList = append(pPlayer.MailMoudle.MailList, *pMailInfo)
@@ -134,12 +134,12 @@ func SendMailToPlayer(playerid int, pMailInfo *TMailInfo) {
 }
 
 //! 保存邮件到数据库
-func DB_SaveMailToPlayer(playerid int, pMailInfo *TMailInfo) {
+func DB_SaveMailToPlayer(playerid int32, pMailInfo *TMailInfo) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": playerid}, bson.M{"$push": bson.M{"maillist": *pMailInfo}})
 }
 
 //! 保存战报到数据库
-func DB_SaveScoreResultToPlayer(playerid int, pResult *TScoreResult) {
+func DB_SaveScoreResultToPlayer(playerid int32, pResult *TScoreResult) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": playerid}, bson.M{"$push": bson.M{"scoreresult": *pResult}})
 }
 
@@ -152,7 +152,7 @@ func (playermail *TMailMoudle) DB_ClearAllMails() {
 //以下为各功能的发邮件方法
 ////////////////////////////////////////////////////////////
 //1. 竞技场邮件
-func SendArenaMail(playerid int, targetname string, rank int, win int, isChangeRank bool) {
+func SendArenaMail(playerid int32, targetname string, rank int, win int, isChangeRank bool) {
 	var mail TMailInfo
 	if win == 0 {
 		mail.TextType = Text_Arean_Def_SUCCESS
@@ -179,17 +179,17 @@ func SendArenaMail(playerid int, targetname string, rank int, win int, isChangeR
 }
 
 //2. 充值邮件
-func SendRechargeMail(playerID int, money int) {
+func SendRechargeMail(playerid int32, money int) {
 	var mail TMailInfo
 	mail.TextType = Text_Recharge
 	mail.MailTime = time.Now().Unix()
 	mail.MailParams = make([]string, 1)
 	mail.MailParams[0] = strconv.Itoa(money)
-	SendMailToPlayer(playerID, &mail)
+	SendMailToPlayer(playerid, &mail)
 }
 
 //3. 积分赛战报邮件
-func SendScoreResultMail(playerID int, name string, fight int, heroid int, attack bool, score int) {
+func SendScoreResultMail(playerid int32, name string, fight int, heroid int, attack bool, score int) {
 	var result TScoreResult
 	result.Name = name
 	result.FightValue = fight
@@ -197,10 +197,10 @@ func SendScoreResultMail(playerID int, name string, fight int, heroid int, attac
 	result.Attack = attack
 	result.Score = score
 	result.Time = time.Now().Unix()
-	pPlayer := GetPlayerByID(playerID)
+	pPlayer := GetPlayerByID(playerid)
 	if pPlayer != nil {
 		pPlayer.MailMoudle.ScoreResult = append(pPlayer.MailMoudle.ScoreResult, result)
 	}
 
-	DB_SaveScoreResultToPlayer(playerID, &result)
+	DB_SaveScoreResultToPlayer(playerid, &result)
 }

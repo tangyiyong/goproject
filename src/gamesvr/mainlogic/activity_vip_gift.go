@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"utility"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 //! VIP每周礼包
@@ -23,10 +24,10 @@ type TActivityVipGift struct {
 
 	IsRecvWelfare bool           //! 是否领取日常礼包
 	WeekGift      []TVipWeekItem //! VIP每周礼包
-	ResetWeek     int            //! VIP每周福利刷新
+	ResetWeek     uint32         //! VIP每周福利刷新
 
-	VersionCode    int              //! 版本号
-	ResetCode      int              //! 迭代号
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 
@@ -37,7 +38,7 @@ func (self *TActivityVipGift) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityVipGift) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityVipGift) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.VersionCode = vercode
@@ -53,7 +54,7 @@ func (self *TActivityVipGift) Init(activityID int, mPtr *TActivityModule, vercod
 }
 
 //! 刷新数据
-func (self *TActivityVipGift) Refresh(versionCode int) {
+func (self *TActivityVipGift) Refresh(versionCode int32) {
 	gamelog.Info("TActivityVipGift Refresh")
 	self.CheckWeekGiftRefresh()
 	self.VersionCode = versionCode
@@ -65,7 +66,7 @@ func (self *TActivityVipGift) Refresh(versionCode int) {
 }
 
 //! 活动结束
-func (self *TActivityVipGift) End(versionCode int, resetCode int) {
+func (self *TActivityVipGift) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 
@@ -76,11 +77,11 @@ func (self *TActivityVipGift) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityVipGift) GetRefreshV() int {
+func (self *TActivityVipGift) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityVipGift) GetResetV() int {
+func (self *TActivityVipGift) GetResetV() int32 {
 	return self.ResetCode
 }
 

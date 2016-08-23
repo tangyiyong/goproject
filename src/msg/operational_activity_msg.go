@@ -3,7 +3,7 @@ package msg
 //! 玩家查询巡回探宝状态
 //! 消息: /query_hunt_treasure
 type MSG_QueryHuntTreasure_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -23,7 +23,7 @@ type MSG_QueryHuntTreasure_Ack struct {
 //! 玩家开始掷骰
 //! 消息: /start_hunt
 type Msg_StartHuntTreasure_Req struct {
-	PlayerID        int
+	PlayerID        int32
 	SessionKey      string
 	IsUseLucklyDice int //! 是否使用幸运骰子
 	IsStartTenTimes int //! 投掷十次
@@ -48,7 +48,7 @@ type Msg_StartHuntTreasure_Ack struct {
 //! 玩家查询巡回奖励领取情况
 //! 消息: /query_hunt_award
 type MSG_QueryHuntTurn_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -60,7 +60,7 @@ type MSG_QueryHuntTurn_Ack struct {
 //! 玩家领取巡回奖励
 //! 消息: /get_hunt_award
 type MSG_GetHuntTurnAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int
 }
@@ -73,7 +73,7 @@ type MSG_GetHuntTurnAward_Ack struct {
 //! 获取运营活动排行榜
 //! 消息: /get_activity_rank
 type MSG_GetActivityRank_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Type       int //! 按照Activity_Type取值
 }
@@ -95,7 +95,7 @@ type MSG_GetActivityRank_Ack struct {
 //! 玩家领取活动排行榜奖励
 //! 消息: /get_activity_rank_award
 type MSG_GetActivityRankAward_Req struct {
-	PlayerID     int
+	PlayerID     int32
 	SessionKey   string
 	ActivityType int //! 按照Activity_Type取值
 	AwardType    int //! 1->昨日榜 2->总榜
@@ -109,12 +109,12 @@ type MSG_GetActivityRankAward_Ack struct {
 //! 玩家查询排行榜
 //! 消息: /get_hunt_rank
 type MSG_GetHuntTreasureRank_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
 type MSG_OperationalActivityRank struct {
-	PlayerID   int
+	PlayerID   int32
 	PlayerName string
 	HeroID     int
 	Quality    int
@@ -139,7 +139,7 @@ type MSG_GetHuntTreasureRank_Ack struct {
 //! 玩家领取排行榜奖励
 //! 消息: /get_hunt_rank_award
 type MSG_GetHuntRankAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	RankType   int //! 1->昨日排行奖励 2->累积排行奖励
 }
@@ -152,7 +152,7 @@ type MSG_GetHuntRankAward_Ack struct {
 //! 玩家查询巡回商店
 //! 消息: /query_hunt_store
 type MSG_QueryHuntStore_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -174,7 +174,7 @@ type MSG_QueryHuntStore_Ack struct {
 //! 玩家购买巡回商店物品
 //! 消息: /buy_hunt_store
 type MSG_BuyHuntStoreItem_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int
 }
@@ -186,7 +186,7 @@ type MSG_BuyHuntStoreItem_Ack struct {
 //! 清除商店物品
 //! 消息: /clean_hunt_store
 type MSG_CleanHuntStore_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -197,7 +197,7 @@ type MSG_CleanHuntStore_Ack struct {
 //! 玩家查询转盘信息
 //! 消息: /query_lucky_wheel
 type MSG_QueryLuckyWheel_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -231,7 +231,7 @@ type MSG_QueryLuckyWheel_Ack struct {
 //! 玩家转动轮盘
 //! 消息: /rotating_wheel
 type MSG_RotatingWheel_Req struct {
-	PlayerID        int
+	PlayerID        int32
 	SessionKey      string
 	IsExcited       int //! 1 -> 普通 2-> 豪华
 	IsStartTenTimes int //! 是否十连转 1 -> 是  0 -> 否
@@ -257,7 +257,7 @@ type MSG_RotatingWheel_Ack struct {
 //! 玩家查询排行榜
 //! 消息: /query_lucky_wheel_rank
 type MSG_QueryLuckyWheelRank_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -278,7 +278,7 @@ type MSG_QueryLuckyWheelRank_Ack struct {
 //! 玩家领取排行榜奖励
 //! 消息: /get_wheel_rank_award
 type MSG_GetLuckyWheelRankAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	RankType   int //! 1->昨日排行奖励 2->累积排行奖励
 }
@@ -291,7 +291,7 @@ type MSG_GetLuckyWheelRankAward_Ack struct {
 //! 玩家请求团购信息
 //! 消息: /get_group_purchase_info
 type MSG_GetGroupPurchaseInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -313,7 +313,7 @@ type MSG_GetGroupPurchaseInfo_Ack struct {
 //! 玩家请求团购
 //! 消息: /buy_group_purchase
 type MSG_BuyGroupPurchase_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ItemID     int
 }
@@ -330,7 +330,7 @@ type MSG_BuyGroupPurchase_Ack struct {
 //! 玩家请求领取差价
 //! 消息: /get_diff_price
 type MSG_GetGroupPurchaseDiffPrice_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -342,7 +342,7 @@ type MSG_GetGroupPurchaseDiffPrice_Ack struct {
 //! 玩家请求查询积分奖励
 //! 消息: /get_group_purchase_score
 type MSG_GetGroupPurchaseScore_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -354,7 +354,7 @@ type MSG_GetGroupPurchaseScore_Ack struct {
 //! 玩家请求获取积分奖励
 //! 消息: /get_group_score_award
 type MSG_GetGroupScoreAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int
 }
@@ -366,7 +366,7 @@ type MSG_GetGroupScoreAward_Ack struct {
 //! 查询欢庆佳节活动信息
 //! 消息: /get_festival_task
 type MSG_GetFestivalTask_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -391,7 +391,7 @@ type MSG_GetFestivalTask_Ack struct {
 //! 查询欢庆佳节兑换信息
 //! 消息: /get_festival_exchange
 type MSG_GetFestivalExchange_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -413,7 +413,7 @@ type MSG_GetFestivalExchange_Ack struct {
 //! 领取欢庆佳节活动任务奖励
 //! 消息: /get_festival_task_award
 type MSG_GetFestivalTaskAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int
 }
@@ -426,7 +426,7 @@ type MSG_GetFestivalTaskAward_Ack struct {
 //! 兑换欢庆佳节活动奖励
 //! 消息: /exchange_festival_award
 type MSG_ExchangeFestivalAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int
 }

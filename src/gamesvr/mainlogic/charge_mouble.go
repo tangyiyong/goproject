@@ -12,18 +12,18 @@ import (
 )
 
 type TChargeMoudle struct {
-	PlayerID    int `bson:"_id"` //主键 玩家ID
+	PlayerID    int32 `bson:"_id"` //主键 玩家ID
 	ChargeTimes []int
 
 	ownplayer *TPlayer //父player指针
 }
 
 //！ 活动框架代码
-func (self *TChargeMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TChargeMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
-func (self *TChargeMoudle) OnCreate(playerid int) {
+func (self *TChargeMoudle) OnCreate(playerid int32) {
 	self.PlayerID = playerid
 	count := gamedata.GetChargeItemCount()
 	self.ChargeTimes = make([]int, count)
@@ -31,16 +31,16 @@ func (self *TChargeMoudle) OnCreate(playerid int) {
 	//创建数据库记录
 	mongodb.InsertToDB(appconfig.GameDbName, "PlayerCharge", self)
 }
-func (self *TChargeMoudle) OnDestroy(playerid int) {
+func (self *TChargeMoudle) OnDestroy(playerid int32) {
 	self = nil
 }
-func (self *TChargeMoudle) OnPlayerOnline(playerid int) {
+func (self *TChargeMoudle) OnPlayerOnline(playerid int32) {
 	//
 }
-func (self *TChargeMoudle) OnPlayerOffline(playerid int) {
+func (self *TChargeMoudle) OnPlayerOffline(playerid int32) {
 	//
 }
-func (self *TChargeMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TChargeMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 

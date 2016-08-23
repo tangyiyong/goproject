@@ -1,7 +1,7 @@
 package main
 
 import (
-	"appconfig"
+	// "appconfig"
 	"gamelog"
 	"gamesvr/tcpclient"
 	"msg"
@@ -9,12 +9,12 @@ import (
 )
 
 func main() {
-	appconfig.LoadConfig()
+	// appconfig.LoadConfig()
 	gamelog.InitLogger("httptest", true)
 	RegTcpMsgHandler()
 
 	InitPlayerMgr()
-	for i := 1; i < 100; i++ {
+	for i := 1; i < 2; i++ {
 		CreatePlayer(i)
 	}
 

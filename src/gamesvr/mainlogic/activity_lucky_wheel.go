@@ -23,8 +23,8 @@ type TActivityWheel struct {
 	TotalScore           int              //! 总分数
 	IsRecvTodayRankAward bool             //! 今日排行奖励领取标记
 	IsRecvTotalRankAward bool             //! 总排行领取标记
-	VersionCode          int              //! 版本号
-	ResetCode            int              //! 迭代号
+	VersionCode          int32            //! 版本号
+	ResetCode            int32            //! 迭代号
 	activityModule       *TActivityModule //! 活动模块指针
 }
 
@@ -35,7 +35,7 @@ func (self *TActivityWheel) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityWheel) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityWheel) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -58,7 +58,7 @@ func (self *TActivityWheel) Init(activityID int, mPtr *TActivityModule, vercode 
 }
 
 //! 刷新数据
-func (self *TActivityWheel) Refresh(versionCode int) {
+func (self *TActivityWheel) Refresh(versionCode int32) {
 	//! 数据变更
 	self.IsRecvTodayRankAward = false
 	self.NormalFreeTimes = gamedata.NormalWheelFreeTimes
@@ -68,7 +68,7 @@ func (self *TActivityWheel) Refresh(versionCode int) {
 }
 
 //! 活动结束
-func (self *TActivityWheel) End(versionCode int, resetCode int) {
+func (self *TActivityWheel) End(versionCode int32, resetCode int32) {
 	self.NormalAwardLst = []int{}
 	self.ExcitedAwardLst = []int{}
 	self.NormalFreeTimes = 0
@@ -86,11 +86,11 @@ func (self *TActivityWheel) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityWheel) GetRefreshV() int {
+func (self *TActivityWheel) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityWheel) GetResetV() int {
+func (self *TActivityWheel) GetResetV() int32 {
 	return self.ResetCode
 }
 

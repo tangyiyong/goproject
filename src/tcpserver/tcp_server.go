@@ -105,6 +105,8 @@ func (server *TCPServer) run() {
 		server.wgConns.Add(1)
 		gamelog.Info("Connect From: %s,  ConnNum: %d", conn.RemoteAddr().String(), connNum+1)
 		tcpConn := newTCPConn(conn, server.PendingWriteNum)
+		conn.(*net.TCPConn).SetKeepAlive(true)
+		conn.(*net.TCPConn).SetKeepAlivePeriod(time.Second * 60)
 		tcpConn.OnNetClose = func() {
 			// 清理tcp_server相关数据
 			server.mutexConns.Lock()

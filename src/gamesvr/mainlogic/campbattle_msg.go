@@ -86,7 +86,7 @@ func Hand_SetBattleCamp(w http.ResponseWriter, r *http.Request) {
 		award.TextType = Text_Recommand_Camp
 		award.ItemLst = gamedata.GetItemsFromAwardIDEx(gamedata.CampBat_SelCampAward)
 		award.Time = time.Now().Unix()
-		SendAwardToPlayer(player.GetPlayerID(), &award)
+		SendAwardToPlayer(player.playerid, &award)
 	}
 
 	player.CamBattleModule.BattleCamp = req.BattleCamp

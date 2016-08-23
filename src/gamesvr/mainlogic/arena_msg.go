@@ -74,7 +74,7 @@ func Hand_GetArenaInfo(w http.ResponseWriter, r *http.Request) {
 			response.PlayerLst = append(response.PlayerLst, challangeInfo)
 		} else {
 			//! 机器人逻辑
-			robotInfo := gamedata.GetRobot(int(v.PlayerID))
+			robotInfo := gamedata.GetRobot(v.PlayerID)
 			if robotInfo == nil {
 				gamelog.Error("GetRobot error: invalid robot id %d", v.PlayerID)
 			} else {
@@ -170,18 +170,21 @@ func Hand_ArenaCheck(w http.ResponseWriter, r *http.Request) {
 	//! 可以挑战该玩家, 返回玩家详细武将信息
 	if challangeInfo.IsRobot == true {
 		response.TargetType = 2
-		robot := gamedata.GetRobot(int(challangeInfo.PlayerID))
-		response.PlayerData.FightValue = robot.FightValue
-		response.PlayerData.Quality = robot.Quality
+		robot := gamedata.GetRobot(challangeInfo.PlayerID)
+		response.PlayerData.FightValue = int32(robot.FightValue)
+		response.PlayerData.Quality = int32(robot.Quality)
 		response.PlayerData.PlayerID = challangeInfo.PlayerID
 		response.Name = robot.Name
 		for i := 0; i < BATTLE_NUM; i++ {
-			response.PlayerData.Heros[i].HeroID = robot.Heros[i].HeroID
-			response.PlayerData.Heros[i].PropertyValue = robot.Heros[i].Propertys
+			response.PlayerData.Heros[i].HeroID = int32(robot.Heros[i].HeroID)
+			for j := 0; j < 11; j++ {
+				response.PlayerData.Heros[i].PropertyValue[j] = int32(robot.Heros[i].Propertys[j])
+			}
+
 		}
 	} else {
 		response.TargetType = 1
-		response.PlayerData.PlayerID = challangeInfo.PlayerID
+		response.PlayerData.PlayerID = int32(challangeInfo.PlayerID)
 		var pHeroMoudle *THeroMoudle = nil
 		target := GetPlayerByID(challangeInfo.PlayerID)
 		if target != nil {
@@ -196,14 +199,19 @@ func Hand_ArenaCheck(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var HeroResults = make([]THeroResult, BATTLE_NUM)
-		response.PlayerData.FightValue = pHeroMoudle.CalcFightValue(HeroResults)
-		response.PlayerData.Quality = pHeroMoudle.CurHeros[0].Quality
+		response.PlayerData.FightValue = int32(pHeroMoudle.CalcFightValue(HeroResults))
+		response.PlayerData.Quality = int32(pHeroMoudle.CurHeros[0].Quality)
 		for i := 0; i < BATTLE_NUM; i++ {
-			response.PlayerData.Heros[i].HeroID = HeroResults[i].HeroID
-			response.PlayerData.Heros[i].PropertyValue = HeroResults[i].PropertyValues
-			response.PlayerData.Heros[i].PropertyPercent = HeroResults[i].PropertyPercents
-			response.PlayerData.Heros[i].CampDef = HeroResults[i].CampDef
-			response.PlayerData.Heros[i].CampKill = HeroResults[i].CampKill
+			response.PlayerData.Heros[i].HeroID = int32(HeroResults[i].HeroID)
+			for j := 0; j < 11; j++ {
+				response.PlayerData.Heros[i].PropertyValue[j] = int32(HeroResults[i].PropertyValues[j])
+				response.PlayerData.Heros[i].PropertyPercent[j] = int32(HeroResults[i].PropertyPercents[j])
+			}
+
+			for j := 0; j < 5; j++ {
+				response.PlayerData.Heros[i].CampDef[j] = int32(HeroResults[i].CampDef[j])
+				response.PlayerData.Heros[i].CampKill[j] = int32(HeroResults[i].CampKill[j])
+			}
 		}
 	}
 }
@@ -557,7 +565,7 @@ func Hand_BuyArenaStoreItem(w http.ResponseWriter, r *http.Request) {
 	//! 检测参数
 	if req.Num <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_BuyArenaStoreItem invalid num. Num: %v  PlayerID: %v", req.Num, player.GetPlayerID())
+		gamelog.Error("Hand_BuyArenaStoreItem invalid num. Num: %v  PlayerID: %v", req.Num, player.playerid)
 		return
 	}
 

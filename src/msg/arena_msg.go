@@ -3,7 +3,7 @@ package msg
 //! 玩家竞技场挑战结果
 //! 消息: /arena_result
 type MSG_ArenaResult_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Rank       int //! 挑战的玩家排名
 	IsVictory  int //! 是否胜利
@@ -19,7 +19,7 @@ type MSG_ArenaResult_Ack struct {
 }
 
 type MSG_ArenaPlayerInfo struct {
-	PlayerID   int
+	PlayerID   int32
 	Rank       int
 	Level      int
 	Name       string
@@ -31,7 +31,7 @@ type MSG_ArenaPlayerInfo struct {
 //! 玩家请求竞技场信息
 //! 消息: /get_arena_info
 type MSG_GetArenaInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -46,7 +46,7 @@ type MSG_GetArenaInfo_Ack struct {
 //! 玩家请求声望商店购买商品
 //! 消息: /arena_store_buy_item
 type MSG_GetArenaStoreItem_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int //! 表中唯一标识
 	Num        int //! 购买次数
@@ -59,7 +59,7 @@ type MSG_GetArenaStoreItem_Ack struct {
 //! 玩家请求已购买的声望商店奖励ID列表
 //! 消息: /arena_store_query_award
 type MSG_QueryArenaStoreAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -71,7 +71,7 @@ type MSG_QueryArenaStoreAward_Ack struct {
 //! 玩家竞技场挑战检测
 //! 消息:/arena_check
 type MSG_ArenaCheck_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Rank       int //! 挑战的玩家排名
 }

@@ -11,7 +11,7 @@ import (
 )
 
 type TScorePlayer struct {
-	PlayerID   int
+	PlayerID   int32
 	Name       string //角色名
 	HeroID     int    //英雄ID
 	SvrID      int
@@ -22,12 +22,12 @@ type TScorePlayer struct {
 
 //角色基本数据表结构
 type TScoreMoudle struct {
-	PlayerID        int             `bson:"_id"` //玩家ID
+	PlayerID        int32           `bson:"_id"` //玩家ID
 	FightTime       int             //今天战斗次数
 	Score           int             //自己的积分
 	ScoreEnemy      [3]TScorePlayer //积分目标
 	RecvAward       []int           //己经领取得积分奖励ID
-	ResetDay        int             //重置时间标线
+	ResetDay        uint32          //重置时间标线
 	BuyFightTime    int             //己购买战斗的次数
 	StoreBuyRecord  []TStoreBuyData //购买商店的次数
 	AwardStoreIndex IntLst          //奖励商店的购买ID
@@ -38,12 +38,12 @@ type TScoreMoudle struct {
 	ownplayer *TPlayer //父player指针
 }
 
-func (score *TScoreMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (score *TScoreMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	score.PlayerID = playerid
 	score.ownplayer = pPlayer
 }
 
-func (score *TScoreMoudle) OnCreate(playerid int) {
+func (score *TScoreMoudle) OnCreate(playerid int32) {
 	//初始化各个成员数值
 	score.PlayerID = playerid
 	score.FightTime = 0
@@ -76,20 +76,20 @@ func (score *TScoreMoudle) OnNewDay() {
 }
 
 //玩家对象销毁
-func (score *TScoreMoudle) OnDestroy(playerid int) {
+func (score *TScoreMoudle) OnDestroy(playerid int32) {
 	score = nil
 }
 
 //玩家进入游戏
-func (score *TScoreMoudle) OnPlayerOnline(playerid int) {
+func (score *TScoreMoudle) OnPlayerOnline(playerid int32) {
 }
 
 //OnPlayerOffline 玩家离开游戏
-func (score *TScoreMoudle) OnPlayerOffline(playerid int) {
+func (score *TScoreMoudle) OnPlayerOffline(playerid int32) {
 }
 
 //玩家离开游戏
-func (score *TScoreMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) bool {
+func (score *TScoreMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) bool {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 	var bRet = true

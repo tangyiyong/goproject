@@ -101,7 +101,7 @@ func Hand_Game_To_Client(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		gamelog.Error("Hand_Game_To_Client : message data errror!!!!")
 		return
 	}
-	playerid := int(binary.LittleEndian.Uint64(pdata[:4]))
+	playerid := int32(binary.LittleEndian.Uint64(pdata[:4]))
 	msgid := int16(binary.LittleEndian.Uint16(pdata[4:6]))
 
 	if playerid == 0 {

@@ -15,7 +15,7 @@ import (
 var G_GemPlayersIndex int
 
 type RobPlayerInfo struct {
-	PlayerID int             //! 玩家ID
+	PlayerID int32           //! 玩家ID
 	Name     string          //! 名字
 	Level    int             //! 等级
 	HeroID   [BATTLE_NUM]int //! 英雄ID
@@ -23,17 +23,17 @@ type RobPlayerInfo struct {
 }
 
 type TRobModule struct {
-	PlayerID    int   `bson:"_id"`
+	PlayerID    int32 `bson:"_id"`
 	FreeWarTime int64 //! 免战时间
 	ownplayer   *TPlayer
 }
 
-func (self *TRobModule) SetPlayerPtr(playerID int, player *TPlayer) {
-	self.PlayerID = playerID
+func (self *TRobModule) SetPlayerPtr(playerid int32, player *TPlayer) {
+	self.PlayerID = playerid
 	self.ownplayer = player
 }
 
-func (self *TRobModule) OnCreate(playerID int) {
+func (self *TRobModule) OnCreate(playerid int32) {
 	//! 初始化信息
 	self.FreeWarTime = 0
 
@@ -41,19 +41,19 @@ func (self *TRobModule) OnCreate(playerID int) {
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerRob", self)
 }
 
-func (self *TRobModule) OnDestroy(playerID int) {
+func (self *TRobModule) OnDestroy(playerid int32) {
 
 }
 
-func (self *TRobModule) OnPlayerOnline(playerID int) {
+func (self *TRobModule) OnPlayerOnline(playerid int32) {
 
 }
 
-func (self *TRobModule) OnPlayerOffline(playerID int) {
+func (self *TRobModule) OnPlayerOffline(playerid int32) {
 
 }
 
-func (self *TRobModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TRobModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -89,7 +89,7 @@ func (self *TRobModule) RefreshFreeWarTime() {
 	}
 }
 
-func (self *TRobModule) GetRobList(itemID int, exclude IntLst) (robPlayerLst []RobPlayerInfo) {
+func (self *TRobModule) GetRobList(itemID int, exclude Int32Lst) (robPlayerLst []RobPlayerInfo) {
 	//! 玩家取2个
 	count := 0
 	if G_GemPlayersIndex >= len(g_SelectPlayers) {
@@ -105,7 +105,7 @@ func (self *TRobModule) GetRobList(itemID int, exclude IntLst) (robPlayerLst []R
 			var info RobPlayerInfo
 			info.Name = g_SelectPlayers[i].RoleMoudle.Name
 			info.Level = g_SelectPlayers[i].GetLevel()
-			info.PlayerID = g_SelectPlayers[i].GetPlayerID()
+			info.PlayerID = g_SelectPlayers[i].playerid
 			info.IsRobot = 0
 			for i, b := range g_SelectPlayers[i].HeroMoudle.CurHeros {
 				info.HeroID[i] = b.HeroID

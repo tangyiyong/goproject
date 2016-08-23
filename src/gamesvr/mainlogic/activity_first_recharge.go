@@ -3,15 +3,16 @@ package mainlogic
 import (
 	"appconfig"
 	"gamesvr/gamedata"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type TActivityFirstRecharge struct {
 	ActivityID         int              //! 活动ID
 	FirstRechargeAward int              //! 首充标记 0->不能领取 1->可以领取 2->已领取并开启次充奖励 3->次充奖励可领取 4->已领取次充奖励
-	VersionCode        int              //! 版本号
-	ResetCode          int              //! 迭代号
+	VersionCode        int32            //! 版本号
+	ResetCode          int32            //! 迭代号
 	activityModule     *TActivityModule //! 指针
 }
 
@@ -22,7 +23,7 @@ func (self *TActivityFirstRecharge) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityFirstRecharge) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityFirstRecharge) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.FirstRechargeAward = 0
@@ -33,23 +34,23 @@ func (self *TActivityFirstRecharge) Init(activityID int, mPtr *TActivityModule, 
 }
 
 //! 刷新数据
-func (self *TActivityFirstRecharge) Refresh(versionCode int) {
+func (self *TActivityFirstRecharge) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
 	go self.DB_Refresh()
 }
 
 //! 活动结束
-func (self *TActivityFirstRecharge) End(versionCode int, resetCode int) {
+func (self *TActivityFirstRecharge) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 	go self.DB_Reset()
 }
 
-func (self *TActivityFirstRecharge) GetRefreshV() int {
+func (self *TActivityFirstRecharge) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityFirstRecharge) GetResetV() int {
+func (self *TActivityFirstRecharge) GetResetV() int32 {
 	return self.ResetCode
 }
 

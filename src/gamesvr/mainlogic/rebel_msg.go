@@ -49,7 +49,7 @@ func Hand_GetRebelInfo(w http.ResponseWriter, r *http.Request) {
 	response.InfoLst = []msg.MSG_RebelInfo{}
 	if player.RebelModule.RebelID != 0 {
 		var rebelInfo msg.MSG_RebelInfo
-		rebelInfo.PlayerID = player.GetPlayerID()
+		rebelInfo.PlayerID = player.playerid
 		rebelInfo.RebelID = player.RebelModule.RebelID
 		rebelInfo.Level = player.RebelModule.GetRebelLevel()
 		rebelInfo.FindName = player.RoleMoudle.Name
@@ -86,7 +86,7 @@ func Hand_GetRebelInfo(w http.ResponseWriter, r *http.Request) {
 
 	//! 获取功勋排行
 	for i, v := range G_RebelExploitRanker.List {
-		if v.RankID == player.GetPlayerID() {
+		if v.RankID == player.playerid {
 			response.ExploitRank = i + 1
 			break
 		}
@@ -94,7 +94,7 @@ func Hand_GetRebelInfo(w http.ResponseWriter, r *http.Request) {
 
 	//! 获取伤害排行
 	for i, v := range G_RebelDamageRanker.List {
-		if v.RankID == player.GetPlayerID() {
+		if v.RankID == player.playerid {
 			response.DamageRank = i + 1
 			break
 		}
@@ -168,7 +168,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 	} else if req.AttackType == 2 {
 		needActionNum = gamedata.SeniorAttackRebelNeedActionNum
 	} else {
-		gamelog.Error("Hand_AttackRebel error: invalid attacktype: %d  PlayerID: %v", req.AttackType, player.GetPlayerID())
+		gamelog.Error("Hand_AttackRebel error: invalid attacktype: %d  PlayerID: %v", req.AttackType, player.playerid)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
@@ -183,7 +183,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 
 	bEnough := player.RoleMoudle.CheckActionEnough(gamedata.AttackRebelActionID, needActionNum)
 	if !bEnough {
-		gamelog.Error("Hand_AttackRebel error: Action Not Enough  PlayerID: %v", req.AttackType, player.GetPlayerID())
+		gamelog.Error("Hand_AttackRebel error: Action Not Enough  PlayerID: %v", req.AttackType, player.playerid)
 		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
 		return
 	}
@@ -269,7 +269,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 		award.Time = time.Now().Unix()
 
 		award.Value = []string{rebelcopy.Name}
-		SendAwardToPlayer(player.GetPlayerID(), &award)
+		SendAwardToPlayer(player.playerid, &award)
 	}
 
 	go rebelModulePtr.UpdateRebelInfo()
@@ -475,7 +475,7 @@ func Hand_BuyRebelStore(w http.ResponseWriter, r *http.Request) {
 	//! 检测参数
 	if req.Num <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_BuyRebelStore invalid item num. Num: %v  PlayerID: %v", req.Num, player.GetPlayerID())
+		gamelog.Error("Hand_BuyRebelStore invalid item num. Num: %v  PlayerID: %v", req.Num, player.playerid)
 		return
 	}
 

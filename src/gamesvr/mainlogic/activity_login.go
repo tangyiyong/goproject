@@ -4,8 +4,9 @@ import (
 	"appconfig"
 	"fmt"
 	"gamelog"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 //! 登录送礼活动
@@ -15,8 +16,8 @@ type TActivityLogin struct {
 	LoginDay   int  //! 登录天数
 	LoginAward Mark //! 登录奖励
 
-	VersionCode    int              //! 版本号
-	ResetCode      int              //! 迭代号
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 
@@ -27,7 +28,7 @@ func (self *TActivityLogin) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityLogin) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityLogin) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -38,7 +39,7 @@ func (self *TActivityLogin) Init(activityID int, mPtr *TActivityModule, vercode 
 }
 
 //! 刷新数据
-func (self *TActivityLogin) Refresh(versionCode int) {
+func (self *TActivityLogin) Refresh(versionCode int32) {
 	//! 累计登陆
 	self.VersionCode = versionCode
 
@@ -46,7 +47,7 @@ func (self *TActivityLogin) Refresh(versionCode int) {
 }
 
 //! 活动结束
-func (self *TActivityLogin) End(versionCode int, resetCode int) {
+func (self *TActivityLogin) End(versionCode int32, resetCode int32) {
 	self.LoginDay = 0
 	self.LoginAward = 0
 
@@ -55,11 +56,11 @@ func (self *TActivityLogin) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityLogin) GetRefreshV() int {
+func (self *TActivityLogin) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityLogin) GetResetV() int {
+func (self *TActivityLogin) GetResetV() int32 {
 	return self.ResetCode
 }
 

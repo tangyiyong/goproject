@@ -14,7 +14,7 @@ func SendMessageToChat(msgID int16, msgdata []byte) bool {
 }
 
 //直接将消息发送到客户端
-func SendMessageToClient(playerid int, msgID int16, msgdata []byte) bool {
+func SendMessageToClient(playerid int32, msgID int16, msgdata []byte) bool {
 	return G_ChatClient.TcpConn.WriteMsgContinue(playerid, msgID, msgdata)
 }
 
@@ -27,13 +27,13 @@ func ConnectToChatSvr(addr string) {
 func SendCheckInMsg(pTcpConn *tcpclient.TCPConn) bool {
 	var req msg.MSG_CheckIn_Req
 	req.GuildID = -1
-	req.PlayerID = appconfig.DomainID
+	req.PlayerID = int32(appconfig.DomainID)
 	req.PlayerName = "gamesvr"
 	buffer, _ := json.Marshal(&req)
 	return pTcpConn.WriteMsg(msg.MSG_CHECK_IN_REQ, buffer)
 }
 
-func SendGuildChangeMsg(playerid int, guilid int) bool {
+func SendGuildChangeMsg(playerid int32, guilid int) bool {
 	var req msg.MSG_GuildNotify_Req
 	req.PlayerID = playerid
 	req.NewGuildID = guilid

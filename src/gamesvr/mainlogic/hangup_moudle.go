@@ -15,7 +15,7 @@ import (
 
 //角色基本数据表结构
 type THangUpMoudle struct {
-	PlayerID    int            `bson:"_id"` //玩家ID
+	PlayerID    int32          `bson:"_id"` //玩家ID
 	CurBossID   int            //当前的BossID
 	StartTime   int64          //挂机开始时间
 	GridNum     int            //格子数
@@ -23,16 +23,16 @@ type THangUpMoudle struct {
 	QuickTime   int            //快速战斗次数
 	AddGridTime int            //增加格子的次数
 	History     []msg.THisHang //挂机历史数据
-	ResetDay    int            //重置时间
+	ResetDay    uint32         //重置时间
 	ownplayer   *TPlayer       //父player指针
 }
 
-func (hang *THangUpMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (hang *THangUpMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	hang.PlayerID = playerid
 	hang.ownplayer = pPlayer
 }
 
-func (hang *THangUpMoudle) OnCreate(playerid int) {
+func (hang *THangUpMoudle) OnCreate(playerid int32) {
 	//初始化各个成员数值
 	hang.PlayerID = playerid
 	hang.StartTime = 0
@@ -48,21 +48,21 @@ func (hang *THangUpMoudle) OnCreate(playerid int) {
 }
 
 //玩家对象销毁
-func (hang *THangUpMoudle) OnDestroy(playerid int) {
+func (hang *THangUpMoudle) OnDestroy(playerid int32) {
 	hang = nil
 }
 
 //玩家进入游戏
-func (hang *THangUpMoudle) OnPlayerOnline(playerid int) {
+func (hang *THangUpMoudle) OnPlayerOnline(playerid int32) {
 }
 
 //OnPlayerOffline 玩家离开游戏
-func (hang *THangUpMoudle) OnPlayerOffline(playerid int) {
+func (hang *THangUpMoudle) OnPlayerOffline(playerid int32) {
 
 }
 
 //玩家离开游戏
-func (hang *THangUpMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) bool {
+func (hang *THangUpMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) bool {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 	var bRet = true
@@ -88,7 +88,7 @@ func (hang *THangUpMoudle) CheckReset() {
 	hang.OnNewDay(curDay)
 }
 
-func (hang *THangUpMoudle) OnNewDay(newday int) {
+func (hang *THangUpMoudle) OnNewDay(newday uint32) {
 	hang.ResetDay = newday
 	hang.QuickTime = 0
 	hang.DB_SaveQuickFightTime()

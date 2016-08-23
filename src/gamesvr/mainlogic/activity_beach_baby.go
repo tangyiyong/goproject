@@ -20,8 +20,8 @@ type TBeachBabyInfo struct {
 	TBeachBabyGoodsData
 
 	ActivityID     int              //! 活动ID
-	VersionCode    int              //! 版本号
-	ResetCode      int              //! 迭代号
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 
 	selectGoodsIDs []int
@@ -44,7 +44,7 @@ type TBeachBabyGoods struct {
 }
 
 //！ 活动框架代码
-func (self *TBeachBabyInfo) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TBeachBabyInfo) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -55,7 +55,7 @@ func (self *TBeachBabyInfo) Init(activityID int, mPtr *TActivityModule, vercode 
 func (self *TBeachBabyInfo) SetModulePtr(mPtr *TActivityModule) {
 	self.activityModule = mPtr
 }
-func (self *TBeachBabyInfo) Refresh(versionCode int) {
+func (self *TBeachBabyInfo) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
 
 	self.FreeConchBit = 0
@@ -65,7 +65,7 @@ func (self *TBeachBabyInfo) Refresh(versionCode int) {
 
 	self.DB_Refresh()
 }
-func (self *TBeachBabyInfo) End(versionCode int, resetCode int) {
+func (self *TBeachBabyInfo) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 
@@ -80,10 +80,10 @@ func (self *TBeachBabyInfo) End(versionCode int, resetCode int) {
 
 	self.DB_Refresh()
 }
-func (self *TBeachBabyInfo) GetRefreshV() int {
+func (self *TBeachBabyInfo) GetRefreshV() int32 {
 	return self.VersionCode
 }
-func (self *TBeachBabyInfo) GetResetV() int {
+func (self *TBeachBabyInfo) GetResetV() int32 {
 	return self.ResetCode
 }
 func (self *TBeachBabyInfo) RedTip() bool {

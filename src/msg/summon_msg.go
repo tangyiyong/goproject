@@ -3,7 +3,7 @@ package msg
 //! 玩家请求查询召唤刷新状态
 //! 消息: /get_summon_status
 type MSG_GetSummonStatus_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -36,7 +36,7 @@ const (
 */
 //! 消息: /get_summon
 type MSG_GetSummon_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	SummonType int //! 召唤类型
 	NumberType int //! 0-> 单抽  1-> 十连抽
@@ -53,7 +53,7 @@ type MSG_GetSummon_Ack struct {
 //! 玩家请求积分兑换指定英雄
 //! 消息: /exchange_hero
 type MSG_ExchangeHero_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	HeroID     int //! 兑换英雄ID
 }

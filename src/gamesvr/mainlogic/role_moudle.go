@@ -18,7 +18,7 @@ type TAction struct {
 
 //角色基本数据表结构
 type TRoleMoudle struct {
-	PlayerID    int       `bson:"_id"` //玩家ID
+	PlayerID    int32     `bson:"_id"` //玩家ID
 	Name        string    //玩家角色名
 	Actions     []TAction //活力值 ....
 	Moneys      []int     //货币集 1: 金币 2: 银币 ...
@@ -30,12 +30,12 @@ type TRoleMoudle struct {
 	ownplayer   *TPlayer  //父player指针
 }
 
-func (role *TRoleMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (role *TRoleMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	role.PlayerID = playerid
 	role.ownplayer = pPlayer
 }
 
-func (role *TRoleMoudle) OnCreate(playerid int) {
+func (role *TRoleMoudle) OnCreate(playerid int32) {
 	//初始化各个成员数值
 	role.PlayerID = playerid
 
@@ -58,20 +58,20 @@ func (role *TRoleMoudle) OnCreate(playerid int) {
 }
 
 //玩家对象销毁
-func (role *TRoleMoudle) OnDestroy(playerid int) {
+func (role *TRoleMoudle) OnDestroy(playerid int32) {
 	role = nil
 }
 
 //玩家进入游戏
-func (role *TRoleMoudle) OnPlayerOnline(playerid int) {
+func (role *TRoleMoudle) OnPlayerOnline(playerid int32) {
 }
 
 //OnPlayerOffline 玩家离开游戏
-func (role *TRoleMoudle) OnPlayerOffline(playerid int) {
+func (role *TRoleMoudle) OnPlayerOffline(playerid int32) {
 }
 
 //玩家离开游戏
-func (role *TRoleMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) bool {
+func (role *TRoleMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) bool {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 	var bRet = true

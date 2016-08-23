@@ -13,26 +13,26 @@ import (
 )
 
 type TArenaRankData struct {
-	PlayerID int
+	PlayerID int32
 	Rank     int
 	IsRobot  bool
 }
 
 type TArenaModule struct {
-	PlayerID    int    `bson:"_id"` //! 唯一标识
+	PlayerID    int32  `bson:"_id"` //! 唯一标识
 	StoreAward  IntLst //! 商店已购买奖励ID
 	CurrentRank int    //! 当前玩家排名
 	HistoryRank int    //! 历史最高排名
 	ownplayer   *TPlayer
 }
 
-func (self *TArenaModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TArenaModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
 //! 玩家创建角色
-func (self *TArenaModule) OnCreate(playerID int) {
+func (self *TArenaModule) OnCreate(playerid int32) {
 	//! 初始化信息
 	self.CurrentRank = 5001
 	self.HistoryRank = 5001
@@ -62,22 +62,22 @@ func (self *TArenaModule) RedTip() bool {
 }
 
 //! 玩家销毁角色
-func (self *TArenaModule) OnDestroy(playerID int) {
+func (self *TArenaModule) OnDestroy(playerid int32) {
 
 }
 
 //! 玩家进入游戏
-func (self *TArenaModule) OnPlayerOnline(playerID int) {
+func (self *TArenaModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离线
-func (self *TArenaModule) OnPlayerOffline(playerID int) {
+func (self *TArenaModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 预取玩家信息
-func (self *TArenaModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TArenaModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -219,13 +219,13 @@ func (self *TArenaModule) RefreshChallangeLst() []TArenaRankData {
 }
 
 //! 返回玩家排名
-func (self *TArenaModule) GetRankFromID(playerID int) int {
+func (self *TArenaModule) GetRankFromID(playerid int32) int {
 	for i, v := range G_Rank_List {
-		if v.PlayerID == playerID {
+		if v.PlayerID == playerid {
 			return i + 1
 		}
 	}
 
-	gamelog.Error("GetRankFromID fail. PlayerID:%d", playerID)
+	gamelog.Error("GetRankFromID fail. PlayerID:%d", playerid)
 	return 0
 }

@@ -24,8 +24,8 @@ type TActivitySign struct {
 	SignPlusAward  []gamedata.ST_ItemData //! 豪华签到奖励
 	IsSignPlus     bool                   //! 豪华签到更新时间
 	SignPlusStatus int                    //! 豪华签到状态
-	VersionCode    int                    //! 版本号
-	ResetCode      int                    //! 迭代号
+	VersionCode    int32                  //! 版本号
+	ResetCode      int32                  //! 迭代号
 
 	activityModule *TActivityModule //! 指针
 }
@@ -37,7 +37,7 @@ func (self *TActivitySign) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivitySign) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivitySign) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -54,7 +54,7 @@ func (self *TActivitySign) Init(activityID int, mPtr *TActivityModule, vercode i
 }
 
 //! 刷新数据
-func (self *TActivitySign) Refresh(versionCode int) {
+func (self *TActivitySign) Refresh(versionCode int32) {
 	//! 刷新签到标记
 	self.IsSign = false
 	self.IsSignPlus = false
@@ -86,7 +86,7 @@ func (self *TActivitySign) Refresh(versionCode int) {
 }
 
 //! 活动结束
-func (self *TActivitySign) End(versionCode int, resetCode int) {
+func (self *TActivitySign) End(versionCode int32, resetCode int32) {
 	self.IsSign = false
 	self.IsSignPlus = false
 	self.SignDay = 0
@@ -97,11 +97,11 @@ func (self *TActivitySign) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivitySign) GetRefreshV() int {
+func (self *TActivitySign) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivitySign) GetResetV() int {
+func (self *TActivitySign) GetResetV() int32 {
 	return self.ResetCode
 }
 

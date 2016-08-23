@@ -622,7 +622,7 @@ func Hand_GetRebelFindInfo(w http.ResponseWriter, r *http.Request) {
 		rebelcopy := gamedata.GetCopyBaseInfo(rebelInfo.CopyID)
 		award.Value = []string{rebelcopy.Name}
 
-		SendAwardToPlayer(player.GetPlayerID(), &award)
+		SendAwardToPlayer(player.playerid, &award)
 	}
 
 	response.RetCode = msg.RE_SUCCESS

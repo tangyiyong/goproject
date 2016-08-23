@@ -21,8 +21,8 @@ type TMoonlightShop struct {
 	TMoonlightShopData
 
 	ActivityID     int              //! 活动ID
-	VersionCode    int              //! 版本号
-	ResetCode      int              //! 迭代号
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 type TMoonlightShopData struct {
@@ -41,7 +41,7 @@ type TMoonlightGoods struct {
 }
 
 //！ 活动框架代码
-func (self *TMoonlightShop) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TMoonlightShop) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -56,7 +56,7 @@ func (self *TMoonlightShop) SetModulePtr(mPtr *TActivityModule) {
 	self.activityModule = mPtr
 	self.activityModule.activityPtrs[self.ActivityID] = self
 }
-func (self *TMoonlightShop) Refresh(versionCode int) {
+func (self *TMoonlightShop) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
 
 	self.ExchangeTimes = make([]byte, len(gamedata.G_MoonlightShopExchangeCsv))
@@ -65,7 +65,7 @@ func (self *TMoonlightShop) Refresh(versionCode int) {
 
 	self.DB_Refresh()
 }
-func (self *TMoonlightShop) End(versionCode int, resetCode int) {
+func (self *TMoonlightShop) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 
@@ -79,10 +79,10 @@ func (self *TMoonlightShop) End(versionCode int, resetCode int) {
 	self.DB_Reset()
 
 }
-func (self *TMoonlightShop) GetRefreshV() int {
+func (self *TMoonlightShop) GetRefreshV() int32 {
 	return self.VersionCode
 }
-func (self *TMoonlightShop) GetResetV() int {
+func (self *TMoonlightShop) GetResetV() int32 {
 	return self.ResetCode
 }
 func (self *TMoonlightShop) RedTip() bool {

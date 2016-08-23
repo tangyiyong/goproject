@@ -3,7 +3,7 @@ package msg
 //! 获取三国无双状态
 //! 消息: /get_sangokumusou_status
 type MSG_GetSangokuMusouStatus_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -29,7 +29,7 @@ type MSG_GetSangokuMusouStatus_Ack struct {
 //! 获取三国无双星数信息
 //! 消息:/get_sangokumusou_star
 type MSG_GetSangokuMusouStarInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -44,7 +44,7 @@ type MSG_GetSangokuMusouStarInfo_Ack struct {
 //! 获取三国无双闯关信息
 //! 消息: /get_sangokumusou_copy
 type MSG_GetSangokuMusouCopyInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -60,7 +60,7 @@ type MSG_GetSangokuMusouCopyInfo_Ack struct {
 //! 获取三国无双精英挑战闯关信息
 //! 消息: /get_sangokumusou_elite_copy
 type MSG_GetSangokuMusouEliteCopyInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -74,7 +74,7 @@ type MSG_GetSangokuMusouEliteCopyInfo_Ack struct {
 //! 通关三国无双
 //! 消息: /pass_sangokumusou
 type MSG_PassSangokuMusouCopy_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	CopyType   int //! 0->普通副本 1->精英副本
 	CopyID     int
@@ -96,7 +96,7 @@ type MSG_PassSangokuMusouCopy_Ack struct {
 //! 通关三国无双精英挑战
 //! 消息: /pass_sgws_elite
 type MSG_PassSangokuMusouEliteCopy_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	CopyID     int
 }
@@ -109,7 +109,7 @@ type MSG_PassSangokuMusouEliteCopy_Ack struct {
 //! 请求扫荡该章节
 //! 消息: /sweep_sangoumusou
 type MSG_PassSangokuMusouCopy_sweep_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Chapter    int
 }
@@ -122,7 +122,7 @@ type MSG_PassSangokuMusouCopy_sweep_Ack struct {
 //! 请求章节奖励
 //! 消息: /get_sangokumusou_chapter_award
 type MSG_GetSangokuMusouChapterAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -133,7 +133,7 @@ type MSG_GetSangokuMusouChapterAward_Ack struct {
 //! 请求随机章节属性奖励
 //! 消息: /get_sangokumusou_attr
 type MSG_GetSangokuMusouAttrInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -152,7 +152,7 @@ type MSG_GetSangokuMusouAttrInfo_Ack struct {
 //! 请求玩家已选择所有属性奖励
 //! 消息: /get_sangokumusou_all_attr
 type MSG_GetSangokuMusouAllAttrInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -169,7 +169,7 @@ type MSG_GetSangokuMusouAllAttrInfo_Ack struct {
 //! 选择章节属性奖励
 //! 消息: /set_sangokumusou_attr
 type MSG_SetSangokuMusouAttrInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int
 }
@@ -182,7 +182,7 @@ type MSG_SetSangokuMusouAttrInfo_Ack struct {
 //! 请求无双秘藏
 //! 消息: /get_sangokumusou_treasure
 type MSG_GetSangokuMusouTreasureInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -194,7 +194,7 @@ type MSG_GetSangokuMusouTreasureInfo_Ack struct {
 //! 请求购买无双秘藏
 //! 消息: /buy_sangokumusou_treasure
 type MSG_BuySangokuMusouTreasure_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -205,7 +205,7 @@ type MSG_BuySangokuMusouTreasure_Ack struct {
 //! 玩家请求重置普通挑战
 //! 消息: /reset_sangokumusou_copy
 type MSG_SangokuMusou_Reset_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -219,7 +219,7 @@ type MSG_SangokuMusou_Reset_Ack struct {
 //! 玩家查询精英挑战可增加次数
 //! 消息: /get_sangoukumusou_elite_add_times
 type MSG_GetSangokuMusou_Add_BattleTimes_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -231,7 +231,7 @@ type MSG_GetSangokuMusou_Add_BattleTimes_Ack struct {
 //! 玩家请求增加精英挑战次数
 //! 消息: /add_sangoukumusou_elite_copy
 type MSG_SangokuMusou_Add_BattleTimes_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -242,7 +242,7 @@ type MSG_SangokuMusou_Add_BattleTimes_Ack struct {
 //! 请求三国无双商店查询已购买物品信息
 //! 消息: /get_sangokumusou_store_aleady_buy
 type MSG_GetSangokuMusouStoreAleadyBuy_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -259,7 +259,7 @@ type MSG_GetSangokuMusouStoreAleadyBuy_Ack struct {
 //! 请求购买三国无双商店物品
 //! 消息: /buy_sangokumusou_store
 type MSG_BuySangokuMusouStoreItem_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int
 	Num        int

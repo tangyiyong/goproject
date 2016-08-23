@@ -27,7 +27,7 @@ type TSeniorSummon struct {
 
 //! 商城召唤模块
 type TSummonModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	Normal TNormalSummon //! 普通召唤
 	Senior TSeniorSummon //! 高级召唤
@@ -37,13 +37,13 @@ type TSummonModule struct {
 	ownplayer *TPlayer
 }
 
-func (self *TSummonModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TSummonModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
 //! 玩家创建角色
-func (self *TSummonModule) OnCreate(playerid int) {
+func (self *TSummonModule) OnCreate(playerid int32) {
 	//! 初始化信息
 	self.Normal.SummonTime = time.Now().Unix()
 	self.Senior.SummonTime = time.Now().Unix()
@@ -57,22 +57,22 @@ func (self *TSummonModule) OnCreate(playerid int) {
 }
 
 //! 玩家销毁角色
-func (self *TSummonModule) OnDestroy(playerid int) {
+func (self *TSummonModule) OnDestroy(playerid int32) {
 
 }
 
 //! 玩家进入游戏
-func (self *TSummonModule) OnPlayerOnline(playerid int) {
+func (self *TSummonModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离线
-func (self *TSummonModule) OnPlayerOffline(playerid int) {
+func (self *TSummonModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 预取玩家信息
-func (self *TSummonModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TSummonModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 

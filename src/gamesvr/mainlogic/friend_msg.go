@@ -626,7 +626,7 @@ func Hand_ProcessFriendReq(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		player.FriendMoudle.ApplyList = make([]int, 0)
+		player.FriendMoudle.ApplyList = make([]int32, 0)
 		player.FriendMoudle.DB_ClearAppList()
 
 	} else { //单独处理

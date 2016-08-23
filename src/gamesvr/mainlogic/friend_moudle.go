@@ -11,49 +11,49 @@ import (
 )
 
 type TFriendInfo struct {
-	PlayerID int  //玩家ID
-	IsGive   bool //是否己赠送
-	HasAct   bool //是否有未领取
+	PlayerID int32 //玩家ID
+	IsGive   bool  //是否己赠送
+	HasAct   bool  //是否有未领取
 }
 
 type TFriendMoudle struct {
-	PlayerID   int `bson:"_id"`
+	PlayerID   int32 `bson:"_id"`
 	FriendList []TFriendInfo
-	ApplyList  IntLst   //玩家申请列表
-	BlackList  IntLst   //黑名单列表
+	ApplyList  Int32Lst //玩家申请列表
+	BlackList  Int32Lst //黑名单列表
 	RcvNum     int      //今天领取体力次数
-	ResetDay   int      //刷新时间点
+	ResetDay   uint32   //刷新时间点
 	ownplayer  *TPlayer //父player指针
 }
 
-func (self *TFriendMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TFriendMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
 //OnCreate 响应角色创建
-func (self *TFriendMoudle) OnCreate(playerid int) {
+func (self *TFriendMoudle) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerFriend", self)
 }
 
 //OnDestroy player销毁
-func (self *TFriendMoudle) OnDestroy(playerid int) {
+func (self *TFriendMoudle) OnDestroy(playerid int32) {
 
 }
 
 //OnPlayerOnline player进入游戏
-func (self *TFriendMoudle) OnPlayerOnline(playerid int) {
+func (self *TFriendMoudle) OnPlayerOnline(playerid int32) {
 
 }
 
 //OnPlayerOffline player 离开游戏
-func (self *TFriendMoudle) OnPlayerOffline(playerid int) {
+func (self *TFriendMoudle) OnPlayerOffline(playerid int32) {
 
 }
 
 //OnLoad 从数据库中加载
-func (self *TFriendMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TFriendMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -93,7 +93,7 @@ func (self *TFriendMoudle) RedTip() bool {
 	return false
 }
 
-func (self *TFriendMoudle) OnNewDay(newday int) {
+func (self *TFriendMoudle) OnNewDay(newday uint32) {
 	self.ResetDay = newday
 	self.RcvNum = 0
 	for i := 0; i < len(self.FriendList); i++ {
@@ -105,7 +105,7 @@ func (self *TFriendMoudle) OnNewDay(newday int) {
 }
 
 //获取好友信息
-func (self *TFriendMoudle) GetFriendByID(id int) (*TFriendInfo, int) {
+func (self *TFriendMoudle) GetFriendByID(id int32) (*TFriendInfo, int) {
 	nCount := len(self.FriendList)
 	for i := 0; i < nCount; i++ {
 		if self.FriendList[i].PlayerID == id {

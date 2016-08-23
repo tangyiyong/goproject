@@ -13,13 +13,13 @@ import (
 )
 
 type TRevengeInfo struct {
-	PlayerID int
+	PlayerID int32
 	RobFood  int
 }
 
 //! 夺粮战
 type TFoodWarModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	FixedFood int //! 固定粮草
 	TotalFood int //! 总计粮草
@@ -36,17 +36,17 @@ type TFoodWarModule struct {
 
 	AwardRecvLst IntLst //! 粮草奖励领取记录
 
-	ResetDay int
+	ResetDay uint32
 
 	ownplayer *TPlayer
 }
 
-func (self *TFoodWarModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TFoodWarModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
-func (self *TFoodWarModule) OnCreate(playerID int) {
+func (self *TFoodWarModule) OnCreate(playerid int32) {
 
 	self.ResetDay = utility.GetCurDay()
 
@@ -72,21 +72,21 @@ func (self *TFoodWarModule) OnCreate(playerID int) {
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerFoodWar", self)
 }
 
-func (self *TFoodWarModule) OnDestroy(playerID int) {
+func (self *TFoodWarModule) OnDestroy(playerid int32) {
 
 }
 
-func (self *TFoodWarModule) OnPlayerOnline(playerID int) {
+func (self *TFoodWarModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离开游戏
-func (self *TFoodWarModule) OnPlayerOffline(playerID int) {
+func (self *TFoodWarModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 读取玩家
-func (self *TFoodWarModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TFoodWarModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -138,7 +138,7 @@ func (self *TFoodWarModule) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *TFoodWarModule) OnNewDay(newday int) {
+func (self *TFoodWarModule) OnNewDay(newday uint32) {
 
 	self.AttackTimes = gamedata.FoodWarAttackTimes
 	self.RevengeTimes = gamedata.FoodWarRevengeTimes
@@ -161,7 +161,7 @@ func (self *TFoodWarModule) OnNewDay(newday int) {
 }
 
 //! 获取复仇信息
-func (self *TFoodWarModule) GetRevengeInfo(targetPlayerID int) *TRevengeInfo {
+func (self *TFoodWarModule) GetRevengeInfo(targetPlayerID int32) *TRevengeInfo {
 	for i, v := range self.RevengeLst {
 		if v.PlayerID == targetPlayerID {
 			return &self.RevengeLst[i]
@@ -211,15 +211,15 @@ func (self *TFoodWarModule) CheckTime() {
 }
 
 //! 获取玩家粮草信息
-func (self *TFoodWarModule) GetPlayerFoodInfo(playerID int) *TFoodWarModule {
+func (self *TFoodWarModule) GetPlayerFoodInfo(playerid int32) *TFoodWarModule {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
 	var food TFoodWarModule
 
-	err := s.DB(appconfig.GameDbName).C("PlayerFoodWar").Find(bson.M{"_id": playerID}).One(&food)
+	err := s.DB(appconfig.GameDbName).C("PlayerFoodWar").Find(bson.M{"_id": playerid}).One(&food)
 	if err != nil {
-		gamelog.Error("PlayerFoodWar Load Error :%s， PlayerID: %d", err.Error(), playerID)
+		gamelog.Error("PlayerFoodWar Load Error :%s， PlayerID: %d", err.Error(), playerid)
 		return nil
 	}
 

@@ -24,7 +24,7 @@ type TStoreItem struct {
 
 //! 商店模块
 type TStoreModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	RefreshCount     int   //! 今天剩余可刷新次数
 	FreeRefreshCount int   //! 免费刷新次数
@@ -38,7 +38,7 @@ type TStoreModule struct {
 	PetFreeRefreshCount int //! 战宠商店
 	PetFreeRefreshTime  int64
 
-	ResetDay int
+	ResetDay uint32
 
 	ShopItemLst      []TStoreItem //! 当前商品
 	AwakeShopItemLst []TStoreItem //! 当前商品
@@ -47,13 +47,13 @@ type TStoreModule struct {
 	ownplayer *TPlayer //! 父类指针
 }
 
-func (storemodule *TStoreModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (storemodule *TStoreModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	storemodule.PlayerID = playerid
 	storemodule.ownplayer = pPlayer
 }
 
 //! 玩家创建角色
-func (storemodule *TStoreModule) OnCreate(playerID int) {
+func (storemodule *TStoreModule) OnCreate(playerid int32) {
 	//! 创建伊始,给予玩家满次免费刷新
 	storemodule.FreeRefreshCount = gamedata.StoreFreeRefreshTimes
 	storemodule.RefreshCount = storemodule.GetPlayerRefreshCounts()
@@ -83,22 +83,22 @@ func (storemodule *TStoreModule) GetPlayerRefreshCounts() int {
 }
 
 //! 玩家销毁角色
-func (storemodule *TStoreModule) OnDestroy(playerID int) {
+func (storemodule *TStoreModule) OnDestroy(playerid int32) {
 
 }
 
 //! 玩家进入游戏
-func (storemodule *TStoreModule) OnPlayerOnline(playerID int) {
+func (storemodule *TStoreModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离开游戏
-func (storemodule *TStoreModule) OnPlayerOffline(playerID int) {
+func (storemodule *TStoreModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 预读取玩家
-func (storemodule *TStoreModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (storemodule *TStoreModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 

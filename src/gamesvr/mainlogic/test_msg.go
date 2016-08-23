@@ -6,7 +6,6 @@ import (
 	"gamesvr/gamedata"
 	"msg"
 	"net/http"
-	"time"
 	"utility"
 )
 
@@ -220,7 +219,7 @@ func Hand_GetHerosProperty(w http.ResponseWriter, r *http.Request) {
 
 	response.BattleCamp = player.CamBattleModule.BattleCamp
 	response.Level = player.GetLevel()
-	response.PlayerID = player.GetPlayerID()
+	response.PlayerID = player.playerid
 
 	var HeroResults = make([]THeroResult, BATTLE_NUM)
 	player.HeroMoudle.CalcFightValue(HeroResults)
@@ -271,21 +270,7 @@ func Hand_TestUplevel(w http.ResponseWriter, r *http.Request) {
 
 	pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_LEVEL_UP, 1)
 
-	//! 给予击杀奖励
-	awardItem := gamedata.GetRebelActionAward(2, 1)
-	if awardItem == nil {
-		gamelog.Error("sdf")
-		return
-	}
-
-	var award TAwardData
-	award.TextType = Text_Rebel_Killed
-	award.ItemLst = []gamedata.ST_ItemData{*awardItem}
-	award.Time = time.Now().Unix()
-
-	award.Value = []string{"123"}
-	SendAwardToPlayer(pPlayer.GetPlayerID(), &award)
-
+	pPlayer.ActivityModule.LevelGift.CheckLevelUp(response.RetLevel)
 	return
 
 }
@@ -324,7 +309,7 @@ func Hand_TestUplevelTen(w http.ResponseWriter, r *http.Request) {
 	response.RetLevel = pPlayer.HeroMoudle.CurHeros[0].Level
 
 	pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_LEVEL_UP, 10)
-
+	pPlayer.ActivityModule.LevelGift.CheckLevelUp(response.RetLevel)
 	return
 
 }

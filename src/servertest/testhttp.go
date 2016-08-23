@@ -1,4 +1,3 @@
-// main
 package main
 
 import (
@@ -14,24 +13,28 @@ import (
 var TestLock sync.Mutex
 
 func PostServerReq(url string, body io.Reader) ([]byte, error) {
-	//TestLock.Lock()
+	TestLock.Lock()
 	//t1 := time.Now().UnixNano()
 	resp, err := http.Post(url, "text/HTML", body)
+	if resp == nil {
+		return nil, err
+	}
 	buffer := make([]byte, resp.ContentLength)
 	resp.Body.Read(buffer)
 	resp.Body.Close()
 	//fmt.Println("t:", time.Now().UnixNano()-t1)
-	//TestLock.Unlock()
+	TestLock.Unlock()
 
 	return buffer, err
 }
-func PostMsg(url string, msg interface{}) {
+func PostMsg(url string, msg interface{}) []byte {
 	b, _ := json.Marshal(msg)
-	_, err := PostServerReq(url, bytes.NewReader(b))
+	buf, err := PostServerReq(url, bytes.NewReader(b))
 	if err != nil {
 		fmt.Println(err.Error())
-		return
+		return nil
 	}
+	return buf
 }
 
 func TestGetScoreTarget(playerid int, sessionkey string) {

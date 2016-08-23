@@ -5,41 +5,41 @@ import (
 )
 
 type TBuffItem struct {
-	ID      int   //BuffID
+	ID      int32 //BuffID
 	EndTime int64 //buff结束时间
 }
 
 type TSkillItem struct {
-	ID   int   //技能ID
+	ID   int32 //技能ID
 	Time int64 //技能施放时间
 }
 
 type THeroObj struct {
-	ObjectID        int          //实例ID
-	HeroID          int          //英雄ID
-	SkiLvl          int          //技能等级
-	Camp            int          //英雄的阵营
-	PropertyValue   [11]int      //数值属性
-	PropertyPercent [11]int      //百分比属性
-	CampDef         [5]int       //抗阵营属性
-	CampKill        [5]int       //灭阵营属性
+	ObjectID        int32        //实例ID
+	HeroID          int32        //英雄ID
+	SkiLvl          int32        //技能等级
+	Camp            int32        //英雄的阵营
+	PropertyValue   [11]int32    //数值属性
+	PropertyPercent [11]int32    //百分比属性
+	CampDef         [5]int32     //抗阵营属性
+	CampKill        [5]int32     //灭阵营属性
 	Position        [5]float32   //英雄的坐标(x,y,z,d,v, x,y,z 主向 速度)
-	CurProperty     [11]int      //英雄当前的属性
-	CurHp           int          //当前的生命值
-	AttackPID       int          //攻击属性ID
+	CurProperty     [11]int32    //英雄当前的属性
+	CurHp           int32        //当前的生命值
+	AttackPID       int32        //攻击属性ID
 	SkillState      TSkillItem   //技能施放状态
 	BuffLst         [4]TBuffItem //英雄受的BUFF状态
 }
 
 type TBattleObj struct {
-	PlayerID int //玩家ID
-	Level    int //玩家等级
-	BatCamp  int //战斗阵营
+	PlayerID int32 //玩家ID
+	Level    int32 //玩家等级
+	BatCamp  int32 //战斗阵营
 	HeroObj  [6]THeroObj
 
 	//以下为功能属性
-	MoveEndTime int           //搬水晶结束时间
-	SeriesKill  int           //连续杀人数
+	MoveEndTime int32         //搬水晶结束时间
+	SeriesKill  int32         //连续杀人数
 	SkillState  [4]TSkillItem //四个玩家可以施放的技能
 }
 
@@ -97,7 +97,7 @@ func (self *TBattleObj) IsTeamIn(rc *gamedata.TRect) bool {
 	return false
 }
 
-func (self *TBattleObj) GetNewSkill() int {
+func (self *TBattleObj) GetNewSkill() int32 {
 	self.SkillState[3].ID = gamedata.RandSkill()
 	return self.SkillState[3].ID
 }

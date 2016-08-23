@@ -4,8 +4,9 @@ import (
 	"appconfig"
 	"fmt"
 	"gamelog"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type TDiscountSaleGoodsInfo struct {
@@ -17,8 +18,8 @@ type TDiscountSaleGoodsInfo struct {
 type TActivityDiscountSale struct {
 	ActivityID     int                      //! 活动ID
 	ShopLst        []TDiscountSaleGoodsInfo //! 商品列表
-	VersionCode    int                      //! 版本号
-	ResetCode      int                      //! 迭代号
+	VersionCode    int32                    //! 版本号
+	ResetCode      int32                    //! 迭代号
 	activityModule *TActivityModule         //! 活动模块指针
 }
 
@@ -29,7 +30,7 @@ func (self *TActivityDiscountSale) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityDiscountSale) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityDiscountSale) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -39,24 +40,24 @@ func (self *TActivityDiscountSale) Init(activityID int, mPtr *TActivityModule, v
 }
 
 //! 刷新数据
-func (self *TActivityDiscountSale) Refresh(versionCode int) {
+func (self *TActivityDiscountSale) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
 	go self.DB_Refresh()
 }
 
 //! 活动结束
-func (self *TActivityDiscountSale) End(versionCode int, resetCode int) {
+func (self *TActivityDiscountSale) End(versionCode int32, resetCode int32) {
 	self.ShopLst = []TDiscountSaleGoodsInfo{}
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 	go self.DB_Reset()
 }
 
-func (self *TActivityDiscountSale) GetRefreshV() int {
+func (self *TActivityDiscountSale) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityDiscountSale) GetResetV() int {
+func (self *TActivityDiscountSale) GetResetV() int32 {
 	return self.ResetCode
 }
 

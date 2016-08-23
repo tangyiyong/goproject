@@ -44,7 +44,7 @@ type TAchievementInfo struct {
 
 //! 积分奖励表
 type TTaskMoudle struct {
-	PlayerID         int         `bson:"_id"` //! 玩家ID
+	PlayerID         int32       `bson:"_id"` //! 玩家ID
 	TaskScore        int         //! 日常任务积分
 	ScoreAwardStatus IntLst      //! 记录已积分宝箱ID
 	ScoreAwardID     []int       //! 日常任务宝箱
@@ -53,7 +53,7 @@ type TTaskMoudle struct {
 	AchievementList []TAchievementInfo //! 成就列表
 	AchievedList    []int              //! 已达成成就
 
-	ResetDay  int      //! 更新时间戳
+	ResetDay  uint32   //! 更新时间戳
 	ownplayer *TPlayer //父player指针
 }
 
@@ -94,12 +94,12 @@ func (taskmodule *TTaskMoudle) RefreshTask(update bool) {
 	}
 }
 
-func (taskmoudle *TTaskMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (taskmoudle *TTaskMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	taskmoudle.PlayerID = playerid
 	taskmoudle.ownplayer = pPlayer
 }
 
-func (taskmoudle *TTaskMoudle) OnCreate(playerid int) {
+func (taskmoudle *TTaskMoudle) OnCreate(playerid int32) {
 
 	//创建数据库记录
 	//初始化各个成员数值
@@ -167,7 +167,7 @@ func (self *TTaskMoudle) RedTip() bool {
 	return false
 }
 
-func (self *TTaskMoudle) OnNewDay(newday int) {
+func (self *TTaskMoudle) OnNewDay(newday uint32) {
 	//! 刷新日常任务与重置时间
 	self.RefreshTask(true)
 	self.ResetDay = newday
@@ -175,21 +175,21 @@ func (self *TTaskMoudle) OnNewDay(newday int) {
 }
 
 //玩家对象销毁
-func (taskmoudle *TTaskMoudle) OnDestroy(playerid int) {
+func (taskmoudle *TTaskMoudle) OnDestroy(playerid int32) {
 
 }
 
 //OnPlayerOnline 玩家进入游戏
-func (taskmoudle *TTaskMoudle) OnPlayerOnline(playerid int) {
+func (taskmoudle *TTaskMoudle) OnPlayerOnline(playerid int32) {
 	//taskmoudle.LoadPlayer(playerid)
 }
 
 //OnPlayerOffline 玩家离开游戏
-func (taskmoudle *TTaskMoudle) OnPlayerOffline(playerid int) {
+func (taskmoudle *TTaskMoudle) OnPlayerOffline(playerid int32) {
 
 }
 
-func (taskmoudle *TTaskMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (taskmoudle *TTaskMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 

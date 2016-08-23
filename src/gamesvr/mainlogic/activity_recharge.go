@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 //! 充值活动数据
@@ -14,8 +15,8 @@ type TActivityRecharge struct {
 	ActivityID     int              //! 活动ID
 	RechargeValue  int              //! 活动期间累积充值数额
 	AwardMark      Mark             //! 累积充值领取标记 (索引)
-	VersionCode    int              //! 版本号
-	ResetCode      int              //! 迭代号
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 
@@ -26,7 +27,7 @@ func (self *TActivityRecharge) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityRecharge) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityRecharge) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -36,14 +37,14 @@ func (self *TActivityRecharge) Init(activityID int, mPtr *TActivityModule, verco
 }
 
 //! 刷新数据
-func (self *TActivityRecharge) Refresh(versionCode int) {
+func (self *TActivityRecharge) Refresh(versionCode int32) {
 	//! 累积充值不会刷新
 	self.VersionCode = versionCode
 	go self.DB_Refresh()
 }
 
 //! 活动结束
-func (self *TActivityRecharge) End(versionCode int, resetCode int) {
+func (self *TActivityRecharge) End(versionCode int32, resetCode int32) {
 	self.RechargeValue = 0
 	self.AwardMark = 0
 	self.VersionCode = versionCode
@@ -51,11 +52,11 @@ func (self *TActivityRecharge) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityRecharge) GetRefreshV() int {
+func (self *TActivityRecharge) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityRecharge) GetResetV() int {
+func (self *TActivityRecharge) GetResetV() int32 {
 	return self.ResetCode
 }
 

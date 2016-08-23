@@ -43,7 +43,7 @@ type TGuildSkill struct {
 
 //! 公会模块
 type TGuildModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	SacrificeStatus   int    //! 祭天状态
 	SacrificeAwardLst IntLst //! 祭天奖励领取
@@ -64,17 +64,17 @@ type TGuildModule struct {
 
 	SkillLst []TGuildSkill //! 工会技能信息
 
-	ResetDay int //! 重置天数
+	ResetDay uint32 //! 重置天数
 
 	ownplayer *TPlayer
 }
 
-func (self *TGuildModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TGuildModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
-func (self *TGuildModule) OnCreate(playerid int) {
+func (self *TGuildModule) OnCreate(playerid int32) {
 	//! 初始化各类参数
 	self.SacrificeStatus = 0
 	self.ActionTimes = 10
@@ -92,16 +92,16 @@ func (self *TGuildModule) OnCreate(playerid int) {
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerGuild", self)
 }
 
-func (self *TGuildModule) OnDestroy(playerid int) {
+func (self *TGuildModule) OnDestroy(playerid int32) {
 
 }
 
-func (self *TGuildModule) OnPlayerOnline(playerid int) {
+func (self *TGuildModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离开游戏
-func (self *TGuildModule) OnPlayerOffline(playerid int) {
+func (self *TGuildModule) OnPlayerOffline(playerid int32) {
 
 }
 
@@ -124,7 +124,7 @@ func (self *TGuildModule) GetGuildLst(index int) (guildLst []TGuild) {
 }
 
 //! 读取玩家
-func (self *TGuildModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TGuildModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -147,7 +147,7 @@ func (self *TGuildModule) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *TGuildModule) OnNewDay(newday int) {
+func (self *TGuildModule) OnNewDay(newday uint32) {
 	//! 重置参数
 	self.ResetDay = newday
 	self.SacrificeStatus = 0

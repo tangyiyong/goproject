@@ -3,7 +3,7 @@ package msg
 //! 玩家使用八卦镜
 //! 消息: /use_baguajing
 type MSG_UseBaguajing_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	BagPos     int //! 背包英雄索引
 	HeroID     int //! 兑换英雄ID

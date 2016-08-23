@@ -20,7 +20,7 @@ type TitleInfo struct {
 
 //! 称号模块
 type TTitleModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	TitleLst    []TitleInfo //! 拥有称号ID
 	EquiTitleID int
@@ -28,32 +28,32 @@ type TTitleModule struct {
 	ownplayer *TPlayer
 }
 
-func (self *TTitleModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TTitleModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
-func (self *TTitleModule) OnCreate(playerID int) {
+func (self *TTitleModule) OnCreate(playerid int32) {
 
 	//! 插入数据库
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerTitle", self)
 }
 
-func (self *TTitleModule) OnDestroy(playerID int) {
+func (self *TTitleModule) OnDestroy(playerid int32) {
 
 }
 
-func (self *TTitleModule) OnPlayerOnline(playerID int) {
+func (self *TTitleModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离开游戏
-func (self *TTitleModule) OnPlayerOffline(playerID int) {
+func (self *TTitleModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 读取玩家
-func (self *TTitleModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TTitleModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 

@@ -14,23 +14,23 @@ import (
 
 //! 云游模块
 type TWanderModule struct {
-	PlayerID   int  `bson:"_id"`
-	MaxCopyID  int  //通过的最大副本ID
-	CurCopyID  int  //当前打到的副本ID
-	CanBattle  int  //是否可以战斗
-	LeftTime   int  //今日重置次数
-	SglFreeDay int  //己免费日
-	SingleFree bool //单抽免费
-	ResetDay   int
+	PlayerID   int32  `bson:"_id"`
+	MaxCopyID  int    //通过的最大副本ID
+	CurCopyID  int    //当前打到的副本ID
+	CanBattle  int    //是否可以战斗
+	LeftTime   int    //今日重置次数
+	SglFreeDay uint32 //己免费日
+	SingleFree bool   //单抽免费
+	ResetDay   uint32
 	ownplayer  *TPlayer
 }
 
-func (self *TWanderModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TWanderModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
-func (self *TWanderModule) OnCreate(playerID int) {
+func (self *TWanderModule) OnCreate(playerid int32) {
 	//! 初始化各类参数
 	self.ResetDay = utility.GetCurDay()
 	self.SglFreeDay = self.ResetDay
@@ -44,21 +44,21 @@ func (self *TWanderModule) OnCreate(playerID int) {
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerWander", self)
 }
 
-func (self *TWanderModule) OnDestroy(playerID int) {
+func (self *TWanderModule) OnDestroy(playerid int32) {
 
 }
 
-func (self *TWanderModule) OnPlayerOnline(playerID int) {
+func (self *TWanderModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离开游戏
-func (self *TWanderModule) OnPlayerOffline(playerID int) {
+func (self *TWanderModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 读取玩家
-func (self *TWanderModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TWanderModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -90,7 +90,7 @@ func (self *TWanderModule) CheckReset() {
 	self.OnNewDay(curDay)
 }
 
-func (self *TWanderModule) OnNewDay(newday int) {
+func (self *TWanderModule) OnNewDay(newday uint32) {
 	self.ResetDay = newday
 	self.LeftTime = gamedata.WanderInitTime
 	self.DB_Reset()

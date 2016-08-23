@@ -16,8 +16,8 @@ type TActivityMonthCard struct {
 	CardDays   []int  //! 月卡状态表
 	CardStatus []bool //! 月卡领取状态
 
-	VersionCode    int              //! 版本号
-	ResetCode      int              //! 迭代号
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 
@@ -28,7 +28,7 @@ func (self *TActivityMonthCard) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityMonthCard) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityMonthCard) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -42,14 +42,14 @@ func (self *TActivityMonthCard) Init(activityID int, mPtr *TActivityModule, verc
 }
 
 //! 刷新数据
-func (self *TActivityMonthCard) Refresh(versionCode int) {
+func (self *TActivityMonthCard) Refresh(versionCode int32) {
 	for i, v := range self.CardStatus {
 		if v == true {
 			self.CardStatus[i] = false
 		}
 
 		//! 减去过去的天数
-		self.CardDays[i] -= (versionCode - self.VersionCode)
+		self.CardDays[i] -= int(versionCode - self.VersionCode)
 		if self.CardDays[i] < 0 {
 			self.CardDays[i] = 0
 		}
@@ -60,17 +60,17 @@ func (self *TActivityMonthCard) Refresh(versionCode int) {
 }
 
 //! 活动结束
-func (self *TActivityMonthCard) End(versionCode int, resetCode int) {
+func (self *TActivityMonthCard) End(versionCode int32, resetCode int32) {
 	self.ResetCode = resetCode
 	self.VersionCode = versionCode
 	go self.DB_Reset()
 }
 
-func (self *TActivityMonthCard) GetRefreshV() int {
+func (self *TActivityMonthCard) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityMonthCard) GetResetV() int {
+func (self *TActivityMonthCard) GetResetV() int32 {
 	return self.ResetCode
 }
 

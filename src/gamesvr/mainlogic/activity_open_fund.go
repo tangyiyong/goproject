@@ -35,8 +35,8 @@ type TActivityOpenFund struct {
 	FundCountMark Mark //! 购买基金人数奖励领取
 	IsBuyFund     bool //! 购买基金标记
 
-	VersionCode    int              //! 版本号
-	ResetCode      int              //! 迭代号
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 
@@ -47,7 +47,7 @@ func (self *TActivityOpenFund) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityOpenFund) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityOpenFund) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -57,14 +57,14 @@ func (self *TActivityOpenFund) Init(activityID int, mPtr *TActivityModule, verco
 }
 
 //! 刷新数据
-func (self *TActivityOpenFund) Refresh(versionCode int) {
+func (self *TActivityOpenFund) Refresh(versionCode int32) {
 	//! 此活动没有刷新
 	self.VersionCode = versionCode
 	go self.DB_Refresh()
 }
 
 //! 活动结束
-func (self *TActivityOpenFund) End(versionCode int, resetCode int) {
+func (self *TActivityOpenFund) End(versionCode int32, resetCode int32) {
 	self.FundLevelMark = 0
 	self.FundCountMark = 0
 	self.IsBuyFund = false
@@ -73,11 +73,11 @@ func (self *TActivityOpenFund) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityOpenFund) GetRefreshV() int {
+func (self *TActivityOpenFund) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityOpenFund) GetResetV() int {
+func (self *TActivityOpenFund) GetResetV() int32 {
 	return self.ResetCode
 }
 

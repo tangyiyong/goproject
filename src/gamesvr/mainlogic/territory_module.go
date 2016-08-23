@@ -34,23 +34,23 @@ type TTerritoryInfo struct {
 
 //! 领地攻伐模块
 type TTerritoryModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	TerritoryLst      []TTerritoryInfo
-	SuppressRiotTimes int //! 当前镇压暴动次数
-	TotalPatrolTime   int //! 总计巡逻时间(小时)
-	ResetDay          int //! 镇压次数刷新时间
+	SuppressRiotTimes int    //! 当前镇压暴动次数
+	TotalPatrolTime   int    //! 总计巡逻时间(小时)
+	ResetDay          uint32 //! 镇压次数刷新时间
 	ownplayer         *TPlayer
 }
 
 //! 设置指针
-func (self *TTerritoryModule) SetPlayerPtr(playerid int, player *TPlayer) {
+func (self *TTerritoryModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = player
 }
 
 //! 玩家创建角色
-func (self *TTerritoryModule) OnCreate(playerID int) {
+func (self *TTerritoryModule) OnCreate(playerid int32) {
 	//! 初始化信息
 	self.ResetDay = utility.GetCurDay()
 
@@ -59,22 +59,22 @@ func (self *TTerritoryModule) OnCreate(playerID int) {
 }
 
 //! 玩家销毁角色
-func (self *TTerritoryModule) OnDestroy(playerID int) {
+func (self *TTerritoryModule) OnDestroy(playerid int32) {
 
 }
 
 //! 玩家进入游戏
-func (self *TTerritoryModule) OnPlayerOnline(playerID int) {
+func (self *TTerritoryModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离线
-func (self *TTerritoryModule) OnPlayerOffline(playerID int) {
+func (self *TTerritoryModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 预取玩家信息
-func (self *TTerritoryModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TTerritoryModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -112,7 +112,7 @@ func (self *TTerritoryModule) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *TTerritoryModule) OnNewDay(newday int) {
+func (self *TTerritoryModule) OnNewDay(newday uint32) {
 	self.ResetDay = newday
 	//! 开始重置
 	self.SuppressRiotTimes = 0
@@ -297,12 +297,12 @@ func (self *TTerritoryModule) GetPatrolNum() []int {
 }
 
 //! 获取好友领地模块指针
-func (self *TTerritoryModule) GetFriendTerritory(playerID int) *TTerritoryModule {
+func (self *TTerritoryModule) GetFriendTerritory(playerid int32) *TTerritoryModule {
 	var friendTerritory *TTerritoryModule
-	friendPlayer := GetPlayerByID(playerID)
+	friendPlayer := GetPlayerByID(playerid)
 	if friendPlayer == nil {
 		//! 尝试从数据库读取数据
-		friendPlayer = LoadPlayerFromDB(playerID)
+		friendPlayer = LoadPlayerFromDB(playerid)
 	}
 	friendTerritory = &friendPlayer.TerritoryModule
 	return friendTerritory

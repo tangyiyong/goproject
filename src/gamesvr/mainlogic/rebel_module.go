@@ -19,7 +19,7 @@ const (
 
 //! 围剿叛军模块
 type TRebelModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	RebelID         int    //! 当前叛军ID
 	CurLife         int    //! 当前血量
@@ -28,19 +28,19 @@ type TRebelModule struct {
 	Damage          int    //! 单次伤害
 	Exploit         int    //! 功勋
 	ExploitAwardLst IntLst //! 功勋奖励领取标记
-	ResetDay        int    //! 重置功勋奖励领取标记时间
+	ResetDay        uint32 //! 重置功勋奖励领取标记时间
 	IsShare         bool   //! 是否分享
 
 	ownplayer *TPlayer
 }
 
-func (self *TRebelModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TRebelModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
 //! 玩家创建角色
-func (self *TRebelModule) OnCreate(playerID int) {
+func (self *TRebelModule) OnCreate(playerid int32) {
 	//! 初始化信息
 
 	//! 设置重置时间
@@ -51,22 +51,22 @@ func (self *TRebelModule) OnCreate(playerID int) {
 }
 
 //! 玩家销毁角色
-func (self *TRebelModule) OnDestroy(playerID int) {
+func (self *TRebelModule) OnDestroy(playerid int32) {
 
 }
 
 //! 玩家进入游戏
-func (self *TRebelModule) OnPlayerOnline(playerID int) {
+func (self *TRebelModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离线
-func (self *TRebelModule) OnPlayerOffline(playerID int) {
+func (self *TRebelModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 预取玩家信息
-func (self *TRebelModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TRebelModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -90,7 +90,7 @@ func (self *TRebelModule) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *TRebelModule) OnNewDay(newday int) {
+func (self *TRebelModule) OnNewDay(newday uint32) {
 	self.Exploit = 0
 	self.Damage = 0
 	self.ExploitAwardLst = IntLst{}
@@ -143,21 +143,21 @@ func (self *TRebelModule) GetRebelLevel() int {
 }
 
 //! 获取玩家叛军信息
-func (self *TRebelModule) GetPlayerRebelPtr(playerID int) (*TRebelModule, string) {
+func (self *TRebelModule) GetPlayerRebelPtr(playerid int32) (*TRebelModule, string) {
 	var rebelModule *TRebelModule
 	playerName := ""
 
 	//! 尝试从内存读取玩家信息
-	player := GetPlayerByID(playerID)
+	player := GetPlayerByID(playerid)
 	if player == nil {
 		rebelModule = new(TRebelModule)
-		isSuccess := mongodb.Find(appconfig.GameDbName, "PlayerRebel", "_id", playerID, rebelModule)
+		isSuccess := mongodb.Find(appconfig.GameDbName, "PlayerRebel", "_id", playerid, rebelModule)
 		if isSuccess != 0 {
 			return nil, ""
 		}
 
 		roleInfo := new(TRoleMoudle)
-		isSuccess = mongodb.Find(appconfig.GameDbName, "PlayerRole", "_id", playerID, roleInfo)
+		isSuccess = mongodb.Find(appconfig.GameDbName, "PlayerRole", "_id", playerid, roleInfo)
 		if isSuccess != 0 {
 			return nil, ""
 		}

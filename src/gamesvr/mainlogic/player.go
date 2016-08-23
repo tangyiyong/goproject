@@ -11,19 +11,19 @@ import (
 //玩家子模块的基类
 type TModule interface {
 	//创建player
-	OnCreate(playerid int)
+	OnCreate(playerid int32)
 
 	//销毁player
-	OnDestroy(playerid int)
+	OnDestroy(playerid int32)
 
 	//player 进入游戏
-	OnPlayerOnline(playerid int)
+	OnPlayerOnline(playerid int32)
 
 	//player 离开游戏
-	OnPlayerOffline(playerid int)
+	OnPlayerOffline(playerid int32)
 
 	//从数据库加载玩家
-	OnPlayerLoad(playerid int)
+	OnPlayerLoad(playerid int32)
 
 	//玩家响应新一天
 	OnNewDay(newday int)
@@ -65,13 +65,13 @@ type TPlayer struct {
 	ChargeModule TChargeMoudle //! 充值
 
 	//非存数据库的临时状态数据
-	playerid    int          //角色ID
+	playerid    int32        //角色ID
 	pSimpleInfo *TSimpleInfo //角色简信息
 	sync.Mutex               //玩家的一些操作的锁
 }
 
 //玩家初始化
-func (player *TPlayer) InitModules(playerid int) {
+func (player *TPlayer) InitModules(playerid int32) {
 	if playerid <= 0 {
 		gamelog.Error("InitModules Error : Invalid PlayerID:%d", playerid)
 		return
@@ -112,13 +112,8 @@ func (player *TPlayer) InitModules(playerid int) {
 	return
 }
 
-//获取玩家的ID
-func (player *TPlayer) GetPlayerID() int {
-	return player.playerid
-}
-
 //响应玩家创建请求
-func (player *TPlayer) OnCreate(playerid int) {
+func (player *TPlayer) OnCreate(playerid int32) {
 	player.RoleMoudle.OnCreate(playerid)
 	player.HeroMoudle.OnCreate(playerid)
 	player.TaskMoudle.OnCreate(playerid)
@@ -153,7 +148,7 @@ func (player *TPlayer) OnCreate(playerid int) {
 }
 
 //响应玩家的销毁请求
-func (player *TPlayer) OnDestroy(playerid int) {
+func (player *TPlayer) OnDestroy(playerid int32) {
 	player.RoleMoudle.OnDestroy(playerid)
 	player.HeroMoudle.OnDestroy(playerid)
 	player.TaskMoudle.OnDestroy(playerid)
@@ -190,7 +185,7 @@ func (player *TPlayer) OnDestroy(playerid int) {
 }
 
 //响应玩家的上线请求
-func (player *TPlayer) OnPlayerOnline(playerid int) {
+func (player *TPlayer) OnPlayerOnline(playerid int32) {
 	player.RoleMoudle.OnPlayerOnline(playerid)
 	player.HeroMoudle.OnPlayerOnline(playerid)
 	player.TaskMoudle.OnPlayerOnline(playerid)
@@ -225,7 +220,7 @@ func (player *TPlayer) OnPlayerOnline(playerid int) {
 }
 
 //响应玩家的下线请求
-func (player *TPlayer) OnPlayerOffline(playerid int) {
+func (player *TPlayer) OnPlayerOffline(playerid int32) {
 	player.RoleMoudle.OnPlayerOffline(playerid)
 	player.HeroMoudle.OnPlayerOffline(playerid)
 	player.TaskMoudle.OnPlayerOffline(playerid)
@@ -262,7 +257,7 @@ func (player *TPlayer) OnPlayerOffline(playerid int) {
 }
 
 //响应玩家的加载请求
-func (player *TPlayer) OnPlayerLoad(playerid int) {
+func (player *TPlayer) OnPlayerLoad(playerid int32) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go player.RoleMoudle.OnPlayerLoad(playerid, &wg)
@@ -332,7 +327,7 @@ func (player *TPlayer) OnPlayerLoad(playerid int) {
 }
 
 //响应玩家的加载请求
-func (player *TPlayer) OnPlayerLoadSync(playerid int) {
+func (player *TPlayer) OnPlayerLoadSync(playerid int32) {
 	player.RoleMoudle.OnPlayerLoad(playerid, nil)
 	player.HeroMoudle.OnPlayerLoad(playerid, nil)
 	player.TaskMoudle.OnPlayerLoad(playerid, nil)

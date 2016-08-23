@@ -3,7 +3,7 @@ package msg
 //! 玩家查询当前挖矿信息
 //! 消息: /enter_mining
 type MSG_GetMiningInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -21,7 +21,7 @@ type MSG_GetMiningInfo_Ack struct {
 //! 玩家请求当前矿洞状态码
 //! 消息: /get_mining_status
 type MSG_GetMiningStatus_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	StatusCode int
 }
@@ -47,7 +47,7 @@ type MSG_Pos struct {
 }
 
 type MSG_MiningDig_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Pos        []MSG_Pos //! 坐标 左上角为原点
 }
@@ -68,7 +68,7 @@ type MSG_MiningDig_Ack struct {
 //! 玩家请求事件对应处理-行动力奖励
 //! 消息: /mining_event_action_award
 type MSG_MiningEvent_ActionAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PlayerPos  MSG_Pos
 }
@@ -87,7 +87,7 @@ type MSG_MiningEvent_ActionAward_Ack struct {
 //! 挖矿元素-精炼石
 //! 消息: /mining_element_stone
 type MSG_MiningElement_GetStone_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PlayerPos  MSG_Pos
 }
@@ -105,7 +105,7 @@ type MSG_MiningElement_GetStone_Ack struct {
 //! 挖矿事件-黑市
 //! 消息: /mining_event_black_market
 type MSG_MiningEvent_GetBlackMarket_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PlayerPos  MSG_Pos
 }
@@ -122,7 +122,7 @@ type MSG_MiningEvent_GetBlackMarket_Ack struct {
 //! 购买黑市商品
 //! 消息: /mining_buy_black_market
 type MSG_MiningEvent_BuyBlackMarket_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int
 }
@@ -137,7 +137,7 @@ type MSG_MiningEvent_BuyBlackMarket_Ack struct {
 //! 挖矿事件-查看怪物
 //! 消息: /mining_event_monster_info
 type MSG_MiningEvent_Monster_Info_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	Pos        MSG_Pos
 }
@@ -154,7 +154,7 @@ type MSG_MiningEvent_Monster_Info_Ack struct {
 //! 挖矿事件-怪物
 //! 消息: /mining_event_monster
 type MSG_MiningEvent_Monster_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PlayerPos  MSG_Pos
 	Damage     int //! 对怪物造成伤害
@@ -174,7 +174,7 @@ type MSG_MiningEvent_Monster_Ack struct {
 //! 挖矿事件-宝箱
 //! 消息: /mining_event_treasure
 type MSG_MiningEvent_Treasure_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PlayerPos  MSG_Pos
 }
@@ -192,7 +192,7 @@ type MSG_MiningEvent_Treasure_Ack struct {
 //! 挖矿事件-魔盒
 //! 消息: /mining_event_box
 type MSG_MiningEvent_Box_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PlayerPos  MSG_Pos
 }
@@ -209,7 +209,7 @@ type MSG_MiningEvent_Box_Ack struct {
 //! 挖矿事件-扫描
 //! 消息: /mining_event_scan
 type MSG_MiningEvent_Scan_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PlayerPos  MSG_Pos
 }
@@ -238,7 +238,7 @@ type MSG_MiningMapData struct {
 //! 挖矿事件-答题
 //! 消息: /mining_event_question
 type MSG_MiningEvent_Question_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PlayerPos  MSG_Pos
 	AddPoint   int //! 答对题目后增加的积分
@@ -256,7 +256,7 @@ type MSG_MiningEvent_Question_Ack struct {
 //! 挖矿事件-Buff
 //! 消息: /mining_event_buff
 type MSG_MiningEvent_Buff_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	PlayerPos  MSG_Pos
 }
@@ -274,7 +274,7 @@ type MSG_MiningEvent_Buff_Ack struct {
 //! 请求随机九种打完Boss翻牌奖励
 //! 消息: /mining_get_award
 type MSG_MiningGetAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -293,7 +293,7 @@ type MSG_MiningGetAward_Ack struct {
 //! 玩家请求选择打完Boss后翻牌奖励
 //! 消息: /select_mining_award
 type MSG_MiningSelectAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	SelectID   int
 }
@@ -307,7 +307,7 @@ type MSG_MiningSelectAward_Ack struct {
 //! 玩家请求挂机
 //! 消息: /mining_guaji
 type MSG_MiningGuaji_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int //! 挂机类型ID
 }
@@ -322,7 +322,7 @@ type MSG_MiningGuaji_Ack struct {
 //! 玩家查询挂机倒计时
 //! 消息: /mining_guaji_time
 type MSG_MiningGuajiTime_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -335,7 +335,7 @@ type MSG_MiningGuajiTime_Ack struct {
 //! 玩家请求领取挂机结算奖励
 //! 消息: /mining_guaji_award
 type MSG_GetMiningGuajiAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -347,7 +347,7 @@ type MSG_GetMiningGuajiAward_Ack struct {
 //! 玩家请求重置矿洞信息
 //! 消息: /mining_map_reset
 type MSG_MiningMapReset_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 

@@ -82,26 +82,26 @@ type TFamousCopyData struct {
 }
 
 type TCopyMoudle struct {
-	PlayerID int `bson:"_id"` //玩家ID
+	PlayerID int32 `bson:"_id"` //玩家ID
 
 	Main   TMainCopyData   //主线副本
 	Elite  TEliteCopyData  //精英副本
 	Famous TFamousCopyData //名将副本
 	Daily  TDailyCopyData  //日常副本
 
-	LastInvadeTime int64 //! 上次产生入侵时间
-	ResetDay       int   //! 重置天数
+	LastInvadeTime int64  //! 上次产生入侵时间
+	ResetDay       uint32 //! 重置天数
 
 	ownplayer *TPlayer //父player指针
 }
 
-func (copym *TCopyMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (copym *TCopyMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	copym.PlayerID = playerid
 	copym.ownplayer = pPlayer
 }
 
 //响应玩家创建
-func (copym *TCopyMoudle) OnCreate(playerid int) {
+func (copym *TCopyMoudle) OnCreate(playerid int32) {
 	//初始化各个成员数值
 	copym.PlayerID = playerid
 	copym.ResetDay = utility.GetCurDay()
@@ -126,23 +126,23 @@ func (copym *TCopyMoudle) OnCreate(playerid int) {
 }
 
 //玩家对象销毁
-func (copym *TCopyMoudle) OnDestroy(playerid int) {
+func (copym *TCopyMoudle) OnDestroy(playerid int32) {
 
 }
 
 //玩家进入游戏
-func (copym *TCopyMoudle) OnPlayerOnline(playerid int) {
+func (copym *TCopyMoudle) OnPlayerOnline(playerid int32) {
 	//
 }
 
 //玩家离开游戏
-func (copym *TCopyMoudle) OnPlayerOffline(playerid int) {
+func (copym *TCopyMoudle) OnPlayerOffline(playerid int32) {
 	//
 	return
 }
 
 //玩家数据从数据库加载
-func (copym *TCopyMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (copym *TCopyMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	//
 	s := mongodb.GetDBSession()
 	defer s.Close()
@@ -696,7 +696,7 @@ func (self *TCopyMoudle) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *TCopyMoudle) OnNewDay(newday int) {
+func (self *TCopyMoudle) OnNewDay(newday uint32) {
 	self.UpdateMainReset()
 	self.UpdateFamousReset()
 	self.UpdateDailyReset()

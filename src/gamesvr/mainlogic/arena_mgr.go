@@ -11,7 +11,7 @@ import (
 )
 
 type TArenaRankInfo struct {
-	PlayerID int
+	PlayerID int32
 	IsRobot  bool
 }
 
@@ -39,7 +39,7 @@ func InitArenaMgr() bool {
 		G_Rank_List[v.CurrentRank-1].PlayerID = v.PlayerID
 	}
 
-	for i := 0; i < 5000; i++ {
+	for i := int32(0); i < 5000; i++ {
 		if G_Rank_List[i].PlayerID == 0 {
 			pRobot := gamedata.GetRobot(i%10 + 1)
 			if pRobot == nil {

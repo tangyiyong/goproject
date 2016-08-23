@@ -23,7 +23,7 @@ const (
 )
 
 type TMember struct {
-	PlayerID     int   //! ID
+	PlayerID     int32 //! ID
 	Pose         int   //! 位置
 	Contribute   int   //! 军团贡献
 	EnterTime    int64 //! 加入时间
@@ -41,7 +41,7 @@ const (
 )
 
 type GuildEvent struct {
-	PlayerID   int
+	PlayerID   int32
 	PlayerName string
 	Type       int //! 祭天->类型
 	Value      int //! 祭天->经验  升级->等级  职位->新职位
@@ -53,7 +53,7 @@ type GuildCopyTreasure struct {
 	CopyID     int
 	Index      int
 	AwardID    int
-	PlayerID   int
+	PlayerID   int32
 	PlayerName string
 }
 
@@ -79,7 +79,7 @@ type PassAwardChapter struct {
 
 //! 公会留言板
 type TGuildMsgBoard struct {
-	PlayerID int
+	PlayerID int32
 	Message  string
 	Time     int64
 }
@@ -123,7 +123,7 @@ type TGuild struct {
 	MemberList  MemberLst //! 军团成员列表
 	fightVaule  int       //! 公会战力值
 
-	ApplyList []int //! 申请列表
+	ApplyList []int32 //! 申请列表
 
 	EventLst []GuildEvent //! 军团动态
 
@@ -141,7 +141,7 @@ type TGuild struct {
 
 	MsgBoard []TGuildMsgBoard //! 公会留言板
 
-	ResetDay int //! 重置天数
+	ResetDay uint32 //! 重置天数
 }
 
 type GuildMap map[int]*TGuild
@@ -242,7 +242,7 @@ func InitGuildMgr() bool {
 }
 
 //创建一个新的工会
-func CreateNewGuild(playerid int, name string, icon int) *TGuild {
+func CreateNewGuild(playerid int32, name string, icon int) *TGuild {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
@@ -277,8 +277,8 @@ func CreateNewGuild(playerid int, name string, icon int) *TGuild {
 	G_Guild_Key_List = append(G_Guild_Key_List, newGuild.GuildID)
 	G_CurGuildID += 1
 
-	G_GuildCopyRanker.SetRankItem(newGuild.GuildID, newGuild.HistoryPassChapter)
-	G_GuildLevelRanker.SetRankItem(newGuild.GuildID, newGuild.Level)
+	G_GuildCopyRanker.SetRankItem(int32(newGuild.GuildID), newGuild.HistoryPassChapter)
+	G_GuildLevelRanker.SetRankItem(int32(newGuild.GuildID), newGuild.Level)
 
 	//! 插入数据库
 	DB_CreateGuild(&newGuild)
@@ -376,7 +376,7 @@ func GetGuildName(guildid int) string {
 }
 
 //获取工会成员信息
-func (pGuild *TGuild) GetGuildMember(playerid int) *TMember {
+func (pGuild *TGuild) GetGuildMember(playerid int32) *TMember {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
@@ -465,7 +465,7 @@ func (pGuild *TGuild) GetGuildLeader() *TMember {
 }
 
 //添加工会成员信息
-func (pGuild *TGuild) AddGuildMember(playerid int) bool {
+func (pGuild *TGuild) AddGuildMember(playerid int32) bool {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
@@ -514,7 +514,7 @@ func (self *TGuild) LevelUp() {
 	self.CurExp -= guildData.NeedExp
 	self.Level += 1
 	go self.DB_UpdateGuildLevel()
-	G_GuildLevelRanker.SetRankItem(self.GuildID, self.Level)
+	G_GuildLevelRanker.SetRankItem(int32(self.GuildID), self.Level)
 }
 
 //! 增加军团祭天进度
@@ -578,7 +578,7 @@ func (self *TGuild) AddGuildSkillLevel(skillID int, costExp int) {
 }
 
 //删除工会成员信息
-func (pGuild *TGuild) RemoveGuildMember(playerid int) bool {
+func (pGuild *TGuild) RemoveGuildMember(playerid int32) bool {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
@@ -627,7 +627,7 @@ func (self *TGuild) GetPoseNumber(role int) int {
 }
 
 //更新工会成员贡献信息
-func (pGuild *TGuild) UpdateGuildMemeber(playerid int, pose int, contribute int) bool {
+func (pGuild *TGuild) UpdateGuildMemeber(playerid int32, pose int, contribute int) bool {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
@@ -643,21 +643,21 @@ func (pGuild *TGuild) UpdateGuildMemeber(playerid int, pose int, contribute int)
 }
 
 //! 增加申请列表
-func (self *TGuild) AddApplyList(playerID int) {
+func (self *TGuild) AddApplyList(playerid int32) {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
-	self.ApplyList = append(self.ApplyList, playerID)
-	go DB_AddApplyList(self.GuildID, playerID)
+	self.ApplyList = append(self.ApplyList, playerid)
+	go DB_AddApplyList(self.GuildID, playerid)
 }
 
 //! 删除申请列表
-func (self *TGuild) RemoveApplyList(playerID int) {
+func (self *TGuild) RemoveApplyList(playerid int32) {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 	pos := 0
 	isFind := false
 	for i, v := range self.ApplyList {
-		if v == playerID {
+		if v == playerid {
 			pos = i
 			isFind = true
 			break
@@ -665,7 +665,7 @@ func (self *TGuild) RemoveApplyList(playerID int) {
 	}
 
 	if isFind == false {
-		gamelog.Error("RemoveApplyList Error: invalid playerid: %v", playerID)
+		gamelog.Error("RemoveApplyList Error: invalid playerid: %v", playerid)
 		return
 	}
 
@@ -677,11 +677,11 @@ func (self *TGuild) RemoveApplyList(playerID int) {
 		self.ApplyList = append(self.ApplyList[:pos], self.ApplyList[pos+1:]...)
 	}
 
-	go DB_RemoveApplyList(self.GuildID, playerID)
+	go DB_RemoveApplyList(self.GuildID, playerid)
 }
 
 //! 增加军团动态
-func (self *TGuild) AddGuildEvent(playerID int, action int, value int, value2 int) {
+func (self *TGuild) AddGuildEvent(playerid int32, action int, value int, value2 int) {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
@@ -693,7 +693,7 @@ func (self *TGuild) AddGuildEvent(playerID int, action int, value int, value2 in
 
 	//! 构建事件动态
 	event := GuildEvent{}
-	event.PlayerID = playerID
+	event.PlayerID = playerid
 	event.Action = action
 	event.Type = value2
 	event.Value = value
@@ -761,20 +761,20 @@ func (self *TGuild) NextChapter() {
 		self.CampLife[i].Life = guildCopy.Life
 	}
 
-	G_GuildCopyRanker.SetRankItem(self.GuildID, self.PassChapter)
+	G_GuildCopyRanker.SetRankItem(int32(self.GuildID), self.PassChapter)
 
 	go self.DB_UpdateChapter()
 }
 
 //! 记录玩家领取副本奖励
-func (self *TGuild) PlayerRecvAward(playerID int, playerName string, copyID int, index int, awardID int) {
+func (self *TGuild) PlayerRecvAward(playerid int32, playerName string, copyID int, index int, awardID int) {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 	var treasure GuildCopyTreasure
 	treasure.CopyID = copyID
 	treasure.AwardID = awardID
 	treasure.Index = index
-	treasure.PlayerID = playerID
+	treasure.PlayerID = playerid
 	treasure.PlayerName = playerName
 	self.CopyTreasure = append(self.CopyTreasure, treasure)
 
@@ -782,12 +782,12 @@ func (self *TGuild) PlayerRecvAward(playerID int, playerName string, copyID int,
 }
 
 //! 判断玩家是否领取该奖励
-func (self *TGuild) IsRecvCampAward(playerID int, copyID int, chapter int) bool {
+func (self *TGuild) IsRecvCampAward(playerid int32, copyID int, chapter int) bool {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
 	for _, v := range self.CopyTreasure {
-		if v.PlayerID == playerID {
+		if v.PlayerID == playerid {
 			award := gamedata.GetGuildCampAwardInfo(v.AwardID)
 			if award.CopyID == copyID && award.Chapter == chapter {
 				return true
@@ -798,7 +798,7 @@ func (self *TGuild) IsRecvCampAward(playerID int, copyID int, chapter int) bool 
 }
 
 //! 新加留言板留言
-func (self *TGuild) AddMsgBoard(playerID int, message string) {
+func (self *TGuild) AddMsgBoard(playerid int32, message string) {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
@@ -809,7 +809,7 @@ func (self *TGuild) AddMsgBoard(playerID int, message string) {
 	}
 
 	var msg TGuildMsgBoard
-	msg.PlayerID = playerID
+	msg.PlayerID = playerid
 	msg.Message = message
 	msg.Time = time.Now().Unix()
 
@@ -819,14 +819,14 @@ func (self *TGuild) AddMsgBoard(playerID int, message string) {
 }
 
 //! 删除留言板留言
-func (self *TGuild) RemoveMsgBoard(playerID int, time int64) {
+func (self *TGuild) RemoveMsgBoard(playerid int32, time int64) {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
 	removePos := -1
 	removeMsg := TGuildMsgBoard{}
 	for i, v := range self.MsgBoard {
-		if v.PlayerID == playerID && v.Time == time {
+		if v.PlayerID == playerid && v.Time == time {
 			removePos = i
 			removeMsg = v
 			break

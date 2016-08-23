@@ -23,8 +23,8 @@ type TActivityData struct {
 	endTime      int64 //! 活动结束时间
 	award        int   //! 当前活动使用奖励版本
 	Status       int   //! 状态: 1:有效活动，0:无效活动。
-	VersionCode  int   //! 活动刷新版本号
-	ResetCode    int   //! 活动迭代版本号
+	VersionCode  int32 //! 活动刷新版本号
+	ResetCode    int32 //! 活动迭代版本号
 }
 
 type TGroupPurchaseInfo struct {
@@ -38,7 +38,7 @@ type TSevenDayBuyInfo struct {
 }
 
 type TGlobalVariables struct {
-	ID               int                  `bson:"_id"`
+	ID               int32                `bson:"_id"`
 	NormalMoneyPoor  int                  //! 奖金池
 	ExcitedMoneyPoor int                  //! 豪华奖金池
 	GroupPurchaseLst []TGroupPurchaseInfo //! 团购货物列表

@@ -70,14 +70,19 @@ func Hand_GetFightTarget(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var HeroResults = make([]THeroResult, BATTLE_NUM)
-	response.PlayerData.FightValue = pTarget.HeroMoudle.CalcFightValue(HeroResults)
-	response.PlayerData.Quality = pTarget.HeroMoudle.CurHeros[0].Quality
+	response.PlayerData.FightValue = int32(pTarget.HeroMoudle.CalcFightValue(HeroResults))
+	response.PlayerData.Quality = int32(pTarget.HeroMoudle.CurHeros[0].Quality)
 	for i := 0; i < BATTLE_NUM; i++ {
-		response.PlayerData.Heros[i].HeroID = HeroResults[i].HeroID
-		response.PlayerData.Heros[i].PropertyValue = HeroResults[i].PropertyValues
-		response.PlayerData.Heros[i].PropertyPercent = HeroResults[i].PropertyPercents
-		response.PlayerData.Heros[i].CampDef = HeroResults[i].CampDef
-		response.PlayerData.Heros[i].CampKill = HeroResults[i].CampKill
+		response.PlayerData.Heros[i].HeroID = int32(HeroResults[i].HeroID)
+		for j := 0; j < 11; j++ {
+			response.PlayerData.Heros[i].PropertyValue[j] = int32(HeroResults[i].PropertyValues[j])
+			response.PlayerData.Heros[i].PropertyPercent[j] = int32(HeroResults[i].PropertyPercents[j])
+		}
+
+		for j := 0; j < 5; j++ {
+			response.PlayerData.Heros[i].CampDef[j] = int32(HeroResults[i].CampDef[j])
+			response.PlayerData.Heros[i].CampKill[j] = int32(HeroResults[i].CampKill[j])
+		}
 	}
 
 	response.RetCode = msg.RE_SUCCESS

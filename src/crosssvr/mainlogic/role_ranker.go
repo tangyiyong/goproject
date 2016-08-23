@@ -6,7 +6,7 @@ import (
 )
 
 type TRoleRankItem struct {
-	RankID     int    //角色ID
+	RankID     int32  //角色ID
 	RankValue  int    //排名的值
 	HeroID     int    //英雄ID
 	Level      int    //等级
@@ -35,7 +35,7 @@ func (ranker *TRoleRanker) InitRanker(show int, rank int) {
 	}
 }
 
-func (ranker *TRoleRanker) SetRankItem(rankid int, rankvalue int, level int,
+func (ranker *TRoleRanker) SetRankItem(rankid int32, rankvalue int, level int,
 	fightvalue int, heroid int, svrid int, svrname string, rolename string) int {
 	ranker.Lock()
 	defer ranker.Unlock()

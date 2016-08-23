@@ -131,7 +131,7 @@ func Hand_EnterRoom(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	SendMessageToGameSvr(msg.MSG_LOAD_CAMPBAT_REQ, &LoadReq)
 }
 
-func UpdateHeroStateToRoom(roomid int) {
+func UpdateHeroStateToRoom(roomid int32) {
 	if roomid <= 0 {
 		gamelog.Error("UpdateHeroStateToRoom Error: Invalid RoomID %d", roomid)
 		return
@@ -151,13 +151,13 @@ func UpdateHeroStateToRoom(roomid int) {
 			}
 		}
 	}
-	ackHeroState.Heros_Cnt = len(ackHeroState.Heros)
+	ackHeroState.Heros_Cnt = int32(len(ackHeroState.Heros))
 	SendMessageToRoom(0, roomid, msg.MSG_HERO_STATE, &ackHeroState)
 
 	return
 }
 
-func SendHeroStateToRoom(roomid int, objectid int) {
+func SendHeroStateToRoom(roomid int32, objectid int32) {
 	if roomid <= 0 {
 		gamelog.Error("SendHeroStateToRoom Error: Invalid RoomID %d", roomid)
 		return
@@ -177,7 +177,7 @@ func SendHeroStateToRoom(roomid int, objectid int) {
 			}
 		}
 	}
-	ackHeroState.Heros_Cnt = len(ackHeroState.Heros)
+	ackHeroState.Heros_Cnt = int32(len(ackHeroState.Heros))
 	SendMessageToRoom(0, roomid, msg.MSG_HERO_STATE, &ackHeroState)
 	return
 }
@@ -190,8 +190,8 @@ func Hand_LeaveRoom(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	var roomID = 0
-	var playerid = 0
+	var roomID int32 = 0
+	var playerid int32 = 0
 	if pTcpConn != nil && pTcpConn.Data != nil {
 		roomID = pTcpConn.Data.(*TBattleData).RoomID
 		playerid = pTcpConn.Data.(*TBattleData).PlayerID
@@ -470,7 +470,7 @@ func Hand_FinishCarryReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	if int(time.Now().Unix()) > pBattleObj.MoveEndTime {
+	if int32(time.Now().Unix()) > pBattleObj.MoveEndTime {
 		gamelog.Error("Hand_FinishCarryReq Error: Too late:%d", playerid)
 		return
 	}
@@ -691,7 +691,7 @@ func Hand_PlayerReviveAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 			pBattleObj.HeroObj[i].CurHp,
 			pBattleObj.HeroObj[i].Position})
 	}
-	response.Heros_Cnt = len(response.Heros)
+	response.Heros_Cnt = int32(len(response.Heros))
 
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_PLAYER_REVIVE_ACK)

@@ -4,9 +4,10 @@ import (
 	"appconfig"
 	"fmt"
 	"gamesvr/gamedata"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"utility"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type TLimitSaleInfo struct {
@@ -22,10 +23,10 @@ type TActivityLimitSale struct {
 	ItemLst     []TLimitSaleInfo //! 当天优惠物品
 	RefreshMark bool             //! 刷新标记
 	AwardMark   Mark             //! 全民奖励领取标记
-	WeekReset   int              //! 全民奖励刷新周
+	WeekReset   uint32           //! 全民奖励刷新周
 
-	VersionCode    int              //! 版本号
-	ResetCode      int              //! 迭代号
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 
@@ -36,7 +37,7 @@ func (self *TActivityLimitSale) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityLimitSale) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityLimitSale) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -52,7 +53,7 @@ func (self *TActivityLimitSale) Init(activityID int, mPtr *TActivityModule, verc
 }
 
 //! 刷新数据
-func (self *TActivityLimitSale) Refresh(versionCode int) {
+func (self *TActivityLimitSale) Refresh(versionCode int32) {
 	//! 刷新贩售物品
 	self.RefreshItem()
 	self.RefreshMark = true
@@ -75,7 +76,7 @@ func (self *TActivityLimitSale) Refresh(versionCode int) {
 }
 
 //! 活动结束
-func (self *TActivityLimitSale) End(versionCode int, resetCode int) {
+func (self *TActivityLimitSale) End(versionCode int32, resetCode int32) {
 
 	self.ResetCode = resetCode
 	self.VersionCode = versionCode
@@ -83,11 +84,11 @@ func (self *TActivityLimitSale) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityLimitSale) GetRefreshV() int {
+func (self *TActivityLimitSale) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityLimitSale) GetResetV() int {
+func (self *TActivityLimitSale) GetResetV() int32 {
 	return self.ResetCode
 }
 

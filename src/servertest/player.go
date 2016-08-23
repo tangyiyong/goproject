@@ -22,7 +22,7 @@ var (
 type TPlayer struct {
 	AccountName string
 	Password    string
-	AccountID   int
+	AccountID   int32
 
 	PlayerName string
 	PlayerID   int
@@ -97,15 +97,19 @@ func (self *TPlayer) TestRoutine() {
 		return
 	}
 
-	self.TestUpLevel()
-	self.TestUpLevel()
-	self.TestUpLevel()
-	self.TestUpLevel()
+	// self.TestUpLevel()
+	// self.TestUpLevel()
+	// self.TestUpLevel()
+	// self.TestUpLevel()
+	self.Create_Recharge_Order_2Gamesvr()
+	self.Recharge_Syccess_2SDK()
 
 	if !self.userSetBatCamp() {
 		gamelog.Error("设置阵营失败!!!!")
 		return
 	}
+
+	return
 
 	if !self.userEnterBattle() {
 		gamelog.Error("进入阵营失败!!!!")

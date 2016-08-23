@@ -12,7 +12,7 @@ type ST_RobotHero struct {
 }
 
 type ST_Robot struct {
-	RobotID    int             //机器人ID
+	RobotID    int32           //机器人ID
 	Level      int             //机器人等级
 	Name       string          //名字
 	FightValue int             //战力
@@ -30,8 +30,8 @@ func InitRobotParser(total int) bool {
 }
 
 func ParseRobotRecord(rs *RecordSet) {
-	RobotID := rs.GetFieldInt("id")
-	if (RobotID <= 0) || (RobotID >= len(GT_Robot_List)) {
+	RobotID := int32(rs.GetFieldInt("id"))
+	if (RobotID <= 0) || (RobotID >= int32(len(GT_Robot_List))) {
 		gamelog.Error("ParseRobotRecord Error: Invalid RobotID :%d", RobotID)
 		return
 	}
@@ -66,8 +66,8 @@ func ParseRobotRecord(rs *RecordSet) {
 	return
 }
 
-func GetRobot(robotid int) *ST_Robot {
-	if robotid >= len(GT_Robot_List) || robotid <= 0 {
+func GetRobot(robotid int32) *ST_Robot {
+	if robotid >= int32(len(GT_Robot_List)) || robotid <= 0 {
 		gamelog.Error("GetRobot Error: invalid robotid :%d", robotid)
 		return nil
 	}

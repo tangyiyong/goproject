@@ -14,44 +14,44 @@ import (
 )
 
 type TBattleData struct {
-	PlayerID int
-	RoomID   int
-	PackNo   int //包序号
+	PlayerID int32
+	RoomID   int32
+	PackNo   int32 //包序号
 }
 
 var (
-	G_PlayerConns  map[int]*tcpserver.TCPConn
+	G_PlayerConns  map[int32]*tcpserver.TCPConn
 	G_ConnsMutex   sync.Mutex
 	G_GameSvrConns *tcpserver.TCPConn = nil
 )
 
 func InitConMgr() bool {
-	G_PlayerConns = make(map[int]*tcpserver.TCPConn, 1)
+	G_PlayerConns = make(map[int32]*tcpserver.TCPConn, 1)
 	return true
 }
 
-func GetConnByID(playerid int) *tcpserver.TCPConn {
+func GetConnByID(playerid int32) *tcpserver.TCPConn {
 	G_ConnsMutex.Lock()
 	pConn, _ := G_PlayerConns[playerid]
 	G_ConnsMutex.Unlock()
 	return pConn
 }
 
-func DelConnByID(playerid int) {
+func DelConnByID(playerid int32) {
 	G_ConnsMutex.Lock()
 	delete(G_PlayerConns, playerid)
 	G_ConnsMutex.Unlock()
 	return
 }
 
-func AddConnByID(playerid int, pTcpConn *tcpserver.TCPConn) {
+func AddConnByID(playerid int32, pTcpConn *tcpserver.TCPConn) {
 	G_ConnsMutex.Lock()
 	G_PlayerConns[playerid] = pTcpConn
 	G_ConnsMutex.Unlock()
 	return
 }
 
-func AddTcpConn(playerid int, roomid int, pTcpConn *tcpserver.TCPConn) {
+func AddTcpConn(playerid int32, roomid int32, pTcpConn *tcpserver.TCPConn) {
 	pData := new(TBattleData)
 	pData.RoomID = roomid
 	pData.PlayerID = playerid
@@ -61,7 +61,7 @@ func AddTcpConn(playerid int, roomid int, pTcpConn *tcpserver.TCPConn) {
 	return
 }
 
-func CheckAndClean(playerid int) {
+func CheckAndClean(playerid int32) {
 	if playerid == 0 {
 		gamelog.Error("CheckAndClean Error: Invalid PlayerID:0")
 		return
@@ -92,7 +92,7 @@ func CheckAndClean(playerid int) {
 //	return pConn.WriteMsg(msgid, msgdata)
 //}
 
-func SendMessageToPlayer(playerid int, msgid int16, pmsg msg.TMsg) bool {
+func SendMessageToPlayer(playerid int32, msgid int16, pmsg msg.TMsg) bool {
 	var writer msg.PacketWriter
 	writer.BeginWrite(msgid)
 	pmsg.Write(&writer)
@@ -110,7 +110,7 @@ func SendMessageToPlayer(playerid int, msgid int16, pmsg msg.TMsg) bool {
 	return pConn.WriteMsgData(writer.GetDataPtr())
 }
 
-func SendMessageToRoom(playerid int, roomid int, msgid int16, pmsg msg.TMsg) bool {
+func SendMessageToRoom(playerid int32, roomid int32, msgid int16, pmsg msg.TMsg) bool {
 	if roomid <= 0 {
 		gamelog.Error("SendMessageToRoom Invalid roomid : %d ", roomid)
 		return false

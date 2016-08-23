@@ -520,6 +520,9 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/server_state_info", mainlogic.Hand_ServerStateInfo)
 	//★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
+	// SDK
+	http.HandleFunc("/create_recharge_order", mainlogic.Handle_Create_Recharge_Order)
+	http.HandleFunc("/sdk_recharge_success", mainlogic.Handle_Recharge_Success)
 }
 
 func RegTcpMsgHandler() {

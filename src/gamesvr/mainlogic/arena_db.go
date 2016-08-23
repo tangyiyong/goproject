@@ -18,7 +18,7 @@ func (self *TArenaModule) UpdateStoreToDatabase() {
 		"storeaward": self.StoreAward}})
 }
 
-func (self *TArenaModule) UpdateChallangeRank(playerID int, rank int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerArena", bson.M{"_id": playerID}, bson.M{"$set": bson.M{
+func (self *TArenaModule) UpdateChallangeRank(playerid int32, rank int) {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerArena", bson.M{"_id": playerid}, bson.M{"$set": bson.M{
 		"currentrank": rank}})
 }

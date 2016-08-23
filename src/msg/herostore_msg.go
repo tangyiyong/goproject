@@ -3,7 +3,7 @@ package msg
 //! 玩家获取商店商品信息
 //! 消息: /get_all_store_data
 type MSG_GetAllStoreGoodInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -31,7 +31,7 @@ type MSG_GetAllStoreGoodInfo_Ack struct {
 //! 玩家获取神将商店商品信息
 //! 消息:/get_store
 type MSG_GetStoreGoodsInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	StoreType  int
 }
@@ -53,7 +53,7 @@ type MSG_GetStoreGoodsInfo_Ack struct {
 //! 刷新神将商店
 //! 消息: /refresh_store
 type MSG_RefreshStore_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	StoreType  int
 }
@@ -72,7 +72,7 @@ type MSG_RefreshStore_Ack struct {
 //! 购买神将商店商品
 //! 消息: /store_buy
 type MSG_BuyItem_Store_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	StoreType  int
 	Index      int

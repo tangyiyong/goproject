@@ -58,6 +58,12 @@ var (
 	LogSvrPort     int
 	LogSvrLogLevel int
 	LogSvrMaxCon   int //最大连接数
+
+	//SDK
+	SdkSvrInnerIp string
+	SdkSvrOuterIp string
+	SdkSvrPort    int
+	SdkLogLevel   int
 )
 
 //一些全局变量
@@ -70,7 +76,6 @@ var (
 	CrossQueryScoreTarget string //请求积分目标的URL
 	CrossQueryScoreRank   string //请求积分排行的URL
 	CrossGetFightTarget   string //Game服请求跨服战斗目标
-
 )
 
 func ParseConfigValue(key string, value string) {
@@ -154,6 +159,14 @@ func ParseConfigValue(key string, value string) {
 		LogSvrMaxCon, _ = strconv.Atoi(value)
 	case "log_svr_log_level":
 		LogSvrLogLevel, _ = strconv.Atoi(value)
+	case "sdk_svr_inner_ip":
+		SdkSvrInnerIp = value
+	case "sdk_svr_outer_ip":
+		SdkSvrOuterIp = value
+	case "sdk_svr_port":
+		SdkSvrPort, _ = strconv.Atoi(value)
+	case "sdk_svr_log_level":
+		SdkLogLevel, _ = strconv.Atoi(value)
 	case "gmuser":
 		ParseGmUser(value)
 	default:

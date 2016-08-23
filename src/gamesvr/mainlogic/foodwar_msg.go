@@ -62,9 +62,9 @@ func Hand_FoodWar_GetChallenger(w http.ResponseWriter, r *http.Request) {
 			pTarget := GetSelectPlayer(SelectScoreTarget, 1000)
 			if pTarget != nil && pTarget.playerid != 0 {
 				var challenge msg.MSG_FoodWar_Challenger
-				challenge.PlayerID = pTarget.GetPlayerID()
+				challenge.PlayerID = pTarget.playerid
 
-				if challenge.PlayerID == player.GetPlayerID() {
+				if challenge.PlayerID == player.playerid {
 					i -= 1
 					continue
 				}
@@ -207,7 +207,7 @@ func Hand_RobFood(w http.ResponseWriter, r *http.Request) {
 		G_FoodWarRanker.SetRankItem(req.TargetPlayerID, targetFood.TotalFood)
 
 		//! 排行榜变动
-		response.Rank = G_FoodWarRanker.SetRankItem(player.GetPlayerID(), player.FoodWarModule.TotalFood) + 1
+		response.Rank = G_FoodWarRanker.SetRankItem(player.playerid, player.FoodWarModule.TotalFood) + 1
 
 		//! 给予胜利货币奖励
 		player.RoleMoudle.AddMoney(gamedata.FoodWarVictoryMoneyID, gamedata.FoodWarVictoryMoneyNum)
@@ -215,8 +215,8 @@ func Hand_RobFood(w http.ResponseWriter, r *http.Request) {
 		response.MoneyNum = gamedata.FoodWarVictoryMoneyNum
 
 		//! 复仇名单增加
-		targetFood.RevengeLst = append(targetFood.RevengeLst, TRevengeInfo{player.GetPlayerID(), response.RobFood})
-		go targetFood.DB_AddRevengeLst(TRevengeInfo{player.GetPlayerID(), response.RobFood})
+		targetFood.RevengeLst = append(targetFood.RevengeLst, TRevengeInfo{player.playerid, response.RobFood})
+		go targetFood.DB_AddRevengeLst(TRevengeInfo{player.playerid, response.RobFood})
 
 	} else {
 		//! 给予失败货币奖励
@@ -236,9 +236,9 @@ func Hand_RobFood(w http.ResponseWriter, r *http.Request) {
 			pTarget := GetSelectPlayer(SelectScoreTarget, 1000)
 			if pTarget != nil && pTarget.playerid != 0 {
 				var challenge msg.MSG_FoodWar_Challenger
-				challenge.PlayerID = pTarget.GetPlayerID()
+				challenge.PlayerID = pTarget.playerid
 
-				if challenge.PlayerID == player.GetPlayerID() {
+				if challenge.PlayerID == player.playerid {
 					i -= 1
 					continue
 				}
@@ -322,7 +322,7 @@ func Hand_FoodWar_Revenge(w http.ResponseWriter, r *http.Request) {
 		go player.FoodWarModule.DB_SaveFood()
 
 		//! 排行榜变动
-		response.Rank = G_FoodWarRanker.SetRankItem(player.GetPlayerID(), player.FoodWarModule.TotalFood) + 1
+		response.Rank = G_FoodWarRanker.SetRankItem(player.playerid, player.FoodWarModule.TotalFood) + 1
 
 		//! 给予胜利货币奖励
 		player.RoleMoudle.AddMoney(gamedata.FoodWarVictoryMoneyID, gamedata.FoodWarVictoryMoneyNum)
@@ -403,9 +403,9 @@ func Hand_FoodWar_GetStatus(w http.ResponseWriter, r *http.Request) {
 			pTarget := GetSelectPlayer(SelectScoreTarget, 1000)
 			if pTarget != nil && pTarget.playerid != 0 {
 				var challenge msg.MSG_FoodWar_Challenger
-				challenge.PlayerID = pTarget.GetPlayerID()
+				challenge.PlayerID = pTarget.playerid
 
-				if challenge.PlayerID == player.GetPlayerID() {
+				if challenge.PlayerID == player.playerid {
 					i -= 1
 					continue
 				}
@@ -430,7 +430,7 @@ func Hand_FoodWar_GetStatus(w http.ResponseWriter, r *http.Request) {
 	response.FixFood = player.FoodWarModule.FixedFood
 	response.RecoverFood = gamedata.FoodWarTimeAddFood
 
-	response.Rank = G_FoodWarRanker.SetRankItem(player.GetPlayerID(), player.FoodWarModule.TotalFood) + 1
+	response.Rank = G_FoodWarRanker.SetRankItem(player.playerid, player.FoodWarModule.TotalFood) + 1
 	response.TotalFood = player.FoodWarModule.TotalFood
 	response.RobFood = (player.FoodWarModule.TotalFood - player.FoodWarModule.FixedFood) * gamedata.FoodWarRobBili / 1000
 	response.RetCode = msg.RE_SUCCESS

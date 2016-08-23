@@ -14,7 +14,7 @@ func HandCmd_AddHeros(args []string) bool {
 		return true
 	}
 
-	var pPlayer *TPlayer = GetPlayerByID(PlayerID)
+	var pPlayer *TPlayer = GetPlayerByID(int32(PlayerID))
 	if pPlayer == nil {
 		gamelog.Error("HandCmd_AddHeros error : Cannot get player by ID : %d", PlayerID)
 		return true

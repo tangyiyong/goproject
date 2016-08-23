@@ -22,7 +22,7 @@ var (
 
 //! 活动模块
 type TCampBattleModule struct {
-	PlayerID        int             `bson:"_id"`
+	PlayerID        int32           `bson:"_id"`
 	BattleCamp      int             //阵营战阵营
 	Kill            int             //今日杀
 	Destroy         int             //今日团
@@ -34,19 +34,19 @@ type TCampBattleModule struct {
 	EndTime         int             //搬运结束时间,  超时就是搬运失败
 	StoreBuyRecord  []TStoreBuyData //购买商店的次数
 	AwardStoreIndex IntLst          //奖励商店的购买ID
-	ResetDay        int             //重置天
+	ResetDay        uint32          //重置天
 
 	///////////////以下为临时数据
 	enterCode int32    //阵营战的连接进入码
 	ownplayer *TPlayer //玩家角色指针
 }
 
-func (self *TCampBattleModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TCampBattleModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
-func (self *TCampBattleModule) OnCreate(playerid int) {
+func (self *TCampBattleModule) OnCreate(playerid int32) {
 	self.BattleCamp = 0
 	self.ResetDay = utility.GetCurDay()
 	self.CrystalID = 1
@@ -55,21 +55,21 @@ func (self *TCampBattleModule) OnCreate(playerid int) {
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerCampBat", self)
 }
 
-func (self *TCampBattleModule) OnDestroy(playerid int) {
+func (self *TCampBattleModule) OnDestroy(playerid int32) {
 
 }
 
-func (self *TCampBattleModule) OnPlayerOnline(playerid int) {
+func (self *TCampBattleModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离开游戏
-func (self *TCampBattleModule) OnPlayerOffline(playerid int) {
+func (self *TCampBattleModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 读取玩家
-func (self *TCampBattleModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TCampBattleModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -92,7 +92,7 @@ func (self *TCampBattleModule) CheckReset() {
 	self.OnNewDay(curDay)
 }
 
-func (self *TCampBattleModule) OnNewDay(newday int) {
+func (self *TCampBattleModule) OnNewDay(newday uint32) {
 	self.ResetDay = newday
 	self.Kill = 0
 	self.Destroy = 0

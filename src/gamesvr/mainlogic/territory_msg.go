@@ -496,7 +496,7 @@ func Hand_GetFriendTerritoryStatus(w http.ResponseWriter, r *http.Request) {
 
 		friendTerritory := player.TerritoryModule.GetFriendTerritory(v.PlayerID)
 		if friendTerritory == nil {
-			gamelog.Error("Get territory info fail. playerID: %v  friendID: %v", player.GetPlayerID(), v.PlayerID)
+			gamelog.Error("Get territory info fail. playerID: %v  friendID: %v", player.playerid, v.PlayerID)
 			return
 		}
 
@@ -568,7 +568,7 @@ func Hand_GetFriendTerritoryDetail(w http.ResponseWriter, r *http.Request) {
 	//! 获取好友领地模块信息
 	friendTerritory := player.TerritoryModule.GetFriendTerritory(req.FriendID)
 	if friendTerritory == nil {
-		gamelog.Error("Get territory info fail. playerID: %v  friendID: %v", player.GetPlayerID(), req.FriendID)
+		gamelog.Error("Get territory info fail. playerID: %v  friendID: %v", player.playerid, req.FriendID)
 		return
 	}
 
@@ -637,7 +637,7 @@ func Hand_SuppressRiot(w http.ResponseWriter, r *http.Request) {
 	//! 获取好友模块信息
 	friendTerritory := player.TerritoryModule.GetFriendTerritory(req.TargetID)
 	if friendTerritory == nil {
-		gamelog.Error("Get territory info fail. playerID: %v  friendID: %v", player.GetPlayerID(), req.TargetID)
+		gamelog.Error("Get territory info fail. playerID: %v  friendID: %v", player.playerid, req.TargetID)
 		return
 	}
 

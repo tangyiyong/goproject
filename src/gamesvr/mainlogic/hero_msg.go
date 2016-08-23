@@ -902,7 +902,7 @@ func Hand_QueryHeroDestiny(w http.ResponseWriter, r *http.Request) {
 	DestinyLevel := pCurHeroData.DestinyState >> 24 & 0x000F
 	DestinyIndex := pCurHeroData.DestinyState >> 16 & 0x000F
 	DestinyLight := pCurHeroData.DestinyState & 0x000F
-	daychange := utility.GetCurDayByUnix() - pCurHeroData.DestinyTime
+	daychange := int(utility.GetCurDayByUnix() - pCurHeroData.DestinyTime)
 	if DestinyLight <= 0 || daychange <= 0 {
 		response.RetCode = msg.RE_SUCCESS
 		return

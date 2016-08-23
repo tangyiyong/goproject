@@ -31,7 +31,7 @@ type THeroData struct {
 	DiaoWenPtys    [30]int //雕文属性
 	DiaoWenBack    [30]int //雕文等待替换属性
 	DestinyState   int     //天命状态
-	DestinyTime    int     //天命时间
+	DestinyTime    uint32  //天命时间
 	WakeLevel      int     //当前的觉醒等级
 	WakeItem       [4]int  //四个觉醒道具
 	GodLevel       int     //化神等级

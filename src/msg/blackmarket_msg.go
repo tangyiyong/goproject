@@ -3,7 +3,7 @@ package msg
 //! 玩家查询黑市信息
 //! 消息: /get_black_market_info
 type MSG_GetBlackMarket_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -27,7 +27,7 @@ type MSG_GetBlackMarket_Ack struct {
 //! 玩家查询黑市状态
 //! 消息: /get_black_market_status
 type MSG_GetBlackMarketStatus_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -39,7 +39,7 @@ type MSG_GetBlackMarketStatus_Ack struct {
 //! 玩家购买黑市商品
 //! 消息: /buy_black_market
 type MSG_BuyBlackMarket_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ID         int
 }

@@ -3,7 +3,7 @@ package mainlogic
 //玩家加载登录数据
 //消息:/get_login_data
 type MSG_GetLoginData_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -14,7 +14,7 @@ type MSG_GetLoginData_Ack struct {
 //玩家请求上阵数据
 //消息:/get_battle_data
 type MSG_GetBattleData_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -33,7 +33,7 @@ type MSG_GetBattleData_Ack struct {
 //玩家请求背包数据
 //消息:/get_bag_data
 type MSG_GetBagData_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -58,7 +58,7 @@ type MSG_GetBagData_Ack struct {
 //玩家请求背包英雄数据
 //消息:/get_bag_heros
 type MSG_GetBagHeros_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -70,7 +70,7 @@ type MSG_GetBagHeros_Ack struct {
 //玩家请求背包装备数据
 //消息:/get_bag_equips
 type MSG_GetBagEquip_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -82,7 +82,7 @@ type MSG_GetBagEquip_Ack struct {
 //玩家请求英雄碎片数据
 //消息:/get_bag_hero_piece
 type MSG_GetBagHerosPiece_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -94,7 +94,7 @@ type MSG_GetBagHerosPiece_Ack struct {
 //玩家请求背包装备碎片
 //消息:/get_bag_equip_piece
 type MSG_GetBagEquipPiece_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -106,7 +106,7 @@ type MSG_GetBagEquipPiece_Ack struct {
 //玩家请求背包宝石数据
 //消息:/get_bag_gems
 type MSG_GetBagGems_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -118,7 +118,7 @@ type MSG_GetBagGems_Ack struct {
 //请求背包里的道具
 //消息:/get_bag_items
 type MSG_GetBagItems_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -130,7 +130,7 @@ type MSG_GetBagItems_Ack struct {
 //请求背包里的觉醒道具
 //消息:/get_bag_wake_items
 type MSG_GetBagWakeItems_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -142,7 +142,7 @@ type MSG_GetBagWakeItems_Ack struct {
 //玩家请求背包宝物碎片
 //消息:/get_bag_gem_piece
 type MSG_GetBagGemPiece_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -155,7 +155,7 @@ type MSG_GetBagGemPiece_Ack struct {
 //玩家请求背包宠物数据
 //消息:/get_bag_pets
 type MSG_GetBagPets_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -167,7 +167,7 @@ type MSG_GetBagPets_Ack struct {
 //玩家请求宠物碎片数据
 //消息:/get_bag_pet_piece
 type MSG_GetBagPetsPiece_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 

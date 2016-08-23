@@ -46,7 +46,7 @@ func Hand_GetRobList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 获取名单
-	exclude := IntLst{}
+	exclude := Int32Lst{}
 	robLst := player.RobModule.GetRobList(req.TreasureID, exclude)
 	for _, v := range robLst {
 		var info msg.MSG_RobPlayerInfo
@@ -99,7 +99,7 @@ func Hand_RefreshRobList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 获取名单
-	exclude := IntLst{}
+	exclude := Int32Lst{}
 	for _, v := range req.CurRobLst {
 		exclude = append(exclude, v)
 	}
@@ -231,23 +231,32 @@ func Hand_GetRobHeroInfo(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		response.PlayerData.PlayerID = req.RobPlayerID
+		response.PlayerData.PlayerID = int32(req.RobPlayerID)
 		var HeroResults = make([]THeroResult, BATTLE_NUM)
-		response.PlayerData.FightValue = robPlayer.HeroMoudle.CalcFightValue(HeroResults)
-		response.PlayerData.Quality = robPlayer.HeroMoudle.CurHeros[0].Quality
+		response.PlayerData.FightValue = int32(robPlayer.HeroMoudle.CalcFightValue(HeroResults))
+		response.PlayerData.Quality = int32(robPlayer.HeroMoudle.CurHeros[0].Quality)
 		for i := 0; i < BATTLE_NUM; i++ {
-			response.PlayerData.Heros[i].HeroID = HeroResults[i].HeroID
-			response.PlayerData.Heros[i].PropertyValue = HeroResults[i].PropertyValues
-			response.PlayerData.Heros[i].PropertyPercent = HeroResults[i].PropertyPercents
-			response.PlayerData.Heros[i].CampDef = HeroResults[i].CampDef
-			response.PlayerData.Heros[i].CampKill = HeroResults[i].CampKill
+			response.PlayerData.Heros[i].HeroID = int32(HeroResults[i].HeroID)
+			for j := 0; j < 11; j++ {
+				response.PlayerData.Heros[i].PropertyValue[j] = int32(HeroResults[i].PropertyValues[j])
+				response.PlayerData.Heros[i].PropertyPercent[j] = int32(HeroResults[i].PropertyPercents[j])
+			}
+
+			for j := 0; j < 5; j++ {
+				response.PlayerData.Heros[i].CampDef[j] = int32(HeroResults[i].CampDef[j])
+				response.PlayerData.Heros[i].CampKill[j] = int32(HeroResults[i].CampKill[j])
+			}
+
 		}
 	} else {
-		robot := gamedata.GetRobot(int(req.RobPlayerID))
-		response.PlayerData.PlayerID = req.RobPlayerID
+		robot := gamedata.GetRobot(req.RobPlayerID)
+		response.PlayerData.PlayerID = int32(req.RobPlayerID)
 		for i := 0; i < BATTLE_NUM; i++ {
-			response.PlayerData.Heros[i].HeroID = robot.Heros[i].HeroID
-			response.PlayerData.Heros[i].PropertyValue = robot.Heros[i].Propertys
+			response.PlayerData.Heros[i].HeroID = int32(robot.Heros[i].HeroID)
+			for j := 0; j < 11; j++ {
+				response.PlayerData.Heros[i].PropertyValue[j] = int32(robot.Heros[i].Propertys[j])
+			}
+
 		}
 	}
 
@@ -287,7 +296,7 @@ func Hand_RobTreasure(w http.ResponseWriter, r *http.Request) {
 
 	//! 检测参数
 	if req.RobPlayerID <= 0 || req.PlayerID <= 0 || req.TreasureID <= 0 {
-		gamelog.Error("Hand_RobTreasure Error: invalid parma. Player:%v  req: %s", player.GetPlayerID(), buffer)
+		gamelog.Error("Hand_RobTreasure Error: invalid parma. Player:%v  req: %s", player.playerid, buffer)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}

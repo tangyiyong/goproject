@@ -108,14 +108,14 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 
 	//! 判断种类
 	if req.SummonType != gamedata.Summon_Normal && req.SummonType != gamedata.Summon_Senior {
-		gamelog.Error("Hand_GetSummon error: invalid summonType: %d  PlayerID: %v", req.SummonType, player.GetPlayerID())
+		gamelog.Error("Hand_GetSummon error: invalid summonType: %d  PlayerID: %v", req.SummonType, player.playerid)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
 
 	//! 判断类型
 	if req.NumberType != 0 && req.NumberType != 1 {
-		gamelog.Error("Hand_GetSummon error: invalid numberType: %d  PlayerID: %v", req.NumberType, player.GetPlayerID())
+		gamelog.Error("Hand_GetSummon error: invalid numberType: %d  PlayerID: %v", req.NumberType, player.playerid)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}

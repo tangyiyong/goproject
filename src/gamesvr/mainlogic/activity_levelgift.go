@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"strconv"
 	"time"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type TLevelGiftInfo struct {
@@ -24,8 +25,8 @@ type TActivityLevelGift struct {
 	GiftLst       []TLevelGiftInfo //! 等级礼包
 	IsHaveNewItem bool             //! 红点显示规则
 
-	VersionCode int //! 版本号
-	ResetCode   int //! 迭代号
+	VersionCode int32 //! 版本号
+	ResetCode   int32 //! 迭代号
 
 	activityModule *TActivityModule //! 指针
 }
@@ -37,7 +38,7 @@ func (self *TActivityLevelGift) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityLevelGift) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityLevelGift) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -51,7 +52,7 @@ func (self *TActivityLevelGift) Init(activityID int, mPtr *TActivityModule, verc
 }
 
 //! 刷新数据
-func (self *TActivityLevelGift) Refresh(versionCode int) {
+func (self *TActivityLevelGift) Refresh(versionCode int32) {
 	//! 检测物品过期
 	self.CheckDeadLine()
 
@@ -59,7 +60,7 @@ func (self *TActivityLevelGift) Refresh(versionCode int) {
 	go self.DB_Refresh()
 }
 
-func (self *TActivityLevelGift) End(versionCode int, resetCode int) {
+func (self *TActivityLevelGift) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 
@@ -68,11 +69,11 @@ func (self *TActivityLevelGift) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityLevelGift) GetRefreshV() int {
+func (self *TActivityLevelGift) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityLevelGift) GetResetV() int {
+func (self *TActivityLevelGift) GetResetV() int32 {
 	return self.ResetCode
 }
 

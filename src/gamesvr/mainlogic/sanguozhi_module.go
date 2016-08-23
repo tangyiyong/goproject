@@ -22,19 +22,19 @@ type TSanGuoZhiData struct {
 type TSanGuoZhiDataLst []TSanGuoZhiData
 
 type TSanGuoZhiModule struct {
-	PlayerID  int `bson:"_id"`
+	PlayerID  int32 `bson:"_id"`
 	CurStarID int
 	// SanGuoZhi TSanGuoZhiDataLst
 	ownplayer *TPlayer
 }
 
-func (self *TSanGuoZhiModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TSanGuoZhiModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
 //! 玩家创建角色
-func (self *TSanGuoZhiModule) OnCreate(playerid int) {
+func (self *TSanGuoZhiModule) OnCreate(playerid int32) {
 	//! 初始化信息
 	self.PlayerID = playerid
 
@@ -43,22 +43,22 @@ func (self *TSanGuoZhiModule) OnCreate(playerid int) {
 }
 
 //! 玩家销毁角色
-func (self *TSanGuoZhiModule) OnDestroy(playerid int) {
+func (self *TSanGuoZhiModule) OnDestroy(playerid int32) {
 
 }
 
 //! 玩家进入游戏
-func (self *TSanGuoZhiModule) OnPlayerOnline(playerid int) {
+func (self *TSanGuoZhiModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离线
-func (self *TSanGuoZhiModule) OnPlayerOffline(playerid int) {
+func (self *TSanGuoZhiModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 预取玩家信息
-func (self *TSanGuoZhiModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TSanGuoZhiModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 

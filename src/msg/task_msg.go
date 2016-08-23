@@ -3,7 +3,7 @@ package msg
 //玩家请求日常任务数据
 //消息:/get_tasks
 type MSG_GetTasks_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -22,7 +22,7 @@ type MSG_GetTasks_Ack struct {
 //! 玩家请求日常任务完成奖励
 //! 消息: /receive_task
 type MSG_GetTaskAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	TaskID     int
 }
@@ -36,7 +36,7 @@ type MSG_GetTaskAward_Ack struct {
 //! 玩家请求任务积分宝箱奖励
 //! 消息: /receive_taskscore
 type MSG_GetTaskScoreAward_Req struct {
-	PlayerID     int
+	PlayerID     int32
 	SessionKey   string
 	ScoreAwardID int //! 请求领取积分宝箱ID
 }
@@ -50,7 +50,7 @@ type MSG_GetTaskScoreAward_Ack struct {
 //! 玩家请求任务积分信息
 //! 消息: /get_taskscore
 type MSG_GetTaskScores_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -68,7 +68,7 @@ type MSG_GetTaskScores_Ack struct {
 //! 获取当前成就任务
 //! 消息: /get_achievement
 type MSG_GetAchievementAll_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -87,7 +87,7 @@ type MSG_GetAchievementAll_Ack struct {
 //! 请求成就奖励
 //! 消息: /receive_achievement
 type MSG_GetAchievementAward_Req struct {
-	PlayerID      int
+	PlayerID      int32
 	SessionKey    string
 	AchievementID int
 }
@@ -100,7 +100,7 @@ type MSG_GetAchievementAward_Ack struct {
 //! 玩家请求开服天数
 //! 消息: /get_open_server_day
 type MSG_GetOpenServerDay_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -112,7 +112,7 @@ type MSG_GetOpenServerDay_Ack struct {
 //! 玩家请求七日活动进度信息
 //! 消息: /get_seven_activity
 type MSG_GetSevenActivity_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ActivityID int
 }
@@ -129,7 +129,7 @@ type MSG_GetSevenActivity_Ack struct {
 //! 玩家请求领取七日活动奖励
 //! 消息: /get_seven_activity_award
 type MSG_GetSevenActivityAward_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ActivityID int
 	TaskID     int
@@ -145,7 +145,7 @@ type MSG_GetSevenActivityAward_Ack struct {
 //! 玩家请求购买半价限购
 //! 消息: /buy_seven_activity_limit
 type MSG_BuySevenActivityLimitItem_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	ActivityID int
 	OpenDay    int //! 购买第几天的限购商品

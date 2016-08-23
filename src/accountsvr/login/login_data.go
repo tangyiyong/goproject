@@ -16,7 +16,7 @@ const Start_Account_ID = 10000 //10000以下的ID留给服务器使用。
 
 //账号表结构
 type TAccount struct {
-	AccountID  int    `bson:"_id"` //账号ID
+	AccountID  int32  `bson:"_id"` //账号ID
 	Name       string //账户名
 	Password   string //密码
 	CreateTime int64  //创建时间
@@ -29,10 +29,10 @@ type TAccount struct {
 
 type TAccountMgr struct {
 	accmutex       sync.Mutex
-	curAccountID   int
-	accountNameMap map[string]int
-	accountMap     map[int]TAccount
-	loginKeyMap    map[int]string
+	curAccountID   int32
+	accountNameMap map[string]int32
+	accountMap     map[int32]TAccount
+	loginKeyMap    map[int32]string
 }
 
 var (
@@ -100,13 +100,13 @@ func (accountmgr *TAccountMgr) AddNewAccount(name string, password string) (*TAc
 	return &account, msg.RE_SUCCESS
 }
 
-func (accountmgr *TAccountMgr) GetNextAccountID() (ret int) {
+func (accountmgr *TAccountMgr) GetNextAccountID() (ret int32) {
 	ret = accountmgr.curAccountID
 	accountmgr.curAccountID += 1
 	return
 }
 
-func (accountmgr *TAccountMgr) AddLoginKey(accountid int, loginkey string) {
+func (accountmgr *TAccountMgr) AddLoginKey(accountid int32, loginkey string) {
 	accountmgr.accmutex.Lock()
 	defer accountmgr.accmutex.Unlock()
 
@@ -115,7 +115,7 @@ func (accountmgr *TAccountMgr) AddLoginKey(accountid int, loginkey string) {
 	return
 }
 
-func (accountmgr *TAccountMgr) CheckLoginKey(accountid int, loginkey string) bool {
+func (accountmgr *TAccountMgr) CheckLoginKey(accountid int32, loginkey string) bool {
 	accountmgr.accmutex.Lock()
 	defer accountmgr.accmutex.Unlock()
 
@@ -147,9 +147,9 @@ func InitAccountMgr() bool {
 		G_AccountMgr.curAccountID = accountset[len(accountset)-1].AccountID + 1
 	}
 
-	G_AccountMgr.accountNameMap = make(map[string]int, 1024)
-	G_AccountMgr.accountMap = make(map[int]TAccount, 1024)
-	G_AccountMgr.loginKeyMap = make(map[int]string, 1024)
+	G_AccountMgr.accountNameMap = make(map[string]int32, 1024)
+	G_AccountMgr.accountMap = make(map[int32]TAccount, 1024)
+	G_AccountMgr.loginKeyMap = make(map[int32]string, 1024)
 
 	var acc TAccount
 	for _, acc = range accountset {
@@ -174,7 +174,7 @@ func CheckAccountName(account string) bool {
 	return true
 }
 
-func ChangeLoginCountAndLast(AccountID int, GameSvrDomainID int) {
+func ChangeLoginCountAndLast(AccountID int32, GameSvrDomainID int) {
 	db_Session := mongodb.GetDBSession()
 	defer db_Session.Close()
 	AcountColn := db_Session.DB(appconfig.AccountDbName).C("Account")

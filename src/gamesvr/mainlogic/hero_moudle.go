@@ -18,7 +18,7 @@ const (
 )
 
 type THeroMoudle struct {
-	PlayerID    int                   `bson:"_id"` //玩家ID
+	PlayerID    int32                 `bson:"_id"` //玩家ID
 	CurHeros    [BATTLE_NUM]THeroData //上阵英雄
 	BackHeros   [BATTLE_NUM]THeroData //援军英雄
 	CurEquips   [EQUIP_NUM]TEquipData //上阵装备
@@ -39,13 +39,13 @@ type THeroMoudle struct {
 	ownplayer *TPlayer //父player指针
 }
 
-func (self *THeroMoudle) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *THeroMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
 //OnCreate 响应角色创建
-func (self *THeroMoudle) OnCreate(playerid int) {
+func (self *THeroMoudle) OnCreate(playerid int32) {
 	self.PlayerID = playerid
 	if self.CurHeros[0].HeroID <= 0 {
 		gamelog.Error("Create Hero Moudle Failed, Hero is 0 !")
@@ -59,22 +59,22 @@ func (self *THeroMoudle) OnCreate(playerid int) {
 }
 
 //OnDestroy player销毁
-func (self *THeroMoudle) OnDestroy(playerid int) {
+func (self *THeroMoudle) OnDestroy(playerid int32) {
 
 }
 
 //OnPlayerOnline player进入游戏
-func (self *THeroMoudle) OnPlayerOnline(playerid int) {
+func (self *THeroMoudle) OnPlayerOnline(playerid int32) {
 
 }
 
 //OnPlayerOffline player 离开游戏
-func (self *THeroMoudle) OnPlayerOffline(playerid int) {
+func (self *THeroMoudle) OnPlayerOffline(playerid int32) {
 
 }
 
 //OnLoad 从数据库中加载
-func (self *THeroMoudle) OnPlayerLoad(playerid int, wg *sync.WaitGroup) bool {
+func (self *THeroMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) bool {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 	var bRet = true

@@ -12,15 +12,15 @@ import (
 
 var (
 	mMutex        sync.Mutex
-	g_Players     map[int]*TPlayer //玩家集
-	g_OnlineCount int              //在线玩家数量
+	g_Players     map[int32]*TPlayer //玩家集
+	g_OnlineCount int                //在线玩家数量
 
 	g_CurSelectIndex int        //当前选择索引
 	g_SelectPlayers  []*TPlayer //用来选择用的玩家表
 
 )
 
-func GetPlayerByID(playerid int) *TPlayer {
+func GetPlayerByID(playerid int32) *TPlayer {
 	mMutex.Lock()
 	defer mMutex.Unlock()
 	info, ok := g_Players[playerid]
@@ -31,12 +31,12 @@ func GetPlayerByID(playerid int) *TPlayer {
 	return nil
 }
 
-func CreatePlayer(playerid int, name string, heroid int) (*TPlayer, bool) {
+func CreatePlayer(playerid int32, name string, heroid int) (*TPlayer, bool) {
 	mMutex.Lock()
 	_, ok := g_Players[playerid]
 	if ok {
 		mMutex.Unlock()
-		gamelog.Error("Create Player Failed Error : playerid : %d exist!!!")
+		gamelog.Error("Create Player Failed Error : playerid : %d exist!!!", playerid)
 		return nil, false
 	}
 
@@ -51,7 +51,7 @@ func CreatePlayer(playerid int, name string, heroid int) (*TPlayer, bool) {
 	return pPlayer, true
 }
 
-func LoadPlayerFromDB(playerid int) *TPlayer {
+func LoadPlayerFromDB(playerid int32) *TPlayer {
 	if playerid <= 0 {
 		gamelog.Error("LoadPlayerFromDB Error : Invalid playerid :%d", playerid)
 		return nil
@@ -75,7 +75,7 @@ func GetOnlineCount() int {
 	return g_OnlineCount
 }
 
-func DestroyPlayer(playerid int) bool {
+func DestroyPlayer(playerid int32) bool {
 	mMutex.Lock()
 	defer mMutex.Unlock()
 
@@ -89,7 +89,7 @@ func DestroyPlayer(playerid int) bool {
 }
 
 type TReslutID struct {
-	ID int "_id"
+	ID int32 `bson:"_id"` //主键 玩家ID
 }
 
 //将一些有价值的玩家预先加载到服务器中

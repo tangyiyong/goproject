@@ -68,12 +68,12 @@ func (self *PacketReader) ReadInt16() (ret int16) {
 //	return
 //}
 
-func (self *PacketReader) ReadInt32() (ret int) {
+func (self *PacketReader) ReadInt32() (ret int32) {
 	if self.ReadPos >= self.TotalLen {
 		gamelog.Error("ReadInt16 Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
 		return 0
 	}
-	ret = int(self.DataPtr[self.ReadPos+3])<<24 | int(self.DataPtr[self.ReadPos+2])<<16 | int(self.DataPtr[self.ReadPos+1])<<8 | int(self.DataPtr[self.ReadPos])
+	ret = int32(self.DataPtr[self.ReadPos+3])<<24 | int32(self.DataPtr[self.ReadPos+2])<<16 | int32(self.DataPtr[self.ReadPos+1])<<8 | int32(self.DataPtr[self.ReadPos])
 	self.ReadPos += 4
 	return
 }
@@ -203,7 +203,7 @@ func (self *PacketWriter) WriteInt16(v int16) {
 //	return
 //}
 
-func (self *PacketWriter) WriteInt32(v int) {
+func (self *PacketWriter) WriteInt32(v int32) {
 	self.DataPtr = append(self.DataPtr, byte(v), byte(v>>8), byte(v>>16), byte(v>>24))
 	return
 }

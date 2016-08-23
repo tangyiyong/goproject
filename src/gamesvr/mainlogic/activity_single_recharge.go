@@ -5,8 +5,9 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type TSingleRechargeRecord struct {
@@ -43,8 +44,8 @@ type TActivitySingleRecharge struct {
 	ActivityID     int                     //! 活动ID
 	RechargeRecord SingleRechargeRecordLst //! 活动期间单笔充值记录
 	SingleAwardLst []TActivityRechargeInfo //! 单充奖励领取记录
-	VersionCode    int                     //! 版本号
-	ResetCode      int                     //! 迭代号
+	VersionCode    int32                   //! 版本号
+	ResetCode      int32                   //! 迭代号
 	activityModule *TActivityModule        //! 指针
 }
 
@@ -55,7 +56,7 @@ func (self *TActivitySingleRecharge) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivitySingleRecharge) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivitySingleRecharge) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -65,13 +66,13 @@ func (self *TActivitySingleRecharge) Init(activityID int, mPtr *TActivityModule,
 }
 
 //! 刷新数据
-func (self *TActivitySingleRecharge) Refresh(versionCode int) {
+func (self *TActivitySingleRecharge) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
 	go self.DB_Refresh()
 }
 
 //! 活动结束
-func (self *TActivitySingleRecharge) End(versionCode int, resetCode int) {
+func (self *TActivitySingleRecharge) End(versionCode int32, resetCode int32) {
 	self.RechargeRecord = []TSingleRechargeRecord{}
 	self.SingleAwardLst = []TActivityRechargeInfo{}
 	self.VersionCode = versionCode
@@ -79,11 +80,11 @@ func (self *TActivitySingleRecharge) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivitySingleRecharge) GetRefreshV() int {
+func (self *TActivitySingleRecharge) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivitySingleRecharge) GetResetV() int {
+func (self *TActivitySingleRecharge) GetResetV() int32 {
 	return self.ResetCode
 }
 

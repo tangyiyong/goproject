@@ -6,7 +6,7 @@ package msg
 //! 玩家请求充值信息
 //get_charge_info
 type MSG_GetChargeInfo_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -19,7 +19,7 @@ type MSG_GetChargeInfo_Ack struct {
 //! 玩家请求充值结果
 //! 消息: /get_charge_result
 type MSG_GetChargeResult_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -33,7 +33,7 @@ type MSG_GetChargeResult_Ack struct {
 //! 玩家领取月卡
 //! 消息: /receive_month_card
 type MSG_ReceiveMonthCard_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	CardID     int //月卡ID
 }

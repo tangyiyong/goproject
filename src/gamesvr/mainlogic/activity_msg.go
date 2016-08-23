@@ -388,7 +388,7 @@ type ActivityScoreFunc interface {
 	GetTotalScore() int
 }
 
-func MakeMsgRankInfo(playerID int, response *msg.MSG_GetActivityRank_Ack, todayRanker, yesterdayRanker, totalRanker *utility.TRanker, module ActivityScoreFunc) {
+func MakeMsgRankInfo(playerID int32, response *msg.MSG_GetActivityRank_Ack, todayRanker, yesterdayRanker, totalRanker *utility.TRanker, module ActivityScoreFunc) {
 	response.TodayRankLst = GetActivityRankList(todayRanker)
 	response.TotalRankLst = GetActivityRankList(totalRanker)
 
@@ -404,7 +404,7 @@ func MakeMsgRankInfo(playerID int, response *msg.MSG_GetActivityRank_Ack, todayR
 }
 func GetActivityRankList(ranker *utility.TRanker) (ret []msg.MSG_OperationalActivityRank) {
 	ranker.ForeachShow(
-		func(rankID int, rankVal int) {
+		func(rankID int32, rankVal int) {
 			simpleInfo := G_SimpleMgr.GetSimpleInfoByID(rankID)
 			if simpleInfo != nil {
 				ret = append(ret, msg.MSG_OperationalActivityRank{

@@ -113,7 +113,7 @@ func Hand_DailySign(w http.ResponseWriter, r *http.Request) {
 	//! 检测时间
 	if player.ActivityModule.Sign.IsSign == true {
 		response.RetCode = msg.RE_ALREADY_RECEIVED
-		gamelog.Error("Hand_DailySign error: Aleady Sign. playerID: %v", player.GetPlayerID())
+		gamelog.Error("Hand_DailySign error: Aleady Sign. playerID: %v", player.playerid)
 		return
 	}
 
@@ -121,7 +121,7 @@ func Hand_DailySign(w http.ResponseWriter, r *http.Request) {
 	ret := false
 	ret, response.ItemID, response.ItemNum = player.ActivityModule.Sign.Sign()
 	if ret == false {
-		gamelog.Error("Hand_DailySign error: Sign fail. playerID: %v", player.GetPlayerID())
+		gamelog.Error("Hand_DailySign error: Sign fail. playerID: %v", player.playerid)
 		return
 	}
 
@@ -173,7 +173,7 @@ func Hand_SignPlus(w http.ResponseWriter, r *http.Request) {
 	//! 检测豪华签到时间
 	if player.ActivityModule.Sign.IsSignPlus == true {
 		response.RetCode = msg.RE_ALREADY_RECEIVED
-		gamelog.Error("Can't sign plus. playerID: %v", player.GetPlayerID())
+		gamelog.Error("Can't sign plus. playerID: %v", player.playerid)
 		return
 	}
 

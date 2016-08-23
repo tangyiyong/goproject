@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"strconv"
 	"strings"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 type TRankGiftInfo struct {
@@ -23,8 +24,8 @@ type TActivityRankGift struct {
 	GiftLst       []TRankGiftInfo //! 等级礼包
 	IsHaveNewItem bool            //! 红点显示规则
 
-	VersionCode int //! 版本号
-	ResetCode   int //! 迭代号
+	VersionCode int32 //! 版本号
+	ResetCode   int32 //! 迭代号
 
 	activityModule *TActivityModule //! 指针
 }
@@ -36,7 +37,7 @@ func (self *TActivityRankGift) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityRankGift) Init(activityID int, mPtr *TActivityModule, vercode int, resetcode int) {
+func (self *TActivityRankGift) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -50,12 +51,12 @@ func (self *TActivityRankGift) Init(activityID int, mPtr *TActivityModule, verco
 }
 
 //! 刷新数据
-func (self *TActivityRankGift) Refresh(versionCode int) {
+func (self *TActivityRankGift) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
 	go self.DB_Refresh()
 }
 
-func (self *TActivityRankGift) End(versionCode int, resetCode int) {
+func (self *TActivityRankGift) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 
@@ -64,11 +65,11 @@ func (self *TActivityRankGift) End(versionCode int, resetCode int) {
 	go self.DB_Reset()
 }
 
-func (self *TActivityRankGift) GetRefreshV() int {
+func (self *TActivityRankGift) GetRefreshV() int32 {
 	return self.VersionCode
 }
 
-func (self *TActivityRankGift) GetResetV() int {
+func (self *TActivityRankGift) GetResetV() int32 {
 	return self.ResetCode
 }
 

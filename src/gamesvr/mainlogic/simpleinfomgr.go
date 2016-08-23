@@ -10,8 +10,8 @@ import (
 )
 
 type TSimpleInfo struct {
-	PlayerID      int    `bson:"_id"` //玩家ID
-	AccountID     int    //账号ID
+	PlayerID      int32  `bson:"_id"` //玩家ID
+	AccountID     int32  //账号ID
 	GuildID       int    //公会ID
 	HeroID        int    //英雄ID
 	Quality       int    //主角品质
@@ -21,22 +21,22 @@ type TSimpleInfo struct {
 	FightValue    int    //玩家的战力
 	LogoffTime    int64  //离线时间
 	AwardCenterID int    //奖励中心ID
-	isOnline      bool   //是否在线
 	BatCamp       int    //阵营战阵营
-	LoginDay      int    //登录日期
+	LoginDay      uint32 //登录日期
+	isOnline      bool   //是否在线
 }
 
 type TSimpleInfoMgr struct {
-	SimpleList map[int]*TSimpleInfo //角色离线信息map
-	NameIDMap  map[string]int       //名字到ID的map
+	SimpleList map[int32]*TSimpleInfo //角色离线信息map
+	NameIDMap  map[string]int32       //名字到ID的map
 	SimpleLock sync.Mutex
 }
 
 var G_SimpleMgr TSimpleInfoMgr
 
 func (mgr *TSimpleInfoMgr) Init() bool {
-	mgr.SimpleList = make(map[int]*TSimpleInfo, 1000)
-	mgr.NameIDMap = make(map[string]int, 1000)
+	mgr.SimpleList = make(map[int32]*TSimpleInfo, 1000)
+	mgr.NameIDMap = make(map[string]int32, 1000)
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -54,16 +54,15 @@ func (mgr *TSimpleInfoMgr) Init() bool {
 		return true
 	}
 
-	var i int
-	for i = 0; i < nCount; i++ {
-		mgr.SimpleList[simplevec[i].AccountID] = &simplevec[i]
+	for i := 0; i < nCount; i++ {
+		mgr.SimpleList[simplevec[i].PlayerID] = &simplevec[i]
 		mgr.NameIDMap[simplevec[i].Name] = simplevec[i].PlayerID
 	}
 
 	return true
 }
 
-func GetPlayerIDByAccountID(accountid int) int {
+func GetPlayerIDByAccountID(accountid int32) int32 {
 	G_SimpleMgr.SimpleLock.Lock()
 	defer G_SimpleMgr.SimpleLock.Unlock()
 
@@ -75,7 +74,7 @@ func GetPlayerIDByAccountID(accountid int) int {
 	return 0
 }
 
-func (mgr *TSimpleInfoMgr) GetPlayerIDByName(name string) int {
+func (mgr *TSimpleInfoMgr) GetPlayerIDByName(name string) int32 {
 	mgr.SimpleLock.Lock()
 	defer mgr.SimpleLock.Unlock()
 
@@ -87,7 +86,7 @@ func (mgr *TSimpleInfoMgr) GetPlayerIDByName(name string) int {
 	return 0
 }
 
-func (mgr *TSimpleInfoMgr) GetPlayerLogoffTime(playerid int) int64 {
+func (mgr *TSimpleInfoMgr) GetPlayerLogoffTime(playerid int32) int64 {
 	mgr.SimpleLock.Lock()
 	defer mgr.SimpleLock.Unlock()
 
@@ -99,7 +98,7 @@ func (mgr *TSimpleInfoMgr) GetPlayerLogoffTime(playerid int) int64 {
 	return 0
 }
 
-func (mgr *TSimpleInfoMgr) GetSimpleInfoByID(playerid int) *TSimpleInfo {
+func (mgr *TSimpleInfoMgr) GetSimpleInfoByID(playerid int32) *TSimpleInfo {
 	mgr.SimpleLock.Lock()
 	defer mgr.SimpleLock.Unlock()
 
@@ -112,11 +111,11 @@ func (mgr *TSimpleInfoMgr) GetSimpleInfoByID(playerid int) *TSimpleInfo {
 	return nil
 }
 
-func (mgr *TSimpleInfoMgr) GetPlayerAwardCenterID(playerID int) int {
+func (mgr *TSimpleInfoMgr) GetPlayerAwardCenterID(playerid int32) int {
 	mgr.SimpleLock.Lock()
 	defer mgr.SimpleLock.Unlock()
 
-	pInfo, ok := G_SimpleMgr.SimpleList[playerID]
+	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	if ok && pInfo != nil {
 		return pInfo.AwardCenterID
 	}
@@ -124,14 +123,14 @@ func (mgr *TSimpleInfoMgr) GetPlayerAwardCenterID(playerID int) int {
 	return 0
 }
 
-func (mgr *TSimpleInfoMgr) RemoveSimpleInfo(playerid int) bool {
+func (mgr *TSimpleInfoMgr) RemoveSimpleInfo(playerid int32) bool {
 	mgr.SimpleLock.Lock()
 	defer mgr.SimpleLock.Unlock()
 	delete(mgr.SimpleList, playerid)
 	return true
 }
 
-func (mgr *TSimpleInfoMgr) Get_FightValue(playerid int) int {
+func (mgr *TSimpleInfoMgr) Get_FightValue(playerid int32) int {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -141,7 +140,7 @@ func (mgr *TSimpleInfoMgr) Get_FightValue(playerid int) int {
 	return 0
 }
 
-func (mgr *TSimpleInfoMgr) Set_FightValue(playerid int, fightvalue int, level int) bool {
+func (mgr *TSimpleInfoMgr) Set_FightValue(playerid int32, fightvalue int, level int) bool {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -156,7 +155,7 @@ func (mgr *TSimpleInfoMgr) Set_FightValue(playerid int, fightvalue int, level in
 	return false
 }
 
-func (mgr *TSimpleInfoMgr) Set_PlayerName(playerid int, name string) {
+func (mgr *TSimpleInfoMgr) Set_PlayerName(playerid int32, name string) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -168,7 +167,7 @@ func (mgr *TSimpleInfoMgr) Set_PlayerName(playerid int, name string) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_LogoffTime(playerid int, time int64) {
+func (mgr *TSimpleInfoMgr) Set_LogoffTime(playerid int32, time int64) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -180,7 +179,7 @@ func (mgr *TSimpleInfoMgr) Set_LogoffTime(playerid int, time int64) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_HeroID(playerid int, heroid int) {
+func (mgr *TSimpleInfoMgr) Set_HeroID(playerid int32, heroid int) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -192,7 +191,7 @@ func (mgr *TSimpleInfoMgr) Set_HeroID(playerid int, heroid int) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_HeroQuality(playerid int, quality int) {
+func (mgr *TSimpleInfoMgr) Set_HeroQuality(playerid int32, quality int) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -204,7 +203,7 @@ func (mgr *TSimpleInfoMgr) Set_HeroQuality(playerid int, quality int) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_VipLevel(playerid int, viplevel int) {
+func (mgr *TSimpleInfoMgr) Set_VipLevel(playerid int32, viplevel int) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -216,19 +215,19 @@ func (mgr *TSimpleInfoMgr) Set_VipLevel(playerid int, viplevel int) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_AwardCenterID(playerID int, awardCenterID int) {
+func (mgr *TSimpleInfoMgr) Set_AwardCenterID(playerid int32, awardCenterID int) {
 	mgr.SimpleLock.Lock()
-	pInfo, ok := G_SimpleMgr.SimpleList[playerID]
+	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
 	if ok && pInfo != nil && pInfo.AwardCenterID != awardCenterID {
 		pInfo.AwardCenterID = awardCenterID
-		G_SimpleMgr.DB_SetAwardCenterID(playerID, awardCenterID)
+		G_SimpleMgr.DB_SetAwardCenterID(playerid, awardCenterID)
 		return
 	}
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_BatCamp(playerid int, camp int) {
+func (mgr *TSimpleInfoMgr) Set_BatCamp(playerid int32, camp int) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -240,7 +239,7 @@ func (mgr *TSimpleInfoMgr) Set_BatCamp(playerid int, camp int) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_LoginDay(playerid int, day int) {
+func (mgr *TSimpleInfoMgr) Set_LoginDay(playerid int32, day uint32) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -252,7 +251,7 @@ func (mgr *TSimpleInfoMgr) Set_LoginDay(playerid int, day int) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_GuildID(playerid int, guildid int) {
+func (mgr *TSimpleInfoMgr) Set_GuildID(playerid int32, guildid int) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -264,7 +263,7 @@ func (mgr *TSimpleInfoMgr) Set_GuildID(playerid int, guildid int) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Get_GuildID(playerid int) int {
+func (mgr *TSimpleInfoMgr) Get_GuildID(playerid int32) int {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()

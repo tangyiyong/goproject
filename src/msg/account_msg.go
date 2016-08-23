@@ -9,7 +9,7 @@ type MSG_Login_Req struct {
 
 type MSG_Login_Ack struct {
 	RetCode     int    //返回码 0:成功 1: 账号不存在 2: 密码不正确
-	AccountID   int    //账号ID
+	AccountID   int32  //账号ID
 	LoginKey    string //登录key
 	LastSvrID   int    //上次登录SvrID
 	LastSvrName string //上次登录svrName
@@ -30,7 +30,7 @@ type MSG_RegAccount_Ack struct {
 //请求服务器列表
 //消息:/serverlist
 type MSG_ServerList_Req struct {
-	AccountID   int    //账号ID
+	AccountID   int32  //账号ID
 	AccountName string //账户名
 	LoginKey    string //登录key
 }
@@ -51,7 +51,7 @@ type MSG_ServerList_Ack struct {
 //验证玩家登录请求
 //消息:/verifyuserlogin
 type MSG_VerifyUserLogin_Req struct {
-	AccountID   int    //账号ID
+	AccountID   int32  //账号ID
 	AccountName string //账户名
 	LoginKey    string //登录key
 	DomainID    int    //服务器ID

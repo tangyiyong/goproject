@@ -60,14 +60,14 @@ func Hand_QueryHuntTreasure(w http.ResponseWriter, r *http.Request) {
 	response.FreeTimes = player.ActivityModule.HuntTreasure.FreeTimes
 	response.TodayRank = -1
 	for i, v := range G_HuntTreasureTotalRanker.List {
-		if v.RankID == player.GetPlayerID() {
+		if v.RankID == player.playerid {
 			response.TotalRank = i + 1
 			break
 		}
 	}
 
 	for i, v := range G_HuntTreasureTodayRanker.List {
-		if v.RankID == player.GetPlayerID() {
+		if v.RankID == player.playerid {
 			response.TodayRank = i + 1
 			break
 		}
@@ -132,7 +132,7 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 			if player.BagMoudle.IsItemEnough(gamedata.HuntTicketItemID, needItemNum) == false {
 				//! 判断钱
 				if player.RoleMoudle.CheckMoneyEnough(gamedata.HuntCostMoneyID, gamedata.HuntCostMoneyNum*10) == false {
-					gamelog.Error("Hand_StartHuntTreasure Error: %v Not enough game money", player.GetPlayerID())
+					gamelog.Error("Hand_StartHuntTreasure Error: %v Not enough game money", player.playerid)
 					response.RetCode = msg.RE_ITEM_NOT_ENOUGH
 					return
 				} else {
@@ -158,7 +158,7 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 				player.RoleMoudle.CostMoney(gamedata.HuntCostMoneyID, gamedata.HuntCostMoneyNum)
 				response.CostItem = msg.MSG_ItemData{gamedata.HuntCostMoneyID, gamedata.HuntCostMoneyNum}
 			} else {
-				gamelog.Error("Hand_StartHuntTreasure Error: %v Not enough game money", player.GetPlayerID())
+				gamelog.Error("Hand_StartHuntTreasure Error: %v Not enough game money", player.playerid)
 				response.RetCode = msg.RE_ITEM_NOT_ENOUGH
 				return
 			}
@@ -175,7 +175,7 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 		//! 使用幸运骰子
 		if player.BagMoudle.IsItemEnough(gamedata.LuckyDiceItemID, 1) == false {
 			if player.RoleMoudle.CheckMoneyEnough(gamedata.HuntCostMoneyID, 30) == false {
-				gamelog.Error("Hand_StartHuntTreasure Error: %v Not enough luck dice", player.GetPlayerID())
+				gamelog.Error("Hand_StartHuntTreasure Error: %v Not enough luck dice", player.playerid)
 				response.RetCode = msg.RE_ITEM_NOT_ENOUGH
 				return
 			} else {
@@ -351,8 +351,8 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 	response.TodayRank = -1
 	response.TotalRank = -1
 
-	response.TodayRank = G_HuntTreasureTodayRanker.SetRankItem(player.GetPlayerID(), player.ActivityModule.HuntTreasure.TodayScore[indexToday])
-	response.TotalRank = G_HuntTreasureTotalRanker.SetRankItem(player.GetPlayerID(), player.ActivityModule.HuntTreasure.Score)
+	response.TodayRank = G_HuntTreasureTodayRanker.SetRankItem(player.playerid, player.ActivityModule.HuntTreasure.TodayScore[indexToday])
+	response.TotalRank = G_HuntTreasureTotalRanker.SetRankItem(player.playerid, player.ActivityModule.HuntTreasure.Score)
 
 	response.Score = player.ActivityModule.HuntTreasure.TodayScore[indexToday]
 	response.CurrentPos = player.ActivityModule.HuntTreasure.CurrentPos
@@ -443,14 +443,14 @@ func Hand_GetHuntTurnsAward(w http.ResponseWriter, r *http.Request) {
 	//! 检查参数合法性
 	activityInfo := gamedata.GetActivityInfo(activityID)
 	if req.ID > gamedata.GetHuntTreasureAwardCount(activityInfo.AwardType) || req.ID < 1 {
-		gamelog.Error("Hand_GetHuntTurnsAward Error: %v Invalid param", player.GetPlayerID())
+		gamelog.Error("Hand_GetHuntTurnsAward Error: %v Invalid param", player.playerid)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
 
 	//! 判断该奖励是否已经领取
 	if player.ActivityModule.HuntTreasure.HuntAward.Get(uint(req.ID)) == true {
-		gamelog.Error("Hand_GetHuntTurnsAward Error: %v Repeat get award %d", player.GetPlayerID(), req.ID)
+		gamelog.Error("Hand_GetHuntTurnsAward Error: %v Repeat get award %d", player.playerid, req.ID)
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
 	}
@@ -458,7 +458,7 @@ func Hand_GetHuntTurnsAward(w http.ResponseWriter, r *http.Request) {
 	//! 判断领奖条件
 	award := gamedata.GetHuntTreasureAward(req.ID, activityInfo.AwardType)
 	if player.ActivityModule.HuntTreasure.HuntTurns < award.NeedTurn {
-		gamelog.Error("Hand_GetHuntTurnsAward Error: %v Turns not enough", player.GetPlayerID())
+		gamelog.Error("Hand_GetHuntTurnsAward Error: %v Turns not enough", player.playerid)
 		response.RetCode = msg.RE_TURNS_NOT_ENOUGH
 		return
 	}
@@ -641,9 +641,9 @@ func Hand_BuyHuntTreasureStroreItem(w http.ResponseWriter, r *http.Request) {
 	player.ActivityModule.HuntTreasure.IsHaveStore = false
 	go player.ActivityModule.HuntTreasure.DB_SaveStoreMark()
 
-	G_HuntTreasureTodayRanker.SetRankItem(player.GetPlayerID(), player.ActivityModule.HuntTreasure.TodayScore[indexToday])
+	G_HuntTreasureTodayRanker.SetRankItem(player.playerid, player.ActivityModule.HuntTreasure.TodayScore[indexToday])
 
-	G_HuntTreasureTotalRanker.SetRankItem(player.GetPlayerID(), player.ActivityModule.HuntTreasure.Score)
+	G_HuntTreasureTotalRanker.SetRankItem(player.playerid, player.ActivityModule.HuntTreasure.Score)
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

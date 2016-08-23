@@ -64,7 +64,7 @@ func (tcpConn *TCPConn) WriteMsg(msgID int16, msgdata []byte) bool {
 	return true
 }
 
-func (tcpConn *TCPConn) WriteMsgContinue(playerid int, msgID int16, msgdata []byte) bool {
+func (tcpConn *TCPConn) WriteMsgContinue(playerid int32, msgID int16, msgdata []byte) bool {
 	msgLen := len(msgdata)
 	msgbuffer := make([]byte, 12+msgLen)
 	binary.LittleEndian.PutUint32(msgbuffer, uint32(msgLen+10))

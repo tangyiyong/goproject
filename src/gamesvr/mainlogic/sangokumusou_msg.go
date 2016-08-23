@@ -1088,7 +1088,7 @@ func Hand_GetSangokuMusou_StoreItem(w http.ResponseWriter, r *http.Request) {
 	//! 参数检查
 	if req.Num <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_GetSangokuMusou_StoreItem invalid item num. Num: %d  PlayerID: %v", req.Num, player.GetPlayerID())
+		gamelog.Error("Hand_GetSangokuMusou_StoreItem invalid item num. Num: %d  PlayerID: %v", req.Num, player.playerid)
 		return
 	}
 

@@ -45,15 +45,15 @@ type THeroSoulsProperty struct {
 
 //! 将灵模块
 type THeroSoulsModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
-	TargetIndex          int  //! 指针指向
-	UnLockChapter        int  //! 当前解锁章节
-	SoulMapValue         int  //! 阵图值
-	ChallengeTimes       int  //! 当前剩余挑战将灵次数
-	BuyChallengeTimes    int  //! 当前已购买挑战将灵次数
-	ResetDay             int  //! 重置天数
-	RefreshStoreTimeMark Mark //! 更新商店时间标记
+	TargetIndex          int    //! 指针指向
+	UnLockChapter        int    //! 当前解锁章节
+	SoulMapValue         int    //! 阵图值
+	ChallengeTimes       int    //! 当前剩余挑战将灵次数
+	BuyChallengeTimes    int    //! 当前已购买挑战将灵次数
+	ResetDay             uint32 //! 重置天数
+	RefreshStoreTimeMark Mark   //! 更新商店时间标记
 
 	Achievement int //! 阵图成就
 
@@ -195,12 +195,12 @@ func (self *THeroSoulsModule) CalcAchievementProperty() (propertyLst []THeroSoul
 	return propertyLst
 }
 
-func (self *THeroSoulsModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *THeroSoulsModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
-func (self *THeroSoulsModule) OnCreate(playerid int) {
+func (self *THeroSoulsModule) OnCreate(playerid int32) {
 	//! 初始化各类参数
 	self.ResetHeroSoulsLst(false)
 	self.RefreshHeroSoulsStore(false)
@@ -214,21 +214,21 @@ func (self *THeroSoulsModule) OnCreate(playerid int) {
 	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerHeroSouls", self)
 }
 
-func (self *THeroSoulsModule) OnDestroy(playerid int) {
+func (self *THeroSoulsModule) OnDestroy(playerid int32) {
 
 }
 
-func (self *THeroSoulsModule) OnPlayerOnline(playerid int) {
+func (self *THeroSoulsModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离开游戏
-func (self *THeroSoulsModule) OnPlayerOffline(playerid int) {
+func (self *THeroSoulsModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 读取玩家
-func (self *THeroSoulsModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *THeroSoulsModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -281,7 +281,7 @@ func (self *THeroSoulsModule) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *THeroSoulsModule) OnNewDay(newday int) {
+func (self *THeroSoulsModule) OnNewDay(newday uint32) {
 	self.BuyChallengeTimes = 0
 	self.RefreshStoreTimeMark = 0
 	self.ChallengeTimes = gamedata.HeroSoulsChallengeTimes

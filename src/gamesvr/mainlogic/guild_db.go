@@ -46,12 +46,12 @@ func (self *TGuild) DB_RemoveGuildEvent(event GuildEvent) {
 }
 
 //! 增加申请名单
-func DB_AddApplyList(guildID int, playerid int) {
+func DB_AddApplyList(guildID int, playerid int32) {
 	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, "applylist", playerid)
 }
 
 //! 删除申请名单
-func DB_RemoveApplyList(guildID int, playerid int) {
+func DB_RemoveApplyList(guildID int, playerid int32) {
 	mongodb.RemoveFromArray(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, "applylist", playerid)
 }
 
@@ -174,8 +174,8 @@ func (self *TGuildModule) DB_UpdateCopyAction() {
 }
 
 //! 更新最高伤害与攻击次数
-func (self *TGuild) DB_UpdateDamageAndTimes(playerID int, battleTimes int, battleDamage int64) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID, "memberlist.playerid": playerID}, bson.M{"$set": bson.M{
+func (self *TGuild) DB_UpdateDamageAndTimes(playerid int32, battleTimes int, battleDamage int64) {
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID, "memberlist.playerid": playerid}, bson.M{"$set": bson.M{
 		"memberlist.$.battletimes":  battleTimes,
 		"memberlist.$.battledamage": battleDamage}})
 }
@@ -226,8 +226,8 @@ func (self *TGuild) DB_UpdateGuildName() {
 }
 
 //! 将玩家踢出公会
-func (self *TGuildModule) DB_KickPlayer(playerID int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": playerID}, bson.M{"$set": bson.M{
+func (self *TGuildModule) DB_KickPlayer(playerid int32) {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": playerid}, bson.M{"$set": bson.M{
 		"role":              0,
 		"guildid":           0,
 		"actionrecovertime": 0}})

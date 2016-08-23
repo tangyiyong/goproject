@@ -18,19 +18,19 @@ type TItemShoppingInfo struct {
 }
 
 type TMallModule struct {
-	PlayerID     int `bson:"_id"`
+	PlayerID     int32 `bson:"_id"`
 	ShoppingInfo []TItemShoppingInfo
-	ResetDay     int //! 重置时间
+	ResetDay     uint32 //! 重置时间
 	ownplayer    *TPlayer
 }
 
-func (self *TMallModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TMallModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
 //! 玩家创建角色
-func (self *TMallModule) OnCreate(playerid int) {
+func (self *TMallModule) OnCreate(playerid int32) {
 	//! 初始化信息
 	self.PlayerID = playerid
 
@@ -41,22 +41,22 @@ func (self *TMallModule) OnCreate(playerid int) {
 }
 
 //! 玩家销毁角色
-func (self *TMallModule) OnDestroy(playerid int) {
+func (self *TMallModule) OnDestroy(playerid int32) {
 
 }
 
 //! 玩家进入游戏
-func (self *TMallModule) OnPlayerOnline(playerid int) {
+func (self *TMallModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离线
-func (self *TMallModule) OnPlayerOffline(playerid int) {
+func (self *TMallModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 预取玩家信息
-func (self *TMallModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TMallModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -79,7 +79,7 @@ func (self *TMallModule) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *TMallModule) OnNewDay(newday int) {
+func (self *TMallModule) OnNewDay(newday uint32) {
 	self.ResetDay = newday
 	for i := 0; i < len(self.ShoppingInfo); i++ {
 		//! 普通商品购买次数刷新

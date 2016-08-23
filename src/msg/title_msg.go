@@ -3,7 +3,7 @@ package msg
 //! 玩家查询称号状态
 //! 消息: /get_title
 type MSG_GetTitle_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 }
 
@@ -21,7 +21,7 @@ type MSG_GetTitle_Ack struct {
 //! 玩家请求激活称号
 //! 消息: /activate_title
 type MSG_ActivateTitle_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	TitleID    int
 }
@@ -33,7 +33,7 @@ type MSG_ActivateTitle_Ack struct {
 //! 玩家请求装备称号
 //! 消息: /equi_title
 type MSG_EquiTitle_Req struct {
-	PlayerID   int
+	PlayerID   int32
 	SessionKey string
 	TitleID    int
 }

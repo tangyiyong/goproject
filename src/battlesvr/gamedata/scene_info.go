@@ -22,7 +22,7 @@ type TPoint struct {
 }
 
 type TCamp struct {
-	BatCamp   int    `xml:"batcamp,attr"` //阵营战阵营
+	BatCamp   int32  `xml:"batcamp,attr"` //阵营战阵营
 	SafeRect  TRect  `xml:"Safe"`
 	MoveBegin TRect  `xml:"MoveBegin"`
 	MoveEnd   TRect  `xml:"MoveEnd"`
@@ -32,15 +32,15 @@ type TCamp struct {
 type TSceneInfo struct {
 	SceneRect TRect   `xml:"Rect"`
 	Camps     []TCamp `xml:"Camp"`
-	SkillFix  []int   `xml:"SkillFix"`
-	SkillRand []int   `xml:"SkillRand"`
+	SkillFix  []int32 `xml:"SkillFix"`
+	SkillRand []int32 `xml:"SkillRand"`
 	HeroSpeed float32 `xml:"HeroSpeed"`
 }
 
 var G_SceneInfo TSceneInfo
 
-func GetCampHeroPos(batcamp int) (pos [5]float32) {
-	if batcamp <= 0 || batcamp > len(G_SceneInfo.Camps) {
+func GetCampHeroPos(batcamp int32) (pos [5]float32) {
+	if batcamp <= 0 || batcamp > int32(len(G_SceneInfo.Camps)) {
 		gamelog.Error("GetCampHeroPos Error : Invalid BatCamp:%d", batcamp)
 		return
 	}

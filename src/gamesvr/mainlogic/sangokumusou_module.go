@@ -37,7 +37,7 @@ type TSangokuMusouStarRank struct {
 }
 
 type TSangokuMusouModule struct {
-	PlayerID            int                      `bson:"_id"`
+	PlayerID            int32                    `bson:"_id"`
 	PassCopyID          int                      //! 当前通过的关卡ID
 	CopyInfoLst         []TSangokuMusouCopyInfo  //! 通过关卡信息
 	PassEliteCopyID     int                      //! 当前通过的精英关卡ID
@@ -56,17 +56,17 @@ type TSangokuMusouModule struct {
 	TreasureID          int                      //! 无双迷藏
 	IsBuyTreasure       bool                     //! 是否已购买无双秘藏
 	IsEnd               bool                     //! 是否已经结束
-	ResetDay            int                      //! 重置天数
+	ResetDay            uint32                   //! 重置天数
 	ownplayer           *TPlayer
 }
 
-func (self *TSangokuMusouModule) SetPlayerPtr(playerid int, pPlayer *TPlayer) {
+func (self *TSangokuMusouModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = pPlayer
 }
 
 //! 玩家创建角色
-func (self *TSangokuMusouModule) OnCreate(playerID int) {
+func (self *TSangokuMusouModule) OnCreate(playerid int32) {
 	//! 初始化信息
 	self.IsEnd = false
 	self.EliteBattleTimes = gamedata.SangokuMusouEliteFreeTimes
@@ -84,7 +84,7 @@ func (self *TSangokuMusouModule) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *TSangokuMusouModule) OnNewDay(newday int) {
+func (self *TSangokuMusouModule) OnNewDay(newday uint32) {
 	self.ResetDay = newday
 
 	self.BattleTimes = 0
@@ -103,22 +103,22 @@ func (self *TSangokuMusouModule) OnNewDay(newday int) {
 }
 
 //! 玩家销毁角色
-func (self *TSangokuMusouModule) OnDestroy(playerID int) {
+func (self *TSangokuMusouModule) OnDestroy(playerid int32) {
 
 }
 
 //! 玩家进入游戏
-func (self *TSangokuMusouModule) OnPlayerOnline(playerID int) {
+func (self *TSangokuMusouModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离线
-func (self *TSangokuMusouModule) OnPlayerOffline(playerID int) {
+func (self *TSangokuMusouModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 预取玩家信息
-func (self *TSangokuMusouModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TSangokuMusouModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 

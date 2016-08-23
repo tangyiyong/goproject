@@ -103,7 +103,7 @@ func (self *MapLst) Count() int {
 }
 
 type TMiningModule struct {
-	PlayerID int `bson:"_id"`
+	PlayerID int32 `bson:"_id"`
 
 	GuaJiType     int   //! 当前挂机类型
 	GuajiCalcTime int64 //! 挂机结算时间
@@ -118,8 +118,8 @@ type TMiningModule struct {
 
 	LastPos TMiningPos //! 最后操作位置
 
-	ActionBuyTimes int //! 购买行动力次数
-	ResetDay       int //! 重置购买次数天数
+	ActionBuyTimes int    //! 购买行动力次数
+	ResetDay       uint32 //! 重置购买次数天数
 
 	BossAward []TMiningBossAward //! 翻牌奖励
 
@@ -133,13 +133,13 @@ type TMiningModule struct {
 }
 
 //! 设置玩家指针
-func (self *TMiningModule) SetPlayerPtr(playerid int, player *TPlayer) {
+func (self *TMiningModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
 	self.ownplayer = player
 }
 
 //! 玩家创建角色
-func (self *TMiningModule) OnCreate(playerid int) {
+func (self *TMiningModule) OnCreate(playerid int32) {
 
 	//! 创建地图
 	self.CreateNewMap(false)
@@ -165,22 +165,22 @@ func (self *TMiningModule) OnCreate(playerid int) {
 }
 
 //! 玩家销毁角色
-func (self *TMiningModule) OnDestroy(playerid int) {
+func (self *TMiningModule) OnDestroy(playerid int32) {
 
 }
 
 //! 玩家进入游戏
-func (self *TMiningModule) OnPlayerOnline(playerid int) {
+func (self *TMiningModule) OnPlayerOnline(playerid int32) {
 
 }
 
 //! 玩家离线
-func (self *TMiningModule) OnPlayerOffline(playerid int) {
+func (self *TMiningModule) OnPlayerOffline(playerid int32) {
 
 }
 
 //! 预取玩家信息
-func (self *TMiningModule) OnPlayerLoad(playerid int, wg *sync.WaitGroup) {
+func (self *TMiningModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
@@ -403,7 +403,7 @@ func (self *TMiningModule) CheckReset() {
 	self.OnNewDay(utility.GetCurDay())
 }
 
-func (self *TMiningModule) OnNewDay(newday int) {
+func (self *TMiningModule) OnNewDay(newday uint32) {
 
 	//! 重置购买行动力次数
 	self.ActionBuyTimes = 0

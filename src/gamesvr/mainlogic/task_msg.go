@@ -153,7 +153,7 @@ func Hand_GetTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 	//! 检测参数
 	if req.ScoreAwardID <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_GetTaskScoreAward error: invalid ScoreAwardID: %d  PlayerID: %v", req.ScoreAwardID, pPlayer.GetPlayerID())
+		gamelog.Error("Hand_GetTaskScoreAward error: invalid ScoreAwardID: %d  PlayerID: %v", req.ScoreAwardID, pPlayer.playerid)
 		return
 	}
 
@@ -326,7 +326,7 @@ func Hand_GetAchievementAward(w http.ResponseWriter, r *http.Request) {
 	//! 检查参数
 	if req.AchievementID <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_GetAchievementAward error: invalid achievementID: %d  PlayerID: %v", req.AchievementID, player.GetPlayerID())
+		gamelog.Error("Hand_GetAchievementAward error: invalid achievementID: %d  PlayerID: %v", req.AchievementID, player.playerid)
 		return
 	}
 

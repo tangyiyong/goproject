@@ -243,7 +243,7 @@ func Hand_GetArenaRank(w http.ResponseWriter, r *http.Request) {
 			info.Quality = simpleInfo.Quality
 			response.PlayerLst = append(response.PlayerLst, info)
 		} else { //! 机器人
-			pRobotInfo := gamedata.GetRobot(int(v.PlayerID))
+			pRobotInfo := gamedata.GetRobot(v.PlayerID)
 			info.FightValue = pRobotInfo.FightValue
 			info.Name = "Robot"
 			info.Level = pRobotInfo.Level
@@ -523,7 +523,7 @@ func Hand_GetWanderRank(w http.ResponseWriter, r *http.Request) {
 
 func GetCampBatRankList(ranker *utility.TRanker) (ret []msg.MSG_PlayerInfo) {
 	ranker.ForeachShow(
-		func(rankID int, rankVal int) {
+		func(rankID int32, rankVal int) {
 			simpleInfo := G_SimpleMgr.GetSimpleInfoByID(rankID)
 			if simpleInfo != nil {
 				ret = append(ret, msg.MSG_PlayerInfo{

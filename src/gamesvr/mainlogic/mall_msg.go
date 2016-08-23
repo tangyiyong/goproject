@@ -295,7 +295,7 @@ func Hand_BuyMallGoods(w http.ResponseWriter, r *http.Request) {
 	//! 检查参数
 	if req.Num <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_BuyMallGoods invalid itemNum: %d  playerID: %v", req.Num, player.GetPlayerID())
+		gamelog.Error("Hand_BuyMallGoods invalid itemNum: %d  playerID: %v", req.Num, player.playerid)
 		return
 	}
 
