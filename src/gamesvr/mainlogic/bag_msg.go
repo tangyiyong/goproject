@@ -318,7 +318,7 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 	if req.ItemType == gamedata.TYPE_HERO {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.HeroBag.Heros[item.Pos].HeroID != item.ID {
+			if pPlayer.BagMoudle.HeroBag.Heros[item.Pos].ID != item.ID {
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				response.RetCode = msg.RE_INVALID_PARAM
 				return
@@ -355,7 +355,7 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 	} else if req.ItemType == gamedata.TYPE_EQUIPMENT {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.EquipBag.Equips[item.Pos].EquipID != item.ID {
+			if pPlayer.BagMoudle.EquipBag.Equips[item.Pos].ID != item.ID {
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				response.RetCode = msg.RE_INVALID_PARAM
 				return
@@ -392,7 +392,7 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 	} else if req.ItemType == gamedata.TYPE_GEM {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.GemBag.Gems[item.Pos].GemID != item.ID {
+			if pPlayer.BagMoudle.GemBag.Gems[item.Pos].ID != item.ID {
 				response.RetCode = msg.RE_INVALID_PARAM
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				return
@@ -429,7 +429,7 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 	} else if req.ItemType == gamedata.TYPE_PET {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.PetBag.Pets[item.Pos].PetID != item.ID {
+			if pPlayer.BagMoudle.PetBag.Pets[item.Pos].ID != item.ID {
 				response.RetCode = msg.RE_INVALID_PARAM
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				return

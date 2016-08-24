@@ -187,10 +187,10 @@ func (self *Timer) RefreshFameHallLstFunc(now int64) bool {
 					gamelog.Error("FameHallRefresh Load Error :%s， PlayerID: %d", err.Error(), m.PlayerID)
 					continue
 				}
-				G_FameHallLst[i][n].HeroID = heroModule.CurHeros[0].HeroID
+				G_FameHallLst[i][n].HeroID = heroModule.CurHeros[0].ID
 			} else {
 				G_FameHallLst[i][n].CharmValue = player.FameHallModule.CharmValue
-				G_FameHallLst[i][n].HeroID = player.HeroMoudle.CurHeros[0].HeroID
+				G_FameHallLst[i][n].HeroID = player.HeroMoudle.CurHeros[0].ID
 			}
 		}
 

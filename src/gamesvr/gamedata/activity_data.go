@@ -30,10 +30,9 @@ const (
 	Activity_Competition      = 21 //! 七天战力排行
 	Activity_Level_Gift       = 22 //! 等级礼包
 	Activity_Month_Fund       = 23 //! 月基金
-	Activity_Summon           = 24 //! 求贤若渴 (并入限时日常类型)
+	Activity_LimitSale        = 24 //! 限时优惠
 	Activity_Rank_Sale        = 25 //! 巅峰特惠
 	Activity_Seven            = 26 //! 七天活动
-	Activity_LimitSale        = 27 //! 限时特惠
 )
 
 //! 活动配置表

@@ -11,7 +11,7 @@ type MSG_FoodWar_Challenger struct {
 	PlayerID   int32
 	PlayerName string
 	HeroID     int
-	Quality    int
+	Quality    int8
 	CanRobFood int
 	TotalFood  int
 	FightValue int

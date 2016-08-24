@@ -108,7 +108,7 @@ func (self *TRobModule) GetRobList(itemID int, exclude Int32Lst) (robPlayerLst [
 			info.PlayerID = g_SelectPlayers[i].playerid
 			info.IsRobot = 0
 			for i, b := range g_SelectPlayers[i].HeroMoudle.CurHeros {
-				info.HeroID[i] = b.HeroID
+				info.HeroID[i] = b.ID
 			}
 
 			if exclude.IsExist(info.PlayerID) < 0 {

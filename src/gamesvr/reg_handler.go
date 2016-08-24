@@ -441,7 +441,7 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/get_campbat_rank", mainlogic.Hand_GetCampBatRank)        //! 玩家请求阵营战排行榜
 
 	//积分赛
-	http.HandleFunc("/get_score_target", mainlogic.Hand_GetScoreTarget)
+	http.HandleFunc("/get_score_data", mainlogic.Hand_GetScoreData) //获取积分赛主界面信息
 	http.HandleFunc("/get_score_battle_check", mainlogic.Hand_GetScoreBattleCheck)
 	http.HandleFunc("/set_score_battle_result", mainlogic.Hand_SetScoreBattleResult)
 	http.HandleFunc("/get_score_time_award", mainlogic.Hand_GetScoreTimeAward)

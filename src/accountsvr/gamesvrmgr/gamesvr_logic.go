@@ -9,7 +9,6 @@ import (
 
 //处理游戏服力器的注册请求
 func Handle_RegisterGameSvr(w http.ResponseWriter, r *http.Request) {
-	//gamelog.Info("message: %s", r.URL.String())
 	var buffer []byte
 	buffer = make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
@@ -20,8 +19,6 @@ func Handle_RegisterGameSvr(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//var pSvrInfo *TGameServerInfo = &TGameServerInfo{req.ServerDomainID, req.ServerDomainName, 1, time.Now().Unix(), req.ServerIpAddr, req.ServerInnerAddr}
-	//AddGameSvrInfo(pSvrInfo)
 	UpdateGameSvrInfo(req.ServerDomainID, req.ServerDomainName, req.ServerOuterAddr, req.ServerInnerAddr)
 
 	var response msg.MSG_RegisterGameSvr_Ack

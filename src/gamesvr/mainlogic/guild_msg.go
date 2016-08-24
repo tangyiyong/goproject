@@ -72,6 +72,8 @@ func Hand_GetGuildStatus(w http.ResponseWriter, r *http.Request) {
 
 	guild.CheckReset()
 
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_GUILD_LEVEL, guild.Level)
+
 	//! 副本
 	for _, v := range guild.CampLife {
 		var campLife msg.MSG_CampLife

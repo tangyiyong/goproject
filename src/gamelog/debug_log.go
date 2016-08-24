@@ -35,9 +35,11 @@ func InitDebugLog(logFileName string, bScreen bool) {
 
 	g_isOutputScreen = bScreen
 }
+
 func GetLevel() int {
 	return g_level
 }
+
 func SetLevel(l int) {
 	if l > FatalLevel || l < InfoLevel {
 		g_level = InfoLevel
@@ -58,6 +60,7 @@ func Warn(format string, v ...interface{}) {
 		}
 	}
 }
+
 func ErrorColor(format string, v ...interface{}) {
 	if g_level <= ErrorLevel {
 		var str string
@@ -69,6 +72,7 @@ func ErrorColor(format string, v ...interface{}) {
 		}
 	}
 }
+
 func Error(format string, v ...interface{}) {
 	if g_level <= ErrorLevel {
 		var str string
@@ -80,6 +84,7 @@ func Error(format string, v ...interface{}) {
 		}
 	}
 }
+
 func Error3(format string, v ...interface{}) {
 	if g_level <= ErrorLevel {
 		var str string
@@ -92,6 +97,7 @@ func Error3(format string, v ...interface{}) {
 		}
 	}
 }
+
 func Info(format string, v ...interface{}) {
 	if g_level <= InfoLevel {
 		var str string
@@ -104,6 +110,7 @@ func Info(format string, v ...interface{}) {
 		}
 	}
 }
+
 func Fatal(format string, v ...interface{}) {
 	if g_level <= FatalLevel {
 		var str string

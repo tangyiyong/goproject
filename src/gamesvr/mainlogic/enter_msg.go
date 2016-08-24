@@ -33,6 +33,7 @@ func Hand_PlayerLoginGame(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
+		gamelog.Error("Return: %s", b)
 	}()
 	bcheck := true //CheckUserIsLogin(req.AccountID, "", req.LoginKey)
 	if !bcheck {

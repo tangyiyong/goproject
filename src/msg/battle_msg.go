@@ -27,12 +27,12 @@ func (self *MSG_HeroObj) Write(writer *PacketWriter) {
 }
 
 type MSG_BattleObj struct {
-	BatCamp int32
+	BatCamp int8
 	Heros[6] MSG_HeroObj
 }
 
 func (self *MSG_BattleObj) Read(reader *PacketReader) bool {
-	self.BatCamp = reader.ReadInt32()
+	self.BatCamp = reader.ReadInt8()
 	for i := 0; i < int(6); i++ {
 		self.Heros[i].Read(reader)
 	}
@@ -40,7 +40,7 @@ func (self *MSG_BattleObj) Read(reader *PacketReader) bool {
 }
 
 func (self *MSG_BattleObj) Write(writer *PacketWriter) {
-	writer.WriteInt32(self.BatCamp)
+	writer.WriteInt8(self.BatCamp)
 	for i := 0; i < int(6); i++ {
 		self.Heros[i].Write(writer)
 	}
@@ -68,7 +68,7 @@ func (self *MSG_EnterRoom_Req) Write(writer *PacketWriter) {
 }
 
 type MSG_EnterRoom_Ack struct {
-	BatCamp int32
+	BatCamp int8
 	CurRank int32
 	KillNum int32
 	KillHonor int32
@@ -80,7 +80,7 @@ type MSG_EnterRoom_Ack struct {
 }
 
 func (self *MSG_EnterRoom_Ack) Read(reader *PacketReader) bool {
-	self.BatCamp = reader.ReadInt32()
+	self.BatCamp = reader.ReadInt8()
 	self.CurRank = reader.ReadInt32()
 	self.KillNum = reader.ReadInt32()
 	self.KillHonor = reader.ReadInt32()
@@ -97,7 +97,7 @@ func (self *MSG_EnterRoom_Ack) Read(reader *PacketReader) bool {
 }
 
 func (self *MSG_EnterRoom_Ack) Write(writer *PacketWriter) {
-	writer.WriteInt32(self.BatCamp)
+	writer.WriteInt8(self.BatCamp)
 	writer.WriteInt32(self.CurRank)
 	writer.WriteInt32(self.KillNum)
 	writer.WriteInt32(self.KillHonor)
@@ -555,7 +555,7 @@ type MSG_PlayerRevive_Ack struct {
 	PlayerID int32
 	MoneyID int32
 	MoneyNum int32
-	BattleCamp int32
+	BattleCamp int8
 	Heros_Cnt int32
 	Heros[] MSG_HeroObj
 }
@@ -565,7 +565,7 @@ func (self *MSG_PlayerRevive_Ack) Read(reader *PacketReader) bool {
 	self.PlayerID = reader.ReadInt32()
 	self.MoneyID = reader.ReadInt32()
 	self.MoneyNum = reader.ReadInt32()
-	self.BattleCamp = reader.ReadInt32()
+	self.BattleCamp = reader.ReadInt8()
 	self.Heros_Cnt = reader.ReadInt32()
 	self.Heros = make([]MSG_HeroObj,self.Heros_Cnt)
 	for i := 0; i < int(self.Heros_Cnt); i++ {
@@ -579,7 +579,7 @@ func (self *MSG_PlayerRevive_Ack) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.PlayerID)
 	writer.WriteInt32(self.MoneyID)
 	writer.WriteInt32(self.MoneyNum)
-	writer.WriteInt32(self.BattleCamp)
+	writer.WriteInt8(self.BattleCamp)
 	writer.WriteInt32(self.Heros_Cnt)
 	for i := 0; i < int(self.Heros_Cnt); i++ {
 		self.Heros[i].Write(writer)
@@ -588,13 +588,13 @@ func (self *MSG_PlayerRevive_Ack) Write(writer *PacketWriter) {
 }
 
 type MSG_Revive_Nty struct {
-	BattleCamp int32
+	BattleCamp int8
 	Heros_Cnt int32
 	Heros[] MSG_HeroObj
 }
 
 func (self *MSG_Revive_Nty) Read(reader *PacketReader) bool {
-	self.BattleCamp = reader.ReadInt32()
+	self.BattleCamp = reader.ReadInt8()
 	self.Heros_Cnt = reader.ReadInt32()
 	self.Heros = make([]MSG_HeroObj,self.Heros_Cnt)
 	for i := 0; i < int(self.Heros_Cnt); i++ {
@@ -604,7 +604,7 @@ func (self *MSG_Revive_Nty) Read(reader *PacketReader) bool {
 }
 
 func (self *MSG_Revive_Nty) Write(writer *PacketWriter) {
-	writer.WriteInt32(self.BattleCamp)
+	writer.WriteInt8(self.BattleCamp)
 	writer.WriteInt32(self.Heros_Cnt)
 	for i := 0; i < int(self.Heros_Cnt); i++ {
 		self.Heros[i].Write(writer)
@@ -677,7 +677,7 @@ func (self *MSG_LoadCampBattle_Req) Write(writer *PacketWriter) {
 
 type MSG_LoadObject struct {
 	HeroID int32
-	Camp int32
+	Camp int8
 	PropertyValue[11] int32
 	PropertyPercent[11] int32
 	CampDef[5] int32
@@ -688,7 +688,7 @@ type MSG_LoadObject struct {
 
 func (self *MSG_LoadObject) Read(reader *PacketReader) bool {
 	self.HeroID = reader.ReadInt32()
-	self.Camp = reader.ReadInt32()
+	self.Camp = reader.ReadInt8()
 	for i := 0; i < int(11); i++ {
 		self.PropertyValue[i] = reader.ReadInt32()
 	}
@@ -708,7 +708,7 @@ func (self *MSG_LoadObject) Read(reader *PacketReader) bool {
 
 func (self *MSG_LoadObject) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.HeroID)
-	writer.WriteInt32(self.Camp)
+	writer.WriteInt8(self.Camp)
 	for i := 0; i < int(11); i++ {
 		writer.WriteInt32(self.PropertyValue[i]);
 	}
@@ -729,7 +729,7 @@ func (self *MSG_LoadObject) Write(writer *PacketWriter) {
 type MSG_LoadCampBattle_Ack struct {
 	RetCode int32
 	PlayerID int32
-	BattleCamp int32
+	BattleCamp int8
 	RoomType int32
 	Level int32
 	LeftTimes int32
@@ -743,7 +743,7 @@ type MSG_LoadCampBattle_Ack struct {
 func (self *MSG_LoadCampBattle_Ack) Read(reader *PacketReader) bool {
 	self.RetCode = reader.ReadInt32()
 	self.PlayerID = reader.ReadInt32()
-	self.BattleCamp = reader.ReadInt32()
+	self.BattleCamp = reader.ReadInt8()
 	self.RoomType = reader.ReadInt32()
 	self.Level = reader.ReadInt32()
 	self.LeftTimes = reader.ReadInt32()
@@ -760,7 +760,7 @@ func (self *MSG_LoadCampBattle_Ack) Read(reader *PacketReader) bool {
 func (self *MSG_LoadCampBattle_Ack) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.RetCode)
 	writer.WriteInt32(self.PlayerID)
-	writer.WriteInt32(self.BattleCamp)
+	writer.WriteInt8(self.BattleCamp)
 	writer.WriteInt32(self.RoomType)
 	writer.WriteInt32(self.Level)
 	writer.WriteInt32(self.LeftTimes)
@@ -832,14 +832,14 @@ func (self *MSG_HeroData) Write(writer *PacketWriter) {
 
 type MSG_PlayerData struct {
 	PlayerID int32
-	Quality int32
+	Quality int8
 	FightValue int32
 	Heros[6] MSG_HeroData
 }
 
 func (self *MSG_PlayerData) Read(reader *PacketReader) bool {
 	self.PlayerID = reader.ReadInt32()
-	self.Quality = reader.ReadInt32()
+	self.Quality = reader.ReadInt8()
 	self.FightValue = reader.ReadInt32()
 	for i := 0; i < int(6); i++ {
 		self.Heros[i].Read(reader)
@@ -849,7 +849,7 @@ func (self *MSG_PlayerData) Read(reader *PacketReader) bool {
 
 func (self *MSG_PlayerData) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.PlayerID)
-	writer.WriteInt32(self.Quality)
+	writer.WriteInt8(self.Quality)
 	writer.WriteInt32(self.FightValue)
 	for i := 0; i < int(6); i++ {
 		self.Heros[i].Write(writer)

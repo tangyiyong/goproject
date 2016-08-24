@@ -113,6 +113,18 @@ func Hand_BuyOpenFund(w http.ResponseWriter, r *http.Request) {
 	//! 购买基金人数+1
 	G_BuyFundNum += 1
 
+	response.FundCountMark = int(player.ActivityModule.OpenFund.FundCountMark)
+	response.FundLevelMark = int(player.ActivityModule.OpenFund.FundLevelMark)
+
+	for _, v := range gamedata.GT_OpenFundLst[gamedata.OpenFund_Level] {
+		if player.ActivityModule.OpenFund.FundLevelMark.Get(uint(v.ID)) != true {
+			awardLst := gamedata.GetItemsFromAwardID(v.Award)
+			for _, m := range awardLst {
+				response.ReceiveMoney += m.ItemNum
+			}
+		}
+	}
+
 	response.BuyNum = G_BuyFundNum
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -163,7 +175,7 @@ func Hand_GetOpenFundAllAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 判断人数是否达标
 	if G_BuyFundNum < awardInfo.Count {
-		gamelog.Error("Hand_GetOpenFundAllAward error: BuyNum: %d  NeedNum: %d", G_BuyFundNum, awardInfo.Count)
+		gamelog.Error("Hand_GetOpenFundAllAward error: BuyNum: %d  NeedNum: %d  ID: %d", G_BuyFundNum, awardInfo.Count, req.ID)
 		response.RetCode = msg.RE_NOT_ENOUGH_NUMBER
 		return
 	}
@@ -190,6 +202,7 @@ func Hand_GetOpenFundAllAward(w http.ResponseWriter, r *http.Request) {
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
 	response.Index = req.ID
+	response.AwardMark = int(player.ActivityModule.OpenFund.FundCountMark)
 }
 
 //! 领取开服基金等级奖励
@@ -265,4 +278,5 @@ func Hand_GetOpenFundLevelAward(w http.ResponseWriter, r *http.Request) {
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
 	response.Index = req.ID
+	response.AwardMark = int(player.ActivityModule.OpenFund.FundLevelMark)
 }

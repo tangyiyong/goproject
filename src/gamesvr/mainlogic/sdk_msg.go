@@ -23,12 +23,25 @@ import (
 // strKey = "create_recharge_order"
 func PostSdkReq(strKey string, pMsg interface{}) ([]byte, error) {
 	buf, _ := json.Marshal(pMsg)
-	url := fmt.Sprintf("http://%s:%d/%s", 1, 2, 3)
+	url := fmt.Sprintf("http://%s:%d/%s", appconfig.SdkSvrInnerIp, appconfig.SdkSvrPort, strKey)
 	resp, err := http.Post(url, "text/HTML", bytes.NewReader(buf))
 	backBuf := make([]byte, resp.ContentLength)
 	resp.Body.Read(backBuf)
 	resp.Body.Close()
 	return backBuf, err
+}
+
+func RegisterToSdk() {
+	var req msg.SDKMsg_GamesvrAddr_Req
+	var ack msg.SDKMsg_GamesvrAddr_Ack
+	req.GamesvrID = appconfig.DomainID
+	req.Url = fmt.Sprintf("http://%s:%d/", appconfig.GameSvrInnerIp, appconfig.GameSvrPort)
+	backBuf, err := PostSdkReq("reg_gamesvr_addr", &req)
+	if err != nil {
+		gamelog.Error("PostSdkReq(reg_gamesvr_addr) : %s", err.Error())
+		return
+	}
+	json.Unmarshal(backBuf, &ack)
 }
 
 //! 消息处理函数

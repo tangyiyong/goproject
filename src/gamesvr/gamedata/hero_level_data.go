@@ -63,7 +63,7 @@ func ParseHeroLevelRecord(rs *RecordSet) {
 	return
 }
 
-func GetHeroLevelInfo(quality int, level int) *ST_HeroLevelInfo {
+func GetHeroLevelInfo(quality int8, level int) *ST_HeroLevelInfo {
 	if quality >= 8 || quality <= 0 {
 		gamelog.Error("GetHeroLevelInfo Error : Invalid quality :%d", quality)
 		return nil

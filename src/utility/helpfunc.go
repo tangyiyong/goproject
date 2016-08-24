@@ -2,12 +2,26 @@ package utility
 
 import (
 	"crypto/md5"
+	"encoding/csv"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
 )
+
+type StrError struct {
+	Str string
+	Err error
+}
+
+func (self *StrError) Error() string {
+	if self.Err == nil {
+		return self.Str
+	} else {
+		return self.Str + " " + self.Err.Error()
+	}
+}
 
 var G_CurPath string
 var G_CurCsvPath string
@@ -22,7 +36,6 @@ func GetCurrPath() string {
 
 	return G_CurPath
 }
-
 func GetCurrCsvPath() string {
 	if len(G_CurCsvPath) <= 0 {
 		file, _ := exec.LookPath(os.Args[0])
@@ -32,7 +45,6 @@ func GetCurrCsvPath() string {
 	}
 	return G_CurCsvPath
 }
-
 func GetCurrPath2() string {
 	file, _ := exec.LookPath(os.Args[0])
 	path, _ := filepath.Abs(file)
@@ -52,6 +64,27 @@ func IsDirExists(path string) bool {
 	}
 
 	return true
+}
+func LoadCsv(path string) ([][]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
+	fstate, err := file.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if fstate.IsDir() == true {
+		return nil, &StrError{"LoadCsv is dir!", nil}
+	}
+
+	csvReader := csv.NewReader(file)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return nil, err
+	}
+	return records, nil
 }
 
 func GetCurDay() uint32 {

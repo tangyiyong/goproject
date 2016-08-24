@@ -145,6 +145,7 @@ func Hand_ReceiveActivityAction(w http.ResponseWriter, r *http.Request) {
 		response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{awardInfo.MoneyID, awardInfo.MoneyNum})
 	}
 
+	response.RecvAction = int(player.ActivityModule.ReceiveAction.RecvAction)
 	response.NextAwardTime = player.ActivityModule.ReceiveAction.GetNextActionAwardTime()
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -247,5 +248,6 @@ func Hand_ActionRetroactive(w http.ResponseWriter, r *http.Request) {
 		response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{actionAwardInfo.MoneyID, actionAwardInfo.MoneyNum})
 	}
 
+	response.RecvAction = int(player.ActivityModule.ReceiveAction.RecvAction)
 	response.RetCode = msg.RE_SUCCESS
 }

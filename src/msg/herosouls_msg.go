@@ -118,7 +118,7 @@ type MSG_QueryHeroSoulsRank_Req struct {
 type THeroSoulsRank struct {
 	HeroID     int
 	Name       string
-	Quality    int
+	Quality    int8
 	SoulsValue int //! 阵图值
 	SoulsCount int //! 阵图个数
 }

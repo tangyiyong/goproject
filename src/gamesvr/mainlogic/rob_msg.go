@@ -234,18 +234,13 @@ func Hand_GetRobHeroInfo(w http.ResponseWriter, r *http.Request) {
 		response.PlayerData.PlayerID = int32(req.RobPlayerID)
 		var HeroResults = make([]THeroResult, BATTLE_NUM)
 		response.PlayerData.FightValue = int32(robPlayer.HeroMoudle.CalcFightValue(HeroResults))
-		response.PlayerData.Quality = int32(robPlayer.HeroMoudle.CurHeros[0].Quality)
+		response.PlayerData.Quality = robPlayer.HeroMoudle.CurHeros[0].Quality
 		for i := 0; i < BATTLE_NUM; i++ {
 			response.PlayerData.Heros[i].HeroID = int32(HeroResults[i].HeroID)
-			for j := 0; j < 11; j++ {
-				response.PlayerData.Heros[i].PropertyValue[j] = int32(HeroResults[i].PropertyValues[j])
-				response.PlayerData.Heros[i].PropertyPercent[j] = int32(HeroResults[i].PropertyPercents[j])
-			}
-
-			for j := 0; j < 5; j++ {
-				response.PlayerData.Heros[i].CampDef[j] = int32(HeroResults[i].CampDef[j])
-				response.PlayerData.Heros[i].CampKill[j] = int32(HeroResults[i].CampKill[j])
-			}
+			response.PlayerData.Heros[i].PropertyValue = HeroResults[i].PropertyValues
+			response.PlayerData.Heros[i].PropertyPercent = HeroResults[i].PropertyPercents
+			response.PlayerData.Heros[i].CampDef = HeroResults[i].CampDef
+			response.PlayerData.Heros[i].CampKill = HeroResults[i].CampKill
 
 		}
 	} else {
@@ -517,7 +512,7 @@ func Hand_TreasureMelting(w http.ResponseWriter, r *http.Request) {
 
 	targetPiece := gamedata.GetItemInfo(req.TargetPieceID)
 	targetGem := gamedata.GetGemInfo(targetPiece.Data1)
-	gemInfo := gamedata.GetGemInfo(gem.GemID)
+	gemInfo := gamedata.GetGemInfo(gem.ID)
 	if gemInfo.Quality+1 != targetGem.Quality {
 		response.RetCode = msg.RE_NOT_ENOUGH_QUALITY
 		return

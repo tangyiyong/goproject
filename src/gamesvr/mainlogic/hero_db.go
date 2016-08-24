@@ -22,8 +22,8 @@ func (self *THeroMoudle) DB_SaveBattleGemAt(nIndex int) {
 
 //保存主角的英雄ID
 func (self *THeroMoudle) DB_SaveMainHeroID() {
-	FieldName := "curheros.0.heroid"
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{FieldName: self.CurHeros[0].HeroID}})
+	FieldName := "curheros.0.id"
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{FieldName: self.CurHeros[0].ID}})
 }
 
 //保存公会技能等级信息

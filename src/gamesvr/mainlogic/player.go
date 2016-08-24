@@ -397,7 +397,7 @@ func (player *TPlayer) SetMainHeroID(heroid int) {
 
 //获取主英雄等级
 func (player *TPlayer) GetLevel() int {
-	if player.HeroMoudle.CurHeros[0].HeroID == 0 {
+	if player.HeroMoudle.CurHeros[0].ID == 0 {
 		gamelog.Error("GetMainHeroLevel Error :HeroID is 0 ")
 		return 0
 	}
@@ -426,19 +426,19 @@ func (player *TPlayer) IsTodayLogin() bool {
 
 func (player *TPlayer) IsHasHero(heroid int) bool {
 	for _, hero := range player.HeroMoudle.CurHeros {
-		if hero.HeroID == heroid {
+		if hero.ID == heroid {
 			return true
 		}
 	}
 
 	for _, hero := range player.HeroMoudle.BackHeros {
-		if hero.HeroID == heroid {
+		if hero.ID == heroid {
 			return true
 		}
 	}
 
 	for _, hero := range player.BagMoudle.HeroBag.Heros {
-		if hero.HeroID == heroid {
+		if hero.ID == heroid {
 			return true
 		}
 	}

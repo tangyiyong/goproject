@@ -51,10 +51,7 @@ func Hand_ReceiveAllMails(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.MailList = player.MailMoudle.MailList
-
-	//! 反馈结果
 	response.RetCode = msg.RE_SUCCESS
-
-	player.MailMoudle.DB_ClearAllMails()
 	player.MailMoudle.MailList = []TMailInfo{}
+	player.MailMoudle.DB_ClearAllMails()
 }

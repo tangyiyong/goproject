@@ -172,7 +172,7 @@ func Hand_ArenaCheck(w http.ResponseWriter, r *http.Request) {
 		response.TargetType = 2
 		robot := gamedata.GetRobot(challangeInfo.PlayerID)
 		response.PlayerData.FightValue = int32(robot.FightValue)
-		response.PlayerData.Quality = int32(robot.Quality)
+		response.PlayerData.Quality = robot.Quality
 		response.PlayerData.PlayerID = challangeInfo.PlayerID
 		response.Name = robot.Name
 		for i := 0; i < BATTLE_NUM; i++ {
@@ -200,18 +200,14 @@ func Hand_ArenaCheck(w http.ResponseWriter, r *http.Request) {
 
 		var HeroResults = make([]THeroResult, BATTLE_NUM)
 		response.PlayerData.FightValue = int32(pHeroMoudle.CalcFightValue(HeroResults))
-		response.PlayerData.Quality = int32(pHeroMoudle.CurHeros[0].Quality)
+		response.PlayerData.Quality = pHeroMoudle.CurHeros[0].Quality
 		for i := 0; i < BATTLE_NUM; i++ {
 			response.PlayerData.Heros[i].HeroID = int32(HeroResults[i].HeroID)
-			for j := 0; j < 11; j++ {
-				response.PlayerData.Heros[i].PropertyValue[j] = int32(HeroResults[i].PropertyValues[j])
-				response.PlayerData.Heros[i].PropertyPercent[j] = int32(HeroResults[i].PropertyPercents[j])
-			}
+			response.PlayerData.Heros[i].PropertyValue = HeroResults[i].PropertyValues
+			response.PlayerData.Heros[i].PropertyPercent = HeroResults[i].PropertyPercents
+			response.PlayerData.Heros[i].CampDef = HeroResults[i].CampDef
+			response.PlayerData.Heros[i].CampKill = HeroResults[i].CampKill
 
-			for j := 0; j < 5; j++ {
-				response.PlayerData.Heros[i].CampDef[j] = int32(HeroResults[i].CampDef[j])
-				response.PlayerData.Heros[i].CampKill[j] = int32(HeroResults[i].CampKill[j])
-			}
 		}
 	}
 }

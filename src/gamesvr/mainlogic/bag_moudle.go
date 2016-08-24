@@ -310,6 +310,38 @@ func (self *TBagMoudle) AddHeroByID(heroid int, level int) bool {
 		self.DB_AddHeroAtLast(false)
 	}
 
+	campHeroCountLst := IntLst{0, 0, 0, 0}
+	for i := 0; i < len(self.ColHeros); i++ {
+		pHeroInfo = gamedata.GetHeroInfo(int(self.ColHeros[i]))
+		if pHeroInfo != nil {
+			switch pHeroInfo.Camp {
+			case 1:
+				{
+					campHeroCountLst[0]++
+				}
+			case 2:
+				{
+					campHeroCountLst[1]++
+				}
+			case 3:
+				{
+					campHeroCountLst[2]++
+				}
+			case 4:
+				{
+					campHeroCountLst[3]++
+				}
+			}
+		}
+	}
+
+	fullCampHeroLst := gamedata.GetCampHeroCount()
+	for i := 0; i < 4; i++ {
+		if campHeroCountLst[i] == fullCampHeroLst[i] {
+			self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_CAMP_HERO_FULL_1+i, 1)
+		}
+	}
+
 	return true
 }
 
@@ -440,8 +472,8 @@ func (self *TBagMoudle) AddEqiups(equipid int, num int) bool {
 
 //添加一个装备到背包
 func (self *TBagMoudle) AddEqiupData(pEquipData *TEquipData) bool {
-	if pEquipData.EquipID <= 0 {
-		gamelog.Error("AddEqiupData Error : Invalid EquipID:%d", pEquipData.EquipID)
+	if pEquipData.ID <= 0 {
+		gamelog.Error("AddEqiupData Error : Invalid EquipID:%d", pEquipData.ID)
 		return false
 	}
 	self.EquipBag.Equips = append(self.EquipBag.Equips, *pEquipData)
@@ -489,7 +521,7 @@ func (self *TBagMoudle) GetGemCount() int {
 func (self *TBagMoudle) GetGemCountExcept(pos int, gemid int) (count int) {
 	count = 0
 	for i := 0; i < len(self.GemBag.Gems); i++ {
-		if self.GemBag.Gems[i].GemID == gemid {
+		if self.GemBag.Gems[i].ID == gemid {
 			if i == pos {
 				continue
 			} else {
@@ -520,8 +552,8 @@ func (self *TBagMoudle) AddGemByID(gemid int) bool {
 
 //添加一个装备到背包
 func (self *TBagMoudle) AddGemData(pGemData *TGemData) bool {
-	if pGemData.GemID <= 0 {
-		gamelog.Error("AddGemData Error : Invalid GemID", pGemData.GemID)
+	if pGemData.ID <= 0 {
+		gamelog.Error("AddGemData Error : Invalid GemID", pGemData.ID)
 		return false
 	}
 	self.GemBag.Gems = append(self.GemBag.Gems, *pGemData)
@@ -911,13 +943,18 @@ func (self *TBagMoudle) AddPetByID(petid int) bool {
 
 	self.DB_AddPetAtLast(bCol)
 
+	pPetInfo := gamedata.GetPetInfo(petid)
+	if pPetInfo != nil {
+		self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PET_QUALITY, pPetInfo.Quality)
+	}
+
 	return true
 }
 
 //添加一个宠物到背包
 func (self *TBagMoudle) AddPetData(pPetData *TPetData) bool {
-	if pPetData.PetID <= 0 {
-		gamelog.Error("AddPetData Error : Invalid PetID", pPetData.PetID)
+	if pPetData.ID <= 0 {
+		gamelog.Error("AddPetData Error : Invalid PetID", pPetData.ID)
 		return false
 	}
 	self.PetBag.Pets = append(self.PetBag.Pets, *pPetData)

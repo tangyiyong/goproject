@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	g_logDir = utility.GetCurrPath() + "log\\"
+	g_logDir = utility.GetCurrPath() + "log/"
 )
 
 func InitLogger(name string, bScreen bool) {

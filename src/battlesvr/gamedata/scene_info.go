@@ -39,8 +39,8 @@ type TSceneInfo struct {
 
 var G_SceneInfo TSceneInfo
 
-func GetCampHeroPos(batcamp int32) (pos [5]float32) {
-	if batcamp <= 0 || batcamp > int32(len(G_SceneInfo.Camps)) {
+func GetCampHeroPos(batcamp int8) (pos [5]float32) {
+	if batcamp <= 0 || int(batcamp) > len(G_SceneInfo.Camps) {
 		gamelog.Error("GetCampHeroPos Error : Invalid BatCamp:%d", batcamp)
 		return
 	}

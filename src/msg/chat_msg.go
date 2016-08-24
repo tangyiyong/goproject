@@ -73,5 +73,5 @@ type MSG_OnlineNotify_Req struct {
 type MSG_HorseLame_Notify struct {
 	TextType int      //文本索引
 	Params   []string //参数
-	Camps    []int    //阵营战专用
+	Camps    []int8   //阵营战专用
 }

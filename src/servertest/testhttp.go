@@ -37,7 +37,7 @@ func PostMsg(url string, msg interface{}) []byte {
 	return buf
 }
 
-func TestGetScoreTarget(playerid int, sessionkey string) {
+func TestGetScoreTarget(playerid int32, sessionkey string) {
 	reqUrl := "http://127.0.0.1:8082/get_score_target"
 	var req msg.MSG_GetScoreTarget_Req
 	req.SessionKey = sessionkey
@@ -60,7 +60,7 @@ func TestGetScoreTarget(playerid int, sessionkey string) {
 	return
 }
 
-func TestGetScoreRank(playerid int, sessionkey string) {
+func TestGetScoreRank(playerid int32, sessionkey string) {
 	reqUrl := "http://127.0.0.1:8082/get_score_rank"
 	var req msg.MSG_GetScoreRank_Req
 	req.SessionKey = sessionkey
@@ -83,7 +83,7 @@ func TestGetScoreRank(playerid int, sessionkey string) {
 	return
 }
 
-func TestGetMoney(playerid int, sessionkey string) {
+func TestGetMoney(playerid int32, sessionkey string) {
 	reqUrl := "http://127.0.0.1:8082/test_get_money"
 	var req msg.MSG_GetTestMoney_Req
 	req.SessionKey = sessionkey
@@ -98,7 +98,7 @@ func TestGetMoney(playerid int, sessionkey string) {
 	return
 }
 
-func TestGetAction(playerid int, sessionkey string) {
+func TestGetAction(playerid int32, sessionkey string) {
 	reqUrl := "http://127.0.0.1:8082/test_get_action"
 	var req msg.MSG_GetTestAction_Req
 	req.SessionKey = sessionkey
@@ -113,27 +113,27 @@ func TestGetAction(playerid int, sessionkey string) {
 	return
 }
 
-func TestAddSvrAward(playerid int, sessionkey string) {
+func TestAddSvrAward(playerid int32, sessionkey string) {
 	reqUrl := "http://127.0.0.1:8082/add_svr_award"
 	var req msg.MSG_SvrAward_Add_Req
 	req.Value = []string{"渣渣"}
 	req.ItemLst = []msg.MSG_ItemData{{1, 1}}
 	PostMsg(reqUrl, req)
 }
-func TestDelSvrAward(playerid int, sessionkey string) {
+func TestDelSvrAward(playerid int32, sessionkey string) {
 	reqUrl := "http://127.0.0.1:8082/del_svr_award"
 	var req msg.MSG_SvrAward_Del_Req
 	req.ID = 1
 	PostMsg(reqUrl, req)
 }
-func TestAwardCenterQuery(playerid int, sessionkey string) {
+func TestAwardCenterQuery(playerid int32, sessionkey string) {
 	reqUrl := "http://127.0.0.1:8082/query_award_center"
 	var req msg.MSG_AwardCenter_Query_Req
 	req.PlayerID = playerid
 	req.SessionKey = sessionkey
 	PostMsg(reqUrl, req)
 }
-func TestAwardCenterGet(playerid int, sessionkey string) {
+func TestAwardCenterGet(playerid int32, sessionkey string) {
 	reqUrl := "http://127.0.0.1:8082/get_award_center"
 	var req msg.MSG_AwardCenter_Get_Req
 	req.PlayerID = playerid

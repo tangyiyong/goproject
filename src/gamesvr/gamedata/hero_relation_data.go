@@ -18,10 +18,10 @@ type ST_RelationBuff struct {
 }
 
 type ST_RelationItem struct {
-	RelationType   int    //羁绊类型 1:和英雄发生的， 2: 和装备发生的; 3:和宝物发生的
-	TargetIDs      []int  //如果Type:1 ， 则是英雄的ID集, 否则是装备的ID集或者是宝物ID集
-	QualityLimit   [2]int //品质限制
-	RelationBuffID int    //天赋ID
+	RelationType   int     //羁绊类型 1:和英雄发生的， 2: 和装备发生的; 3:和宝物发生的
+	TargetIDs      []int   //如果Type:1 ， 则是英雄的ID集, 否则是装备的ID集或者是宝物ID集
+	QualityLimit   [2]int8 //品质限制
+	RelationBuffID int     //天赋ID
 }
 
 type ST_HeroRelationInfo struct {
@@ -51,7 +51,7 @@ func ParseHeroRelationRecord(rs *RecordSet) {
 	var item ST_RelationItem
 	item.RelationBuffID = rs.GetFieldInt("relation_id")
 	item.RelationType = rs.GetFieldInt("relation_type")
-	item.QualityLimit = ParseTo2IntSlice(rs.GetFieldString("quality"))
+	item.QualityLimit = ParseTo2Int8Slice(rs.GetFieldString("quality"))
 	item.TargetIDs = ParseToIntSlice(rs.GetFieldString("target_id"))
 	GT_HeroRelation_List[heroID].Relations = append(GT_HeroRelation_List[heroID].Relations, item)
 

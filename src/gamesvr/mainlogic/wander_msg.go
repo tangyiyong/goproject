@@ -177,6 +177,8 @@ func Hand_WanderSweep(w http.ResponseWriter, r *http.Request) {
 	response.CurCopyID = player.WanderMoudle.CurCopyID
 	response.RetCode = msg.RE_SUCCESS
 	player.WanderMoudle.DB_Reset()
+
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_WANDER_SWEEP, 1)
 }
 
 //! 获取今日活动

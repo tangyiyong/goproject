@@ -18,13 +18,7 @@ type TDataParser struct {
 	OnFinish    func() bool
 }
 
-var DataParserMap = make(map[string]TDataParser)
-var G_ReflectParserMap map[string]interface{}
-var NullParser = TDataParser{nil, nil, nil}
-
 func LoadGameData() {
-	InitDataParser()
-	InitReflectParser()
 	LoadAllFiles()
 	FinishWakeLevelParser()
 }
@@ -224,7 +218,7 @@ func LoadOneFile(file *os.File) {
 
 	tblname := strings.TrimSuffix(fstate.Name(), path.Ext(file.Name()))
 	var mapInterface interface{}
-	DataParser, ok := DataParserMap[tblname]
+	DataParser, ok := G_DataParserMap[tblname]
 	if !ok {
 		mapInterface, ok = G_ReflectParserMap[tblname]
 		if !ok {

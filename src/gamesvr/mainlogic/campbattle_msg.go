@@ -130,7 +130,7 @@ func Hand_RecommandCamp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.BattleCamp = 1
-	player.CamBattleModule.BattleCamp = 0 - response.BattleCamp
+	player.CamBattleModule.BattleCamp = 100
 	response.RetCode = msg.RE_SUCCESS
 }
 

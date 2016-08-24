@@ -117,7 +117,7 @@ type MSG_OperationalActivityRank struct {
 	PlayerID   int32
 	PlayerName string
 	HeroID     int
-	Quality    int
+	Quality    int8
 	Level      int
 	Score      int
 }

@@ -6,58 +6,86 @@ import (
 )
 
 const (
-	TASK_MAINCOPY_CHALLENGE     = 1  //! 挑战主线副本次数
-	TASK_MAINCOPY_STAR          = 2  //! 主线副本星数
-	TASK_ELITECOPY_CHALLENGE    = 3  //! 精英副本挑战次数
-	TASK_ELITECOPY_STAR         = 4  //! 精英副本星数
-	TASK_DAILYCOPY_CHALLENGE    = 5  //! 日常副本挑战次数
-	TASK_FAMOUSCOPY_CHALLENGE   = 6  //! 名将副本挑战次数
-	TASK_EQUI_STRENGTHEN        = 7  //! 装备强化次数
-	TASK_EQUI_REFINED           = 8  //! 装备精炼次数
-	TASK_GEM_STRENGTHEN         = 9  //! 宝物强化
-	TASK_HERO_CULTURE           = 10 //! 英雄培养
-	TASK_ARENA_CHALLENGE        = 11 //! 竞技场挑战
-	TASK_USER_LOGIN             = 12 //! 玩家登陆
-	TASK_RECHARGE               = 13 //! 玩家充值
-	TASK_PASS_MAIN_COPY_CHAPTER = 14 //! 通过主线副本章节
-	TASK_LEVEL_UP               = 15 //! 玩家升级
-	TASK_HERO_EQUI_STRENGTH     = 16 //! 上阵所有英雄六件装备强化等级
-	TASK_HERO_EQUI_QUALITY      = 17 //! 上阵所有英雄六件装备品质
-	TASK_ARENA_RANK             = 18 //! 竞技场排名
-	TASK_COMPOSITION            = 19 //! 合成宝物
-	TASK_COMPOSITION_PURPLE     = 20 //! 合成紫色宝物
-	TASK_COMPOSITION_ORANGE     = 21 //! 合成橙色宝物
-	TASK_SGWS_RESET             = 22 //! 三国无双重置次数
-	TASK_SGWS_RANK              = 23 //! 三国无双最高排名
-	TASK_HERO_EQUI_REFINED      = 24 //! 上阵所有英雄精炼等级
-	TASK_HERO_EQUI_REFINED_MAX  = 25 //! 最高精炼等级
-	TASK_HERO_DESTINY_LEVEL     = 26 //! 上阵所有英雄天命等级
-	TASK_HERO_DESTINY_LEVEL_MAX = 27 //! 最高天命等级
-	TASK_BUY_ZHENGTAOLING       = 28 //! 购买征讨令
-	TASK_ATTACK_REBEL_DAMAGE    = 29 //! 攻击叛军伤害
-	TASK_REBEL_EXPLOIT          = 30 //! 围剿叛军功勋累积
-	TASK_PASS_EPIC_COPY         = 31 //! 通关史诗战役
-	TASK_HERO_STORE_REFRESH     = 32 //! 神将商店刷新
-	TASK_HERO_STORE_BUY         = 33 //! 神将商店购买商品
-	TASK_SGWS_STAR              = 34 //! 三国无双星数
-	TASK_HERO_GEM_REFINED       = 35 //! 英雄宝物精炼
-	TASK_HERO_GEM_REFINED_MAX   = 36 //! 英雄宝物精炼最高等级
-	TASK_FIGHT_VALUE            = 37 //! 战斗力
-	TASK_CARD_MASTER_SCORE      = 38 //! 获取卡牌大师积分
-	TASK_ROB_TIMES              = 39 //! 今日夺宝次数
-	TASK_KILL_REBEL             = 40 //! 今日击杀叛军个数
-	TASK_SPENT_MONEY            = 41 //! 消费任意金额
-	TASK_COMPLETE_ALL_TASK      = 42 //! 完成所有任务
-	TASK_GET_HUNT_SCORE         = 43 //! 获得巡游积分
-	TASK_SEND_ACTION            = 44 //! 赠送精力数
-	TASK_CAMP_BATTLE_KILL       = 45 //! 阵营战击杀
-	TASK_TERRITORY_HUNT         = 46 //! 领地巡逻次数
-	TASK_SENIOR_SUMMON          = 47 //! 高级抽将次数
-	TASK_SINGLE_RECHARGE        = 48 //! 单笔充值元数
-	TASK_AWAKE_STORE_REFRESH    = 49 //! 觉醒商店刷新
-	TASK_AWAKE_STORE_BUY        = 50 //! 觉醒商店购买
-	TASK_BUY_ACTION_STRENGTH    = 51 //! 购买体力道具
-	TASK_BUY_ACTION_ENERGY      = 52 //! 购买精力道具
+	TASK_MAINCOPY_CHALLENGE      = 1  //! 挑战主线副本次数
+	TASK_MAINCOPY_STAR           = 2  //! 主线副本星数
+	TASK_ELITECOPY_CHALLENGE     = 3  //! 精英副本挑战次数
+	TASK_ELITECOPY_STAR          = 4  //! 精英副本星数
+	TASK_DAILYCOPY_CHALLENGE     = 5  //! 日常副本挑战次数
+	TASK_FAMOUSCOPY_CHALLENGE    = 6  //! 名将副本挑战次数
+	TASK_EQUI_STRENGTHEN         = 7  //! 装备强化次数
+	TASK_EQUI_REFINED            = 8  //! 装备精炼次数
+	TASK_GEM_STRENGTHEN          = 9  //! 宝物强化
+	TASK_HERO_CULTURE            = 10 //! 英雄培养
+	TASK_ARENA_CHALLENGE         = 11 //! 竞技场挑战
+	TASK_USER_LOGIN              = 12 //! 玩家登陆
+	TASK_RECHARGE                = 13 //! 玩家充值
+	TASK_PASS_MAIN_COPY_CHAPTER  = 14 //! 通过主线副本章节
+	TASK_LEVEL_UP                = 15 //! 玩家升级
+	TASK_HERO_EQUI_STRENGTH      = 16 //! 上阵所有英雄六件装备强化等级
+	TASK_HERO_EQUI_QUALITY       = 17 //! 上阵所有英雄六件装备品质
+	TASK_ARENA_RANK              = 18 //! 竞技场排名
+	TASK_COMPOSITION             = 19 //! 合成宝物
+	TASK_COMPOSITION_PURPLE      = 20 //! 合成紫色宝物
+	TASK_COMPOSITION_ORANGE      = 21 //! 合成橙色宝物
+	TASK_SGWS_RESET              = 22 //! 三国无双重置次数
+	TASK_SGWS_RANK               = 23 //! 三国无双最高排名
+	TASK_HERO_EQUI_REFINED       = 24 //! 上阵所有英雄精炼等级
+	TASK_HERO_EQUI_REFINED_MAX   = 25 //! 最高精炼等级
+	TASK_HERO_DESTINY_LEVEL      = 26 //! 上阵所有英雄天命等级
+	TASK_HERO_DESTINY_LEVEL_MAX  = 27 //! 最高天命等级
+	TASK_BUY_ZHENGTAOLING        = 28 //! 购买征讨令
+	TASK_ATTACK_REBEL_DAMAGE     = 29 //! 攻击叛军伤害
+	TASK_REBEL_EXPLOIT           = 30 //! 围剿叛军功勋累积
+	TASK_PASS_EPIC_COPY          = 31 //! 通关史诗战役
+	TASK_HERO_STORE_REFRESH      = 32 //! 神将商店刷新
+	TASK_HERO_STORE_BUY          = 33 //! 神将商店购买商品
+	TASK_SGWS_STAR               = 34 //! 三国无双星数
+	TASK_HERO_GEM_REFINED        = 35 //! 英雄宝物精炼
+	TASK_HERO_GEM_REFINED_MAX    = 36 //! 英雄宝物精炼最高等级
+	TASK_FIGHT_VALUE             = 37 //! 战斗力
+	TASK_CARD_MASTER_SCORE       = 38 //! 获取卡牌大师积分
+	TASK_ROB_TIMES               = 39 //! 今日夺宝次数
+	TASK_KILL_REBEL              = 40 //! 今日击杀叛军个数
+	TASK_SPENT_MONEY             = 41 //! 消费任意金额
+	TASK_COMPLETE_ALL_TASK       = 42 //! 完成所有任务
+	TASK_GET_HUNT_SCORE          = 43 //! 获得巡游积分
+	TASK_SEND_ACTION             = 44 //! 赠送精力数
+	TASK_CAMP_BATTLE_KILL        = 45 //! 阵营战击杀
+	TASK_TERRITORY_HUNT          = 46 //! 领地巡逻次数
+	TASK_SENIOR_SUMMON           = 47 //! 高级抽将次数
+	TASK_SINGLE_RECHARGE         = 48 //! 单笔充值元数
+	TASK_AWAKE_STORE_REFRESH     = 49 //! 觉醒商店刷新
+	TASK_AWAKE_STORE_BUY         = 50 //! 觉醒商店购买
+	TASK_BUY_ACTION_STRENGTH     = 51 //! 购买体力道具
+	TASK_BUY_ACTION_ENERGY       = 52 //! 购买精力道具
+	TASK_HERO_QUALITY            = 53 //! 玩家品质
+	TASK_CUR_HERO_BREAK          = 54 //! 上阵六名英雄等级
+	TASK_DIAOWEN_QUALITY         = 55 //! 雕文品质
+	TASK_HERO_WAKE               = 56 //! 上阵六名英雄觉醒等级
+	TASK_GOD_TIMES               = 57 //! 点亮火炬
+	TASK_EQUI_STAR_THREE         = 58 //! N件装备升至3星
+	TASK_EQUI_STAR_FIVE          = 59 //! N件装备升至5星
+	TASK_FASHION_COMPOSE         = 60 //! N品质时装合成
+	TASK_FASHION_STRENGTH        = 61 //! 时装强化
+	TASK_FASHION_RECAST          = 62 //! 时装熔炼
+	TASK_PASS_ELITE_COPY_CHAPTER = 63 //! 通关精英副本章节
+	TASK_GUAJI_HOURS             = 64 //! 挂机小时数
+	TASK_CAMP_BATTLE_GROUP_KILL  = 65 //! 阵营战团灭对手次数
+	TASK_PASS_MINING             = 66 //! 通关矿区
+	TASK_TERRITORY_PATROLTIME    = 67 //! 领地征讨巡逻时间
+	TASK_SCORE_RANK              = 68 //! 积分赛段位
+	TASK_FIGHT_WINING            = 69 //! 争霸赛外围胜利次数
+	TASK_WANDER_SWEEP            = 70 //! 云游扫荡
+	TASK_FRIEND_NUM              = 71 //! 好友数量
+	TASK_GUILD_LEVEL             = 72 //! 所在公会等级
+	TASK_CAMP_HERO_FULL_1        = 73 //! 指定阵营英雄收集
+	TASK_CAMP_HERO_FULL_2        = 74 //! 指定阵营英雄收集
+	TASK_CAMP_HERO_FULL_3        = 75 //! 指定阵营英雄收集
+	TASK_CAMP_HERO_FULL_4        = 76 //! 指定阵营英雄收集
+	TASK_PET_QUALITY             = 77 //! 获取宠物品质
+	TASK_PET_LEVEL               = 78 //! 宠物升级
+	TASK_PET_GOD                 = 79 //! 宠物神练
+	TASK_PET_STAR                = 80 //! 宠物升星
 )
 
 type ST_TaskInfo struct {
@@ -114,9 +142,13 @@ func InitTaskTypeParser(total int) bool {
 func ParseTaskTypeRecord(rs *RecordSet) {
 	taskType := CheckAtoi(rs.Values[0], 0)
 
+	if len(rs.Values[1]) <= 0 {
+		panic("field: 1          Is Empty")
+	}
+
 	pv := strings.Split(rs.Values[1], "|")
-	for i, v := range pv {
-		GT_TaskType_Lst[taskType] = append(GT_TaskType_Lst[taskType], CheckAtoi(v, i))
+	for _, v := range pv {
+		GT_TaskType_Lst[taskType] = append(GT_TaskType_Lst[taskType], CheckAtoi(v, 1))
 	}
 }
 

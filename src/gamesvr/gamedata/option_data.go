@@ -163,10 +163,13 @@ var (
 	GuildSKillStudyNeedMoneyID int
 
 	//积分赛
-	OneTimeFightScore int //单场战斗得失分
-	ScoreCopyID       int //副本ID
-	ScoreMoneyID      int //积分赛货币
-	ScoreMoneyNum     int //单场战斗得失货币
+	OneTimeFightScore     int //单场战斗得失分
+	ScoreBuyTimeMoneyID   int //购买战斗次数货币
+	ScoreCopyID           int //副本ID
+	ScoreMoneyID          int //积分赛货币
+	ScoreMoneyNum         int //单场战斗得失货币
+	ScoreSeriesWinAwardID int //连胜奖励ID
+	ScoreSeriesWinTimes   int //连胜次数
 
 	//名人堂免费送花次数
 	FameHallFreeTimes int
@@ -301,6 +304,8 @@ var (
 	MonthFundCostMoneyNum int //! 月基金购买货币数量
 
 	//时装
+	FashionMeltingSum     int //!时装的熔炼总值
+	FashionMeltingAwardID int //!时装熔炼的产出ID
 
 )
 
@@ -726,6 +731,19 @@ func ParseOptionRecord(rs *RecordSet) {
 		{
 			ScoreMoneyNum = CheckAtoiName(rs.Values[2], "score_money_num")
 		}
+	case "score_series_win_times":
+		{
+			ScoreSeriesWinTimes = CheckAtoiName(rs.Values[2], "score_series_win_times")
+		}
+	case "score_series_win_awardid":
+		{
+			ScoreSeriesWinAwardID = CheckAtoiName(rs.Values[2], "score_series_win_awardid")
+		}
+	case "score_buytimes_moneyid":
+		{
+			ScoreBuyTimeMoneyID = CheckAtoiName(rs.Values[2], "score_buytimes_moneyid")
+		}
+
 	case "fame_hall_free_times":
 		{
 			FameHallFreeTimes = CheckAtoiName(rs.Values[2], "fame_hall_free_times")
@@ -1208,6 +1226,15 @@ func ParseOptionRecord(rs *RecordSet) {
 		{
 			NextAwardNeedRecharge = CheckAtoiName(rs.Values[2], "next_recharge_need")
 		}
+	case "fashion_melting_sum":
+		{
+			FashionMeltingSum = CheckAtoiName(rs.Values[2], "fashion_melting_sum")
+		}
+	case "fashion_melting_awardid":
+		{
+			FashionMeltingAwardID = CheckAtoiName(rs.Values[2], "fashion_melting_awardid")
+		}
+
 	default:
 		{
 			panic(fmt.Sprintf("[%s] not processed !!!", rs.Values[0]))

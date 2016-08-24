@@ -202,6 +202,7 @@ func Hand_AddFriendReq(w http.ResponseWriter, r *http.Request) {
 	}
 
 	DB_AddFriendAppList(req.TargetID, req.PlayerID)
+
 	return
 }
 
@@ -626,6 +627,8 @@ func Hand_ProcessFriendReq(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FRIEND_NUM, len(player.FriendMoudle.ApplyList))
+
 		player.FriendMoudle.ApplyList = make([]int32, 0)
 		player.FriendMoudle.DB_ClearAppList()
 
@@ -665,6 +668,7 @@ func Hand_ProcessFriendReq(w http.ResponseWriter, r *http.Request) {
 					response.FriendLst[len(response.FriendLst)-1].OffTime = 0
 				}
 			}
+			player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FRIEND_NUM, 1)
 		}
 
 		player.FriendMoudle.ApplyList = append(player.FriendMoudle.ApplyList[:nIndex], player.FriendMoudle.ApplyList[nIndex+1:]...)

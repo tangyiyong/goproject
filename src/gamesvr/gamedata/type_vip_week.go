@@ -41,7 +41,7 @@ func GetVipWeekItem(level int) (giftLst []ST_VipWeekGiftInfo) {
 	}
 
 	if len(giftLst) == 0 {
-		gamelog.Error("GetVipWeekItem nil, level: %d", giftLst)
+		gamelog.Error("GetVipWeekItem nil, level: %d", level)
 		return giftLst
 	}
 

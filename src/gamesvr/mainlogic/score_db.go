@@ -24,7 +24,7 @@ func (self *TScoreMoudle) DB_UpdateRecvAward() {
 //!保存购买次数
 func (self *TScoreMoudle) DB_SaveBuyFightTime() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerScore", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
-		"buyfighttime": self.BuyFightTime}})
+		"buytime": self.BuyTime}})
 }
 
 //! 更新购买次数

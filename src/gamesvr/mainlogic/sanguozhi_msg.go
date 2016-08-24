@@ -110,15 +110,16 @@ func Hand_SetSanGuoZhi(w http.ResponseWriter, r *http.Request) {
 
 	if info.Type == gamedata.Sanguo_Add_Attr {
 		//! 全队增加指定属性
-		player.HeroMoudle.AddExtraProperty(info.AttrID, info.Value, false, 0)
+		player.HeroMoudle.AddExtraProperty(info.AttrID, int32(info.Value), false, 0)
 		player.HeroMoudle.DB_SaveExtraProperty()
 	} else if info.Type == gamedata.Sanguo_Give_Item {
 		//! 给予道具
-		player.BagMoudle.AddAwardItem(info.AttrID, info.Value)
-		response.AwardItem = msg.MSG_ItemData{info.AttrID, info.Value}
+		player.BagMoudle.AddAwardItem(info.AttrID, int(info.Value))
+		response.AwardItem = msg.MSG_ItemData{info.AttrID, int(info.Value)}
 	} else if info.Type == gamedata.Sanguo_Main_Hero_Up {
 		//! 提升主角品质
 		player.HeroMoudle.ChangeMainQuality(info.Value)
+		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_HERO_QUALITY, int(info.Value))
 	}
 
 	response.FightValue = player.CalcFightValue()

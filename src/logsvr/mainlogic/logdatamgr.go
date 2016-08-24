@@ -1,18 +1,14 @@
 package mainlogic
 
-import (
-	"gamelog"
-)
-
 var (
-	G_LogDataMgr *gamelog.AsyncLog
+	G_LogDataMgr *AsyncLog
 
 	g_binaryLog *TBinaryLog
 	g_mysqlLog  *TMysqlLog
 )
 
 func InitMgr() {
-	G_LogDataMgr = gamelog.NewAsyncLog(1024, _doWriteBinaryLog)
+	G_LogDataMgr = NewAsyncLog(1024, _doWriteBinaryLog)
 
 	g_binaryLog = NewBinaryLog("logsvr")
 	g_mysqlLog = NewMysqlLog()

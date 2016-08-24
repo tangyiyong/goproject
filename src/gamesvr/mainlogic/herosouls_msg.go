@@ -115,7 +115,7 @@ func Hand_ActivateHeroSouls(w http.ResponseWriter, r *http.Request) {
 
 			for _, n := range heroSouls.Property {
 				if n.PropertyID != 0 {
-					player.HeroMoudle.AddExtraProperty(n.PropertyID, n.LevelUp, n.Is_Percent, n.Camp)
+					player.HeroMoudle.AddExtraProperty(n.PropertyID, int32(n.LevelUp), n.Is_Percent, n.Camp)
 					player.HeroSoulsModule.AddTempProperty(n.PropertyID, n.LevelUp, n.Is_Percent, n.Camp)
 				}
 			}
@@ -136,7 +136,7 @@ func Hand_ActivateHeroSouls(w http.ResponseWriter, r *http.Request) {
 
 		for _, n := range heroSouls.Property {
 			if n.PropertyID != 0 {
-				player.HeroMoudle.AddExtraProperty(n.PropertyID, n.PropertyValue, n.Is_Percent, n.Camp)
+				player.HeroMoudle.AddExtraProperty(n.PropertyID, int32(n.PropertyValue), n.Is_Percent, n.Camp)
 				player.HeroSoulsModule.AddTempProperty(n.PropertyID, n.PropertyValue, n.Is_Percent, n.Camp)
 			}
 		}

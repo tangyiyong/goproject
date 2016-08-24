@@ -1961,6 +1961,9 @@ func Hand_SelectBossAward(w http.ResponseWriter, r *http.Request) {
 	if player.MiningModule.Point < gamedata.MiningBossValue {
 		response.IsEnd = true
 
+		//! 通关矿区
+		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_MINING, 1)
+
 		//! 重置地图
 		player.MiningModule.ResetMiningMap()
 	}

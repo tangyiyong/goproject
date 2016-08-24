@@ -12,11 +12,9 @@ package sdklogic
 
 import (
 	"bytes"
-	"encoding/csv"
 	"encoding/json"
 	"gamelog"
 	"net/http"
-	"os"
 	"strconv"
 	"utility"
 )
@@ -24,39 +22,23 @@ import (
 var (
 	SvrAddr_PATH = utility.GetCurrPath() + "svr_addr.csv"
 
-	SvrID_Addr map[int]string
+	SvrID_Addr = make(map[int]string)
 )
 
 func LoadSvrAddrList() {
-	file, err := os.Open(SvrAddr_PATH)
+	records, err := utility.LoadCsv(SvrAddr_PATH)
 	if err != nil {
-		panic("LoadSvrAddrList :" + err.Error())
+		gamelog.Error("LoadSvrAddrList : %s", err.Error())
 		return
 	}
-
-	fstate, err := file.Stat()
-	if err != nil {
-		panic("LoadCsv Stat() error :" + err.Error())
-		return
-	}
-	if fstate.IsDir() == true {
-		panic("LoadCsv is dir :" + SvrAddr_PATH)
-		return
-	}
-
-	csvReader := csv.NewReader(file)
-	records, err := csvReader.ReadAll()
-	if err != nil {
-		panic("LoadCsv ReadAll() error :" + err.Error())
-		return
-	}
-
-	SvrID_Addr = make(map[int]string)
 
 	for i := 0; i < len(records); i++ {
 		id, _ := strconv.Atoi(records[i][0])
 		SvrID_Addr[id] = records[i][1]
 	}
+}
+func RegisterGamesvrAddr(svrID int, url string) {
+	SvrID_Addr[svrID] = url
 }
 
 // strKey = "sdk_recharge_info"

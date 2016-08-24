@@ -374,6 +374,8 @@ func Hand_GetTerritoryAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_TERRITORY_PATROLTIME, territory.PatrolTime/3600)
+
 	//! 获取奖励,返回成功
 	player.TerritoryModule.GetTerritoryAward(req.TerritoryID)
 	response.RetCode = msg.RE_SUCCESS

@@ -48,8 +48,8 @@ func ParseHeroBreakRecord(rs *RecordSet) {
 	return
 }
 
-func GetHeroBreakInfo(level int) *ST_BreakLevelInfo {
-	if level >= len(GT_HeroBreak_List) || level < 0 {
+func GetHeroBreakInfo(level int8) *ST_BreakLevelInfo {
+	if int(level) >= len(GT_HeroBreak_List) || level < 0 {
 		gamelog.Error("GetHeroBreakInfo Error : Invalid level :%d", level)
 		return nil
 	}

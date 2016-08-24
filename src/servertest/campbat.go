@@ -16,7 +16,7 @@ func (self *TPlayer) userSetBatCamp() bool {
 	var req msg.MSG_SetBattleCamp_Req
 	req.PlayerID = self.PlayerID
 	req.SessionKey = self.SessoinKey
-	self.BatCamp = self.PlayerID%3 + 1
+	self.BatCamp = int(self.PlayerID%3 + 1)
 	req.BattleCamp = self.BatCamp
 	b, _ := json.Marshal(req)
 	buffer, err := PostServerReq(reqUrl, bytes.NewReader(b))
@@ -96,7 +96,7 @@ func (self *TPlayer) userEnterRoom() bool {
 
 	var req msg.MSG_EnterRoom_Req
 	req.PlayerID = self.PlayerID
-	req.EnterCode = int(self.EnterCode)
+	req.EnterCode = self.EnterCode
 	req.MsgNo = 1
 
 	var writer msg.PacketWriter

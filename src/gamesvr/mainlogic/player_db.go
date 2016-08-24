@@ -249,28 +249,20 @@ func (player *TPlayer) DB_SaveEquipStar(posType int, nIndex int) bool {
 		star := fmt.Sprintf("curequips.%d.star", nIndex)
 		starexp := fmt.Sprintf("curequips.%d.starexp", nIndex)
 		starluck := fmt.Sprintf("curequips.%d.starluck", nIndex)
-		starMoneyCost := fmt.Sprintf("curequips.%d.starmoneycost", nIndex)
-		starYuanbaoCost := fmt.Sprintf("curequips.%d.staryuanbaocost", nIndex)
-		starPieceCost := fmt.Sprintf("curequips.%d.starpiececost", nIndex)
+		starcost := fmt.Sprintf("curequips.%d.starcost", nIndex)
 		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{star: player.HeroMoudle.CurEquips[nIndex].Star,
-			starexp:         player.HeroMoudle.CurEquips[nIndex].StarExp,
-			starluck:        player.HeroMoudle.CurEquips[nIndex].StarLuck,
-			starMoneyCost:   player.HeroMoudle.CurEquips[nIndex].StarMoneyCost,
-			starYuanbaoCost: player.HeroMoudle.CurEquips[nIndex].StarYuanBaoCost,
-			starPieceCost:   player.HeroMoudle.CurEquips[nIndex].StarPieceCost}})
+			starexp:  player.HeroMoudle.CurEquips[nIndex].StarExp,
+			starluck: player.HeroMoudle.CurEquips[nIndex].StarLuck,
+			starcost: player.HeroMoudle.CurEquips[nIndex].StarCost}})
 	} else if posType == POSTYPE_BAG {
 		star := fmt.Sprintf("equipbag.equips.%d.star", nIndex)
 		starexp := fmt.Sprintf("equipbag.equips.%d.starexp", nIndex)
 		starluck := fmt.Sprintf("equipbag.equips.%d.starluck", nIndex)
-		starMoneyCost := fmt.Sprintf("equipbag.equips.%d.starmoneycost", nIndex)
-		starYuanbaoCost := fmt.Sprintf("equipbag.equips.%d.staryuanbaocost", nIndex)
-		starPieceCost := fmt.Sprintf("equipbag.equips.%d.starpiececost", nIndex)
+		starcost := fmt.Sprintf("equipbag.equips.%d.starcost", nIndex)
 		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBag", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{star: player.BagMoudle.EquipBag.Equips[nIndex].Star,
-			starexp:         player.BagMoudle.EquipBag.Equips[nIndex].StarExp,
-			starluck:        player.BagMoudle.EquipBag.Equips[nIndex].StarLuck,
-			starMoneyCost:   player.BagMoudle.EquipBag.Equips[nIndex].StarMoneyCost,
-			starYuanbaoCost: player.BagMoudle.EquipBag.Equips[nIndex].StarYuanBaoCost,
-			starPieceCost:   player.BagMoudle.EquipBag.Equips[nIndex].StarPieceCost}})
+			starexp:  player.BagMoudle.EquipBag.Equips[nIndex].StarExp,
+			starluck: player.BagMoudle.EquipBag.Equips[nIndex].StarLuck,
+			starcost: player.BagMoudle.EquipBag.Equips[nIndex].StarCost}})
 	}
 	return true
 }

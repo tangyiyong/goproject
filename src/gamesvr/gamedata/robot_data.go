@@ -16,7 +16,7 @@ type ST_Robot struct {
 	Level      int             //机器人等级
 	Name       string          //名字
 	FightValue int             //战力
-	Quality    int             //品质
+	Quality    int8            //品质
 	Heros      [6]ST_RobotHero //六个英雄
 }
 
@@ -40,7 +40,7 @@ func ParseRobotRecord(rs *RecordSet) {
 	GT_Robot_List[RobotID].Level = rs.GetFieldInt("level")
 	GT_Robot_List[RobotID].FightValue = rs.GetFieldInt("fightvalue")
 	GT_Robot_List[RobotID].Name = rs.GetFieldString("name")
-	GT_Robot_List[RobotID].Quality = rs.GetFieldInt("quality")
+	GT_Robot_List[RobotID].Quality = int8(rs.GetFieldInt("quality"))
 	var heroindex int = 0
 	for i := 5; i < 11; i++ {
 		if rs.Values[i] == "NULL" {

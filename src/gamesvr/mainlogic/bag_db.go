@@ -26,7 +26,7 @@ func (self *TBagMoudle) DB_AddHeroAtLast(bCol bool) {
 		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBag", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"herobag.heros": self.HeroBag.Heros[nIndex]}})
 	} else {
 		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBag", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"herobag.heros": self.HeroBag.Heros[nIndex],
-			"colheros": self.HeroBag.Heros[nIndex].HeroID}})
+			"colheros": self.HeroBag.Heros[nIndex].ID}})
 	}
 
 }
@@ -221,7 +221,7 @@ func (self *TBagMoudle) DB_AddPetAtLast(bCol bool) {
 		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBag", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"petbag.pets": self.PetBag.Pets[nIndex]}})
 	} else {
 		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBag", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"petbag.pets": self.PetBag.Pets[nIndex],
-			"colpets": self.PetBag.Pets[nIndex].PetID}})
+			"colpets": self.PetBag.Pets[nIndex].ID}})
 	}
 
 }

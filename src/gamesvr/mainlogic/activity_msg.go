@@ -59,6 +59,7 @@ func Hand_GetActivity(w http.ResponseWriter, r *http.Request) {
 
 		activity.Icon = activityInfo.Icon
 		activity.Type = v.activityType
+		activity.Name = activityInfo.Name
 		activity.AwardType = v.award
 		activity.BeginTime = v.beginTime
 		activity.EndTime = v.endTime

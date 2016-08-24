@@ -35,14 +35,11 @@ type TRechargeOrder struct {
 }
 
 var (
-	g_order_map map[string]*TRechargeOrder
+	g_order_map = make(map[string]*TRechargeOrder, 1024)
 )
 
 func CacheRechargeOrder(pOrder *TRechargeOrder) {
 	pOrder.CreateTime = time.Now().Format("2006-01-02 15:04:05")
-	if g_order_map == nil {
-		g_order_map = make(map[string]*TRechargeOrder, 1024)
-	}
 	g_order_map[pOrder.OrderID] = pOrder
 }
 func DB_Save_RechargeOrder(orderID, thirdOrderID, content string, rmb int) *TRechargeOrder {

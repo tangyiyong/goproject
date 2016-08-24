@@ -48,7 +48,7 @@ type MSG_GetFriendTerritoryStatus_Req struct {
 type MSG_FriendTerritoryStatus struct {
 	PlayerID      int32               //! 好友ID
 	Level         int                 //! 好友等级
-	Quality       int                 //! 好友品质
+	Quality       int8                //! 好友品质
 	TerritoryLst  []MSG_TerritoryInfo //! 领地信息
 	LastLoginTime int64               //! 上次登录时间
 }

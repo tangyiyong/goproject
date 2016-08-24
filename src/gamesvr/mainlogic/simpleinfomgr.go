@@ -14,14 +14,14 @@ type TSimpleInfo struct {
 	AccountID     int32  //账号ID
 	GuildID       int    //公会ID
 	HeroID        int    //英雄ID
-	Quality       int    //主角品质
+	Quality       int8   //主角品质
 	Name          string //玩家名字
 	Level         int    //玩家等级
 	VipLevel      int    //玩家的VIP等级
 	FightValue    int    //玩家的战力
 	LogoffTime    int64  //离线时间
 	AwardCenterID int    //奖励中心ID
-	BatCamp       int    //阵营战阵营
+	BatCamp       int8   //阵营战阵营
 	LoginDay      uint32 //登录日期
 	isOnline      bool   //是否在线
 }
@@ -191,7 +191,7 @@ func (mgr *TSimpleInfoMgr) Set_HeroID(playerid int32, heroid int) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_HeroQuality(playerid int32, quality int) {
+func (mgr *TSimpleInfoMgr) Set_HeroQuality(playerid int32, quality int8) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -227,7 +227,7 @@ func (mgr *TSimpleInfoMgr) Set_AwardCenterID(playerid int32, awardCenterID int) 
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_BatCamp(playerid int32, camp int) {
+func (mgr *TSimpleInfoMgr) Set_BatCamp(playerid int32, camp int8) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()

@@ -4,7 +4,7 @@ type MSG_FriendInfo struct {
 	PlayerID   int32
 	Name       string //好友的名字
 	HeroID     int    //英雄ID
-	Quality    int    //英雄品质
+	Quality    int8   //英雄品质
 	GuildName  string //军团名字
 	FightValue int    //战力
 	Level      int    //等级
@@ -137,7 +137,7 @@ type MSG_OnlineInfo struct {
 	PlayerID   int32
 	Name       string //好友的名字
 	HeroID     int    //英雄ID
-	Quality    int    //英雄品质
+	Quality    int8   //英雄品质
 	GuildName  string //军团名字
 	FightValue int    //战力
 	Level      int    //等级

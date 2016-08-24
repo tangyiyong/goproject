@@ -245,7 +245,7 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 
 		endCopyID := gamedata.GetChaperCopyEndID(pPlayer.CopyMoudle.Main.CurChapter, gamedata.COPY_TYPE_Main)
 		if req.CopyID == endCopyID {
-			pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_MAIN_COPY_CHAPTER, 1)
+			pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_MAIN_COPY_CHAPTER, req.Chapter)
 		}
 
 		if pCopyInfo.FirstAward != 0 && pCopyInfo.CopyID > pPlayer.CopyMoudle.Main.CurCopyID {
@@ -297,7 +297,7 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 
 		endCopyID := gamedata.GetChaperCopyEndID(pPlayer.CopyMoudle.Elite.CurChapter, gamedata.COPY_TYPE_Elite)
 		if req.CopyID == endCopyID {
-			//pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_MAIN_COPY_CHAPTER, 1)
+			pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_ELITE_COPY_CHAPTER, req.Chapter)
 		}
 
 		pPlayer.CopyMoudle.PlayerPassEliteLevels(req.CopyID, req.Chapter, req.StarNum)
@@ -569,6 +569,7 @@ func Hand_SweepCopy(w http.ResponseWriter, r *http.Request) {
 	response.ActionValue, response.ActionTime = pPlayer.RoleMoudle.GetActionData(pCopyInfo.ActionType)
 
 	//! 掉落物品
+	response.ItemLst = make([]msg.MSG_ItemData, 0, 5)
 	dropItem := gamedata.GetItemsFromAwardID(pCopyInfo.AwardID)
 	for _, v := range dropItem {
 		var item msg.MSG_ItemData

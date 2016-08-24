@@ -18,7 +18,7 @@ type THeroObj struct {
 	ObjectID        int32        //实例ID
 	HeroID          int32        //英雄ID
 	SkiLvl          int32        //技能等级
-	Camp            int32        //英雄的阵营
+	Camp            int8         //英雄的阵营
 	PropertyValue   [11]int32    //数值属性
 	PropertyPercent [11]int32    //百分比属性
 	CampDef         [5]int32     //抗阵营属性
@@ -34,7 +34,7 @@ type THeroObj struct {
 type TBattleObj struct {
 	PlayerID int32 //玩家ID
 	Level    int32 //玩家等级
-	BatCamp  int32 //战斗阵营
+	BatCamp  int8  //战斗阵营
 	HeroObj  [6]THeroObj
 
 	//以下为功能属性

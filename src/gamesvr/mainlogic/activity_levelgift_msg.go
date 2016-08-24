@@ -133,7 +133,7 @@ func Hand_BuyLevelGift(w http.ResponseWriter, r *http.Request) {
 
 		//! 检测货币是否足够
 		if player.RoleMoudle.CheckMoneyEnough(levelGiftInfo.MoneyID, levelGiftInfo.MoneyNum) == false {
-			gamelog.Error("Hand_BuyLevelGift Error: Not enough money")
+			gamelog.Error("Hand_BuyLevelGift Error: Not enough money ID: %d", req.GiftID)
 			response.RetCode = msg.RE_NOT_ENOUGH_MONEY
 			return
 		}

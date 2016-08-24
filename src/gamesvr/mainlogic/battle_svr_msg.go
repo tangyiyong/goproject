@@ -104,6 +104,9 @@ func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
 
+	pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_CAMP_BATTLE_KILL, pPlayer.CamBattleModule.KillSum)
+	pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_CAMP_BATTLE_GROUP_KILL, pPlayer.CamBattleModule.DestroySum)
+
 	return
 }
 
@@ -381,7 +384,7 @@ func Hand_LoadCampBatInfo(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	var response msg.MSG_LoadCampBattle_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 
-	response.BattleCamp = int32(player.CamBattleModule.BattleCamp)
+	response.BattleCamp = player.CamBattleModule.BattleCamp
 	response.Level = int32(player.GetLevel())
 	response.LeftTimes = int32(player.CamBattleModule.LeftTimes)
 	response.CurRank = int32(G_CampBat_TodayKill.SetRankItem(player.playerid, player.CamBattleModule.Kill))
@@ -405,16 +408,11 @@ func Hand_LoadCampBatInfo(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	player.HeroMoudle.CalcFightValue(HeroResults)
 	for i := 0; i < BATTLE_NUM; i++ {
 		response.Heros[i].HeroID = int32(HeroResults[i].HeroID)
-		response.Heros[i].Camp = int32(HeroResults[i].Camp)
-		for j := 0; j < 11; j++ {
-			response.Heros[i].PropertyValue[j] = int32(HeroResults[i].PropertyValues[j])
-			response.Heros[i].PropertyPercent[j] = int32(HeroResults[i].PropertyPercents[j])
-		}
-
-		for j := 0; j < 5; j++ {
-			response.Heros[i].CampDef[j] = int32(HeroResults[i].CampDef[j])
-			response.Heros[i].CampKill[j] = int32(HeroResults[i].CampKill[j])
-		}
+		response.Heros[i].Camp = HeroResults[i].Camp
+		response.Heros[i].PropertyValue = HeroResults[i].PropertyValues
+		response.Heros[i].PropertyPercent = HeroResults[i].PropertyPercents
+		response.Heros[i].CampDef = HeroResults[i].CampDef
+		response.Heros[i].CampKill = HeroResults[i].CampKill
 
 		if response.Heros[i].HeroID != 0 {
 			pHeroInfo := gamedata.GetHeroInfo(int(HeroResults[i].HeroID))

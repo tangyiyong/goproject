@@ -32,7 +32,7 @@ func (simple *TSimpleInfoMgr) DB_SetHeroID(playerid int32, heroid int) {
 	return
 }
 
-func (simple *TSimpleInfoMgr) DB_SetHeroQuality(playerid int32, quality int) {
+func (simple *TSimpleInfoMgr) DB_SetHeroQuality(playerid int32, quality int8) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerSimple", bson.M{"_id": playerid}, bson.M{"$set": bson.M{"quality": quality}})
 	return
 }
@@ -42,7 +42,7 @@ func (simple *TSimpleInfoMgr) DB_SetVipLevel(playerid int32, viplevel int) {
 	return
 }
 
-func (simple *TSimpleInfoMgr) DB_SetBatCamp(playerid int32, camp int) {
+func (simple *TSimpleInfoMgr) DB_SetBatCamp(playerid int32, camp int8) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerSimple", bson.M{"_id": playerid}, bson.M{"$set": bson.M{"batcamp": camp}})
 	return
 }

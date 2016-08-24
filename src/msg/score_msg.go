@@ -10,18 +10,21 @@ type MSG_Target struct {
 	SvrName    string //服务器名
 }
 
-//请求积分赛目标信息
-//get_score_target
-type MSG_GetScoreTarget_Req struct {
+//获取积分赛主界面信息
+//get_score_data
+type MSG_GetScoreData_Req struct {
 	PlayerID   int32
 	SessionKey string
 }
 
-type MSG_GetScoreTarget_Ack struct {
-	RetCode int          //返回值
-	Rank    int          //排名
-	Score   int          //积分
-	Targets []MSG_Target //三个战斗目标
+type MSG_GetScoreData_Ack struct {
+	RetCode   int          //返回值
+	Rank      int          //排名
+	Score     int          //积分
+	FightTime int          //今天战斗次数
+	WinTime   int          //连胜次数
+	BuyTime   int          //己购买战斗次数
+	Targets   []MSG_Target //三个战斗目标
 }
 
 type MSG_ScoreRankInfo struct {
@@ -114,7 +117,7 @@ type MSG_GetScoreStoreState_Req struct {
 type MSG_GetScoreStoreState_Ack struct {
 	RetCode    int                //返回码
 	ItemLst    []MSG_StoreBuyData //购买物品次数
-	AwardIndex []int              //奖励商店的索引
+	AwardIndex []int32            //奖励商店的索引
 }
 
 //! 玩家请求购买积分商店道具
@@ -122,8 +125,8 @@ type MSG_GetScoreStoreState_Ack struct {
 type MSG_BuyScoreStoreItem_Req struct {
 	PlayerID    int32
 	SessionKey  string
-	StoreItemID int //商店道具ID
-	BuyNum      int //购买数量
+	StoreItemID int32 //商店道具ID
+	BuyNum      int   //购买数量
 }
 
 type MSG_BuyScoreStoreItem_Ack struct {

@@ -25,7 +25,7 @@ type TPlayer struct {
 	AccountID   int32
 
 	PlayerName string
-	PlayerID   int
+	PlayerID   int32
 
 	LoginKey   string
 	SessoinKey string

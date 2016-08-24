@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"syscall"
+	//"syscall"
 )
 
 type CommandHandler func(args []string) bool
@@ -70,13 +70,13 @@ func HandleFunc(cmd string, mh CommandHandler) {
 }
 
 func ColorPrintln(s string) {
-	kernel32 := syscall.NewLazyDLL("kernel32.dll")
-	proc := kernel32.NewProc("SetConsoleTextAttribute")
-	handle, _, _ := proc.Call(uintptr(syscall.Stdout), uintptr(12)) //12 Red light
+	//kernel32 := syscall.NewLazyDLL("kernel32.dll")
+	//proc := kernel32.NewProc("SetConsoleTextAttribute")
+	//handle, _, _ := proc.Call(uintptr(syscall.Stdout), uintptr(12)) //12 Red light
 
-	fmt.Println(s)
+	//fmt.Println(s)
 
-	handle, _, _ = proc.Call(uintptr(syscall.Stdout), uintptr(7)) //White dark
-	CloseHandle := kernel32.NewProc("CloseHandle")
-	CloseHandle.Call(handle)
+	//handle, _, _ = proc.Call(uintptr(syscall.Stdout), uintptr(7)) //White dark
+	//CloseHandle := kernel32.NewProc("CloseHandle")
+	//CloseHandle.Call(handle)
 }

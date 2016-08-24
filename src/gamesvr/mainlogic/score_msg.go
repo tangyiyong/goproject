@@ -19,12 +19,12 @@ func SelectScoreTarget(pPlayer *TPlayer, value int) bool {
 	return true
 }
 
-//请求积分赛目标信息
-func Hand_GetScoreTarget(w http.ResponseWriter, r *http.Request) {
+//获取积分赛主界面信息
+func Hand_GetScoreData(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
-	var req msg.MSG_GetScoreTarget_Req
+	var req msg.MSG_GetScoreData_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
 		gamelog.Error("Hand_GetScoreTarget Unmarshal fail, Error: %s", err.Error())
@@ -32,7 +32,7 @@ func Hand_GetScoreTarget(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 创建回复
-	var response msg.MSG_GetScoreTarget_Ack
+	var response msg.MSG_GetScoreData_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	defer func() {
 		b, _ := json.Marshal(&response)
@@ -53,6 +53,9 @@ func Hand_GetScoreTarget(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Score = player.ScoreMoudle.Score
+	response.FightTime = player.ScoreMoudle.FightTime
+	response.WinTime = player.ScoreMoudle.WinTime
+	response.BuyTime = player.ScoreMoudle.BuyTime
 	response.Targets, response.Rank = player.ScoreMoudle.GetScoreTargets()
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -166,6 +169,8 @@ func Hand_SetScoreBattleResult(w http.ResponseWriter, r *http.Request) {
 	player.RoleMoudle.CostAction(1, 1)
 	response.Targets, response.Rank = player.ScoreMoudle.GetScoreTargets()
 	response.RetCode = msg.RE_SUCCESS
+
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_SCORE_RANK, response.Rank)
 	return
 }
 
@@ -175,7 +180,7 @@ func (score *TScoreMoudle) GetScoreTargets() ([]msg.MSG_Target, int) {
 	ScoreTargetReq.Score = score.Score
 	ScoreTargetReq.SvrID = GetCurServerID()
 	ScoreTargetReq.SvrName = GetCurServerName()
-	ScoreTargetReq.HeroID = score.ownplayer.HeroMoudle.CurHeros[0].HeroID
+	ScoreTargetReq.HeroID = score.ownplayer.HeroMoudle.CurHeros[0].ID
 	ScoreTargetReq.FightValue = 0
 	ScoreTargetReq.PlayerName = score.ownplayer.RoleMoudle.Name
 
@@ -430,7 +435,7 @@ func Hand_BuyScoreStoreItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 获取购买物品信息
-	itemInfo := gamedata.GetScoreStoreItem(req.StoreItemID)
+	itemInfo := gamedata.GetScoreStoreItem(int(req.StoreItemID))
 	if itemInfo == nil {
 		gamelog.Error("Hand_BuyScoreStoreItem Error: GetScoreStoreItem nil ID: %d ", req.StoreItemID)
 		response.RetCode = msg.RE_INVALID_PARAM
@@ -472,7 +477,7 @@ func Hand_BuyScoreStoreItem(w http.ResponseWriter, r *http.Request) {
 		//! 普通商品
 		isExist := false
 		for i, v := range player.ScoreMoudle.StoreBuyRecord {
-			if v.ID == req.StoreItemID {
+			if int32(v.ID) == req.StoreItemID {
 				isExist = true
 				if v.Times+req.BuyNum > itemInfo.MaxBuyTime {
 					gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough buy times")
@@ -494,7 +499,7 @@ func Hand_BuyScoreStoreItem(w http.ResponseWriter, r *http.Request) {
 			}
 
 			var itemData TStoreBuyData
-			itemData.ID = req.StoreItemID
+			itemData.ID = int(req.StoreItemID)
 			itemData.Times = req.BuyNum
 			player.ScoreMoudle.StoreBuyRecord = append(player.ScoreMoudle.StoreBuyRecord, itemData)
 			go player.ScoreMoudle.DB_AddStoreItemBuyInfo(itemData)
@@ -522,7 +527,7 @@ func Hand_BuyScoreStoreItem(w http.ResponseWriter, r *http.Request) {
 		player.BagMoudle.AddAwardItem(itemInfo.ItemID, itemInfo.ItemNum)
 
 		player.ScoreMoudle.AwardStoreIndex.Add(req.StoreItemID)
-		go player.ScoreMoudle.DB_AddStoreAwardInfo(req.StoreItemID)
+		go player.ScoreMoudle.DB_AddStoreAwardInfo(int(req.StoreItemID))
 	}
 
 	response.RetCode = msg.RE_SUCCESS
@@ -556,7 +561,7 @@ func Hand_BuyScoreFightTime(w http.ResponseWriter, r *http.Request) {
 	}
 
 	maxTime := gamedata.GetFuncVipValue(gamedata.FUNC_SCORE_FIGHT_TIME, player.GetVipLevel())
-	if player.ScoreMoudle.BuyFightTime >= maxTime {
+	if player.ScoreMoudle.BuyTime >= maxTime {
 		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
 		gamelog.Error("Hand_BuyScoreFightTime Not Enough Time")
 		return
@@ -572,11 +577,61 @@ func Hand_BuyScoreFightTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player.RoleMoudle.CostMoney(2, cost)
+	player.RoleMoudle.CostMoney(gamedata.ScoreBuyTimeMoneyID, cost)
 	player.RoleMoudle.AddAction(pCopyInfo.ActionType, 1)
-	player.ScoreMoudle.BuyFightTime += 1
+	player.ScoreMoudle.BuyTime += 1
 	player.ScoreMoudle.DB_SaveBuyFightTime()
 	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(pCopyInfo.ActionType)
 
 	return
+}
+
+//玩家请求积分赛战报信息
+//消息:/get_score_report_req
+type MSG_GetScoreReport_Req struct {
+	PlayerID   int32  //玩家ID
+	SessionKey string //Sessionkey
+}
+
+type MSG_GetScoreReport_Ack struct {
+	RetCode int            //返回码
+	Reports []TScoreReport //战报表
+}
+
+//! 玩家请求积分赛战报信息
+func Hand_GetScoreBattleReport(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接收信息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req MSG_GetScoreReport_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_ReceiveAllMails unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response MSG_GetScoreReport_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	//! 通用检测
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	response.Reports = player.MailMoudle.Reports
+	response.RetCode = msg.RE_SUCCESS
+	player.MailMoudle.Reports = []TScoreReport{}
+	player.MailMoudle.DB_ClearAllReports()
+
 }

@@ -14,14 +14,15 @@ type TActivityDiscount struct {
 
 type MSG_ActivityInfo struct {
 	ID        int
-	Icon      int   //! 活动图标
-	Type      int   //! 活动套用模板
-	AwardType int   //! 活动套用奖励
-	RedTip    bool  //! 是否存在操作提示
-	BeginTime int64 //! 开始时间
-	EndTime   int64 //! 结束时间
-	AwardTime int   //! 领奖时间
-	IsInside  int   //! 是否在里面
+	Icon      int    //! 活动图标
+	Name      string //! 活动名字
+	Type      int    //! 活动套用模板
+	AwardType int    //! 活动套用奖励
+	RedTip    bool   //! 是否存在操作提示
+	BeginTime int64  //! 开始时间
+	EndTime   int64  //! 结束时间
+	AwardTime int    //! 领奖时间
+	IsInside  int    //! 是否在里面
 }
 
 type MSG_GetActivity_Ack struct {
@@ -167,6 +168,7 @@ type MSG_GetActivity_Action_Req struct {
 type MSG_GetActivity_Action_Ack struct {
 	RetCode       int
 	AwardItem     []MSG_ItemData
+	RecvAction    int   //! 领取体力标记
 	ActionValue   int   //! 行动力值
 	ActionTime    int64 //! 行动力恢复起始时间
 	NextAwardTime int   //! 下次领取倒计时
@@ -184,6 +186,7 @@ type MSG_GetAction_Retroactive_Req struct {
 type MSG_GetAction_Retroactive_Ack struct {
 	RetCode       int
 	AwardItem     []MSG_ItemData
+	RecvAction    int   //! 领取体力标记
 	ActionValue   int   //! 行动力值
 	ActionTime    int64 //! 行动力恢复起始时间
 	NextAwardTime int   //! 下次领取倒计时
@@ -372,8 +375,11 @@ type MSG_BuyFund_Req struct {
 }
 
 type MSG_BuyFund_Ack struct {
-	RetCode int
-	BuyNum  int //! 购买基金人数
+	RetCode       int
+	BuyNum        int //! 购买基金人数
+	FundLevelMark int //! 等级奖励领取标记
+	FundCountMark int //! 购买基金人数奖励领取
+	ReceiveMoney  int //! 剩余领取钻石
 }
 
 //! 请求领取基金奖励-全服奖励
@@ -388,6 +394,7 @@ type MSG_ReceiveFundAllAward_Ack struct {
 	RetCode   int
 	AwardItem []MSG_ItemData
 	Index     int
+	AwardMark int
 }
 
 //! 请求领取基金奖励-等级返利
@@ -402,6 +409,7 @@ type MSG_ReceiveFundLevelAward_Ack struct {
 	RetCode   int
 	AwardItem []MSG_ItemData
 	Index     int
+	AwardMark int
 }
 
 //! 获取限时日常任务信息

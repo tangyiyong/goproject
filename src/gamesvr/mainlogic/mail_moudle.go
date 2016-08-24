@@ -44,7 +44,7 @@ type TMailInfo struct {
 	MailParams []string
 }
 
-type TScoreResult struct {
+type TScoreReport struct {
 	Name       string //名字
 	HeroID     int    //英雄ID
 	FightValue int    //战力
@@ -55,11 +55,10 @@ type TScoreResult struct {
 
 //角色邮件基本数据表结构
 type TMailMoudle struct {
-	PlayerID    int32          `bson:"_id"`
-	MailList    []TMailInfo    //邮件列表
-	ScoreResult []TScoreResult //积分战报
-
-	ownplayer *TPlayer //父player指针
+	PlayerID  int32          `bson:"_id"`
+	MailList  []TMailInfo    //邮件列表
+	Reports   []TScoreReport //积分战报
+	ownplayer *TPlayer       //父player指针
 }
 
 func (playermail *TMailMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
@@ -139,14 +138,18 @@ func DB_SaveMailToPlayer(playerid int32, pMailInfo *TMailInfo) {
 }
 
 //! 保存战报到数据库
-func DB_SaveScoreResultToPlayer(playerid int32, pResult *TScoreResult) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": playerid}, bson.M{"$push": bson.M{"scoreresult": *pResult}})
+func DB_SaveScoreResultToPlayer(playerid int32, pResult *TScoreReport) {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": playerid}, bson.M{"$push": bson.M{"reports": *pResult}})
 }
 
 //! 清空邮件到数据库
-func (playermail *TMailMoudle) DB_ClearAllMails() {
-	MailList := make([]TMailInfo, 0)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": playermail.PlayerID}, bson.M{"$set": bson.M{"maillist": MailList}})
+func (self *TMailMoudle) DB_ClearAllMails() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{"maillist": self.MailList}})
+}
+
+//! 清空邮件到数据库
+func (self *TMailMoudle) DB_ClearAllReports() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{"reports": self.Reports}})
 }
 
 //以下为各功能的发邮件方法
@@ -190,7 +193,7 @@ func SendRechargeMail(playerid int32, money int) {
 
 //3. 积分赛战报邮件
 func SendScoreResultMail(playerid int32, name string, fight int, heroid int, attack bool, score int) {
-	var result TScoreResult
+	var result TScoreReport
 	result.Name = name
 	result.FightValue = fight
 	result.HeroID = heroid
@@ -199,7 +202,7 @@ func SendScoreResultMail(playerid int32, name string, fight int, heroid int, att
 	result.Time = time.Now().Unix()
 	pPlayer := GetPlayerByID(playerid)
 	if pPlayer != nil {
-		pPlayer.MailMoudle.ScoreResult = append(pPlayer.MailMoudle.ScoreResult, result)
+		pPlayer.MailMoudle.Reports = append(pPlayer.MailMoudle.Reports, result)
 	}
 
 	DB_SaveScoreResultToPlayer(playerid, &result)

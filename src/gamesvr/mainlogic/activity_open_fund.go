@@ -15,7 +15,7 @@ var G_BuyFundNum int
 func InitBuyOpenFundNum() bool {
 	s := mongodb.GetDBSession()
 	defer s.Close()
-	count, err := s.DB(appconfig.GameDbName).C("PlayerActivity").Find(bson.M{"isbuyfund": true}).Count()
+	count, err := s.DB(appconfig.GameDbName).C("PlayerActivity").Find(bson.M{"openfund.isbuyfund": true}).Count()
 	if err != nil {
 		if err != mgo.ErrNotFound {
 			gamelog.Error("Init DB Error!!!")
@@ -23,6 +23,7 @@ func InitBuyOpenFundNum() bool {
 		}
 	}
 
+	gamelog.Info("BuyNum: %d", count)
 	G_BuyFundNum = count
 	return true
 }

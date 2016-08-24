@@ -7,8 +7,8 @@ import (
 type ST_HeroInfo struct {
 	HeroID         int    //英雄ID
 	ItemID         int    //对应的道具ID
-	Camp           int    //阵营
-	Quality        int    //品质
+	Camp           int8   //阵营
+	Quality        int8   //品质
 	AttackType     int    //攻击类型   1 :物攻  2:法攻
 	SellID         int    //出售货币ID
 	SellPrice      int    //出售价格
@@ -41,8 +41,8 @@ func ParseHeroRecord(rs *RecordSet) {
 	}
 	GT_Hero_List[HeroID].HeroID = HeroID
 	GT_Hero_List[HeroID].ItemID = rs.GetFieldInt("itemid")
-	GT_Hero_List[HeroID].Camp = rs.GetFieldInt("camp")
-	GT_Hero_List[HeroID].Quality = rs.GetFieldInt("quality")
+	GT_Hero_List[HeroID].Camp = int8(rs.GetFieldInt("camp"))
+	GT_Hero_List[HeroID].Quality = int8(rs.GetFieldInt("quality"))
 	GT_Hero_List[HeroID].AttackType = rs.GetFieldInt("attacktype")
 	GT_Hero_List[HeroID].SellID = rs.GetFieldInt("sell_money_id_1")
 	GT_Hero_List[HeroID].SellPrice = rs.GetFieldInt("sell_money_num_1")
@@ -92,7 +92,24 @@ func GetHeroInfo(heroid int) *ST_HeroInfo {
 	return &GT_Hero_List[heroid]
 }
 
-func GetHeroQuality(heroid int) int {
+func GetCampHeroCount() []int {
+	campHeroCount := []int{0, 0, 0, 0}
+	for _, v := range GT_Hero_List {
+		if v.Camp == 1 {
+			campHeroCount[0]++
+		} else if v.Camp == 2 {
+			campHeroCount[1]++
+		} else if v.Camp == 3 {
+			campHeroCount[2]++
+		} else if v.Camp == 4 {
+			campHeroCount[3]++
+		}
+	}
+
+	return campHeroCount
+}
+
+func GetHeroQuality(heroid int) int8 {
 	if heroid >= len(GT_Hero_List) || heroid <= 0 {
 		gamelog.Error("GetHeroInfo Error: invalid heroid :%d", heroid)
 		return 0

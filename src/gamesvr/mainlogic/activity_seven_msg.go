@@ -247,7 +247,7 @@ func Hand_BuySevenActivityLimit(w http.ResponseWriter, r *http.Request) {
 	//! 获取物品信息
 	itemInfo := gamedata.GetSevnActivityItemInfo(req.OpenDay, awardType)
 	if itemInfo == nil {
-		gamelog.Error("GetSevnActivityItemInfo error: can't not get item")
+		gamelog.Error("GetSevnActivityItemInfo error: can't not get item openday:%d, awardType:%d", req.OpenDay, awardType)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}

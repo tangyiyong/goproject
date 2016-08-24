@@ -3,9 +3,8 @@ package mainlogic
 import (
 	"appconfig"
 	"gamesvr/gamedata"
-	"mongodb"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 //! 月基金
@@ -96,6 +95,10 @@ func (self *TActivityMonthFund) SetMonthFund(rmb int) {
 	if self.Day != 0 {
 		//! 已经激活月基金
 		return
+	}
+
+	if G_GlobalVariables.IsActivityOpen(self.ActivityID) == false {
+		return //! 活动尚未开启
 	}
 
 	if len(self.activityModule.MonthCard.CardDays) < 3 {

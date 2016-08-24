@@ -14,7 +14,7 @@ const (
 type ST_TalentItem struct {
 	TalentID       int  //天赋ID
 	TargetType     int  //1: 自己 2:友军  3: 阵营
-	TargetCamp     int  //目标阵营
+	TargetCamp     int8 //目标阵营
 	PropertyID     int  //属性ID
 	PropertyValue1 int  //普通值
 	PropertyValue2 int  //神将天赋值
@@ -34,7 +34,7 @@ func ParseTalentRecord(rs *RecordSet) {
 	TalentID := rs.GetFieldInt("id")
 	GT_Talent_List[TalentID].TalentID = TalentID
 	GT_Talent_List[TalentID].TargetType = rs.GetFieldInt("target")
-	GT_Talent_List[TalentID].TargetCamp = rs.GetFieldInt("camp")
+	GT_Talent_List[TalentID].TargetCamp = int8(rs.GetFieldInt("camp"))
 	GT_Talent_List[TalentID].PropertyID = rs.GetFieldInt("propertyid")
 	GT_Talent_List[TalentID].PropertyValue1 = rs.GetFieldInt("propertyvalue1")
 	GT_Talent_List[TalentID].PropertyValue2 = rs.GetFieldInt("propertyvalue2")

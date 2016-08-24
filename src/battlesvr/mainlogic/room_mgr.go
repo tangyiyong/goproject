@@ -77,7 +77,7 @@ func (mgr *TRoomMgr) GetPlayerHeroIDs(roomid int32, playerid int32) (ret [6]int3
 	return
 }
 
-func (mgr *TRoomMgr) AddPlayerToRoom(roomtype int32, batcamp int32, pBattleObj *TBattleObj) int32 {
+func (mgr *TRoomMgr) AddPlayerToRoom(roomtype int32, batcamp int8, pBattleObj *TBattleObj) int32 {
 	mgr.Lock()
 	defer mgr.Unlock()
 

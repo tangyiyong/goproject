@@ -14,20 +14,8 @@ func (self *TPlayer) Create_Recharge_Order_2Gamesvr() {
 	req.PlayerID = self.PlayerID
 	req.OrderID = "abcdefg233"
 	req.Channel = "360"
-	req.RMB = 233
-
-	// b, _ := json.Marshal(&req)
-	// buffer, err := PostServerReq(reqUrl, bytes.NewReader(b))
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// 	return
-	// }
-	// var ack msg.Msg_create_recharge_order_Ack
-	// json.Unmarshal(buffer, &ack)
-	// if ack.RetCode != 0 {
-	// 	return
-	// }
-	// fmt.Println("%v", ack)
+	req.PlatformEnum = 0
+	req.ChargeCsvID = 2
 
 	backBuf := PostMsg(reqUrl, &req)
 	fmt.Println(backBuf)
@@ -41,13 +29,6 @@ func (self *TPlayer) Recharge_Syccess_2SDK() {
 	req.Channel = "360"
 	req.PlayerID = 10023
 	req.RMB = 233
-
-	// b, _ := json.Marshal(&req)
-	// backBuf, err := PostServerReq(reqUrl, bytes.NewReader(b))
-	// if err != nil {
-	// 	fmt.Println(err.Error())
-	// 	return
-	// }
 
 	backBuf := PostMsg(reqUrl, &req)
 	fmt.Println(backBuf)

@@ -12,13 +12,13 @@ const (
 
 //! 三国志
 type ST_SanGuoZhiInfo struct {
-	ID       int //! 唯一标识
-	Index    int //! 星宿
-	Type     int //! 提升种类
-	AttrID   int //! 属性ID
-	Value    int //! 提升数量
-	CostType int //! 花费道具ID
-	CostNum  int //! 花费道具数量
+	ID       int  //! 唯一标识
+	Index    int  //! 星宿
+	Type     int  //! 提升种类
+	AttrID   int  //! 属性ID
+	Value    int8 //! 提升数量
+	CostType int  //! 花费道具ID
+	CostNum  int  //! 花费道具数量
 }
 
 var GT_SanGuoZhiList []ST_SanGuoZhiInfo
@@ -37,7 +37,7 @@ func ParseSanGuoZhiRecord(rs *RecordSet) {
 	GT_SanGuoZhiList[id].Index = rs.GetFieldInt("index")
 	GT_SanGuoZhiList[id].Type = rs.GetFieldInt("type")
 	GT_SanGuoZhiList[id].AttrID = rs.GetFieldInt("attrid")
-	GT_SanGuoZhiList[id].Value = rs.GetFieldInt("value")
+	GT_SanGuoZhiList[id].Value = int8(rs.GetFieldInt("value"))
 	GT_SanGuoZhiList[id].CostType = rs.GetFieldInt("costtype")
 	GT_SanGuoZhiList[id].CostNum = rs.GetFieldInt("costnum")
 }

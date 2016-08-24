@@ -50,4 +50,33 @@ func HandSvr_CreateRechargeOrder(w http.ResponseWriter, r *http.Request) {
 	pOrder.PlatformEnum = req.PlatformEnum
 	pOrder.chargeCsvID = req.ChargeCsvID
 	CacheRechargeOrder(pOrder)
+
+	response.RetCode = msg.RE_SUCCESS
+}
+func HandSvr_GamesvrAddr(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接收信息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.SDKMsg_GamesvrAddr_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("HandSvr_GamesvrAddr unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.SDKMsg_GamesvrAddr_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	RegisterGamesvrAddr(req.GamesvrID, req.Url)
+
+	response.RetCode = msg.RE_SUCCESS
 }

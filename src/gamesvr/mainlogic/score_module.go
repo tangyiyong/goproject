@@ -28,9 +28,9 @@ type TScoreMoudle struct {
 	ScoreEnemy      [3]TScorePlayer //积分目标
 	RecvAward       []int           //己经领取得积分奖励ID
 	ResetDay        uint32          //重置时间标线
-	BuyFightTime    int             //己购买战斗的次数
+	BuyTime         int             //己购买战斗的次数
 	StoreBuyRecord  []TStoreBuyData //购买商店的次数
-	AwardStoreIndex IntLst          //奖励商店的购买ID
+	AwardStoreIndex Int32Lst        //奖励商店的购买ID
 	WinTime         int             //连胜次数
 
 	//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -65,7 +65,7 @@ func (score *TScoreMoudle) CheckReset() {
 
 func (score *TScoreMoudle) OnNewDay() {
 	score.FightTime = 0
-	score.BuyFightTime = 0
+	score.BuyTime = 0
 	score.ResetDay = utility.GetCurDay()
 	score.RecvAward = make([]int, 0)
 	score.StoreBuyRecord = []TStoreBuyData{}

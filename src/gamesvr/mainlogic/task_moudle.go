@@ -224,7 +224,51 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 					}
 
 					//! 增加完成进度
-					taskmodule.AchievementList[i].TaskCount += count
+					//! 特殊处理
+					if taskType == gamedata.TASK_HERO_EQUI_STRENGTH ||
+						taskType == gamedata.TASK_HERO_EQUI_QUALITY ||
+						taskType == gamedata.TASK_ARENA_RANK ||
+						taskType == gamedata.TASK_SGWS_RANK ||
+						taskType == gamedata.TASK_HERO_EQUI_REFINED ||
+						taskType == gamedata.TASK_HERO_EQUI_REFINED_MAX ||
+						taskType == gamedata.TASK_HERO_DESTINY_LEVEL ||
+						taskType == gamedata.TASK_HERO_DESTINY_LEVEL_MAX ||
+						taskType == gamedata.TASK_ATTACK_REBEL_DAMAGE ||
+						taskType == gamedata.TASK_SCORE_RANK ||
+						taskType == gamedata.TASK_REBEL_EXPLOIT ||
+						taskType == gamedata.TASK_PASS_EPIC_COPY ||
+						taskType == gamedata.TASK_SGWS_STAR ||
+						taskType == gamedata.TASK_HERO_GEM_REFINED ||
+						taskType == gamedata.TASK_HERO_GEM_REFINED_MAX ||
+						taskType == gamedata.TASK_FIGHT_VALUE ||
+						taskType == gamedata.TASK_CUR_HERO_BREAK ||
+						taskType == gamedata.TASK_DIAOWEN_QUALITY ||
+						taskType == gamedata.TASK_HERO_WAKE ||
+						taskType == gamedata.TASK_FASHION_COMPOSE ||
+						taskType == gamedata.TASK_PASS_MAIN_COPY_CHAPTER ||
+						taskType == gamedata.TASK_PASS_ELITE_COPY_CHAPTER ||
+						taskType == gamedata.TASK_CAMP_BATTLE_KILL ||
+						taskType == gamedata.TASK_GUILD_LEVEL ||
+						taskType == gamedata.TASK_PET_QUALITY ||
+						taskType == gamedata.TASK_PET_STAR ||
+						taskType == gamedata.TASK_CAMP_BATTLE_GROUP_KILL ||
+						taskType == gamedata.TASK_PET_LEVEL ||
+						taskType == gamedata.TASK_HERO_QUALITY {
+
+						if count > taskmodule.AchievementList[i].TaskCount {
+							taskmodule.AchievementList[i].TaskCount = count
+						}
+
+					} else if (taskType == gamedata.TASK_SINGLE_RECHARGE ||
+						taskType == gamedata.TASK_CAMP_HERO_FULL_1 ||
+						taskType == gamedata.TASK_CAMP_HERO_FULL_2 ||
+						taskType == gamedata.TASK_CAMP_HERO_FULL_3 ||
+						taskType == gamedata.TASK_CAMP_HERO_FULL_4) && info.Count == count {
+						taskmodule.AchievementList[i].TaskCount += 1
+					} else {
+						//! 增加完成进度
+						taskmodule.AchievementList[i].TaskCount += count
+					}
 
 					//! 判断完成进度
 					if taskmodule.AchievementList[i].TaskCount >= info.Count && taskmodule.AchievementList[i].TaskStatus != Task_Received {
@@ -252,11 +296,55 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 
 					if taskmodule.TaskList[i].TaskCount >= info.Count {
 						//! 已达次数上限
-						break
+						continue
 					}
 
 					//! 增加完成进度
-					taskmodule.TaskList[i].TaskCount += count
+					//! 特殊处理
+					if taskType == gamedata.TASK_HERO_EQUI_STRENGTH ||
+						taskType == gamedata.TASK_HERO_EQUI_QUALITY ||
+						taskType == gamedata.TASK_ARENA_RANK ||
+						taskType == gamedata.TASK_SGWS_RANK ||
+						taskType == gamedata.TASK_HERO_EQUI_REFINED ||
+						taskType == gamedata.TASK_HERO_EQUI_REFINED_MAX ||
+						taskType == gamedata.TASK_HERO_DESTINY_LEVEL ||
+						taskType == gamedata.TASK_HERO_DESTINY_LEVEL_MAX ||
+						taskType == gamedata.TASK_ATTACK_REBEL_DAMAGE ||
+						taskType == gamedata.TASK_REBEL_EXPLOIT ||
+						taskType == gamedata.TASK_PASS_EPIC_COPY ||
+						taskType == gamedata.TASK_SGWS_STAR ||
+						taskType == gamedata.TASK_HERO_GEM_REFINED ||
+						taskType == gamedata.TASK_HERO_GEM_REFINED_MAX ||
+						taskType == gamedata.TASK_FIGHT_VALUE ||
+						taskType == gamedata.TASK_SCORE_RANK ||
+						taskType == gamedata.TASK_CUR_HERO_BREAK ||
+						taskType == gamedata.TASK_DIAOWEN_QUALITY ||
+						taskType == gamedata.TASK_HERO_WAKE ||
+						taskType == gamedata.TASK_PET_LEVEL ||
+						taskType == gamedata.TASK_FASHION_COMPOSE ||
+						taskType == gamedata.TASK_PASS_MAIN_COPY_CHAPTER ||
+						taskType == gamedata.TASK_PASS_ELITE_COPY_CHAPTER ||
+						taskType == gamedata.TASK_CAMP_BATTLE_KILL ||
+						taskType == gamedata.TASK_PET_STAR ||
+						taskType == gamedata.TASK_PET_QUALITY ||
+						taskType == gamedata.TASK_GUILD_LEVEL ||
+						taskType == gamedata.TASK_CAMP_BATTLE_GROUP_KILL ||
+						taskType == gamedata.TASK_HERO_QUALITY {
+
+						if count > taskmodule.TaskList[i].TaskCount {
+							taskmodule.TaskList[i].TaskCount = count
+						}
+
+					} else if (taskType == gamedata.TASK_SINGLE_RECHARGE ||
+						taskType == gamedata.TASK_CAMP_HERO_FULL_1 ||
+						taskType == gamedata.TASK_CAMP_HERO_FULL_2 ||
+						taskType == gamedata.TASK_CAMP_HERO_FULL_3 ||
+						taskType == gamedata.TASK_CAMP_HERO_FULL_4) && info.Count == count {
+						taskmodule.TaskList[i].TaskCount += 1
+					} else {
+						//! 增加完成进度
+						taskmodule.TaskList[i].TaskCount += count
+					}
 
 					//! 判断完成进度
 					if taskmodule.TaskList[i].TaskCount >= info.Count {
@@ -299,14 +387,35 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 								taskType == gamedata.TASK_HERO_DESTINY_LEVEL ||
 								taskType == gamedata.TASK_HERO_DESTINY_LEVEL_MAX ||
 								taskType == gamedata.TASK_ATTACK_REBEL_DAMAGE ||
+								taskType == gamedata.TASK_PET_LEVEL ||
 								taskType == gamedata.TASK_REBEL_EXPLOIT ||
 								taskType == gamedata.TASK_PASS_EPIC_COPY ||
 								taskType == gamedata.TASK_SGWS_STAR ||
 								taskType == gamedata.TASK_HERO_GEM_REFINED ||
 								taskType == gamedata.TASK_HERO_GEM_REFINED_MAX ||
-								taskType == gamedata.TASK_FIGHT_VALUE {
-								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount = count
-							} else if taskType == gamedata.TASK_SINGLE_RECHARGE && info.Count == count {
+								taskType == gamedata.TASK_FIGHT_VALUE ||
+								taskType == gamedata.TASK_CUR_HERO_BREAK ||
+								taskType == gamedata.TASK_DIAOWEN_QUALITY ||
+								taskType == gamedata.TASK_SCORE_RANK ||
+								taskType == gamedata.TASK_GUILD_LEVEL ||
+								taskType == gamedata.TASK_HERO_WAKE ||
+								taskType == gamedata.TASK_FASHION_COMPOSE ||
+								taskType == gamedata.TASK_PASS_MAIN_COPY_CHAPTER ||
+								taskType == gamedata.TASK_PASS_ELITE_COPY_CHAPTER ||
+								taskType == gamedata.TASK_CAMP_BATTLE_KILL ||
+								taskType == gamedata.TASK_PET_QUALITY ||
+								taskType == gamedata.TASK_PET_STAR ||
+								taskType == gamedata.TASK_CAMP_BATTLE_GROUP_KILL ||
+								taskType == gamedata.TASK_HERO_QUALITY {
+
+								if count > taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount {
+									taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount = count
+								}
+							} else if (taskType == gamedata.TASK_SINGLE_RECHARGE ||
+								taskType == gamedata.TASK_CAMP_HERO_FULL_1 ||
+								taskType == gamedata.TASK_CAMP_HERO_FULL_2 ||
+								taskType == gamedata.TASK_CAMP_HERO_FULL_3 ||
+								taskType == gamedata.TASK_CAMP_HERO_FULL_4) && info.Count == count {
 								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount += 1
 							} else {
 								//! 增加完成进度
@@ -360,9 +469,31 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 							taskType == gamedata.TASK_SGWS_STAR ||
 							taskType == gamedata.TASK_HERO_GEM_REFINED ||
 							taskType == gamedata.TASK_HERO_GEM_REFINED_MAX ||
+							taskType == gamedata.TASK_GUILD_LEVEL ||
+							taskType == gamedata.TASK_PET_LEVEL ||
+							taskType == gamedata.TASK_HERO_QUALITY ||
+							taskType == gamedata.TASK_CUR_HERO_BREAK ||
+							taskType == gamedata.TASK_DIAOWEN_QUALITY ||
+							taskType == gamedata.TASK_HERO_WAKE ||
+							taskType == gamedata.TASK_PASS_MAIN_COPY_CHAPTER ||
+							taskType == gamedata.TASK_PASS_ELITE_COPY_CHAPTER ||
+							taskType == gamedata.TASK_FASHION_COMPOSE ||
+							taskType == gamedata.TASK_SCORE_RANK ||
+							taskType == gamedata.TASK_PET_STAR ||
+							taskType == gamedata.TASK_PET_QUALITY ||
+							taskType == gamedata.TASK_CAMP_BATTLE_KILL ||
+							taskType == gamedata.TASK_CAMP_BATTLE_GROUP_KILL ||
 							taskType == gamedata.TASK_FIGHT_VALUE && m.Status == 0 {
-							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = count
-						} else if taskType == gamedata.TASK_SINGLE_RECHARGE && m.Need == count && m.Status == 0 {
+
+							if count > taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count {
+								taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = count
+							}
+
+						} else if (taskType == gamedata.TASK_SINGLE_RECHARGE ||
+							taskType == gamedata.TASK_CAMP_HERO_FULL_1 ||
+							taskType == gamedata.TASK_CAMP_HERO_FULL_2 ||
+							taskType == gamedata.TASK_CAMP_HERO_FULL_3 ||
+							taskType == gamedata.TASK_CAMP_HERO_FULL_4) && m.Need == count && m.Status == 0 {
 							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count += 1
 						} else {
 							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count += count
@@ -406,9 +537,29 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 					taskType == gamedata.TASK_SGWS_STAR ||
 					taskType == gamedata.TASK_HERO_GEM_REFINED ||
 					taskType == gamedata.TASK_HERO_GEM_REFINED_MAX ||
+					taskType == gamedata.TASK_HERO_QUALITY ||
+					taskType == gamedata.TASK_HERO_WAKE ||
+					taskType == gamedata.TASK_FASHION_COMPOSE ||
+					taskType == gamedata.TASK_PASS_MAIN_COPY_CHAPTER ||
+					taskType == gamedata.TASK_PASS_ELITE_COPY_CHAPTER ||
+					taskType == gamedata.TASK_GUILD_LEVEL ||
+					taskType == gamedata.TASK_DIAOWEN_QUALITY ||
+					taskType == gamedata.TASK_CAMP_BATTLE_KILL ||
+					taskType == gamedata.TASK_PET_LEVEL ||
+					taskType == gamedata.TASK_PET_STAR ||
+					taskType == gamedata.TASK_PET_QUALITY ||
+					taskType == gamedata.TASK_CAMP_BATTLE_GROUP_KILL ||
 					taskType == gamedata.TASK_FIGHT_VALUE {
-					taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Count = count
-				} else if taskType == gamedata.TASK_SINGLE_RECHARGE && m.Need == count {
+
+					if count > taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Count {
+						taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Count = count
+					}
+
+				} else if (taskType == gamedata.TASK_SINGLE_RECHARGE ||
+					taskType == gamedata.TASK_CAMP_HERO_FULL_1 ||
+					taskType == gamedata.TASK_CAMP_HERO_FULL_2 ||
+					taskType == gamedata.TASK_CAMP_HERO_FULL_3 ||
+					taskType == gamedata.TASK_CAMP_HERO_FULL_4) && m.Need == count {
 					taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Count += 1
 				}
 

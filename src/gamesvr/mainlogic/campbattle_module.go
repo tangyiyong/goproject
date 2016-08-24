@@ -23,7 +23,7 @@ var (
 //! 活动模块
 type TCampBattleModule struct {
 	PlayerID        int32           `bson:"_id"`
-	BattleCamp      int             //阵营战阵营
+	BattleCamp      int8            //阵营战阵营
 	Kill            int             //今日杀
 	Destroy         int             //今日团
 	KillSum         int             //总击杀

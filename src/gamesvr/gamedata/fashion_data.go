@@ -21,13 +21,16 @@ type ST_FashionMapInfo struct {
 }
 
 type ST_FashionLevel struct {
-	ID           int    //时装ID
-	Level        int    //等级
-	CostItemID   int    //道具ID
-	CostItemNum  int    //道具数量
-	CostMoneyID  int    //货币ID
-	CostMoneyNum int    //货币数量
-	Propertys    [5]int //五个属性加成
+	ID               int    //时装ID
+	Level            int    //等级
+	CostItemID       int    //道具ID
+	CostItemNum      int    //道具数量
+	CostItemSum      int    //道具数量
+	CostMoneyID      int    //货币ID
+	CostMoneyNum     int    //货币数量
+	CostMoneySum     int    //货币总量
+	PropertyValues   [5]int //五个属性加成
+	PropertyPercents [5]int //五个属性百分比加成
 }
 
 var (
@@ -103,8 +106,23 @@ func ParseFashionStrengthRecord(rs *RecordSet) {
 	GT_FashionStrength_List[id][level].Level = level
 	GT_FashionStrength_List[id][level].CostItemID = rs.GetFieldInt("cost_item_id")
 	GT_FashionStrength_List[id][level].CostItemNum = rs.GetFieldInt("cost_item_num")
+	GT_FashionStrength_List[id][level].CostItemSum = rs.GetFieldInt("cost_item_sum")
 	GT_FashionStrength_List[id][level].CostMoneyID = rs.GetFieldInt("cost_money_id")
 	GT_FashionStrength_List[id][level].CostMoneyNum = rs.GetFieldInt("cost_money_num")
+	GT_FashionStrength_List[id][level].CostMoneySum = rs.GetFieldInt("cost_money_sum")
+
+	GT_FashionStrength_List[id][level].PropertyValues[0] = rs.GetFieldInt("value_1")
+	GT_FashionStrength_List[id][level].PropertyValues[1] = rs.GetFieldInt("value_2")
+	GT_FashionStrength_List[id][level].PropertyValues[2] = rs.GetFieldInt("value_3")
+	GT_FashionStrength_List[id][level].PropertyValues[3] = rs.GetFieldInt("value_4")
+	GT_FashionStrength_List[id][level].PropertyValues[4] = rs.GetFieldInt("value_5")
+
+	GT_FashionStrength_List[id][level].PropertyPercents[0] = rs.GetFieldInt("percent_1")
+	GT_FashionStrength_List[id][level].PropertyPercents[1] = rs.GetFieldInt("percent_2")
+	GT_FashionStrength_List[id][level].PropertyPercents[2] = rs.GetFieldInt("percent_3")
+	GT_FashionStrength_List[id][level].PropertyPercents[3] = rs.GetFieldInt("percent_4")
+	GT_FashionStrength_List[id][level].PropertyPercents[4] = rs.GetFieldInt("percent_5")
+
 }
 
 func GetFashionLevelInfo(id int, level int) *ST_FashionLevel {

@@ -162,7 +162,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 			heroID := heroLst[0]
 			if player.SummonModule.IsFirst == true {
 
-				if player.HeroMoudle.CurHeros[0].HeroID == 3 { //! 女主人公
+				if player.HeroMoudle.CurHeros[0].ID == 3 { //! 女主人公
 					heroID = 407
 					player.SummonModule.IsFirst = false
 					go player.SummonModule.UpdateFirstSummon()

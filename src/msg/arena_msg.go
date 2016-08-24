@@ -24,7 +24,7 @@ type MSG_ArenaPlayerInfo struct {
 	Level      int
 	Name       string
 	HeroID     int
-	Quality    int
+	Quality    int8
 	FightValue int
 }
 

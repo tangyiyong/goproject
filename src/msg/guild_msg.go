@@ -146,7 +146,7 @@ type MSG_GetApplyGuildMemberList_Req struct {
 type MSG_MemberInfo struct {
 	PlayerID     int32
 	Name         string
-	Quality      int
+	Quality      int8
 	Level        int
 	Role         int
 	FightValue   int

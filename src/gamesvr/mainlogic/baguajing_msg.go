@@ -46,7 +46,7 @@ func Hand_UseBaGuaJing(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	heroInfo := gamedata.GetHeroInfo(hero.HeroID)
+	heroInfo := gamedata.GetHeroInfo(hero.ID)
 
 	//! 计算需要金钱
 	bgjConfig := gamedata.GetBaGuaJingConfigData()
@@ -79,7 +79,7 @@ func Hand_UseBaGuaJing(w http.ResponseWriter, r *http.Request) {
 		costValue += gamedata.GetWakeLevelItem(i).NeedHeroNum
 	}
 
-	for i := 0; i <= hero.BreakLevel; i++ {
+	for i := int8(0); i <= hero.BreakLevel; i++ {
 		costValue += gamedata.GetHeroBreakInfo(i).HeroNum
 	}
 
@@ -101,8 +101,8 @@ func Hand_UseBaGuaJing(w http.ResponseWriter, r *http.Request) {
 	player.RoleMoudle.CostMoney(moneyID2, moneyNum2)
 
 	//! 改变英雄
-	hero.HeroID = targetHeroInfo.HeroID
-	go player.BagMoudle.DB_UpdateHeroID(req.BagPos, hero.HeroID)
+	hero.ID = targetHeroInfo.HeroID
+	go player.BagMoudle.DB_UpdateHeroID(req.BagPos, hero.ID)
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

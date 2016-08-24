@@ -8,7 +8,7 @@ struct MSG_HeroObj
 
 struct MSG_BattleObj 
 {
-	INT32 BatCamp;
+	INT8 BatCamp;
 	MSG_HeroObj Heros[6];
 }
 
@@ -16,13 +16,13 @@ struct MSG_BattleObj
 struct  MSG_EnterRoom_Req  
 {
 	INT32 PlayerID;
-	INT32 EnterCode;
+	INT32 EnterCode;  //进入码
 	INT32 MsgNo;
 }
 
 struct MSG_EnterRoom_Ack  
 {
-	INT32 BatCamp;
+	INT8  BatCamp;
 	INT32 CurRank;  	   //今日排名
 	INT32 KillNum;         //今日击杀
 	INT32 KillHonor;	   //今日杀人荣誉
@@ -187,7 +187,7 @@ struct MSG_PlayerRevive_Ack
 	INT32 PlayerID; 	//玩家ID
 	INT32 MoneyID;  	//货币ID
 	INT32 MoneyNum; 	//货币数
-	INT32 BattleCamp;	//角色阵营
+	INT8 BattleCamp;	//角色阵营
 	INT32 Heros_Cnt;	//英雄数
 	MSG_HeroObj Heros[1]; //英雄数据
 }
@@ -196,7 +196,7 @@ struct MSG_PlayerRevive_Ack
 //玩家复活的通知消息
 struct MSG_Revive_Nty 
 {	
-	INT32 BattleCamp;		//角色阵营
+	INT8  BattleCamp;		//角色阵营
 	INT32 Heros_Cnt;
 	MSG_HeroObj Heros[1];
 }
@@ -227,7 +227,7 @@ struct MSG_LoadCampBattle_Req {
 
 struct MSG_LoadObject {
 	INT32 HeroID;				//英雄ID
-	INT32 Camp;     			//英雄阵营
+	INT8  Camp;     			//英雄阵营
 	INT32 PropertyValue[11]; 	//数值属性
 	INT32 PropertyPercent[11]; 	//百分比属性
 	INT32 CampDef[5];  			//抗阵营属性
@@ -239,7 +239,7 @@ struct MSG_LoadObject {
 struct MSG_LoadCampBattle_Ack {
 	INT32 RetCode;   		//返回码
 	INT32 PlayerID;  		//角色ID
-	INT32 BattleCamp;		//角色阵营
+	INT8  BattleCamp;		//角色阵营
 	INT32 RoomType;  		//房间类型
 	INT32 Level;     		//主角等级
 	INT32 LeftTimes; 		//剩余的移动次数
@@ -268,7 +268,7 @@ struct MSG_HeroData  {
 //游戏战斗目标数据
 struct MSG_PlayerData  {
 	INT32 PlayerID;
-	INT32 Quality;
+	INT8  Quality;
 	INT32 FightValue;
 	MSG_HeroData Heros[6]
 }
@@ -288,8 +288,6 @@ struct MSG_HeartBeat_Req  {
 	INT32 BeatCode; //心跳码
 	INT32 MsgNo;
 }
-
-
 
 struct MSG_HeroAllDie_Nty 
 {	

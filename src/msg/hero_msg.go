@@ -71,11 +71,11 @@ type MSG_BreakOut_Req struct {
 }
 
 type MSG_BreakOut_Ack struct {
-	RetCode    int //返回码
-	FightValue int //战力值
-	NewLevel   int //新的突破等级
-	CostItems  int //消耗的材料数
-	CostMoney  int //消耗的货币数
+	RetCode    int  //返回码
+	FightValue int  //战力值
+	NewLevel   int8 //新的突破等级
+	CostItems  int  //消耗的材料数
+	CostMoney  int  //消耗的货币数
 }
 
 //玩家培养英雄
@@ -103,10 +103,10 @@ type MSG_DestinyHero_Req struct {
 }
 
 type MSG_DestinyHero_Ack struct {
-	RetCode         int //返回码
-	NewDestinyState int //新的天命状态
-	FightValue      int //新的战力
-	CostItemNum     int //消耗数量
+	RetCode         int    //返回码
+	NewDestinyState uint32 //新的天命状态
+	FightValue      int    //新的战力
+	CostItemNum     int    //消耗数量
 }
 
 //玩家查询天命信息
@@ -118,9 +118,9 @@ type MSG_QueryDestinyState_Req struct {
 }
 
 type MSG_QueryDestinyState_Ack struct {
-	RetCode         int //返回码
-	NewDestinyState int //新的天命状态
-	FightValue      int //新的战力
+	RetCode         int    //返回码
+	NewDestinyState uint32 //新的天命状态
+	FightValue      int    //新的战力
 }
 
 //玩家合成英雄
@@ -205,10 +205,10 @@ type MSG_UpgradeDiaoWen_Req struct {
 }
 
 type MSG_UpgradeDiaoWen_Ack struct {
-	RetCode        int //返回码
-	DiaoWenID      int //雕文ID
-	DiaoWenQuality int //雕文品质
-	FightValue     int //新的战力
+	RetCode        int   //返回码
+	DiaoWenID      int   //雕文ID
+	DiaoWenQuality int32 //雕文品质
+	FightValue     int   //新的战力
 }
 
 //玩家洗炼雕文
@@ -222,11 +222,11 @@ type MSG_XiLianDiaoWen_Req struct {
 }
 
 type MSG_XiLianDiaoWen_Ack struct {
-	RetCode      int    //返回码
-	DiaoWenID    int    //雕文ID
-	RandValue    [5]int //四个随机值 生命, 攻击
-	CostMoneyID  int    //消耗的货币ID
-	CostMoneyNum int    //消耗的货币值
+	RetCode      int      //返回码
+	DiaoWenID    int      //雕文ID
+	RandValue    [5]int32 //四个随机值 生命, 攻击
+	CostMoneyID  int      //消耗的货币ID
+	CostMoneyNum int      //消耗的货币值
 }
 
 //玩家洗炼替换雕文
@@ -239,10 +239,10 @@ type MSG_XiLianTiHuan_Req struct {
 }
 
 type MSG_XiLianTiHuan_Ack struct {
-	RetCode       int    //返回码
-	DiaoWenID     int    //雕文ID
-	FightValue    int    //新的战力
-	PropertyValue [5]int //五个属性值
+	RetCode       int      //返回码
+	DiaoWenID     int      //雕文ID
+	FightValue    int      //新的战力
+	PropertyValue [5]int32 //五个属性值
 }
 
 //玩家升级宠物
@@ -354,8 +354,8 @@ type MSG_UpgodHero_Req struct {
 }
 
 type MSG_UpgodHero_Ack struct {
-	RetCode    int //返回码
-	GodLevel   int //化神等级
-	Quality    int //品质
-	FightValue int //战力
+	RetCode    int  //返回码
+	GodLevel   int  //化神等级
+	Quality    int8 //品质
+	FightValue int  //战力
 }

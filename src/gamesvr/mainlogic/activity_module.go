@@ -126,7 +126,6 @@ type TActivityModule struct {
 	RankGift TActivityRankGift
 
 	//! 限时特惠
-
 	LimitSale TActivityLimitSale
 
 	activityPtrs map[int]TActivity

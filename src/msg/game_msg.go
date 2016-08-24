@@ -55,7 +55,7 @@ type MSG_GetRoleData_Ack struct {
 	RetCode    int     //返回码
 	VipLevel   int     //VIP等级
 	VipExp     int     //VIP经验
-	BatCamp    int     //阵营战阵营
+	BatCamp    int8    //阵营战阵营
 	Actions    []int   //行动力表
 	ActionTime []int64 //行动力时间
 	Moneys     []int   //货币表
@@ -555,9 +555,9 @@ type MSG_PlayerInfo struct {
 	GuildName  string //工会名
 	Level      int
 	FightValue int
-	Quality    int
+	Quality    int8
 	Value      int
-	Camp       int
+	Camp       int8
 }
 
 //请求等级排行榜
@@ -598,7 +598,7 @@ type MSG_SanguowsInfo struct {
 	HeroID     int    //英雄ID
 	Star       int    //星数
 	FightValue int    //战力
-	Quality    int
+	Quality    int8
 }
 
 type MSG_GetSanguows_Ack struct {
@@ -613,7 +613,7 @@ type MSG_ArenaInfo struct {
 	Name       string //角色名字
 	HeroID     int    //英雄ID
 	FightValue int    //战力
-	Quality    int
+	Quality    int8
 	Level      int //等级
 }
 
@@ -637,7 +637,7 @@ type MSG_RebelRankInfo struct {
 	FightValue int    //! 战力值
 	Level      int    //! 角色等级
 	Value      int    //! 伤害值/功勋值
-	Quality    int
+	Quality    int8
 }
 
 //! 玩家请求查询排行榜
