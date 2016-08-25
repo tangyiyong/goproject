@@ -1,8 +1,7 @@
 package main
 
 import (
-	"accountsvr/gamesvrmgr"
-	"accountsvr/login"
+	"accountsvr/mainlogic"
 	"net/http"
 )
 
@@ -10,23 +9,23 @@ import (
 func RegHttpMsgHandler() {
 
 	//玩家登录
-	http.HandleFunc("/login", login.Handle_Login)
+	http.HandleFunc("/login", mainlogic.Handle_Login)
 
 	//玩家注册
-	http.HandleFunc("/register", login.Handle_Register)
+	http.HandleFunc("/register", mainlogic.Handle_Register)
 
 	//游客玩家注册
-	http.HandleFunc("/tourist_register", login.Handle_TouristRegister)
-	http.HandleFunc("/bind_tourist", login.Handle_BindTourist)
+	http.HandleFunc("/tourist_register", mainlogic.Handle_TouristRegister)
+	http.HandleFunc("/bind_tourist", mainlogic.Handle_BindTourist)
 
 	//玩家请求服务器列表
-	http.HandleFunc("/serverlist", login.Handle_ServerList)
+	http.HandleFunc("/serverlist", mainlogic.Handle_ServerList)
 
 	//游戏服务器查询用户是否己登录
-	http.HandleFunc("/verifyuserlogin", login.Handle_VerifyUserLogin)
+	http.HandleFunc("/verifyuserlogin", mainlogic.Handle_VerifyUserLogin)
 
 	//游戏服务器注册
-	http.HandleFunc("/reggameserver", gamesvrmgr.Handle_RegisterGameSvr)
+	http.HandleFunc("/reggameserver", mainlogic.Handle_RegisterGameSvr)
 }
 
 //注册TCP处理消息

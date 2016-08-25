@@ -1,7 +1,6 @@
-package login
+package mainlogic
 
 import (
-	"accountsvr/gamesvrmgr"
 	"appconfig"
 	"encoding/json"
 	"gamelog"
@@ -55,11 +54,11 @@ func Handle_Login(w http.ResponseWriter, r *http.Request) {
 		response.AccountID = result.AccountID
 		response.LoginKey = bson.NewObjectId().Hex()
 		response.LastSvrID = result.LastSvrID
-		var pGameInfo *gamesvrmgr.TGameServerInfo = nil
+		var pGameInfo *TGameServerInfo = nil
 		if result.LastSvrID <= 0 {
-			pGameInfo = gamesvrmgr.GetRecommendSvrID()
+			pGameInfo = GetRecommendSvrID()
 		} else {
-			pGameInfo = gamesvrmgr.GetGameSvrInfo(result.LastSvrID)
+			pGameInfo = GetGameSvrInfo(result.LastSvrID)
 		}
 
 		if pGameInfo != nil {
@@ -202,7 +201,7 @@ func Handle_ServerList(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	nCount := len(gamesvrmgr.G_ServerList)
+	nCount := len(G_ServerList)
 	if nCount <= 0 {
 		response.RetCode = msg.RE_NO_AVALIBLE_SVR
 		gamelog.Error("Handle_ServerList : NO Avalible Game Server!!!!")
@@ -211,7 +210,7 @@ func Handle_ServerList(w http.ResponseWriter, r *http.Request) {
 
 	response.SvrList = make([]msg.ServerNode, nCount)
 	var i int = 0
-	for _, v := range gamesvrmgr.G_ServerList {
+	for _, v := range G_ServerList {
 		response.SvrList[i].SvrDomainID = v.SvrDomainID
 		response.SvrList[i].SvrDomainName = v.SvrDomainName
 		response.SvrList[i].SvrState = v.SvrState

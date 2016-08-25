@@ -223,8 +223,8 @@ func LoadOneFile(file *os.File) {
 		mapInterface, ok = G_ReflectParserMap[tblname]
 		if !ok {
 			gamelog.Error("table: %-30s need a parser!!", tblname)
+			return
 		}
-		return
 	}
 
 	//明确表示不需要解析的表

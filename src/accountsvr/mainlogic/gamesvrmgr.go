@@ -1,4 +1,4 @@
-package gamesvrmgr
+package mainlogic
 
 import (
 	"gamelog"
@@ -26,7 +26,7 @@ var (
 	ListLock     sync.Mutex
 )
 
-func Init() {
+func InitGameSvrMgr() {
 	go func() {
 		regtimer := time.Tick(10 * time.Second)
 		for {
@@ -67,7 +67,7 @@ func UpdateGameSvrInfo(domainid int, doname string, outaddr string, inaddr strin
 	}
 
 	if pGameSvrInfo.SvrDomainName != doname {
-		gamelog.Error("AddGameSvrInfo Error : %d has two domainname:%s, %s", domainid, doname, pGameSvrInfo.SvrDomainName)
+		gamelog.Error("UpdateGameSvrInfo Error : %d has two domainname:%s, %s", domainid, doname, pGameSvrInfo.SvrDomainName)
 	}
 
 	pGameSvrInfo.UpdateTime = time.Now().Unix()
@@ -113,7 +113,7 @@ func GetGameSvrName(domainid int) string {
 	return pGameSvrInfo.SvrDomainName
 }
 
-func GetGameSvrAddr(domainid int) string {
+func GetGameSvrOutAddr(domainid int) string {
 	ListLock.Lock()
 	defer ListLock.Unlock()
 	pGameSvrInfo, ok := G_ServerList[domainid]
@@ -123,6 +123,17 @@ func GetGameSvrAddr(domainid int) string {
 	}
 
 	return pGameSvrInfo.SvrOutAddr
+}
+
+func GetGameSvrInAddr(domainid int) string {
+	ListLock.Lock()
+	defer ListLock.Unlock()
+	pGameSvrInfo, ok := G_ServerList[domainid]
+	if !ok || pGameSvrInfo == nil {
+		return ""
+	}
+
+	return pGameSvrInfo.SvrInnerAddr
 }
 
 func GetGameSvrInfo(domainid int) (pInfo *TGameServerInfo) {

@@ -31,19 +31,6 @@ func PostSdkReq(strKey string, pMsg interface{}) ([]byte, error) {
 	return backBuf, err
 }
 
-func RegisterToSdk() {
-	var req msg.SDKMsg_GamesvrAddr_Req
-	var ack msg.SDKMsg_GamesvrAddr_Ack
-	req.GamesvrID = appconfig.DomainID
-	req.Url = fmt.Sprintf("http://%s:%d/", appconfig.GameSvrInnerIp, appconfig.GameSvrPort)
-	backBuf, err := PostSdkReq("reg_gamesvr_addr", &req)
-	if err != nil {
-		gamelog.Error("PostSdkReq(reg_gamesvr_addr) : %s", err.Error())
-		return
-	}
-	json.Unmarshal(backBuf, &ack)
-}
-
 //! 消息处理函数
 //
 func Handle_Create_Recharge_Order(w http.ResponseWriter, r *http.Request) {

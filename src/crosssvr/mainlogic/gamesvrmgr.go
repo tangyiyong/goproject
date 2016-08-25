@@ -11,10 +11,10 @@ const (
 	SVR_STATE_NORMAL = 1
 )
 
-type GameServerInfo struct {
+type TGameServerInfo struct {
 	SvrDomainID   int
 	SvrDomainName string
-	SvrState      int //
+	SvrState      int //0 表示关闭， 1 表示正常， 2....
 	UpdateTime    int64
 	SvrOutAddr    string
 	SvrInnerAddr  string //内部地址
@@ -22,7 +22,7 @@ type GameServerInfo struct {
 }
 
 var (
-	G_ServerList   = make(map[int]*GameServerInfo)
+	G_ServerList   = make(map[int]*TGameServerInfo)
 	CurSelectIndex = 0
 	ListLock       sync.Mutex
 )
@@ -56,7 +56,7 @@ func UpdateGameSvrInfo(domainid int, doname string, outaddr string, inaddr strin
 
 	pGameSvrInfo, ok := G_ServerList[domainid]
 	if !ok || pGameSvrInfo == nil {
-		var pInfo *GameServerInfo = new(GameServerInfo)
+		var pInfo *TGameServerInfo = new(TGameServerInfo)
 		pInfo.SvrDomainID = domainid
 		pInfo.SvrDomainName = doname
 		pInfo.SvrInnerAddr = inaddr
@@ -76,25 +76,23 @@ func UpdateGameSvrInfo(domainid int, doname string, outaddr string, inaddr strin
 
 }
 
-func AddGameSvrInfo(pInfo *GameServerInfo) {
+func AddGameSvrInfo(pInfo *TGameServerInfo) {
 	ListLock.Lock()
 	defer ListLock.Unlock()
 
 	if pInfo == nil {
-		gamelog.Error("AddGameSvrInfo Error pInof is nil")
+		gamelog.Error("AddGameSvrInfo Error pInfo is nil")
 		return
 	}
 
 	pGameSvrInfo, ok := G_ServerList[pInfo.SvrDomainID]
 	if !ok || pGameSvrInfo == nil {
-
 		G_ServerList[pInfo.SvrDomainID] = pInfo
-
 		return
 	}
 
 	if pGameSvrInfo.SvrDomainName != pInfo.SvrDomainName {
-		gamelog.Error("AddGameSvrInfo Error : %d has tow domainname:%s, %s", pInfo.SvrDomainID, pInfo.SvrDomainName, pGameSvrInfo.SvrDomainName)
+		gamelog.Error("AddGameSvrInfo Error : %d has two domainname:%s, %s", pInfo.SvrDomainID, pInfo.SvrDomainName, pGameSvrInfo.SvrDomainName)
 	}
 
 	pGameSvrInfo.UpdateTime = pInfo.UpdateTime
@@ -109,10 +107,23 @@ func GetGameSvrName(domainid int) string {
 
 	pGameSvrInfo, ok := G_ServerList[domainid]
 	if !ok || pGameSvrInfo == nil {
+		gamelog.Error("GetGameSvrName Error Invalid domainid :%d", domainid)
 		return ""
 	}
 
 	return pGameSvrInfo.SvrDomainName
+}
+
+func GetGameSvrOutAddr(domainid int) string {
+	ListLock.Lock()
+	defer ListLock.Unlock()
+	pGameSvrInfo, ok := G_ServerList[domainid]
+	if !ok || pGameSvrInfo == nil {
+		gamelog.Error("GetGameSvrAddr Error Invalid domainid :%d", domainid)
+		return ""
+	}
+
+	return pGameSvrInfo.SvrOutAddr
 }
 
 func GetGameSvrInAddr(domainid int) string {
@@ -141,11 +152,17 @@ func GetGameSvrFightTarAddr(domainid int) string {
 	return pGameSvrInfo.SvrFightUrl
 }
 
-func GetGameSvrInfo(domainid int) (pInfo *GameServerInfo) {
+func GetGameSvrInfo(domainid int) (pInfo *TGameServerInfo) {
+	if domainid <= 0 {
+		gamelog.Error("GetGameSvrInfo Error Invalid domainid :%d", domainid)
+		return nil
+	}
+
 	ListLock.Lock()
 	defer ListLock.Unlock()
 	pGameSvrInfo, ok := G_ServerList[domainid]
 	if !ok || pGameSvrInfo == nil {
+		gamelog.Error("GetGameSvrInfo Error Invalid domainid :%d", domainid)
 		return nil
 	}
 
@@ -155,9 +172,7 @@ func GetGameSvrInfo(domainid int) (pInfo *GameServerInfo) {
 func RemoveGameSvrInfo(domainid int) bool {
 	ListLock.Lock()
 	defer ListLock.Unlock()
-
 	delete(G_ServerList, domainid)
-
 	return true
 }
 

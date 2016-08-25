@@ -1,8 +1,7 @@
 package main
 
 import (
-	"accountsvr/gamesvrmgr"
-	"accountsvr/login"
+	"accountsvr/mainlogic"
 	"appconfig"
 	"gamelog"
 	"mongodb"
@@ -25,7 +24,7 @@ func main() {
 	utility.Init()
 
 	//初始化游戏服务器管理对象
-	gamesvrmgr.Init()
+	mainlogic.Init()
 
 	//开启控制台窗口，接受用户输入命令
 	utility.StartConsole()
@@ -34,7 +33,7 @@ func main() {
 	RegConsoleCmdHandler()
 
 	//初始化账号管理器
-	login.InitAccountMgr()
+	mainlogic.InitAccountMgr()
 
 	//注册所有HTTP消息处理方法
 	RegHttpMsgHandler()

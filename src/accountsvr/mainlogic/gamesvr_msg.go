@@ -1,4 +1,4 @@
-package gamesvrmgr
+package mainlogic
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ func Handle_RegisterGameSvr(w http.ResponseWriter, r *http.Request) {
 	buffer = make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
-	var req msg.MSG_RegisterGameSvr_Req
+	var req msg.MSG_RegToAccountSvr_Req
 	if json.Unmarshal(buffer, &req) != nil {
 		gamelog.Error("Handle_RegisterGameSvr : Unmarshal error!!!!")
 		return
@@ -21,7 +21,7 @@ func Handle_RegisterGameSvr(w http.ResponseWriter, r *http.Request) {
 
 	UpdateGameSvrInfo(req.ServerDomainID, req.ServerDomainName, req.ServerOuterAddr, req.ServerInnerAddr)
 
-	var response msg.MSG_RegisterGameSvr_Ack
+	var response msg.MSG_RegToAccountSvr_Ack
 	response.RetCode = msg.RE_SUCCESS
 
 	b, _ := json.Marshal(&response)

@@ -45,10 +45,7 @@ func main() {
 	gameLogicInit()
 
 	//注册到账号服务器
-	reggamesvr.RegisterToAccountSvr()
-
-	//注册到SDK进程
-	//go mainlogic.RegisterToSdk()
+	reggamesvr.RegisterToSvr()
 
 	//连接到聊天服务器
 	mainlogic.ConnectToChatSvr(appconfig.ChatSvrInnerIp + ":" + strconv.Itoa(appconfig.ChatSvrPort))

@@ -829,6 +829,13 @@ func GetLimitSaleItemInfo(id int) *ST_LimitSaleItem {
 func RandLimitSaleItem() []int {
 	randIDLst := []int{}
 
+	for _, v := range GT_LimitSaleItemLst {
+		if len(v) == 0 {
+			gamelog.Error("RandLimitSaleItem Error: nil Item")
+			return []int{}
+		}
+	}
+
 	//! 2个元宝商品
 	for i := 0; i < 2; i++ {
 		randIndex := r.Intn(len(GT_LimitSaleItemLst[1]))
