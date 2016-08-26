@@ -26,9 +26,9 @@ type TFriendMoudle struct {
 	ownplayer  *TPlayer //父player指针
 }
 
-func (self *TFriendMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *TFriendMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 //OnCreate 响应角色创建

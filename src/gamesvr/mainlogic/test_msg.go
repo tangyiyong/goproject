@@ -26,20 +26,20 @@ func Hand_TestGetAction(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	for i := 1; i <= len(pPlayer.RoleMoudle.Actions); i++ {
-		pPlayer.RoleMoudle.AddAction(i, 10)
+	for i := 1; i <= len(player.RoleMoudle.Actions); i++ {
+		player.RoleMoudle.AddAction(i, 10)
 	}
 
 	response.RetCode = msg.RE_SUCCESS
-	response.Actions = make([]int, len(pPlayer.RoleMoudle.Actions))
-	for i := 0; i < len(pPlayer.RoleMoudle.Actions); i++ {
-		response.Actions[i] = pPlayer.RoleMoudle.Actions[i].Value
+	response.Actions = make([]int, len(player.RoleMoudle.Actions))
+	for i := 0; i < len(player.RoleMoudle.Actions); i++ {
+		response.Actions[i] = player.RoleMoudle.Actions[i].Value
 	}
 
 	return
@@ -62,17 +62,17 @@ func Hand_TestAddCharge(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	pPlayer.HandChargeRenMinBi(req.RMB, req.ChargeID)
+	player.HandChargeRenMinBi(req.RMB, req.ChargeID)
 
 	response.RetCode = msg.RE_SUCCESS
-	response.VIPExp = pPlayer.GetVipExp()
-	response.VIPLevel = pPlayer.GetVipLevel()
+	response.VIPExp = player.GetVipExp()
+	response.VIPLevel = player.GetVipLevel()
 }
 
 func Hand_TestGetMoney(w http.ResponseWriter, r *http.Request) {
@@ -92,20 +92,18 @@ func Hand_TestGetMoney(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	for i := 1; i < 11; i++ {
-		pPlayer.RoleMoudle.AddMoney(i, 100000)
+	for i := 1; i < 14; i++ {
+		player.RoleMoudle.AddMoney(i, 100000)
 	}
 
 	response.RetCode = msg.RE_SUCCESS
-	for i := 0; i < 10; i++ {
-		response.Moneys[i] = pPlayer.RoleMoudle.Moneys[i]
-	}
+	response.Moneys = player.RoleMoudle.Moneys
 
 	return
 }
@@ -127,18 +125,18 @@ func Hand_TestAddVip(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
 	//! 调用接口增加VIP经验
-	pPlayer.RoleMoudle.AddVipExp(100)
+	player.RoleMoudle.AddVipExp(100)
 
 	response.RetCode = msg.RE_SUCCESS
-	response.VipExp = pPlayer.GetVipExp()
-	response.VipLevel = pPlayer.GetVipLevel()
+	response.VipExp = player.GetVipExp()
+	response.VipLevel = player.GetVipLevel()
 }
 
 func Hand_TestAddGuildExp(w http.ResponseWriter, r *http.Request) {
@@ -158,17 +156,17 @@ func Hand_TestAddGuildExp(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	if pPlayer.pSimpleInfo.GuildID == 0 {
+	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
 	}
-	guild := GetGuildByID(pPlayer.pSimpleInfo.GuildID)
+	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 	guild.AddExp(10000)
 	response.RetCode = msg.RE_SUCCESS
 	response.GuildExp = guild.CurExp
@@ -252,25 +250,25 @@ func Hand_TestUplevel(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	pPlayer.HeroMoudle.CurHeros[0].Level += 1
-	if pPlayer.HeroMoudle.CurHeros[0].Level > gamedata.G_HeroMaxLevel {
-		pPlayer.HeroMoudle.CurHeros[0].Level = gamedata.G_HeroMaxLevel
+	player.HeroMoudle.CurHeros[0].Level += 1
+	if player.HeroMoudle.CurHeros[0].Level > gamedata.G_HeroMaxLevel {
+		player.HeroMoudle.CurHeros[0].Level = gamedata.G_HeroMaxLevel
 	}
-	G_LevelRanker.SetRankItem(req.PlayerID, pPlayer.HeroMoudle.CurHeros[0].Level)
-	pPlayer.DB_SaveHeroLevelExp(POSTYPE_BATTLE, 0)
+	G_LevelRanker.SetRankItem(req.PlayerID, player.HeroMoudle.CurHeros[0].Level)
+	player.DB_SaveHeroLevelExp(POSTYPE_BATTLE, 0)
 	response.RetCode = msg.RE_SUCCESS
-	response.RetLevel = pPlayer.HeroMoudle.CurHeros[0].Level
-	pPlayer.CalcFightValue()
+	response.RetLevel = player.HeroMoudle.CurHeros[0].Level
+	player.CalcFightValue()
 
-	pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_LEVEL_UP, 1)
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_LEVEL_UP, 1)
 
-	pPlayer.ActivityModule.LevelGift.CheckLevelUp(response.RetLevel)
+	player.ActivityModule.LevelGift.CheckLevelUp(response.RetLevel)
 	return
 
 }
@@ -292,24 +290,24 @@ func Hand_TestUplevelTen(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	pPlayer.HeroMoudle.CurHeros[0].Level += 10
-	if pPlayer.HeroMoudle.CurHeros[0].Level > gamedata.G_HeroMaxLevel {
-		pPlayer.HeroMoudle.CurHeros[0].Level = gamedata.G_HeroMaxLevel
+	player.HeroMoudle.CurHeros[0].Level += 10
+	if player.HeroMoudle.CurHeros[0].Level > gamedata.G_HeroMaxLevel {
+		player.HeroMoudle.CurHeros[0].Level = gamedata.G_HeroMaxLevel
 	}
-	G_LevelRanker.SetRankItem(req.PlayerID, pPlayer.HeroMoudle.CurHeros[0].Level)
-	pPlayer.DB_SaveHeroLevelExp(POSTYPE_BATTLE, 0)
-	pPlayer.CalcFightValue()
+	G_LevelRanker.SetRankItem(req.PlayerID, player.HeroMoudle.CurHeros[0].Level)
+	player.DB_SaveHeroLevelExp(POSTYPE_BATTLE, 0)
+	player.CalcFightValue()
 	response.RetCode = msg.RE_SUCCESS
-	response.RetLevel = pPlayer.HeroMoudle.CurHeros[0].Level
+	response.RetLevel = player.HeroMoudle.CurHeros[0].Level
 
-	pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_LEVEL_UP, 10)
-	pPlayer.ActivityModule.LevelGift.CheckLevelUp(response.RetLevel)
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_LEVEL_UP, 10)
+	player.ActivityModule.LevelGift.CheckLevelUp(response.RetLevel)
 	return
 
 }
@@ -331,12 +329,12 @@ func Hand_TestAddItem(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
-	pPlayer.BagMoudle.AddAwardItem(req.ItemID, req.AddNum)
+	player.BagMoudle.AddAwardItem(req.ItemID, req.AddNum)
 
 	response.Count = req.AddNum
 	response.RetCode = msg.RE_SUCCESS

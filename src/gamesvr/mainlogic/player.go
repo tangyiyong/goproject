@@ -67,7 +67,8 @@ type TPlayer struct {
 	//非存数据库的临时状态数据
 	playerid    int32        //角色ID
 	pSimpleInfo *TSimpleInfo //角色简信息
-	sync.Mutex               //玩家的一些操作的锁
+	mutex       sync.Mutex   //玩家的一些操作的锁
+	isLock      bool
 }
 
 //玩家初始化
@@ -360,6 +361,21 @@ func (player *TPlayer) OnPlayerLoadSync(playerid int32) {
 	player.CamBattleModule.OnPlayerLoad(playerid, nil)
 	player.ChargeModule.OnPlayerLoad(playerid, nil)
 	player.InitModules(playerid)
+}
+
+var GMap_HandleMsg_Lock map[string]bool
+
+func (player *TPlayer) Lock(url string) {
+	if val, ok := GMap_HandleMsg_Lock[url]; ok && val {
+		player.mutex.Lock()
+		player.isLock = true
+	}
+}
+func (player *TPlayer) Unlock() {
+	if player.isLock {
+		player.isLock = false
+		player.mutex.Unlock()
+	}
 }
 
 //计算战力

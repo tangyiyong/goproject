@@ -25,9 +25,9 @@ func Hand_ChangeRoleName(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
@@ -36,8 +36,8 @@ func Hand_ChangeRoleName(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pPlayer.RoleMoudle.Name = req.NewName
-	pPlayer.RoleMoudle.DB_SaveRoleName()
+	player.RoleMoudle.Name = req.NewName
+	player.RoleMoudle.DB_SaveRoleName()
 	response.RetCode = msg.RE_SUCCESS
 
 	return
@@ -60,27 +60,27 @@ func Hand_GetRoleData(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
 	response.RetCode = msg.RE_SUCCESS
 
 	//首先将当前的速率的收益结清
-	pPlayer.RoleMoudle.UpdateAllAction()
-	response.Moneys = pPlayer.RoleMoudle.Moneys
-	response.BatCamp = pPlayer.CamBattleModule.BattleCamp
-	response.Actions = make([]int, len(pPlayer.RoleMoudle.Actions))
-	response.ActionTime = make([]int64, len(pPlayer.RoleMoudle.Actions))
-	for i := 0; i < len(pPlayer.RoleMoudle.Actions); i++ {
-		response.Actions[i] = pPlayer.RoleMoudle.Actions[i].Value
-		response.ActionTime[i] = pPlayer.RoleMoudle.Actions[i].StartTime
+	player.RoleMoudle.UpdateAllAction()
+	response.Moneys = player.RoleMoudle.Moneys
+	response.BatCamp = player.CamBattleModule.BattleCamp
+	response.Actions = make([]int, len(player.RoleMoudle.Actions))
+	response.ActionTime = make([]int64, len(player.RoleMoudle.Actions))
+	for i := 0; i < len(player.RoleMoudle.Actions); i++ {
+		response.Actions[i] = player.RoleMoudle.Actions[i].Value
+		response.ActionTime[i] = player.RoleMoudle.Actions[i].StartTime
 	}
-	response.VipLevel = pPlayer.GetVipLevel()
-	response.VipExp = pPlayer.GetVipExp()
-	response.NewWizard = pPlayer.RoleMoudle.NewWizard
+	response.VipLevel = player.GetVipLevel()
+	response.VipExp = player.GetVipExp()
+	response.NewWizard = player.RoleMoudle.NewWizard
 	return
 }
 
@@ -103,13 +103,13 @@ func Hand_GetNewWizard(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.NewWizard = pPlayer.RoleMoudle.NewWizard
+	response.NewWizard = player.RoleMoudle.NewWizard
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -131,13 +131,13 @@ func Hand_GetCollectHeros(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.Heros = pPlayer.BagMoudle.ColHeros
+	response.Heros = player.BagMoudle.ColHeros
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -160,14 +160,14 @@ func Hand_SetNewWizard(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	pPlayer.RoleMoudle.NewWizard = req.NewWizard
-	pPlayer.RoleMoudle.DB_SaveNewWizard()
+	player.RoleMoudle.NewWizard = req.NewWizard
+	player.RoleMoudle.DB_SaveNewWizard()
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -190,15 +190,15 @@ func Hand_GetMainUITip(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
 	response.RetCode = msg.RE_SUCCESS
 
-	isRed, redLst := pPlayer.StoreModule.RedTip()
+	isRed, redLst := player.StoreModule.RedTip()
 	if isRed == true { //!
 		for i := 0; i < len(redLst); i++ {
 			if redLst[i] == gamedata.StoreType_Hero {
@@ -209,33 +209,33 @@ func Hand_GetMainUITip(w http.ResponseWriter, r *http.Request) {
 				response.FuncID = append(response.FuncID, gamedata.FUNC_PET_STORE)
 			}
 		}
-	} else if pPlayer.AwardCenterModule.RedTip() == true { //! 奖励中心
+	} else if player.AwardCenterModule.RedTip() == true { //! 奖励中心
 		response.FuncID = append(response.FuncID, gamedata.FUNC_AWARDCENTER)
-	} else if pPlayer.MailMoudle.RedTip() == true { //! 邮件
+	} else if player.MailMoudle.RedTip() == true { //! 邮件
 		response.FuncID = append(response.FuncID, gamedata.FUNC_MAIL)
-	} else if pPlayer.GuildModule.RedTip() == true { //! 公会
+	} else if player.GuildModule.RedTip() == true { //! 公会
 		response.FuncID = append(response.FuncID, gamedata.FUNC_GUILD)
-	} else if pPlayer.HeroSoulsModule.RedTip() == true { //! 英灵
+	} else if player.HeroSoulsModule.RedTip() == true { //! 英灵
 		response.FuncID = append(response.FuncID, gamedata.FUNC_HEROSOULS_STORE)
-	} else if pPlayer.FriendMoudle.RedTip() == true { //! 好友
+	} else if player.FriendMoudle.RedTip() == true { //! 好友
 		response.FuncID = append(response.FuncID, gamedata.FUNC_FRIEND)
-	} else if pPlayer.FameHallModule.RedTip() == true { //! 名人堂
+	} else if player.FameHallModule.RedTip() == true { //! 名人堂
 		response.FuncID = append(response.FuncID, gamedata.FUNC_FAMOUSHALL)
-	} else if pPlayer.SanGuoZhiModule.RedTip() == true { //! 三国志
+	} else if player.SanGuoZhiModule.RedTip() == true { //! 三国志
 		response.FuncID = append(response.FuncID, gamedata.FUNC_SANGUOZHI)
-	} else if pPlayer.ArenaModule.RedTip() == true { //! 竞技场
+	} else if player.ArenaModule.RedTip() == true { //! 竞技场
 		response.FuncID = append(response.FuncID, gamedata.FUNC_ARENA)
-	} else if pPlayer.SangokuMusouModule.RedTip() == true { //! 三国无双
+	} else if player.SangokuMusouModule.RedTip() == true { //! 三国无双
 		response.FuncID = append(response.FuncID, gamedata.FUNC_SANGUOWUSHUANG)
-	} else if pPlayer.MiningModule.RedTip() == true { //! 挖矿
+	} else if player.MiningModule.RedTip() == true { //! 挖矿
 		response.FuncID = append(response.FuncID, gamedata.FUNC_MINING)
-	} else if pPlayer.RebelModule.RedTip() == true { //! 围剿叛军
+	} else if player.RebelModule.RedTip() == true { //! 围剿叛军
 		response.FuncID = append(response.FuncID, gamedata.FUNC_REBEL_SIEGE)
-	} else if pPlayer.TaskMoudle.RedTip() == true { //! 日常任务
+	} else if player.TaskMoudle.RedTip() == true { //! 日常任务
 		response.FuncID = append(response.FuncID, gamedata.FUNC_DAILYTASK)
-	} else if pPlayer.SummonModule.RedTip() == true { //! 商城召唤
+	} else if player.SummonModule.RedTip() == true { //! 商城召唤
 		response.FuncID = append(response.FuncID, gamedata.FUNC_SUMMON)
-	} else if pPlayer.TerritoryModule.RedTip() == true { //! 领地征讨
+	} else if player.TerritoryModule.RedTip() == true { //! 领地征讨
 		response.FuncID = append(response.FuncID, gamedata.FUNC_TERRITORY)
 	}
 }

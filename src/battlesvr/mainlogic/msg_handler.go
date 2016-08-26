@@ -316,8 +316,6 @@ func Hand_LoadCampBatAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 
 	pBattleObj := CreateBattleObject(&req)
 
-	//
-	//
 	RoomID := G_RoomMgr.AddPlayerToRoom(1 /*req.RoomType*/, pBattleObj.BatCamp, pBattleObj)
 	if RoomID <= 0 {
 		gamelog.Error("Hand_LoadCampBatAck Error AddPlayerToRoom Failed!!!")
@@ -670,16 +668,21 @@ func Hand_PlayerReviveAck(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	if req.Stay == 1 {
-		//表示要原地复活
-	} else {
-		//表示要安全区复活
+	if req.ReviveOpt == 2 {
+		pBattleObj.ReviveTime[0] += 1
+	} else if req.ReviveOpt == 3 {
+		pBattleObj.ReviveTime[1] += 1
+	} else if req.ReviveOpt == 4 {
+	}
+
+	if req.Stay != 1 { //表示要安全区复活
+
 	}
 
 	var response msg.MSG_PlayerRevive_Ack
 	response.MoneyID = req.MoneyID
 	response.MoneyNum = req.MoneyNum
-	response.BattleCamp = pBattleObj.BatCamp
+	response.BatCamp = pBattleObj.BatCamp
 	response.RetCode = req.RetCode
 
 	for i := 0; i < 6; i++ {

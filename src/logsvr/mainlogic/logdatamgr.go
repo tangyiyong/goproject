@@ -7,7 +7,7 @@ var (
 	g_mysqlLog  *TMysqlLog
 )
 
-func InitMgr() {
+func InitLogMgr() {
 	G_LogDataMgr = NewAsyncLog(1024, _doWriteBinaryLog)
 
 	g_binaryLog = NewBinaryLog("logsvr")

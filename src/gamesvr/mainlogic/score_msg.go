@@ -11,8 +11,8 @@ import (
 	"time"
 )
 
-func SelectScoreTarget(pPlayer *TPlayer, value int) bool {
-	if pPlayer.ScoreMoudle.Score < value {
+func SelectScoreTarget(player *TPlayer, value int) bool {
+	if player.ScoreMoudle.Score < value {
 		//	return false
 	}
 
@@ -54,9 +54,11 @@ func Hand_GetScoreData(w http.ResponseWriter, r *http.Request) {
 
 	response.Score = player.ScoreMoudle.Score
 	response.FightTime = player.ScoreMoudle.FightTime
-	response.WinTime = player.ScoreMoudle.WinTime
+	response.WinTime = int(player.ScoreMoudle.SeriesWin & 0x0000FFFF)
+	response.IsRecv = int((player.ScoreMoudle.SeriesWin & 0xFFFF0000) >> 16)
 	response.BuyTime = player.ScoreMoudle.BuyTime
 	response.Targets, response.Rank = player.ScoreMoudle.GetScoreTargets()
+	response.ItemLst = player.ScoreMoudle.BuyRecord
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -154,10 +156,10 @@ func Hand_SetScoreBattleResult(w http.ResponseWriter, r *http.Request) {
 	//如果打赢了
 	if req.WinBattle == 1 {
 		player.ScoreMoudle.Score += gamedata.OneTimeFightScore
-		player.ScoreMoudle.WinTime += 1
+		player.ScoreMoudle.SeriesWin += 1
 	} else {
 		player.ScoreMoudle.Score -= gamedata.OneTimeFightScore
-		player.ScoreMoudle.WinTime = 0
+		player.ScoreMoudle.SeriesWin &= 0xFFFF0000
 	}
 	if player.ScoreMoudle.Score < 0 {
 		player.ScoreMoudle.Score = 0
@@ -181,8 +183,9 @@ func (score *TScoreMoudle) GetScoreTargets() ([]msg.MSG_Target, int) {
 	ScoreTargetReq.SvrID = GetCurServerID()
 	ScoreTargetReq.SvrName = GetCurServerName()
 	ScoreTargetReq.HeroID = score.ownplayer.HeroMoudle.CurHeros[0].ID
-	ScoreTargetReq.FightValue = 0
+	ScoreTargetReq.FightValue = score.ownplayer.pSimpleInfo.FightValue
 	ScoreTargetReq.PlayerName = score.ownplayer.RoleMoudle.Name
+	ScoreTargetReq.Quality = score.ownplayer.HeroMoudle.CurHeros[0].Quality
 
 	b, _ := json.Marshal(ScoreTargetReq)
 	http.DefaultClient.Timeout = 3 * time.Second
@@ -212,6 +215,7 @@ func (score *TScoreMoudle) GetScoreTargets() ([]msg.MSG_Target, int) {
 		score.ScoreEnemy[i].PlayerID = ScoreTargetAck.TargetList[i].PlayerID
 		score.ScoreEnemy[i].SvrName = ScoreTargetAck.TargetList[i].SvrName
 		score.ScoreEnemy[i].SvrID = ScoreTargetAck.TargetList[i].SvrID
+		score.ScoreEnemy[i].Quality = ScoreTargetAck.TargetList[i].Quality
 	}
 
 	return ScoreTargetAck.TargetList[0:3], ScoreTargetAck.NewRank
@@ -272,11 +276,11 @@ func Hand_GetScoreRank(w http.ResponseWriter, r *http.Request) {
 }
 
 //请求积分赛战斗次数奖励
-func Hand_RcvScoreTimeAward(w http.ResponseWriter, r *http.Request) {
+func Hand_RecvScoreTimeAward(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
-	var req msg.MSG_RcvScoreTimeAward_Req
+	var req msg.MSG_RecvScoreTimeAward_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
 		gamelog.Error("Hand_RcvScoreTimeAward Unmarshal fail, Error: %s", err.Error())
@@ -284,7 +288,7 @@ func Hand_RcvScoreTimeAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 创建回复
-	var response msg.MSG_RcvScoreTimeAward_Ack
+	var response msg.MSG_RecvScoreTimeAward_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	defer func() {
 		b, _ := json.Marshal(&response)
@@ -333,6 +337,52 @@ func Hand_RcvScoreTimeAward(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+//请求积分赛连胜奖励
+func Hand_RecvContinueWinAward(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+	var req msg.MSG_RecvScoreContinueAward_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_RcvScoreTimeAward Unmarshal fail, Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_RecvScoreContinueAward_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	//! 常规检测
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	if int(player.ScoreMoudle.SeriesWin&0x0000FFFF) < gamedata.ScoreSeriesWinTimes {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_RcvScoreTimeAward Not Enough Win Times:%d", player.ScoreMoudle.SeriesWin)
+		return
+	}
+
+	dropItem := gamedata.GetItemsFromAwardID(gamedata.ScoreSeriesWinAwardID)
+	for _, v := range dropItem {
+		var item msg.MSG_ItemData
+		item.ID = v.ItemID
+		item.Num = v.ItemNum
+		response.ItemLst = append(response.ItemLst, item)
+	}
+
+	player.BagMoudle.AddAwardItems(dropItem)
+	response.RetCode = msg.RE_SUCCESS
+	return
+}
+
 //请求积分赛战斗次数奖励信息
 func Hand_GetScoreTimeAward(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
@@ -364,46 +414,6 @@ func Hand_GetScoreTimeAward(w http.ResponseWriter, r *http.Request) {
 	response.FightTime = player.ScoreMoudle.FightTime
 	response.RetCode = msg.RE_SUCCESS
 	return
-}
-
-//! 玩家请求积分商店的状态
-//! 消息: /get_score_store_state
-func Hand_GetScoreStoreState(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message: %s", r.URL.String())
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-	var req msg.MSG_GetScoreStoreState_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_BuyScoreFightTime Unmarshal fail, Error: %s", err.Error())
-		return
-	}
-
-	//! 创建回复
-	var response msg.MSG_GetScoreStoreState_Ack
-	response.RetCode = msg.RE_UNKNOWN_ERR
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-	}()
-
-	//! 常规检测
-	var player *TPlayer = nil
-	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if player == nil {
-		return
-	}
-
-	response.AwardIndex = append(response.AwardIndex, player.ScoreMoudle.AwardStoreIndex...)
-
-	for _, v := range player.ScoreMoudle.StoreBuyRecord {
-		var itemInfo msg.MSG_StoreBuyData
-		itemInfo.ID = v.ID
-		itemInfo.Times = v.Times
-		response.ItemLst = append(response.ItemLst, itemInfo)
-	}
-
-	response.RetCode = msg.RE_SUCCESS
 }
 
 //! 玩家请求购买积分商店道具
@@ -442,93 +452,59 @@ func Hand_BuyScoreStoreItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//! 判断购买等级
-	if player.GetLevel() < itemInfo.NeedLevel {
-		gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough level")
-		response.RetCode = msg.RE_NOT_ENOUGH_LEVEL
-		return
-	}
-
-	//! 根据类型判断积分
-	if itemInfo.Type == 2 && itemInfo.NeedScore > player.ScoreMoudle.Score {
-		gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough Score")
-		response.RetCode = msg.RE_NOT_ENOUGH_SCORE
-		return
-	}
-
-	//! 判断货币是否足够
-	if player.RoleMoudle.CheckMoneyEnough(itemInfo.CostMoneyID, itemInfo.CostMoneyNum*req.BuyNum) == false {
-		gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough money")
-		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
-		return
-	}
-
 	//! 判断道具是否足够
-	if itemInfo.CostItemID != 0 {
-		if player.BagMoudle.IsItemEnough(itemInfo.CostItemID, itemInfo.CostItemNum*req.BuyNum) == false {
+	if itemInfo.CostMoneyID > 20 {
+		if player.BagMoudle.IsItemEnough(itemInfo.CostMoneyID, itemInfo.CostMoneyNum*req.BuyNum) == false {
 			gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough Item")
 			response.RetCode = msg.RE_NOT_ENOUGH_ITEM
 			return
 		}
+	} else { //! 判断货币是否足够
+		if player.RoleMoudle.CheckMoneyEnough(itemInfo.CostMoneyID, itemInfo.CostMoneyNum*req.BuyNum) == false {
+			gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough money")
+			response.RetCode = msg.RE_NOT_ENOUGH_MONEY
+			return
+		}
 	}
 
-	//! 检测购买次数是否足够
-	if itemInfo.Type == 1 {
-		//! 普通商品
-		isExist := false
-		for i, v := range player.ScoreMoudle.StoreBuyRecord {
-			if int32(v.ID) == req.StoreItemID {
-				isExist = true
-				if v.Times+req.BuyNum > itemInfo.MaxBuyTime {
-					gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough buy times")
-					response.RetCode = msg.RE_NOT_ENOUGH_TIMES
-					return
-				}
-
-				player.ScoreMoudle.StoreBuyRecord[i].Times += req.BuyNum
-				go player.ScoreMoudle.DB_UpdateStoreItemBuyTimes(i, player.ScoreMoudle.StoreBuyRecord[i].Times)
-			}
-		}
-
-		if isExist == false {
-			//! 首次购买
-			if req.BuyNum > itemInfo.MaxBuyTime {
+	isExist := false
+	for i, v := range player.ScoreMoudle.BuyRecord {
+		if int32(v.ID) == req.StoreItemID {
+			isExist = true
+			if v.Times+req.BuyNum > itemInfo.MaxBuyTime && itemInfo.MaxBuyTime != 0 {
 				gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough buy times")
 				response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 				return
 			}
-
-			var itemData TStoreBuyData
-			itemData.ID = int(req.StoreItemID)
-			itemData.Times = req.BuyNum
-			player.ScoreMoudle.StoreBuyRecord = append(player.ScoreMoudle.StoreBuyRecord, itemData)
-			go player.ScoreMoudle.DB_AddStoreItemBuyInfo(itemData)
+			player.ScoreMoudle.BuyRecord[i].Times += req.BuyNum
+			go player.ScoreMoudle.DB_UpdateStoreItemBuyTimes(i, player.ScoreMoudle.BuyRecord[i].Times)
 		}
+	}
 
-		//! 扣除货币
-		player.RoleMoudle.CostMoney(itemInfo.CostMoneyID, itemInfo.CostMoneyNum*req.BuyNum)
-
-		if itemInfo.CostItemID != 0 {
-			player.BagMoudle.RemoveNormalItem(itemInfo.CostItemID, itemInfo.CostItemNum*req.BuyNum)
-		}
-
-		//! 发放物品
-		player.BagMoudle.AddAwardItem(itemInfo.ItemID, itemInfo.ItemNum*req.BuyNum)
-
-	} else if itemInfo.Type == 2 {
-		//! 奖励
-		if player.ScoreMoudle.AwardStoreIndex.IsExist(req.StoreItemID) >= 0 {
+	if isExist == false {
+		//! 首次购买
+		if req.BuyNum > itemInfo.MaxBuyTime && itemInfo.MaxBuyTime != 0 {
 			gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough buy times")
 			response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 			return
 		}
 
-		player.RoleMoudle.CostMoney(itemInfo.CostMoneyID, itemInfo.CostMoneyNum)
-		player.BagMoudle.AddAwardItem(itemInfo.ItemID, itemInfo.ItemNum)
-
-		player.ScoreMoudle.AwardStoreIndex.Add(req.StoreItemID)
-		go player.ScoreMoudle.DB_AddStoreAwardInfo(int(req.StoreItemID))
+		var itemData msg.MSG_BuyData
+		itemData.ID = int(req.StoreItemID)
+		itemData.Times = req.BuyNum
+		player.ScoreMoudle.BuyRecord = append(player.ScoreMoudle.BuyRecord, itemData)
+		go player.ScoreMoudle.DB_AddStoreItemBuyInfo(itemData)
 	}
+
+	//! 扣除货币
+	if itemInfo.CostMoneyID > 20 {
+		player.BagMoudle.RemoveNormalItem(itemInfo.CostMoneyID, itemInfo.CostMoneyNum*req.BuyNum)
+	} else {
+		player.RoleMoudle.CostMoney(itemInfo.CostMoneyID, itemInfo.CostMoneyNum*req.BuyNum)
+	}
+
+	//! 发放物品
+	player.BagMoudle.AddAwardItem(itemInfo.ItemID, itemInfo.ItemNum*req.BuyNum)
 
 	response.RetCode = msg.RE_SUCCESS
 }

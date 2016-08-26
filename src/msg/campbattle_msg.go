@@ -61,9 +61,9 @@ type MSG_GetCampbatStoreState_Req struct {
 }
 
 type MSG_GetCampbatStoreState_Ack struct {
-	RetCode    int                //返回码
-	ItemLst    []MSG_StoreBuyData //购买物品次数
-	AwardIndex []int              //奖励商店的索引
+	RetCode    int           //返回码
+	ItemLst    []MSG_BuyData //购买物品次数
+	AwardIndex []int         //奖励商店的索引
 }
 
 //! 玩家请求购买积分商店道具

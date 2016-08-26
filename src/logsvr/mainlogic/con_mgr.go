@@ -15,7 +15,7 @@ var (
 	G_ConnsMutex sync.Mutex
 )
 
-func Init() bool {
+func InitConnMgr() bool {
 	G_SvrConns = make(map[int32]*tcpserver.TCPConn, 1)
 	return true
 }

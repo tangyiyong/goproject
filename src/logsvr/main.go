@@ -26,9 +26,8 @@ func main() {
 	//注册所有TCP消息处理方法
 	RegTcpMsgHandler()
 
-	//消息处理逻辑初始化
+	//逻辑初始化
 	mainlogic.Init()
-	mainlogic.InitMgr()
 
 	//启动TCP服务器
 	gamelog.Warn("----Log Server Start-----")

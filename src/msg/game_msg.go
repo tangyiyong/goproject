@@ -900,3 +900,8 @@ type MSG_FashionMelting_Ack struct {
 	RetCode   int
 	FashionID int //合成后的时装ID
 }
+
+//! 游戏服下发的主动通知
+type MSG_GameSvr_Notify struct {
+	FuncID int //需要加红点的应用
+}

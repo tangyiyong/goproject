@@ -44,6 +44,7 @@ func Hand_GetScoreRank(w http.ResponseWriter, r *http.Request) {
 		info.Score = G_ScoreRanker.List[i].RankValue
 		info.SvrID = G_ScoreRanker.List[i].SvrID
 		info.SvrName = G_ScoreRanker.List[i].SvrName
+		info.Quality = G_ScoreRanker.List[i].Quality
 		response.ScoreRankList = append(response.ScoreRankList, info)
 	}
 
@@ -70,7 +71,7 @@ func Hand_GetScoreTarget(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	response.NewRank = G_ScoreRanker.SetRankItem(req.PlayerID, req.Score, req.Level, req.FightValue, req.HeroID, req.SvrID, req.SvrName, req.PlayerName)
+	response.NewRank = G_ScoreRanker.SetRankItem(req.PlayerID, req.Score, req.Level, req.FightValue, req.HeroID, req.SvrID, req.Quality, req.SvrName, req.PlayerName)
 	//var bOk bool
 	for i := 0; i < 3; i++ {
 		svrUrl := GetSelectSvrAddr()

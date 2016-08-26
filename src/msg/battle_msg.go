@@ -501,25 +501,26 @@ func (self *MSG_PlayerChange_Ack) Write(writer *PacketWriter) {
 type MSG_PlayerRevive_Req struct {
 	PlayerID int32
 	MsgNo int32
-	ReviveOpt int32
+	ReviveOpt int8
 }
 
 func (self *MSG_PlayerRevive_Req) Read(reader *PacketReader) bool {
 	self.PlayerID = reader.ReadInt32()
 	self.MsgNo = reader.ReadInt32()
-	self.ReviveOpt = reader.ReadInt32()
+	self.ReviveOpt = reader.ReadInt8()
 	return true
 }
 
 func (self *MSG_PlayerRevive_Req) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.PlayerID)
 	writer.WriteInt32(self.MsgNo)
-	writer.WriteInt32(self.ReviveOpt)
+	writer.WriteInt8(self.ReviveOpt)
 	return
 }
 
 type MSG_ServerRevive_Ack struct {
 	RetCode int32
+	ReviveOpt int8
 	PlayerID int32
 	Stay int32
 	ProInc int32
@@ -530,6 +531,7 @@ type MSG_ServerRevive_Ack struct {
 
 func (self *MSG_ServerRevive_Ack) Read(reader *PacketReader) bool {
 	self.RetCode = reader.ReadInt32()
+	self.ReviveOpt = reader.ReadInt8()
 	self.PlayerID = reader.ReadInt32()
 	self.Stay = reader.ReadInt32()
 	self.ProInc = reader.ReadInt32()
@@ -541,6 +543,7 @@ func (self *MSG_ServerRevive_Ack) Read(reader *PacketReader) bool {
 
 func (self *MSG_ServerRevive_Ack) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.RetCode)
+	writer.WriteInt8(self.ReviveOpt)
 	writer.WriteInt32(self.PlayerID)
 	writer.WriteInt32(self.Stay)
 	writer.WriteInt32(self.ProInc)
@@ -555,7 +558,7 @@ type MSG_PlayerRevive_Ack struct {
 	PlayerID int32
 	MoneyID int32
 	MoneyNum int32
-	BattleCamp int8
+	BatCamp int8
 	Heros_Cnt int32
 	Heros[] MSG_HeroObj
 }
@@ -565,7 +568,7 @@ func (self *MSG_PlayerRevive_Ack) Read(reader *PacketReader) bool {
 	self.PlayerID = reader.ReadInt32()
 	self.MoneyID = reader.ReadInt32()
 	self.MoneyNum = reader.ReadInt32()
-	self.BattleCamp = reader.ReadInt8()
+	self.BatCamp = reader.ReadInt8()
 	self.Heros_Cnt = reader.ReadInt32()
 	self.Heros = make([]MSG_HeroObj,self.Heros_Cnt)
 	for i := 0; i < int(self.Heros_Cnt); i++ {
@@ -579,7 +582,7 @@ func (self *MSG_PlayerRevive_Ack) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.PlayerID)
 	writer.WriteInt32(self.MoneyID)
 	writer.WriteInt32(self.MoneyNum)
-	writer.WriteInt8(self.BattleCamp)
+	writer.WriteInt8(self.BatCamp)
 	writer.WriteInt32(self.Heros_Cnt)
 	for i := 0; i < int(self.Heros_Cnt); i++ {
 		self.Heros[i].Write(writer)

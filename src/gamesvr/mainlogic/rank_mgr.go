@@ -424,7 +424,7 @@ func InitCampBattleRanker() bool {
 	defer s.Close()
 
 	var result []TCampBattleModule
-	err := s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(nil).Sort("-kill").Limit(50).All(&result)
+	err := s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(bson.M{"battlecamp": bson.M{"$gt": 0}}).Sort("-kill").Limit(50).All(&result)
 	if err != nil && err != mgo.ErrNotFound {
 		gamelog.Error("InitCampBattleRanker DB Error!!!")
 		return false
@@ -434,7 +434,7 @@ func InitCampBattleRanker() bool {
 		G_CampBat_TodayKill.SetRankItem(result[i].PlayerID, result[i].Kill)
 	}
 
-	err = s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(nil).Sort("-destroy").Limit(50).All(&result)
+	err = s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(bson.M{"battlecamp": bson.M{"$gt": 0}}).Sort("-destroy").Limit(50).All(&result)
 	if err != nil && err != mgo.ErrNotFound {
 		gamelog.Error("InitCampBattleRanker DB Error!!!")
 		return false
@@ -444,7 +444,7 @@ func InitCampBattleRanker() bool {
 		G_CampBat_TodayDestroy.SetRankItem(result[i].PlayerID, result[i].Destroy)
 	}
 	//////////////////////////////////////////
-	err = s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(nil).Sort("-killsum").Limit(50).All(&result)
+	err = s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(bson.M{"battlecamp": bson.M{"$gt": 0}}).Sort("-killsum").Limit(50).All(&result)
 	if err != nil && err != mgo.ErrNotFound {
 		gamelog.Error("InitCampBattleRanker DB Error!!!")
 		return false
@@ -454,7 +454,7 @@ func InitCampBattleRanker() bool {
 		G_CampBat_KillSum.SetRankItem(result[i].PlayerID, result[i].KillSum)
 	}
 	//////////////////////////////////////////
-	err = s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(nil).Sort("-destroysum").Limit(50).All(&result)
+	err = s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(bson.M{"battlecamp": bson.M{"$gt": 0}}).Sort("-destroysum").Limit(50).All(&result)
 	if err != nil && err != mgo.ErrNotFound {
 		gamelog.Error("InitCampBattleRanker DB Error!!!")
 		return false

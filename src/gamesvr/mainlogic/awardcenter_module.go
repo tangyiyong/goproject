@@ -114,9 +114,9 @@ func SendAwardToPlayer(playerid int32, pAwardData *TAwardData) {
 	pSimpleInfo.AwardCenterID += 1
 	G_SimpleMgr.DB_SetAwardCenterID(playerid, pSimpleInfo.AwardCenterID)
 
-	pPlayer := GetPlayerByID(playerid)
-	if pPlayer != nil {
-		pPlayer.AwardCenterModule.AwardLst = append(pPlayer.AwardCenterModule.AwardLst, *pAwardData)
+	player := GetPlayerByID(playerid)
+	if player != nil {
+		player.AwardCenterModule.AwardLst = append(player.AwardCenterModule.AwardLst, *pAwardData)
 	}
 
 	go DB_SaveAwardToPlayer(playerid, *pAwardData)
@@ -186,18 +186,18 @@ func SendSvrAwardToPlayer(playerid int32) {
 		return
 	}
 
-	pPlayer := GetPlayerByID(playerid)
-	if pPlayer != nil {
-		if pPlayer.AwardCenterModule.SvrAwardID < G_GlobalVariables.SvrAwardIncID {
+	player := GetPlayerByID(playerid)
+	if player != nil {
+		if player.AwardCenterModule.SvrAwardID < G_GlobalVariables.SvrAwardIncID {
 			for _, v := range G_GlobalVariables.SvrAwardList {
-				if v.ID > pPlayer.AwardCenterModule.SvrAwardID {
-					pPlayer.AwardCenterModule.SvrAwardID = v.ID
+				if v.ID > player.AwardCenterModule.SvrAwardID {
+					player.AwardCenterModule.SvrAwardID = v.ID
 					SendAwardToPlayer(playerid, &v)
 				}
 			}
 		}
 
-		pPlayer.AwardCenterModule.db_UpdateSvrAwardID()
+		player.AwardCenterModule.db_UpdateSvrAwardID()
 	}
 }
 

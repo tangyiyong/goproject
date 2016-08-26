@@ -156,7 +156,7 @@ func (self *TFashionData) Clear() {
 	self.Level = 0
 }
 
-type TStoreBuyData struct {
-	ID    int //! 物品ID
-	Times int //! 购买次数
-}
+//type TStoreBuyData struct {
+//	ID    int //! 物品ID
+//	Times int //! 购买次数
+//}

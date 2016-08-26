@@ -40,15 +40,15 @@ func CreatePlayer(playerid int32, name string, heroid int) (*TPlayer, bool) {
 		return nil, false
 	}
 
-	pPlayer := new(TPlayer)
-	g_Players[playerid] = pPlayer
-	g_SelectPlayers = append(g_SelectPlayers, pPlayer)
-	pPlayer.InitModules(playerid)
-	pPlayer.SetPlayerName(name)
-	pPlayer.SetMainHeroID(heroid)
+	player := new(TPlayer)
+	g_Players[playerid] = player
+	g_SelectPlayers = append(g_SelectPlayers, player)
+	player.InitModules(playerid)
+	player.SetPlayerName(name)
+	player.SetMainHeroID(heroid)
 	mMutex.Unlock()
 
-	return pPlayer, true
+	return player, true
 }
 
 func LoadPlayerFromDB(playerid int32) *TPlayer {
@@ -58,14 +58,14 @@ func LoadPlayerFromDB(playerid int32) *TPlayer {
 	}
 
 	mMutex.Lock()
-	pPlayer := new(TPlayer)
-	g_Players[playerid] = pPlayer
-	g_SelectPlayers = append(g_SelectPlayers, pPlayer)
+	player := new(TPlayer)
+	g_Players[playerid] = player
+	g_SelectPlayers = append(g_SelectPlayers, player)
 	mMutex.Unlock()
-	pPlayer.OnPlayerLoad(playerid)
-	pPlayer.pSimpleInfo = G_SimpleMgr.GetSimpleInfoByID(playerid)
+	player.OnPlayerLoad(playerid)
+	player.pSimpleInfo = G_SimpleMgr.GetSimpleInfoByID(playerid)
 
-	return pPlayer
+	return player
 }
 
 func GetOnlineCount() int {
@@ -79,10 +79,10 @@ func DestroyPlayer(playerid int32) bool {
 	mMutex.Lock()
 	defer mMutex.Unlock()
 
-	pPlayer, ok := g_Players[playerid]
+	player, ok := g_Players[playerid]
 	if ok {
 		delete(g_Players, playerid)
-		pPlayer.OnDestroy(playerid)
+		player.OnDestroy(playerid)
 	}
 
 	return true
@@ -111,11 +111,11 @@ func PreLoadPlayers() {
 		//fmt.Printf("\b\b\b\b\b\b\b\b")
 		//fmt.Printf("%8d", result.ID)
 
-		pPlayer := new(TPlayer)
-		g_Players[result.ID] = pPlayer
-		g_SelectPlayers = append(g_SelectPlayers, pPlayer)
-		pPlayer.OnPlayerLoadSync(result.ID)
-		pPlayer.pSimpleInfo = G_SimpleMgr.GetSimpleInfoByID(result.ID)
+		player := new(TPlayer)
+		g_Players[result.ID] = player
+		g_SelectPlayers = append(g_SelectPlayers, player)
+		player.OnPlayerLoadSync(result.ID)
+		player.pSimpleInfo = G_SimpleMgr.GetSimpleInfoByID(result.ID)
 	}
 	//fmt.Printf("\b\b\b\b\b\b\b\b")
 	//fmt.Printf("Successed!!\n")

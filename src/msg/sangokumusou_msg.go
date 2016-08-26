@@ -20,10 +20,8 @@ type MSG_GetSangokuMusouStatus_Ack struct {
 	IsSelectBuff int    //! 是否选择上章Buff
 	BattleTimes  int    //! 关卡已挑战次数
 	CopyLst      [3]int //! 关卡星数信息
-
-	AttrLst []MSG_SangokuMusou_Attr2
-
-	ItemLst []MSG_StoreBuyData //! 已购买物品信息
+	AttrLst      []MSG_SangokuMusou_Attr2
+	ItemLst      []MSG_BuyData //! 已购买物品信息
 }
 
 //! 获取三国无双星数信息
@@ -246,14 +244,14 @@ type MSG_GetSangokuMusouStoreAleadyBuy_Req struct {
 	SessionKey string
 }
 
-type MSG_StoreBuyData struct {
+type MSG_BuyData struct {
 	ID    int //! 物品ID
 	Times int //! 购买次数
 }
 
 type MSG_GetSangokuMusouStoreAleadyBuy_Ack struct {
 	RetCode int
-	ItemLst []MSG_StoreBuyData
+	ItemLst []MSG_BuyData
 }
 
 //! 请求购买三国无双商店物品

@@ -206,9 +206,9 @@ func Hand_AddFriendReq(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func SelectFriendTarget(pPlayer *TPlayer, value int) bool {
-	nCount := len(pPlayer.FriendMoudle.FriendList)
-	if nCount >= gamedata.GetFuncVipValue(gamedata.FUNC_FRIEND_NUM_LIMIT, pPlayer.GetVipLevel()) {
+func SelectFriendTarget(player *TPlayer, value int) bool {
+	nCount := len(player.FriendMoudle.FriendList)
+	if nCount >= gamedata.GetFuncVipValue(gamedata.FUNC_FRIEND_NUM_LIMIT, player.GetVipLevel()) {
 		return false
 	}
 

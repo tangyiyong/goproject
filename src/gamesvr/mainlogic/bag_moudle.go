@@ -56,14 +56,14 @@ type TBagMoudle struct {
 	ownplayer *TPlayer //父player指针
 }
 
-func (self *TBagMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
-	if pPlayer == nil {
-		gamelog.Error("TBagMoudle SetPlayerPtr pPlayer is nil")
+func (self *TBagMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
+	if player == nil {
+		gamelog.Error("TBagMoudle SetPlayerPtr player is nil")
 		return
 	}
 
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 //响应玩家创建

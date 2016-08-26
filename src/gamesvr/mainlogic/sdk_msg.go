@@ -100,10 +100,10 @@ func Handle_Recharge_Success(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// 充值到账，增加钻石数量
-	var pPlayer *TPlayer = GetPlayerByID(req.PlayerID)
-	if pPlayer == nil {
+	var player *TPlayer = GetPlayerByID(req.PlayerID)
+	if player == nil {
 		gamelog.Error("Handle_Recharge_Success GetPlayerByID nil! Invalid Player ID:%d, ChargeCsvID:%d, RMB:%d", req.PlayerID, req.ChargeCsvID, req.RMB)
 		return
 	}
-	pPlayer.HandChargeRenMinBi(req.RMB, req.ChargeCsvID)
+	player.HandChargeRenMinBi(req.RMB, req.ChargeCsvID)
 }

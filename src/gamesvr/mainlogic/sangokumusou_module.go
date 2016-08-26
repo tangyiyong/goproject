@@ -48,7 +48,7 @@ type TSangokuMusouModule struct {
 	BattleTimes         int                      //! 普通挑战次数
 	EliteBattleTimes    int                      //! 精英挑战次数
 	AddEliteBattleTimes int                      //! 精英副本增加次数
-	ShoppingLst         []TStoreBuyData          //! 已购买物品列表
+	BuyRecord           []msg.MSG_BuyData        //! 已购买物品列表
 	AttrMarkupLst       []TSangokuMusouAttrData2 //! 属性加成列表
 	AwardAttrLst        []TSangokuMusouAttrData  //! 章节属性奖励选择列表
 	ChapterAwardMark    IntLst                   //! 章节奖励领取标记
@@ -60,9 +60,9 @@ type TSangokuMusouModule struct {
 	ownplayer           *TPlayer
 }
 
-func (self *TSangokuMusouModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *TSangokuMusouModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 //! 玩家创建角色
@@ -92,14 +92,14 @@ func (self *TSangokuMusouModule) OnNewDay(newday uint32) {
 	self.EliteBattleTimes = gamedata.SangokuMusouEliteFreeTimes
 
 	//! 刷新物品购买次数
-	for i, v := range self.ShoppingLst {
+	for i, v := range self.BuyRecord {
 		item := gamedata.GetSangokumusouStoreInfo(v.ID)
 		if item.ItemType != 4 && item.BuyTimes != 0 {
-			self.ShoppingLst[i].Times = 0
+			self.BuyRecord[i].Times = 0
 		}
 	}
 
-	go self.UpdateResetTime()
+	go self.DB_UpdateResetTime()
 }
 
 //! 玩家销毁角色
@@ -135,7 +135,7 @@ func (self *TSangokuMusouModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup
 
 //! 获取物品购买次数
 func (self *TSangokuMusouModule) GetItemBuyTimes(id int) int {
-	for _, v := range self.ShoppingLst {
+	for _, v := range self.BuyRecord {
 		if v.ID == id {
 			return v.Times
 		}
@@ -150,7 +150,7 @@ func (self *TSangokuMusouModule) GetMusouTreasure() int {
 	if self.TreasureID == 0 && self.IsBuyTreasure == false {
 		self.TreasureID = gamedata.RandMusouTreasure(self.CurStar)
 
-		go self.UpdateTreasure()
+		go self.DB_UpdateTreasure()
 		return self.TreasureID
 	}
 
@@ -169,7 +169,7 @@ func (self *TSangokuMusouModule) RedTip() bool {
 	for _, v := range gamedata.GT_SangokuMusou_Store {
 		if v.ItemType == 4 && self.HistoryStar >= v.NeedStar && self.ownplayer.GetLevel() >= v.NeedLevel {
 			isExist := false
-			for _, n := range self.ShoppingLst {
+			for _, n := range self.BuyRecord {
 				if n.ID == v.ID {
 					isExist = true
 					break
@@ -192,7 +192,7 @@ func (self *TSangokuMusouModule) PassCopy(copyID int, starNum int, isVictory boo
 	}
 
 	if self.IsEnd == true {
-		go self.UpdateIsEndMark()
+		go self.DB_UpdateIsEndMark()
 		return
 	}
 
@@ -221,7 +221,7 @@ func (self *TSangokuMusouModule) PassCopy(copyID int, starNum int, isVictory boo
 	}
 
 	//! 信息写入数据库
-	go self.UpdatePassCopyRecord()
+	go self.DB_UpdatePassCopyRecord()
 
 	var info TSangokuMusouCopyInfo
 	info.CopyID = copyID
@@ -230,7 +230,7 @@ func (self *TSangokuMusouModule) PassCopy(copyID int, starNum int, isVictory boo
 	self.CopyInfoLst = append(self.CopyInfoLst, info)
 
 	//! 记录通关信息
-	go self.AddPassCopyInfoLst(info)
+	go self.DB_AddPassCopyInfoLst(info)
 
 	//! 获取副本信息
 	copyData := gamedata.GetSangokuMusouChapterInfo(copyID)
@@ -319,7 +319,7 @@ func (self *TSangokuMusouModule) PassEliteCopy(copyID int) bool {
 	normalAward := gamedata.GetItemsFromAwardID(copyBase.AwardID)
 	self.ownplayer.BagMoudle.AddAwardItems(normalAward)
 
-	go self.UpdatePassEliteCopyRecord()
+	go self.DB_UpdatePassEliteCopyRecord()
 
 	return isFirstVictory
 }
@@ -386,7 +386,7 @@ func (self *TSangokuMusouModule) SweepChapter(chapter int) (dropItem [][]msg.MSG
 
 	}
 
-	go self.UpdatePassCopyRecord()
+	go self.DB_UpdatePassCopyRecord()
 
 	return dropItem
 }
@@ -408,11 +408,11 @@ func (self *TSangokuMusouModule) ResetCopy() {
 
 	self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_SGWS_RESET, 1)
 
-	go self.UpdateResetCopy()
+	go self.DB_UpdateResetCopy()
 }
 
 func (self *TSangokuMusouModule) IsShoppingInfoExist(id int) bool {
-	for _, v := range self.ShoppingLst {
+	for _, v := range self.BuyRecord {
 		if v.ID == id {
 			return true
 		}

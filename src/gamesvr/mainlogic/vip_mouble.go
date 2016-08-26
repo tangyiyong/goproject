@@ -18,9 +18,9 @@ type TVipMoudle struct {
 	ownplayer *TPlayer //父player指针
 }
 
-func (playerVip *TVipMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (playerVip *TVipMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
 	playerVip.PlayerID = playerid
-	playerVip.ownplayer = pPlayer
+	playerVip.ownplayer = player
 }
 
 func (playerVip *TVipMoudle) OnCreate(playerid int32) {

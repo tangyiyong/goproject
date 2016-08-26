@@ -17,13 +17,13 @@ func GetPlayerAndCheck(playerID int32, sessionKey string, url string) (*TPlayer,
 	}
 
 	//! 获取玩家信息
-	var pPlayer *TPlayer = GetPlayerByID(playerID)
-	if pPlayer == nil {
+	var player *TPlayer = GetPlayerByID(playerID)
+	if player == nil {
 		gamelog.Error("message %s error : Invalid Player ID :%d!", url, playerID)
 		return nil, msg.RE_INVALID_PLAYERID
 	}
 
-	return pPlayer, msg.RE_UNKNOWN_ERR
+	return player, msg.RE_UNKNOWN_ERR
 }
 
 //! 获取开服天数

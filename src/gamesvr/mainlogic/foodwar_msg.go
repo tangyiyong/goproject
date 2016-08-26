@@ -8,8 +8,8 @@ import (
 	"net/http"
 )
 
-func SelectFoodTarget(pPlayer *TPlayer, value int) bool {
-	if (pPlayer.FoodWarModule.TotalFood - pPlayer.FoodWarModule.FixedFood) <= value {
+func SelectFoodTarget(player *TPlayer, value int) bool {
+	if (player.FoodWarModule.TotalFood - player.FoodWarModule.FixedFood) <= value {
 		return false
 	}
 	return true

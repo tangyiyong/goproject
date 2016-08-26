@@ -38,6 +38,7 @@ type TBattleObj struct {
 	HeroObj  [6]THeroObj
 
 	//以下为功能属性
+	ReviveTime  [2]int32      //复活次数
 	MoveEndTime int32         //搬水晶结束时间
 	SeriesKill  int32         //连续杀人数
 	SkillState  [4]TSkillItem //四个玩家可以施放的技能

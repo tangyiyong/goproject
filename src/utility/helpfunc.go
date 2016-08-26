@@ -67,6 +67,7 @@ func IsDirExists(path string) bool {
 }
 func LoadCsv(path string) ([][]string, error) {
 	file, err := os.Open(path)
+	defer file.Close()
 	if err != nil {
 		return nil, err
 	}
@@ -85,6 +86,25 @@ func LoadCsv(path string) ([][]string, error) {
 		return nil, err
 	}
 	return records, nil
+}
+func UpdateCsv(path string, records [][]string) error {
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, os.ModePerm)
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+
+	fstate, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	if fstate.IsDir() == true {
+		return &StrError{"UpdateCsv is dir!", nil}
+	}
+
+	csvWriter := csv.NewWriter(file)
+	csvWriter.UseCRLF = true
+	return csvWriter.WriteAll(records)
 }
 
 func GetCurDay() uint32 {

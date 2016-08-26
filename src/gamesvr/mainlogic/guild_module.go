@@ -69,9 +69,9 @@ type TGuildModule struct {
 	ownplayer *TPlayer
 }
 
-func (self *TGuildModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *TGuildModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 func (self *TGuildModule) OnCreate(playerid int32) {

@@ -19,9 +19,9 @@ type TChargeMoudle struct {
 }
 
 //！ 活动框架代码
-func (self *TChargeMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *TChargeMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 func (self *TChargeMoudle) OnCreate(playerid int32) {
 	self.PlayerID = playerid

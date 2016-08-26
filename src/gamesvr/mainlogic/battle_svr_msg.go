@@ -54,49 +54,49 @@ func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	pPlayer := GetPlayerByID(req.Killer)
-	if pPlayer == nil {
+	player := GetPlayerByID(req.Killer)
+	if player == nil {
 		gamelog.Error("Hand_KillEventReq : Invalid PlayerID :%d!!!!", req.Killer)
 		return
 	}
 
 	var response msg.MSG_KillEvent_Ack
 
-	pPlayer.CamBattleModule.Kill += int(req.Kill)
-	response.CurRank = int32(G_CampBat_TodayKill.SetRankItem(req.Killer, pPlayer.CamBattleModule.Kill))
-	G_CampBat_KillSum.SetRankItem(req.Killer, pPlayer.CamBattleModule.Kill)
-	G_CampBat_CampKill[pPlayer.CamBattleModule.BattleCamp-1].SetRankItem(req.Killer, pPlayer.CamBattleModule.Kill)
+	player.CamBattleModule.Kill += int(req.Kill)
+	response.CurRank = int32(G_CampBat_TodayKill.SetRankItem(req.Killer, player.CamBattleModule.Kill))
+	G_CampBat_KillSum.SetRankItem(req.Killer, player.CamBattleModule.Kill)
+	G_CampBat_CampKill[player.CamBattleModule.BattleCamp-1].SetRankItem(req.Killer, player.CamBattleModule.Kill)
 	if req.Destroy > 0 {
-		pPlayer.CamBattleModule.Destroy += int(req.Destroy)
-		pPlayer.CamBattleModule.DestroySum += int(req.Destroy)
-		G_CampBat_TodayDestroy.SetRankItem(req.Killer, pPlayer.CamBattleModule.Destroy)
-		G_CampBat_DestroySum.SetRankItem(req.Killer, pPlayer.CamBattleModule.DestroySum)
-		G_CampBat_CampDestroy[pPlayer.CamBattleModule.BattleCamp-1].SetRankItem(req.Killer, pPlayer.CamBattleModule.Kill)
+		player.CamBattleModule.Destroy += int(req.Destroy)
+		player.CamBattleModule.DestroySum += int(req.Destroy)
+		G_CampBat_TodayDestroy.SetRankItem(req.Killer, player.CamBattleModule.Destroy)
+		G_CampBat_DestroySum.SetRankItem(req.Killer, player.CamBattleModule.DestroySum)
+		G_CampBat_CampDestroy[player.CamBattleModule.BattleCamp-1].SetRankItem(req.Killer, player.CamBattleModule.Kill)
 	}
 
 	if req.SeriesKill == int32(gamedata.CampBat_NtyKillNum) {
 		var nty msg.MSG_HorseLame_Notify
 		nty.TextType = TextCampBatHorseLamp
-		nty.Camps = append(nty.Camps, pPlayer.CamBattleModule.BattleCamp)
-		nty.Params = append(nty.Params, pPlayer.RoleMoudle.Name)
+		nty.Camps = append(nty.Camps, player.CamBattleModule.BattleCamp)
+		nty.Params = append(nty.Params, player.RoleMoudle.Name)
 		b, _ := json.Marshal(nty)
 		SendMessageToClient(0, msg.MSG_HORSELAME_NOTIFY, b)
 	}
 
-	if pPlayer.CamBattleModule.KillHonor < gamedata.CampBat_KillHonorMax {
+	if player.CamBattleModule.KillHonor < gamedata.CampBat_KillHonorMax {
 		AddHonor := int(req.Kill) * gamedata.Campbat_KillHonorOne
-		if (AddHonor + pPlayer.CamBattleModule.KillHonor) <= gamedata.CampBat_KillHonorMax {
-			pPlayer.CamBattleModule.KillHonor += AddHonor
-			pPlayer.RoleMoudle.AddMoney(4, AddHonor)
+		if (AddHonor + player.CamBattleModule.KillHonor) <= gamedata.CampBat_KillHonorMax {
+			player.CamBattleModule.KillHonor += AddHonor
+			player.RoleMoudle.AddMoney(4, AddHonor)
 		} else {
-			pPlayer.RoleMoudle.AddMoney(4, gamedata.CampBat_KillHonorMax-pPlayer.CamBattleModule.KillHonor)
-			pPlayer.CamBattleModule.KillHonor = gamedata.CampBat_KillHonorMax
+			player.RoleMoudle.AddMoney(4, gamedata.CampBat_KillHonorMax-player.CamBattleModule.KillHonor)
+			player.CamBattleModule.KillHonor = gamedata.CampBat_KillHonorMax
 		}
 	}
 
-	pPlayer.CamBattleModule.DB_SaveKillData()
-	response.KillHonor = int32(pPlayer.CamBattleModule.KillHonor)
-	response.KillNum = int32(pPlayer.CamBattleModule.Kill)
+	player.CamBattleModule.DB_SaveKillData()
+	response.KillHonor = int32(player.CamBattleModule.KillHonor)
+	response.KillNum = int32(player.CamBattleModule.Kill)
 
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_KILL_EVENT_ACK)
@@ -104,8 +104,8 @@ func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
 
-	pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_CAMP_BATTLE_KILL, pPlayer.CamBattleModule.KillSum)
-	pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_CAMP_BATTLE_GROUP_KILL, pPlayer.CamBattleModule.DestroySum)
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_CAMP_BATTLE_KILL, player.CamBattleModule.KillSum)
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_CAMP_BATTLE_GROUP_KILL, player.CamBattleModule.DestroySum)
 
 	return
 }
@@ -119,8 +119,8 @@ func Hand_PlayerQueryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	pPlayer := GetPlayerByID(req.PlayerID)
-	if pPlayer == nil {
+	player := GetPlayerByID(req.PlayerID)
+	if player == nil {
 		gamelog.Error("Hand_PlayerQueryReq : Invalid PlayerID :%d!!!!", req.PlayerID)
 		return
 	}
@@ -128,20 +128,20 @@ func Hand_PlayerQueryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	var response msg.MSG_PlayerQuery_Ack
 
 	//如果己经开始搬运
-	if pPlayer.CamBattleModule.EndTime > 0 {
+	if player.CamBattleModule.EndTime > 0 {
 		//如果己经超时，则搬运置为停止
-		if int(time.Now().Unix()) > pPlayer.CamBattleModule.EndTime {
-			pPlayer.CamBattleModule.EndTime = 0
-			pPlayer.CamBattleModule.CrystalID = utility.Rand()%2 + 1
+		if int(time.Now().Unix()) > player.CamBattleModule.EndTime {
+			player.CamBattleModule.EndTime = 0
+			player.CamBattleModule.CrystalID = utility.Rand()%2 + 1
 		} else {
 			gamelog.Error("Hand_PlayerQueryReq : Has already set the crystal quality!!!!")
 			return
 		}
 	} else { // 如果没有开始搬运
-		pPlayer.CamBattleModule.CrystalID = utility.Rand()%2 + 1
+		player.CamBattleModule.CrystalID = utility.Rand()%2 + 1
 	}
 
-	response.Quality = int32(pPlayer.CamBattleModule.CrystalID)
+	response.Quality = int32(player.CamBattleModule.CrystalID)
 	response.PlayerID = req.PlayerID
 
 	var writer msg.PacketWriter
@@ -150,7 +150,7 @@ func Hand_PlayerQueryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
 
-	pPlayer.CamBattleModule.DB_SaveMoveStautus()
+	player.CamBattleModule.DB_SaveMoveStautus()
 	return
 }
 
@@ -163,8 +163,8 @@ func Hand_PlayerReviveReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	pPlayer := GetPlayerByID(req.PlayerID)
-	if pPlayer == nil {
+	player := GetPlayerByID(req.PlayerID)
+	if player == nil {
 		gamelog.Error("Hand_PlayerReviveReq : Invalid PlayerID :%d!!!!", req.PlayerID)
 		return
 	}
@@ -177,7 +177,7 @@ func Hand_PlayerReviveReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 
 	//查是否足够
 	if pReviveInfo.CostMoneyID > 0 {
-		if pPlayer.RoleMoudle.CostMoney(pReviveInfo.CostMoneyID, pReviveInfo.CostMoneyNum) == false {
+		if player.RoleMoudle.CostMoney(pReviveInfo.CostMoneyID, pReviveInfo.CostMoneyNum) == false {
 			gamelog.Error("Hand_PlayerReviveReq : Not Enough Money id:%d, num:%d!!!!", pReviveInfo.CostMoneyID, pReviveInfo.CostMoneyNum)
 			return
 		}
@@ -207,14 +207,14 @@ func Hand_PlayerChangeReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	pPlayer := GetPlayerByID(req.PlayerID)
-	if pPlayer == nil {
+	player := GetPlayerByID(req.PlayerID)
+	if player == nil {
 		gamelog.Error("Hand_PlayerChangeReq : Invalid PlayerID :%d!!!!", req.PlayerID)
 		return
 	}
 
 	//如果己经开始搬运
-	if pPlayer.CamBattleModule.EndTime > 0 {
+	if player.CamBattleModule.EndTime > 0 {
 		gamelog.Error("Hand_PlayerChangeReq : now the moving is not finished!!!")
 		return
 	}
@@ -227,13 +227,13 @@ func Hand_PlayerChangeReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 			return
 		}
 
-		if false == pPlayer.RoleMoudle.CheckMoneyEnough(pCrystalInfo.CostMoneyID, pCrystalInfo.CostMoneyNum) {
+		if false == player.RoleMoudle.CheckMoneyEnough(pCrystalInfo.CostMoneyID, pCrystalInfo.CostMoneyNum) {
 			gamelog.Error("Hand_PlayerChangeReq : Not Enough Money:%d", req.PlayerID)
 			return
 		}
 
 	} else {
-		if false == pPlayer.RoleMoudle.CheckMoneyEnough(gamedata.CampBat_Chg_MoneyID, gamedata.CampBat_Chg_MoneyNum) {
+		if false == player.RoleMoudle.CheckMoneyEnough(gamedata.CampBat_Chg_MoneyID, gamedata.CampBat_Chg_MoneyNum) {
 			gamelog.Error("Hand_PlayerChangeReq : Not Enough Money:%d", req.PlayerID)
 			return
 		}
@@ -241,11 +241,11 @@ func Hand_PlayerChangeReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 
 	var response msg.MSG_PlayerChange_Ack
 	if req.HighQuality == 1 {
-		pPlayer.CamBattleModule.CrystalID = 4
+		player.CamBattleModule.CrystalID = 4
 		response.NewQuality = 4
 	} else {
-		pPlayer.CamBattleModule.CrystalID = utility.Rand()%2 + 1
-		response.NewQuality = int32(pPlayer.CamBattleModule.CrystalID)
+		player.CamBattleModule.CrystalID = utility.Rand()%2 + 1
+		response.NewQuality = int32(player.CamBattleModule.CrystalID)
 	}
 
 	response.PlayerID = req.PlayerID
@@ -255,7 +255,7 @@ func Hand_PlayerChangeReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
 
-	pPlayer.CamBattleModule.DB_SaveMoveStautus()
+	player.CamBattleModule.DB_SaveMoveStautus()
 
 	return
 }
@@ -268,30 +268,30 @@ func Hand_StartCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	pPlayer := GetPlayerByID(req.PlayerID)
-	if pPlayer == nil {
+	player := GetPlayerByID(req.PlayerID)
+	if player == nil {
 		gamelog.Error("Hand_StartCarryReq : Invalid PlayerID :%d!!!!", req.PlayerID)
 		return
 	}
 
-	if pPlayer.CamBattleModule.LeftTimes <= 0 {
+	if player.CamBattleModule.LeftTimes <= 0 {
 		gamelog.Error("Hand_StartCarryReq : Not Enough Carry Time!!!!")
 		return
 	}
 
-	if int(time.Now().Unix()) < pPlayer.CamBattleModule.EndTime {
+	if int(time.Now().Unix()) < player.CamBattleModule.EndTime {
 		gamelog.Error("Hand_StartCarryReq : Still On Moving!!!!")
 		return
 	}
 
-	pPlayer.CamBattleModule.LeftTimes = pPlayer.CamBattleModule.LeftTimes - 1
-	pPlayer.CamBattleModule.EndTime = int(time.Now().Unix()) + gamedata.Campbat_MaxMoveTime
+	player.CamBattleModule.LeftTimes = player.CamBattleModule.LeftTimes - 1
+	player.CamBattleModule.EndTime = int(time.Now().Unix()) + gamedata.Campbat_MaxMoveTime
 
 	var response msg.MSG_StartCarry_Ack
 	response.PlayerID = req.PlayerID
-	response.EndTime = int32(pPlayer.CamBattleModule.EndTime)
+	response.EndTime = int32(player.CamBattleModule.EndTime)
 	response.RetCode = msg.RE_SUCCESS
-	response.LeftTimes = int32(pPlayer.CamBattleModule.LeftTimes)
+	response.LeftTimes = int32(player.CamBattleModule.LeftTimes)
 
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_START_CARRY_ACK)
@@ -299,7 +299,7 @@ func Hand_StartCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
 
-	pPlayer.CamBattleModule.DB_SaveMoveStautus()
+	player.CamBattleModule.DB_SaveMoveStautus()
 
 	return
 }
@@ -312,33 +312,33 @@ func Hand_FinishCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	pPlayer := GetPlayerByID(req.PlayerID)
-	if pPlayer == nil {
+	player := GetPlayerByID(req.PlayerID)
+	if player == nil {
 		gamelog.Error("Hand_FinishCarryReq : Invalid PlayerID :%d!!!!", req.PlayerID)
 		return
 	}
 
-	if pPlayer.CamBattleModule.EndTime <= 0 {
+	if player.CamBattleModule.EndTime <= 0 {
 		gamelog.Error("Hand_FinishCarryReq : Has not start move!!!!")
 		return
 	}
 
-	if int(time.Now().Unix()) > pPlayer.CamBattleModule.EndTime {
+	if int(time.Now().Unix()) > player.CamBattleModule.EndTime {
 		gamelog.Error("Hand_FinishCarryReq : Has already out of time!!!!")
 		return
 	}
 
 	//完成了搬运
-	pCrystal := gamedata.GetCrystalInfo(pPlayer.CamBattleModule.CrystalID)
+	pCrystal := gamedata.GetCrystalInfo(player.CamBattleModule.CrystalID)
 	if pCrystal == nil {
-		gamelog.Error("Hand_FinishCarryReq : Invalid Crystal ID:%d!!!!", pPlayer.CamBattleModule.CrystalID)
+		gamelog.Error("Hand_FinishCarryReq : Invalid Crystal ID:%d!!!!", player.CamBattleModule.CrystalID)
 		return
 	}
 
-	pPlayer.RoleMoudle.AddMoney(pCrystal.MoneyID[0], pCrystal.MoneyNum[0])
-	pPlayer.RoleMoudle.AddMoney(pCrystal.MoneyID[1], pCrystal.MoneyNum[1])
-	pPlayer.CamBattleModule.EndTime = 0
-	pPlayer.CamBattleModule.CrystalID = 1
+	player.RoleMoudle.AddMoney(pCrystal.MoneyID[0], pCrystal.MoneyNum[0])
+	player.RoleMoudle.AddMoney(pCrystal.MoneyID[1], pCrystal.MoneyNum[1])
+	player.CamBattleModule.EndTime = 0
+	player.CamBattleModule.CrystalID = 1
 
 	var response msg.MSG_FinishCarry_Ack
 	response.PlayerID = req.PlayerID
@@ -354,7 +354,7 @@ func Hand_FinishCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
 
-	pPlayer.CamBattleModule.DB_SaveMoveStautus()
+	player.CamBattleModule.DB_SaveMoveStautus()
 
 	return
 }

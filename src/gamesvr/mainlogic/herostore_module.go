@@ -47,9 +47,9 @@ type TStoreModule struct {
 	ownplayer *TPlayer //! 父类指针
 }
 
-func (storemodule *TStoreModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (storemodule *TStoreModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	storemodule.PlayerID = playerid
-	storemodule.ownplayer = pPlayer
+	storemodule.ownplayer = player
 }
 
 //! 玩家创建角色

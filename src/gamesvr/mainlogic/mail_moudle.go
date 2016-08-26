@@ -61,9 +61,9 @@ type TMailMoudle struct {
 	ownplayer *TPlayer       //父player指针
 }
 
-func (playermail *TMailMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (playermail *TMailMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
 	playermail.PlayerID = playerid
-	playermail.ownplayer = pPlayer
+	playermail.ownplayer = player
 }
 
 func (playermail *TMailMoudle) OnCreate(playerid int32) {
@@ -116,9 +116,9 @@ func (self *TMailMoudle) RedTip() bool {
 
 //发邮件给角色
 func SendMailToPlayer(playerid int32, pMailInfo *TMailInfo) {
-	pPlayer := GetPlayerByID(playerid)
-	if pPlayer != nil {
-		pPlayer.MailMoudle.MailList = append(pPlayer.MailMoudle.MailList, *pMailInfo)
+	player := GetPlayerByID(playerid)
+	if player != nil {
+		player.MailMoudle.MailList = append(player.MailMoudle.MailList, *pMailInfo)
 		DB_SaveMailToPlayer(playerid, pMailInfo)
 		return
 	}
@@ -200,9 +200,9 @@ func SendScoreResultMail(playerid int32, name string, fight int, heroid int, att
 	result.Attack = attack
 	result.Score = score
 	result.Time = time.Now().Unix()
-	pPlayer := GetPlayerByID(playerid)
-	if pPlayer != nil {
-		pPlayer.MailMoudle.Reports = append(pPlayer.MailMoudle.Reports, result)
+	player := GetPlayerByID(playerid)
+	if player != nil {
+		player.MailMoudle.Reports = append(player.MailMoudle.Reports, result)
 	}
 
 	DB_SaveScoreResultToPlayer(playerid, &result)

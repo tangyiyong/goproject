@@ -1,8 +1,8 @@
 struct MSG_HeroObj 
 {
-	INT32 HeroID;
-	INT32 ObjectID;   
-	INT32 CurHp; 
+	INT32 HeroID;   //英雄ID
+	INT32 ObjectID; //英雄实例ID
+	INT32 CurHp;    //英雄血量
 	FLOAT Position[5];//x,y,z,v,d, x, y,z,速度，方向
 }
 
@@ -166,12 +166,13 @@ struct MSG_PlayerRevive_Req
 {
 	INT32 PlayerID;
 	INT32 MsgNo;
-	INT32 ReviveOpt; //复活选项
+	INT8 ReviveOpt; //复活选项
 }
 
 struct MSG_ServerRevive_Ack  
 {
-	INT32 RetCode; //返回码 复活结果
+	INT32 RetCode;  //返回码 复活结果
+	INT8  ReviveOpt; //复活选项
 	INT32 PlayerID; //玩家ID
 	INT32 Stay;     //是否原地复活
 	INT32 ProInc;   //属性增加比例
@@ -187,7 +188,7 @@ struct MSG_PlayerRevive_Ack
 	INT32 PlayerID; 	//玩家ID
 	INT32 MoneyID;  	//货币ID
 	INT32 MoneyNum; 	//货币数
-	INT8 BattleCamp;	//角色阵营
+	INT8 BatCamp;	//角色阵营
 	INT32 Heros_Cnt;	//英雄数
 	MSG_HeroObj Heros[1]; //英雄数据
 }
@@ -298,7 +299,7 @@ struct MSG_HeroAllDie_Nty
 struct MSG_CmapBatChat_Req 
 {	
 	INT32 PlayerID; //角色ID
-	INT32 MsgNo;
+	INT32 MsgNo;	//消息编号
 	STRING Name;    //角色名
 	STRING Content; //消息内容
 }

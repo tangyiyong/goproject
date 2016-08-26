@@ -2,8 +2,9 @@ package mainlogic
 
 import (
 	"appconfig"
-	//"fmt"
+	"fmt"
 	"mongodb"
+	"msg"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -38,20 +39,21 @@ func (self *TCampBattleModule) DB_Reset() {
 }
 
 //! 更新购买次数
-func (self *TCampBattleModule) DB_UpdateStoreItemBuyTimes(id int, times int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID, "storebuyrecord.id": id}, bson.M{"$set": bson.M{
-		"shoppinglst.$.times": times}})
+func (self *TCampBattleModule) DB_UpdateStoreItemBuyTimes(nindex int, times int) {
+	filedName := fmt.Sprintf("buyrecord.%d", nindex)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+		filedName: self.BuyRecord[nindex]}})
 }
 
 //! 增加购买信息
-func (self *TCampBattleModule) DB_AddStoreItemBuyInfo(info TStoreBuyData) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, "storebuyrecord", info)
+func (self *TCampBattleModule) DB_AddStoreItemBuyInfo(info msg.MSG_BuyData) {
+	mongodb.AddToArray(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, "buyrecord", info)
 }
 
 //! 重置购买信息
 func (self *TCampBattleModule) DB_SaveShoppingInfo() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
-		"storebuyrecord": self.StoreBuyRecord}})
+		"buyrecord": self.BuyRecord}})
 }
 
 //! 增加购买奖励信息

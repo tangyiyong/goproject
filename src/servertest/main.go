@@ -43,13 +43,13 @@ func Hand_Connect(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	pPlayer := pClient.ExtraData.(*TPlayer)
-	if pPlayer == nil {
-		gamelog.Info("Hand_Connect Error: pPlayer == nil")
+	player := pClient.ExtraData.(*TPlayer)
+	if player == nil {
+		gamelog.Info("Hand_Connect Error: player == nil")
 		return
 	}
 
-	pPlayer.userEnterRoom()
+	player.userEnterRoom()
 
 	return
 }
@@ -71,9 +71,9 @@ func Hand_EnterRoomAck(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	pPlayer := pClient.ExtraData.(*TPlayer)
-	if pPlayer == nil {
-		gamelog.Info("Hand_EnterRoomAck Error: pPlayer == nil")
+	player := pClient.ExtraData.(*TPlayer)
+	if player == nil {
+		gamelog.Info("Hand_EnterRoomAck Error: player == nil")
 		return
 	}
 
@@ -83,9 +83,9 @@ func Hand_EnterRoomAck(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	pPlayer.Heros = req.Heros
+	player.Heros = req.Heros
 
-	pPlayer.IsEnter = true
+	player.IsEnter = true
 
 	return
 }

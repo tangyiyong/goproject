@@ -95,9 +95,9 @@ type TCopyMoudle struct {
 	ownplayer *TPlayer //父player指针
 }
 
-func (copym *TCopyMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (copym *TCopyMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
 	copym.PlayerID = playerid
-	copym.ownplayer = pPlayer
+	copym.ownplayer = player
 }
 
 //响应玩家创建

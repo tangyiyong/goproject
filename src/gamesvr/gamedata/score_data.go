@@ -12,7 +12,7 @@ type ST_ScoreDw struct {
 }
 
 type ST_ScoreTime struct {
-	TimeID  int //时间ID
+	TimeID  int //! 时间ID
 	Times   int //! 战斗位数
 	AwardID int //! 奖励ID
 }

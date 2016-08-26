@@ -5,6 +5,7 @@ import (
 	"gamelog"
 	"gamesvr/gamedata"
 	"mongodb"
+	"msg"
 	"sync"
 	"utility"
 
@@ -22,28 +23,28 @@ var (
 
 //! 活动模块
 type TCampBattleModule struct {
-	PlayerID        int32           `bson:"_id"`
-	BattleCamp      int8            //阵营战阵营
-	Kill            int             //今日杀
-	Destroy         int             //今日团
-	KillSum         int             //总击杀
-	DestroySum      int             //总团灭
-	KillHonor       int             //今日击杀荣誉
-	LeftTimes       int             //搬运水晶次数
-	CrystalID       int             //搬运水晶的ID
-	EndTime         int             //搬运结束时间,  超时就是搬运失败
-	StoreBuyRecord  []TStoreBuyData //购买商店的次数
-	AwardStoreIndex IntLst          //奖励商店的购买ID
-	ResetDay        uint32          //重置天
+	PlayerID        int32             `bson:"_id"`
+	BattleCamp      int8              //阵营战阵营
+	Kill            int               //今日杀
+	Destroy         int               //今日团
+	KillSum         int               //总击杀
+	DestroySum      int               //总团灭
+	KillHonor       int               //今日击杀荣誉
+	LeftTimes       int               //搬运水晶次数
+	CrystalID       int               //搬运水晶的ID
+	EndTime         int               //搬运结束时间,  超时就是搬运失败
+	BuyRecord       []msg.MSG_BuyData //购买商店的次数
+	AwardStoreIndex IntLst            //奖励商店的购买ID
+	ResetDay        uint32            //重置天
 
 	///////////////以下为临时数据
 	enterCode int32    //阵营战的连接进入码
 	ownplayer *TPlayer //玩家角色指针
 }
 
-func (self *TCampBattleModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *TCampBattleModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 func (self *TCampBattleModule) OnCreate(playerid int32) {

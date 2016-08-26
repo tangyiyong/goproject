@@ -159,15 +159,15 @@ func Hand_BattleCheck(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	pPlayer.CopyMoudle.CheckReset()
+	player.CopyMoudle.CheckReset()
 
-	ok, errcode := CopyCheck(pPlayer, req.CopyID, req.Chapter, req.CopyType)
+	ok, errcode := CopyCheck(player, req.CopyID, req.Chapter, req.CopyType)
 	if ok != true {
 		response.RetCode = errcode
 		return
@@ -214,13 +214,13 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	pPlayer.CopyMoudle.CheckReset()
+	player.CopyMoudle.CheckReset()
 
 	pCopyInfo := gamedata.GetCopyBaseInfo(req.CopyID)
 	if pCopyInfo == nil {
@@ -229,7 +229,7 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isEnough := pPlayer.RoleMoudle.CheckActionEnough(pCopyInfo.ActionType, pCopyInfo.ActionValue)
+	isEnough := player.RoleMoudle.CheckActionEnough(pCopyInfo.ActionType, pCopyInfo.ActionValue)
 	if isEnough == false { //! 体力不足挑战
 		gamelog.Error("Hand_BattleResult error : Not Enough Action")
 		response.RetCode = msg.RE_STRENGTH_NOT_ENOUGH
@@ -237,18 +237,18 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.CopyType == gamedata.COPY_TYPE_Main { //! 通关主线关卡
-		ok, errcode := CopyCheck(pPlayer, req.CopyID, req.Chapter, gamedata.COPY_TYPE_Main)
+		ok, errcode := CopyCheck(player, req.CopyID, req.Chapter, gamedata.COPY_TYPE_Main)
 		if ok != true {
 			response.RetCode = errcode
 			return
 		}
 
-		endCopyID := gamedata.GetChaperCopyEndID(pPlayer.CopyMoudle.Main.CurChapter, gamedata.COPY_TYPE_Main)
+		endCopyID := gamedata.GetChaperCopyEndID(player.CopyMoudle.Main.CurChapter, gamedata.COPY_TYPE_Main)
 		if req.CopyID == endCopyID {
-			pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_MAIN_COPY_CHAPTER, req.Chapter)
+			player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_MAIN_COPY_CHAPTER, req.Chapter)
 		}
 
-		if pCopyInfo.FirstAward != 0 && pCopyInfo.CopyID > pPlayer.CopyMoudle.Main.CurCopyID {
+		if pCopyInfo.FirstAward != 0 && pCopyInfo.CopyID > player.CopyMoudle.Main.CurCopyID {
 			awardItems := gamedata.GetItemsFromAwardID(pCopyInfo.FirstAward)
 			for _, v := range awardItems {
 				var item msg.MSG_ItemData
@@ -256,95 +256,95 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 				item.Num = v.ItemNum
 				response.FirstItem = append(response.FirstItem, item)
 			}
-			pPlayer.BagMoudle.AddAwardItems(awardItems)
+			player.BagMoudle.AddAwardItems(awardItems)
 		}
 
-		pPlayer.CopyMoudle.PlayerPassMainLevels(req.CopyID, req.Chapter, req.StarNum)
+		player.CopyMoudle.PlayerPassMainLevels(req.CopyID, req.Chapter, req.StarNum)
 
 		//! 随机出现叛军围剿
 		random := rand.New(rand.NewSource(time.Now().UnixNano()))
 		//! 随机出现黑市
 		isBlackMarket := false
-		if pPlayer.BlackMarketModule.IsOpen == false && pPlayer.GetVipLevel() < gamedata.EnterVipLevel && pPlayer.GetLevel() >= 30 {
+		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < gamedata.EnterVipLevel && player.GetLevel() >= 30 {
 			randValue := random.Intn(1000)
 
 			if randValue < gamedata.BlackMarketPro {
 				//! 随机出现黑市
-				pPlayer.BlackMarketModule.RefreshGoods(true)
-				response.OpenEndTime = pPlayer.BlackMarketModule.OpenEndTime
+				player.BlackMarketModule.RefreshGoods(true)
+				response.OpenEndTime = player.BlackMarketModule.OpenEndTime
 				isBlackMarket = true
 			}
 		}
 
-		isHadRebel := pPlayer.RebelModule.IsHaveRebel()
-		if isHadRebel == false && isBlackMarket != true && pPlayer.GetLevel() >= 35 {
+		isHadRebel := player.RebelModule.IsHaveRebel()
+		if isHadRebel == false && isBlackMarket != true && player.GetLevel() >= 35 {
 			randValue := random.Intn(100)
 
 			//! 随机出现叛军
 			if randValue < gamedata.FindRebelPro {
 				//! 随机叛军属性
-				pPlayer.RebelModule.RandRebel()
+				player.RebelModule.RandRebel()
 				response.IsFindRebel = true
 			}
 		}
 
 	} else if req.CopyType == gamedata.COPY_TYPE_Elite {
-		ok, errcode := CopyCheck(pPlayer, req.CopyID, req.Chapter, gamedata.COPY_TYPE_Elite)
+		ok, errcode := CopyCheck(player, req.CopyID, req.Chapter, gamedata.COPY_TYPE_Elite)
 		if ok != true {
 			response.RetCode = errcode
 			return
 		}
 
-		endCopyID := gamedata.GetChaperCopyEndID(pPlayer.CopyMoudle.Elite.CurChapter, gamedata.COPY_TYPE_Elite)
+		endCopyID := gamedata.GetChaperCopyEndID(player.CopyMoudle.Elite.CurChapter, gamedata.COPY_TYPE_Elite)
 		if req.CopyID == endCopyID {
-			pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_ELITE_COPY_CHAPTER, req.Chapter)
+			player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_ELITE_COPY_CHAPTER, req.Chapter)
 		}
 
-		pPlayer.CopyMoudle.PlayerPassEliteLevels(req.CopyID, req.Chapter, req.StarNum)
+		player.CopyMoudle.PlayerPassEliteLevels(req.CopyID, req.Chapter, req.StarNum)
 
 		//! 随机出现叛军围剿
 		random := rand.New(rand.NewSource(time.Now().UnixNano()))
 		//! 随机出现黑市
 		isBlackMarket := false
-		if pPlayer.BlackMarketModule.IsOpen == false && pPlayer.GetVipLevel() < gamedata.EnterVipLevel && pPlayer.GetLevel() >= 30 {
+		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < gamedata.EnterVipLevel && player.GetLevel() >= 30 {
 			randValue := random.Intn(1000)
 
 			if randValue < gamedata.BlackMarketPro {
 				//! 随机出现黑市
-				pPlayer.BlackMarketModule.RefreshGoods(true)
-				response.OpenEndTime = pPlayer.BlackMarketModule.OpenEndTime
+				player.BlackMarketModule.RefreshGoods(true)
+				response.OpenEndTime = player.BlackMarketModule.OpenEndTime
 				isBlackMarket = true
 			}
 		}
 
-		isHadRebel := pPlayer.RebelModule.IsHaveRebel()
-		if isHadRebel == false && isBlackMarket != true && pPlayer.GetLevel() >= 35 {
+		isHadRebel := player.RebelModule.IsHaveRebel()
+		if isHadRebel == false && isBlackMarket != true && player.GetLevel() >= 35 {
 			randValue := random.Intn(100)
 
 			//! 随机出现叛军
 			if randValue < gamedata.FindRebelPro {
 				//! 随机叛军属性
-				pPlayer.RebelModule.RandRebel()
+				player.RebelModule.RandRebel()
 				response.IsFindRebel = true
 			}
 		}
 
 	} else if req.CopyType == gamedata.COPY_TYPE_Daily { //! 通关日常副本
-		ok, errcode := CopyCheck(pPlayer, req.CopyID, req.Chapter, gamedata.COPY_TYPE_Daily)
+		ok, errcode := CopyCheck(player, req.CopyID, req.Chapter, gamedata.COPY_TYPE_Daily)
 		if ok != true {
 			response.RetCode = errcode
 			return
 		}
-		pPlayer.CopyMoudle.PlayerPassDailyLevels(req.CopyID)
+		player.CopyMoudle.PlayerPassDailyLevels(req.CopyID)
 	} else if req.CopyType == gamedata.COPY_TYPE_Famous { //! 通关名将副本
-		ok, errcode := CopyCheck(pPlayer, req.CopyID, req.Chapter, req.CopyType)
+		ok, errcode := CopyCheck(player, req.CopyID, req.Chapter, req.CopyType)
 		if ok != true {
 			response.RetCode = errcode
 			return
 		}
 
 		//! 记录通关并判断是否领取首胜奖励
-		isFirstVictory := pPlayer.CopyMoudle.PlayerPassFamousLevels(req.CopyID, req.Chapter)
+		isFirstVictory := player.CopyMoudle.PlayerPassFamousLevels(req.CopyID, req.Chapter)
 		if isFirstVictory == true {
 			firstVictoryAward := gamedata.GetItemsFromAwardID(pCopyInfo.FirstAward)
 			for _, v := range firstVictoryAward {
@@ -353,34 +353,34 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 				item.Num = v.ItemNum
 				response.FirstItem = append(response.FirstItem, item)
 			}
-			pPlayer.BagMoudle.AddAwardItems(firstVictoryAward)
+			player.BagMoudle.AddAwardItems(firstVictoryAward)
 		}
 	}
 
 	//! 给予玩家经验
-	response.Exp = pCopyInfo.Experience * pPlayer.GetLevel()
+	response.Exp = pCopyInfo.Experience * player.GetLevel()
 
 	//! 工会技能经验加成
-	if pPlayer.RoleMoudle.ExpIncLvl != 0 {
-		expInc := gamedata.GetGuildSkillExpValue(pPlayer.RoleMoudle.ExpIncLvl)
+	if player.RoleMoudle.ExpIncLvl != 0 {
+		expInc := gamedata.GetGuildSkillExpValue(player.RoleMoudle.ExpIncLvl)
 		response.Exp += response.Exp * expInc / 1000
 	}
 
 	if response.Exp != 0 {
-		pPlayer.HeroMoudle.AddMainHeroExp(response.Exp)
+		player.HeroMoudle.AddMainHeroExp(response.Exp)
 	}
 
 	//! 给予玩家货币
-	moneyNum := pCopyInfo.MoneyNum * pPlayer.GetLevel()
+	moneyNum := pCopyInfo.MoneyNum * player.GetLevel()
 	if moneyNum != 0 {
-		pPlayer.RoleMoudle.AddMoney(pCopyInfo.MoneyID, moneyNum)
+		player.RoleMoudle.AddMoney(pCopyInfo.MoneyID, moneyNum)
 	}
 
 	//! 扣除体力
-	pPlayer.RoleMoudle.CostAction(pCopyInfo.ActionType, pCopyInfo.ActionValue)
+	player.RoleMoudle.CostAction(pCopyInfo.ActionType, pCopyInfo.ActionValue)
 
 	//! 获取体力值与体力恢复时间
-	response.ActionValue, response.ActionTime = pPlayer.RoleMoudle.GetActionData(pCopyInfo.ActionType)
+	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(pCopyInfo.ActionType)
 
 	//! 掉落物品
 	response.ItemLst = []msg.MSG_ItemData{}
@@ -393,7 +393,7 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if dropItem != nil {
-		pPlayer.BagMoudle.AddAwardItems(dropItem)
+		player.BagMoudle.AddAwardItems(dropItem)
 	}
 
 	response.RetCode = msg.RE_SUCCESS
@@ -422,13 +422,13 @@ func Hand_SweepCopy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	pPlayer.CopyMoudle.CheckReset()
+	player.CopyMoudle.CheckReset()
 
 	pCopyInfo := gamedata.GetCopyBaseInfo(req.CopyID)
 	if pCopyInfo == nil {
@@ -437,7 +437,7 @@ func Hand_SweepCopy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isEnough := pPlayer.RoleMoudle.CheckActionEnough(pCopyInfo.ActionType, pCopyInfo.ActionValue)
+	isEnough := player.RoleMoudle.CheckActionEnough(pCopyInfo.ActionType, pCopyInfo.ActionValue)
 	if isEnough == false { //! 体力不足挑战
 		gamelog.Error("Hand_SweepCopy error : Not Enough Action")
 		response.RetCode = msg.RE_STRENGTH_NOT_ENOUGH
@@ -445,72 +445,72 @@ func Hand_SweepCopy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.CopyType == gamedata.COPY_TYPE_Main { //! 通关主线关卡
-		ok, errcode := CopyCheck(pPlayer, req.CopyID, req.Chapter, gamedata.COPY_TYPE_Main)
+		ok, errcode := CopyCheck(player, req.CopyID, req.Chapter, gamedata.COPY_TYPE_Main)
 		if ok != true {
 			response.RetCode = errcode
 			return
 		}
 
 		//! 检查副本是否通关
-		if req.CopyID > pPlayer.CopyMoudle.Main.CurCopyID {
+		if req.CopyID > player.CopyMoudle.Main.CurCopyID {
 			gamelog.Error("Hand_SweepCopy error : Not Pass Level")
 			response.RetCode = msg.RE_NEED_PASS_PRE_COPY
 			return
 		}
 
 		//! 检测扫荡副本是否三星通关
-		for _, v := range pPlayer.CopyMoudle.Main.CopyInfo {
+		for _, v := range player.CopyMoudle.Main.CopyInfo {
 			if v.CopyID == req.CopyID && v.StarNum != 3 {
 				response.RetCode = msg.RE_STAR_NOT_ENOUGH
 				return
 			}
 		}
 
-		pPlayer.CopyMoudle.PlayerPassMainLevels(req.CopyID, req.Chapter, req.StarNum)
+		player.CopyMoudle.PlayerPassMainLevels(req.CopyID, req.Chapter, req.StarNum)
 
 		//! 随机出现叛军围剿
 		random := rand.New(rand.NewSource(time.Now().UnixNano()))
 		//! 随机出现黑市
 		isBlackMarket := false
-		if pPlayer.BlackMarketModule.IsOpen == false && pPlayer.GetVipLevel() < gamedata.EnterVipLevel && pPlayer.GetLevel() >= 30 {
+		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < gamedata.EnterVipLevel && player.GetLevel() >= 30 {
 			randValue := random.Intn(1000)
 
 			if randValue < gamedata.BlackMarketPro {
 				//! 随机出现黑市
-				pPlayer.BlackMarketModule.RefreshGoods(true)
-				response.OpenEndTime = pPlayer.BlackMarketModule.OpenEndTime
+				player.BlackMarketModule.RefreshGoods(true)
+				response.OpenEndTime = player.BlackMarketModule.OpenEndTime
 				isBlackMarket = true
 
 			}
 		}
 
-		isHadRebel := pPlayer.RebelModule.IsHaveRebel()
+		isHadRebel := player.RebelModule.IsHaveRebel()
 		if isHadRebel == false && isBlackMarket != true {
 			randValue := random.Intn(100)
 
 			//! 随机出现叛军
 			if randValue < gamedata.FindRebelPro {
 				//! 随机叛军属性
-				pPlayer.RebelModule.RandRebel()
+				player.RebelModule.RandRebel()
 				response.IsFindRebel = true
 			}
 		}
 	} else if req.CopyType == gamedata.COPY_TYPE_Elite {
-		ok, errcode := CopyCheck(pPlayer, req.CopyID, req.Chapter, gamedata.COPY_TYPE_Elite)
+		ok, errcode := CopyCheck(player, req.CopyID, req.Chapter, gamedata.COPY_TYPE_Elite)
 		if ok != true {
 			response.RetCode = errcode
 			return
 		}
 
 		//! 检查副本是否通关
-		if req.CopyID > pPlayer.CopyMoudle.Elite.CurCopyID {
+		if req.CopyID > player.CopyMoudle.Elite.CurCopyID {
 			gamelog.Error("Hand_SweepCopy error : Not Pass Level")
 			response.RetCode = msg.RE_NEED_PASS_PRE_COPY
 			return
 		}
 
 		//! 检测扫荡副本是否三星通关
-		for _, v := range pPlayer.CopyMoudle.Elite.CopyInfo {
+		for _, v := range player.CopyMoudle.Elite.CopyInfo {
 			if v.CopyID == req.CopyID && v.StarNum != 3 {
 				response.RetCode = msg.RE_STAR_NOT_ENOUGH
 				return
@@ -521,25 +521,25 @@ func Hand_SweepCopy(w http.ResponseWriter, r *http.Request) {
 		random := rand.New(rand.NewSource(time.Now().UnixNano()))
 		//! 随机出现黑市
 		isBlackMarket := false
-		if pPlayer.BlackMarketModule.IsOpen == false && pPlayer.GetVipLevel() < gamedata.EnterVipLevel && pPlayer.GetLevel() >= 30 {
+		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < gamedata.EnterVipLevel && player.GetLevel() >= 30 {
 			randValue := random.Intn(1000)
 
 			if randValue < gamedata.BlackMarketPro {
 				//! 随机出现黑市
-				pPlayer.BlackMarketModule.RefreshGoods(true)
-				response.OpenEndTime = pPlayer.BlackMarketModule.OpenEndTime
+				player.BlackMarketModule.RefreshGoods(true)
+				response.OpenEndTime = player.BlackMarketModule.OpenEndTime
 				isBlackMarket = true
 			}
 		}
 
-		isHadRebel := pPlayer.RebelModule.IsHaveRebel()
+		isHadRebel := player.RebelModule.IsHaveRebel()
 		if isHadRebel == false && isBlackMarket != true {
 			randValue := random.Intn(100)
 
 			//! 随机出现叛军
 			if randValue < gamedata.FindRebelPro {
 				//! 随机叛军属性
-				pPlayer.RebelModule.RandRebel()
+				player.RebelModule.RandRebel()
 				response.IsFindRebel = true
 			}
 		}
@@ -547,26 +547,26 @@ func Hand_SweepCopy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 给予玩家经验
-	response.Exp = pCopyInfo.Experience * pPlayer.GetLevel()
+	response.Exp = pCopyInfo.Experience * player.GetLevel()
 	//! 工会技能经验加成
-	if pPlayer.RoleMoudle.ExpIncLvl != 0 {
-		expInc := gamedata.GetGuildSkillExpValue(pPlayer.RoleMoudle.ExpIncLvl)
+	if player.RoleMoudle.ExpIncLvl != 0 {
+		expInc := gamedata.GetGuildSkillExpValue(player.RoleMoudle.ExpIncLvl)
 		response.Exp += response.Exp * expInc / 1000
 	}
-	pPlayer.HeroMoudle.AddMainHeroExp(response.Exp)
+	player.HeroMoudle.AddMainHeroExp(response.Exp)
 
 	//! 给予玩家货币
-	moneyNum := pCopyInfo.MoneyNum * pPlayer.GetLevel()
-	pPlayer.RoleMoudle.AddMoney(pCopyInfo.MoneyID, moneyNum)
+	moneyNum := pCopyInfo.MoneyNum * player.GetLevel()
+	player.RoleMoudle.AddMoney(pCopyInfo.MoneyID, moneyNum)
 
 	//! 给予玩家觉醒道具
-	pPlayer.BagMoudle.AddWakeItem(pCopyInfo.MoneyID, pCopyInfo.MoneyNum*pPlayer.GetLevel())
+	player.BagMoudle.AddWakeItem(pCopyInfo.MoneyID, pCopyInfo.MoneyNum*player.GetLevel())
 
 	//! 扣除体力
-	pPlayer.RoleMoudle.CostAction(pCopyInfo.ActionType, pCopyInfo.ActionValue)
+	player.RoleMoudle.CostAction(pCopyInfo.ActionType, pCopyInfo.ActionValue)
 
 	//! 获取体力值与体力恢复时间
-	response.ActionValue, response.ActionTime = pPlayer.RoleMoudle.GetActionData(pCopyInfo.ActionType)
+	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(pCopyInfo.ActionType)
 
 	//! 掉落物品
 	response.ItemLst = make([]msg.MSG_ItemData, 0, 5)
@@ -577,7 +577,7 @@ func Hand_SweepCopy(w http.ResponseWriter, r *http.Request) {
 		item.Num = v.ItemNum
 		response.ItemLst = append(response.ItemLst, item)
 	}
-	pPlayer.BagMoudle.AddAwardItems(dropItem)
+	player.BagMoudle.AddAwardItems(dropItem)
 
 	response.RetCode = msg.RE_SUCCESS
 }

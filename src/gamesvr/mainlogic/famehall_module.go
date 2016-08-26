@@ -32,9 +32,9 @@ type TFameHallModule struct {
 	ownplayer   *TPlayer
 }
 
-func (self *TFameHallModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *TFameHallModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 func (self *TFameHallModule) OnCreate(playerid int32) {

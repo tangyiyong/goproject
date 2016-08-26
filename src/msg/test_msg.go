@@ -8,8 +8,8 @@ type MSG_GetTestMoney_Req struct {
 }
 
 type MSG_GetTestMoney_Ack struct {
-	RetCode int     //返回码
-	Moneys  [10]int //货币表
+	RetCode int   //返回码
+	Moneys  []int //货币表
 }
 
 //玩家获取货币

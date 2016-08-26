@@ -34,9 +34,9 @@ type TRebelModule struct {
 	ownplayer *TPlayer
 }
 
-func (self *TRebelModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *TRebelModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 //! 玩家创建角色

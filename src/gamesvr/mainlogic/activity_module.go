@@ -133,9 +133,9 @@ type TActivityModule struct {
 	ownplayer *TPlayer
 }
 
-func (self *TActivityModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *TActivityModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 func (self *TActivityModule) OnCreate(playerid int32) {

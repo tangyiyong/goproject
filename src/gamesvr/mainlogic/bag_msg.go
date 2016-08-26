@@ -29,23 +29,23 @@ func Hand_GetBagData(w http.ResponseWriter, r *http.Request) {
 		w.Write(comdata)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.Heros = pPlayer.BagMoudle.HeroBag.Heros
-	response.EquipPieces = pPlayer.BagMoudle.EquipPieceBag.Items
-	response.Equips = pPlayer.BagMoudle.EquipBag.Equips
-	response.GemPieces = pPlayer.BagMoudle.GemPieceBag.Items
-	response.Gems = pPlayer.BagMoudle.GemBag.Gems
-	response.HeroPieces = pPlayer.BagMoudle.HeroPieceBag.Items
-	response.PetPieces = pPlayer.BagMoudle.PetPieceBag.Items
-	response.Pets = pPlayer.BagMoudle.PetBag.Pets
-	response.WakeItems = pPlayer.BagMoudle.WakeItemBag.Items
-	response.Normals = pPlayer.BagMoudle.NormalItemBag.Items
-	response.HeroSouls = pPlayer.BagMoudle.HeroSoulBag.Items
+	response.Heros = player.BagMoudle.HeroBag.Heros
+	response.EquipPieces = player.BagMoudle.EquipPieceBag.Items
+	response.Equips = player.BagMoudle.EquipBag.Equips
+	response.GemPieces = player.BagMoudle.GemPieceBag.Items
+	response.Gems = player.BagMoudle.GemBag.Gems
+	response.HeroPieces = player.BagMoudle.HeroPieceBag.Items
+	response.PetPieces = player.BagMoudle.PetPieceBag.Items
+	response.Pets = player.BagMoudle.PetBag.Pets
+	response.WakeItems = player.BagMoudle.WakeItemBag.Items
+	response.Normals = player.BagMoudle.NormalItemBag.Items
+	response.HeroSouls = player.BagMoudle.HeroSoulBag.Items
 
 	response.RetCode = msg.RE_SUCCESS
 
@@ -70,13 +70,13 @@ func Hand_GetBagHeros(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.Heros = pPlayer.BagMoudle.HeroBag.Heros
+	response.Heros = player.BagMoudle.HeroBag.Heros
 
 	response.RetCode = msg.RE_SUCCESS
 
@@ -101,13 +101,13 @@ func Hand_GetBagEquips(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.Equips = pPlayer.BagMoudle.EquipBag.Equips
+	response.Equips = player.BagMoudle.EquipBag.Equips
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -130,13 +130,13 @@ func Hand_GetBagHerosPiece(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.HeroPieces = pPlayer.BagMoudle.HeroPieceBag.Items
+	response.HeroPieces = player.BagMoudle.HeroPieceBag.Items
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -159,13 +159,13 @@ func Hand_GetBagGemPiece(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.GemPieces = pPlayer.BagMoudle.GemPieceBag.Items
+	response.GemPieces = player.BagMoudle.GemPieceBag.Items
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -188,13 +188,13 @@ func Hand_GetBagEquipPiece(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.EquipPieces = pPlayer.BagMoudle.EquipPieceBag.Items
+	response.EquipPieces = player.BagMoudle.EquipPieceBag.Items
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -217,13 +217,13 @@ func Hand_GetBagGems(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.Gems = pPlayer.BagMoudle.GemBag.Gems
+	response.Gems = player.BagMoudle.GemBag.Gems
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -247,13 +247,13 @@ func Hand_GetBagItems(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	//是否是合法的请求
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.Items = pPlayer.BagMoudle.NormalItemBag.Items
+	response.Items = player.BagMoudle.NormalItemBag.Items
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -276,13 +276,13 @@ func Hand_GetBagWakeItems(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.Items = pPlayer.BagMoudle.WakeItemBag.Items
+	response.Items = player.BagMoudle.WakeItemBag.Items
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -305,9 +305,9 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	//是否是合法的请求
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
@@ -318,7 +318,7 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 	if req.ItemType == gamedata.TYPE_HERO {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.HeroBag.Heros[item.Pos].ID != item.ID {
+			if player.BagMoudle.HeroBag.Heros[item.Pos].ID != item.ID {
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				response.RetCode = msg.RE_INVALID_PARAM
 				return
@@ -349,13 +349,13 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 			moneynum += pHeroInfo.SellPrice
 		}
 		for _, item := range req.Items {
-			pPlayer.BagMoudle.RemoveHeroAt(item.Pos)
+			player.BagMoudle.RemoveHeroAt(item.Pos)
 		}
-		pPlayer.BagMoudle.DB_SaveHeroBag()
+		player.BagMoudle.DB_SaveHeroBag()
 	} else if req.ItemType == gamedata.TYPE_EQUIPMENT {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.EquipBag.Equips[item.Pos].ID != item.ID {
+			if player.BagMoudle.EquipBag.Equips[item.Pos].ID != item.ID {
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				response.RetCode = msg.RE_INVALID_PARAM
 				return
@@ -386,13 +386,13 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 			moneynum += pEquipInfo.SellPrice[0]
 		}
 		for _, item := range req.Items {
-			pPlayer.BagMoudle.RemoveEquipAt(item.Pos)
+			player.BagMoudle.RemoveEquipAt(item.Pos)
 		}
-		pPlayer.BagMoudle.DB_SaveBagEquips()
+		player.BagMoudle.DB_SaveBagEquips()
 	} else if req.ItemType == gamedata.TYPE_GEM {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.GemBag.Gems[item.Pos].ID != item.ID {
+			if player.BagMoudle.GemBag.Gems[item.Pos].ID != item.ID {
 				response.RetCode = msg.RE_INVALID_PARAM
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				return
@@ -423,13 +423,13 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 			moneynum += pGemInfo.SellPrice
 		}
 		for _, item := range req.Items {
-			pPlayer.BagMoudle.RemoveGemAt(item.Pos)
+			player.BagMoudle.RemoveGemAt(item.Pos)
 		}
-		pPlayer.BagMoudle.DB_SaveGemBag()
+		player.BagMoudle.DB_SaveGemBag()
 	} else if req.ItemType == gamedata.TYPE_PET {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.PetBag.Pets[item.Pos].ID != item.ID {
+			if player.BagMoudle.PetBag.Pets[item.Pos].ID != item.ID {
 				response.RetCode = msg.RE_INVALID_PARAM
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				return
@@ -460,13 +460,13 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 			moneynum += pPetInfo.SellPrice
 		}
 		for _, item := range req.Items {
-			pPlayer.BagMoudle.RemovePetAt(item.Pos)
+			player.BagMoudle.RemovePetAt(item.Pos)
 		}
-		pPlayer.BagMoudle.DB_SavePetBag()
+		player.BagMoudle.DB_SavePetBag()
 	} else if req.ItemType == gamedata.TYPE_HERO_PIECE {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.HeroPieceBag.Items[item.Pos].ItemID != item.ID {
+			if player.BagMoudle.HeroPieceBag.Items[item.Pos].ItemID != item.ID {
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				response.RetCode = msg.RE_INVALID_PARAM
 				return
@@ -480,15 +480,15 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 			}
 
 			moneyid = pItemInfo.SellID
-			moneynum += pItemInfo.SellPrice * pPlayer.BagMoudle.HeroPieceBag.Items[item.Pos].ItemNum
+			moneynum += pItemInfo.SellPrice * player.BagMoudle.HeroPieceBag.Items[item.Pos].ItemNum
 		}
 		for _, item := range req.Items {
-			pPlayer.BagMoudle.RemoveHeroPiece(item.ID, pPlayer.BagMoudle.HeroPieceBag.Items[item.Pos].ItemNum)
+			player.BagMoudle.RemoveHeroPiece(item.ID, player.BagMoudle.HeroPieceBag.Items[item.Pos].ItemNum)
 		}
 	} else if req.ItemType == gamedata.TYPE_EQUIP_PIECE {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.EquipPieceBag.Items[item.Pos].ItemID != item.ID {
+			if player.BagMoudle.EquipPieceBag.Items[item.Pos].ItemID != item.ID {
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				response.RetCode = msg.RE_INVALID_PARAM
 				return
@@ -502,16 +502,16 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 			}
 
 			moneyid = pItemInfo.SellID
-			moneynum += pItemInfo.SellPrice * pPlayer.BagMoudle.EquipPieceBag.Items[item.Pos].ItemNum
+			moneynum += pItemInfo.SellPrice * player.BagMoudle.EquipPieceBag.Items[item.Pos].ItemNum
 		}
 
 		for _, item := range req.Items {
-			pPlayer.BagMoudle.RemoveEquipPiece(item.ID, pPlayer.BagMoudle.EquipPieceBag.Items[item.Pos].ItemNum)
+			player.BagMoudle.RemoveEquipPiece(item.ID, player.BagMoudle.EquipPieceBag.Items[item.Pos].ItemNum)
 		}
 	} else if req.ItemType == gamedata.TYPE_PET_PIECE {
 		//进行参数检查
 		for _, item := range req.Items {
-			if pPlayer.BagMoudle.PetPieceBag.Items[item.Pos].ItemID != item.ID {
+			if player.BagMoudle.PetPieceBag.Items[item.Pos].ItemID != item.ID {
 				gamelog.Error("Hand_SellItem Error Invalid Pos:%d and id:%d", item.Pos, item.ID)
 				response.RetCode = msg.RE_INVALID_PARAM
 				return
@@ -525,14 +525,14 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 			}
 
 			moneyid = pItemInfo.SellID
-			moneynum += pItemInfo.SellPrice * pPlayer.BagMoudle.PetPieceBag.Items[item.Pos].ItemNum
+			moneynum += pItemInfo.SellPrice * player.BagMoudle.PetPieceBag.Items[item.Pos].ItemNum
 		}
 		for _, item := range req.Items {
-			pPlayer.BagMoudle.RemovePetPiece(item.ID, pPlayer.BagMoudle.PetPieceBag.Items[item.Pos].ItemNum)
+			player.BagMoudle.RemovePetPiece(item.ID, player.BagMoudle.PetPieceBag.Items[item.Pos].ItemNum)
 		}
 	}
 
-	pPlayer.RoleMoudle.AddMoney(moneyid, moneynum)
+	player.RoleMoudle.AddMoney(moneyid, moneynum)
 	response.MoneyID = moneyid
 	response.MoneyNum = moneynum
 	response.RetCode = msg.RE_SUCCESS
@@ -557,9 +557,9 @@ func Hand_UseItem(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
@@ -570,7 +570,7 @@ func Hand_UseItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !pPlayer.BagMoudle.IsItemEnough(req.ItemID, req.ItemNum) {
+	if !player.BagMoudle.IsItemEnough(req.ItemID, req.ItemNum) {
 		gamelog.Error("Hand_UseItem Error : Not Enough Item!, id:%d, num:%d", req.ItemID, req.ItemNum)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
@@ -579,18 +579,18 @@ func Hand_UseItem(w http.ResponseWriter, r *http.Request) {
 	switch pItemInfo.SubType {
 	case gamedata.SUB_TYPE_MONEY: //货币道具，使用后直接增加货币
 		{
-			pPlayer.RoleMoudle.AddMoney(pItemInfo.Data1, pItemInfo.Data2*req.ItemNum)
-			pPlayer.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
+			player.RoleMoudle.AddMoney(pItemInfo.Data1, pItemInfo.Data2*req.ItemNum)
+			player.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
 		}
 	case gamedata.SUB_TYPE_ACTION: //行动力道具，使用后直接增加行动力
 		{
-			pPlayer.RoleMoudle.AddAction(pItemInfo.Data1, pItemInfo.Data2*req.ItemNum)
-			pPlayer.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
+			player.RoleMoudle.AddAction(pItemInfo.Data1, pItemInfo.Data2*req.ItemNum)
+			player.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
 		}
 	case gamedata.SUB_TYPE_FREE_WAR: //免战道具，使用后增加免战时间
 		{
-			pPlayer.RobModule.AddFreeWarTime(pItemInfo.Data1 * req.ItemNum)
-			pPlayer.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
+			player.RobModule.AddFreeWarTime(pItemInfo.Data1 * req.ItemNum)
+			player.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
 		}
 	case gamedata.SUB_TYPE_GIFT_BAG: //礼包道具, 使用后获得礼包里的道具
 		{
@@ -600,8 +600,8 @@ func Hand_UseItem(w http.ResponseWriter, r *http.Request) {
 				item.ID = awardItem.ItemID
 				item.Num = awardItem.ItemNum * req.ItemNum
 				response.Items = append(response.Items, item)
-				pPlayer.BagMoudle.AddAwardItem(item.ID, item.Num)
-				pPlayer.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
+				player.BagMoudle.AddAwardItem(item.ID, item.Num)
+				player.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
 			} else {
 				awardLst := gamedata.GetItemsFromAwardID(pItemInfo.Data1)
 				for _, v := range awardLst {
@@ -610,8 +610,8 @@ func Hand_UseItem(w http.ResponseWriter, r *http.Request) {
 					item.Num = v.ItemNum
 					response.Items = append(response.Items, item)
 				}
-				pPlayer.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
-				pPlayer.BagMoudle.AddAwardItems(awardLst)
+				player.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
+				player.BagMoudle.AddAwardItems(awardLst)
 			}
 		}
 	case gamedata.SUB_TYPE_CHARGE: //礼包道具, 使用后获得礼包里的道具
@@ -649,13 +649,13 @@ func Hand_GetBagPets(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.Pets = pPlayer.BagMoudle.PetBag.Pets
+	response.Pets = player.BagMoudle.PetBag.Pets
 	response.RetCode = msg.RE_SUCCESS
 	return
 }
@@ -678,12 +678,12 @@ func Hand_GetBagPetsPiece(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	var pPlayer *TPlayer = nil
-	pPlayer, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if pPlayer == nil {
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
-	response.PetPieces = pPlayer.BagMoudle.PetPieceBag.Items
+	response.PetPieces = player.BagMoudle.PetPieceBag.Items
 	response.RetCode = msg.RE_SUCCESS
 }

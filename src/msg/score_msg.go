@@ -8,6 +8,7 @@ type MSG_Target struct {
 	Level      int    //等级
 	SvrID      int    //服务器ID
 	SvrName    string //服务器名
+	Quality    int8   //品质
 }
 
 //获取积分赛主界面信息
@@ -18,18 +19,21 @@ type MSG_GetScoreData_Req struct {
 }
 
 type MSG_GetScoreData_Ack struct {
-	RetCode   int          //返回值
-	Rank      int          //排名
-	Score     int          //积分
-	FightTime int          //今天战斗次数
-	WinTime   int          //连胜次数
-	BuyTime   int          //己购买战斗次数
-	Targets   []MSG_Target //三个战斗目标
+	RetCode   int           //返回值
+	Rank      int           //排名
+	Score     int           //积分
+	FightTime int           //今天战斗次数
+	WinTime   int           //连胜次数
+	IsRecv    int           //是否领取连胜次数奖励
+	BuyTime   int           //己购买战斗次数
+	Targets   []MSG_Target  //三个战斗目标
+	ItemLst   []MSG_BuyData //购买物品次数
 }
 
 type MSG_ScoreRankInfo struct {
 	PlayerID   int32  //! 角色ID
 	HeroID     int    //! 英雄ID
+	Quality    int8   //! 品质
 	Name       string //! 角色名字
 	FightValue int    //! 战力值
 	Score      int    //！积分值
@@ -95,29 +99,28 @@ type MSG_GetScoreTimeAward_Ack struct {
 }
 
 //! 玩家收取积分赛战斗次数奖励
-//! 消息: /rcv_score_time_award
-type MSG_RcvScoreTimeAward_Req struct {
+//! 消息: /recv_score_time_award
+type MSG_RecvScoreTimeAward_Req struct {
 	PlayerID    int32
 	SessionKey  string
 	TimeAwardID int //次数奖励的ID
 }
 
-type MSG_RcvScoreTimeAward_Ack struct {
+type MSG_RecvScoreTimeAward_Ack struct {
 	RetCode int            //返回码
 	ItemLst []MSG_ItemData //奖励的物品
 }
 
-//! 玩家请求积分商店的状态
-//! 消息: /get_score_store_state
-type MSG_GetScoreStoreState_Req struct {
+//! 玩家领取连赢次数奖励
+//! 消息: /recv_score_continue_award
+type MSG_RecvScoreContinueAward_Req struct {
 	PlayerID   int32
 	SessionKey string
 }
 
-type MSG_GetScoreStoreState_Ack struct {
-	RetCode    int                //返回码
-	ItemLst    []MSG_StoreBuyData //购买物品次数
-	AwardIndex []int32            //奖励商店的索引
+type MSG_RecvScoreContinueAward_Ack struct {
+	RetCode int            //返回码
+	ItemLst []MSG_ItemData //奖励的物品
 }
 
 //! 玩家请求购买积分商店道具
@@ -154,6 +157,7 @@ type MSG_CrossQueryScoreTarget_Req struct {
 	Score      int    //当前的积分
 	Level      int    //等级
 	FightValue int    //战力
+	Quality    int8   //战力
 	PlayerName string //角色名
 
 }

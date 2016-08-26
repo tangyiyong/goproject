@@ -14,18 +14,18 @@ func HandCmd_AddHeros(args []string) bool {
 		return true
 	}
 
-	var pPlayer *TPlayer = GetPlayerByID(int32(PlayerID))
-	if pPlayer == nil {
+	var player *TPlayer = GetPlayerByID(int32(PlayerID))
+	if player == nil {
 		gamelog.Error("HandCmd_AddHeros error : Cannot get player by ID : %d", PlayerID)
 		return true
 	}
 
 	t1 := time.Now().UnixNano()
 	for i := 5; i < 148; i++ {
-		pPlayer.BagMoudle.AddAwardItem(i, 1)
+		player.BagMoudle.AddAwardItem(i, 1)
 	}
 
-	//pPlayer.BagMoudle.RemoveHero(3)
+	//player.BagMoudle.RemoveHero(3)
 	fmt.Println(args[0], "Finished Time:", time.Now().UnixNano()-t1)
 	return true
 }

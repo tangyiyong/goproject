@@ -94,9 +94,9 @@ func (taskmodule *TTaskMoudle) RefreshTask(update bool) {
 	}
 }
 
-func (taskmoudle *TTaskMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (taskmoudle *TTaskMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
 	taskmoudle.PlayerID = playerid
-	taskmoudle.ownplayer = pPlayer
+	taskmoudle.ownplayer = player
 }
 
 func (taskmoudle *TTaskMoudle) OnCreate(playerid int32) {

@@ -27,9 +27,9 @@ type THangUpMoudle struct {
 	ownplayer   *TPlayer       //父player指针
 }
 
-func (hang *THangUpMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (hang *THangUpMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
 	hang.PlayerID = playerid
-	hang.ownplayer = pPlayer
+	hang.ownplayer = player
 }
 
 func (hang *THangUpMoudle) OnCreate(playerid int32) {

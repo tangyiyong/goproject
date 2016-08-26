@@ -31,9 +31,9 @@ type TBlackMarketModule struct {
 	ownplayer *TPlayer
 }
 
-func (self *TBlackMarketModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *TBlackMarketModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 func (self *TBlackMarketModule) OnCreate(playerid int32) {

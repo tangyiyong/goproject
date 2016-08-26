@@ -25,20 +25,40 @@ var (
 	SvrID_Addr = make(map[int]string)
 )
 
-func LoadSvrAddrList() {
+func LoadSvrAddrCsv() {
 	records, err := utility.LoadCsv(SvrAddr_PATH)
 	if err != nil {
-		gamelog.Error("LoadSvrAddrList : %s", err.Error())
+		gamelog.Error("LoadSvrAddrCsv : %s", err.Error())
 		return
 	}
 
-	for i := 0; i < len(records); i++ {
+	//首行时表头，跳过
+	for i := 1; i < len(records); i++ {
 		id, _ := strconv.Atoi(records[i][0])
 		SvrID_Addr[id] = records[i][1]
 	}
 }
+func UpdateSvrAddrCsv() {
+	//保持配表ID顺序，全部写一遍文件
+	records, i := make([][]string, len(SvrID_Addr)+1), 1
+	records[0] = append(records[0], "svrID", "url")
+	for k, v := range SvrID_Addr {
+		records[i] = append(records[i], strconv.Itoa(k), v)
+		i++
+	}
+	if err := utility.UpdateCsv(SvrAddr_PATH, records); err != nil {
+		gamelog.Error("UpdateSvrAddrCsv : %s", err.Error())
+	}
+}
+
 func RegisterGamesvrAddr(svrID int, url string) {
-	SvrID_Addr[svrID] = url
+	oldUrl, ok := SvrID_Addr[svrID]
+	if ok && oldUrl == url {
+		return
+	} else {
+		SvrID_Addr[svrID] = url
+		UpdateSvrAddrCsv()
+	}
 }
 
 // strKey = "sdk_recharge_info"

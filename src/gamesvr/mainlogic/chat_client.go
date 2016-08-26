@@ -41,3 +41,10 @@ func SendGuildChangeMsg(playerid int32, guilid int) bool {
 
 	return SendMessageToChat(msg.MSG_GUILD_NOTIFY, buffer)
 }
+
+func SendGameSvrNotify(playerid int32, funcid int) bool {
+	var req msg.MSG_GameSvr_Notify
+	req.FuncID = funcid
+	buffer, _ := json.Marshal(&req)
+	return SendMessageToClient(playerid, msg.MSG_GAME_SERVER_NOTIFY, buffer)
+}

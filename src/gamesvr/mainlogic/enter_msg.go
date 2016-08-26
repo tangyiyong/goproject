@@ -68,8 +68,8 @@ func Hand_GetLoginData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pPlayer *TPlayer = GetPlayerByID(req.PlayerID)
-	if pPlayer == nil {
+	var player *TPlayer = GetPlayerByID(req.PlayerID)
+	if player == nil {
 		gamelog.Error("Hand_GetLoginData Error : Invalid Playerid :%d", req.PlayerID)
 		return
 	}
@@ -98,36 +98,36 @@ func Hand_PlayerEnterGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var pPlayer *TPlayer = GetPlayerByID(req.PlayerID)
-	if pPlayer == nil {
+	var player *TPlayer = GetPlayerByID(req.PlayerID)
+	if player == nil {
 		//如果内存中没有，查看数据库中是否存在
-		pPlayer = LoadPlayerFromDB(req.PlayerID)
-		if pPlayer == nil {
+		player = LoadPlayerFromDB(req.PlayerID)
+		if player == nil {
 			gamelog.Error("Hand_PlayerEnterGame Error : Invalid Playerid :%d", req.PlayerID)
 			return
 		}
 	}
 
-	pPlayer.OnPlayerOnline(req.PlayerID)
+	player.OnPlayerOnline(req.PlayerID)
 	response.SvrTime = time.Now().Unix()
 
 	response.ChatSvrAddr = appconfig.ChatSvrAddr
-	response.PlayerName = pPlayer.RoleMoudle.Name
+	response.PlayerName = player.RoleMoudle.Name
 	response.FightValue = G_SimpleMgr.Get_FightValue(req.PlayerID)
 	response.RetCode = msg.RE_SUCCESS
 
-	if pPlayer.pSimpleInfo == nil {
-		gamelog.Error("Hand_PlayerEnterGame Error : pPlayer.pSimpleInfo == nil")
+	if player.pSimpleInfo == nil {
+		gamelog.Error("Hand_PlayerEnterGame Error : player.pSimpleInfo == nil")
 	} else {
-		response.GuildID = pPlayer.pSimpleInfo.GuildID
+		response.GuildID = player.pSimpleInfo.GuildID
 	}
 
 	gamelog.Info("message: user_enter_game : %s", response.PlayerName)
 
 	//! 玩家登陆
-	if pPlayer.IsTodayLogin() == false {
-		pPlayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_USER_LOGIN, 1)
-		pPlayer.ActivityModule.AddLoginDay()
+	if player.IsTodayLogin() == false {
+		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_USER_LOGIN, 1)
+		player.ActivityModule.AddLoginDay()
 	}
 
 	G_SimpleMgr.Set_LoginDay(req.PlayerID, utility.GetCurDay())
@@ -151,14 +151,14 @@ func Hand_PlayerLeaveGame(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	sessionmgr.DeleteSessionKey(req.PlayerID)
-	var pPlayer *TPlayer = GetPlayerByID(req.PlayerID)
-	if pPlayer == nil {
+	var player *TPlayer = GetPlayerByID(req.PlayerID)
+	if player == nil {
 		gamelog.Error("Hand_PlayerLeaveGame: cannot find the player info!!!!")
 		response.RetCode = msg.RE_INVALID_PLAYERID
 		return
 	}
 
-	pPlayer.OnPlayerOffline(req.PlayerID)
+	player.OnPlayerOffline(req.PlayerID)
 
 	response.RetCode = msg.RE_SUCCESS
 	return
@@ -204,20 +204,20 @@ func Hand_CreateNewPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	pPlayer, _ := CreatePlayer(pSimpleInfo.PlayerID, req.PlayerName, req.HeroID)
-	if pPlayer == nil {
-		gamelog.Error("Create Player Failed pPlayer == nil !!!")
+	player, _ := CreatePlayer(pSimpleInfo.PlayerID, req.PlayerName, req.HeroID)
+	if player == nil {
+		gamelog.Error("Create Player Failed player == nil !!!")
 		response.RetCode = msg.RE_UNKNOWN_ERR
 		return
 	}
 
-	pPlayer.pSimpleInfo = pSimpleInfo
-	pPlayer.OnCreate(pSimpleInfo.PlayerID)
-	pSimpleInfo.Quality = pPlayer.HeroMoudle.CurHeros[0].Quality
-	pSimpleInfo.Level = pPlayer.HeroMoudle.CurHeros[0].Level
+	player.pSimpleInfo = pSimpleInfo
+	player.OnCreate(pSimpleInfo.PlayerID)
+	pSimpleInfo.Quality = player.HeroMoudle.CurHeros[0].Quality
+	pSimpleInfo.Level = player.HeroMoudle.CurHeros[0].Level
 	pSimpleInfo.Name = req.PlayerName
 	pSimpleInfo.HeroID = req.HeroID
-	pSimpleInfo.FightValue = pPlayer.HeroMoudle.CalcFightValue(nil)
+	pSimpleInfo.FightValue = player.HeroMoudle.CalcFightValue(nil)
 	response.PlayerID = pSimpleInfo.PlayerID
 	response.RetCode = msg.RE_SUCCESS
 	G_LevelRanker.SetRankItem(pSimpleInfo.PlayerID, pSimpleInfo.Level)

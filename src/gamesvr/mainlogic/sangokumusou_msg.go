@@ -462,7 +462,7 @@ func Hand_GetSangokuMusou_ChapterAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 增加奖励领取记录
 	player.SangokuMusouModule.ChapterAwardMark.Add(chapter)
-	go player.SangokuMusouModule.UpdateChapterAwardMark()
+	go player.SangokuMusouModule.DB_UpdateChapterAwardMark()
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -597,7 +597,7 @@ func Hand_SetSangokuMusou_ChapterAttr(w http.ResponseWriter, r *http.Request) {
 
 			//! 扣除星数
 			player.SangokuMusouModule.CanUseStar -= v.CostStar
-			go player.SangokuMusouModule.UpdateCanUseStar()
+			go player.SangokuMusouModule.DB_UpdateCanUseStar()
 
 			//! 添加属性
 			isFind := false
@@ -605,14 +605,14 @@ func Hand_SetSangokuMusou_ChapterAttr(w http.ResponseWriter, r *http.Request) {
 				if player.SangokuMusouModule.AttrMarkupLst[i].AttrID == v.AttrID {
 					player.SangokuMusouModule.AttrMarkupLst[i].Value += v.Value
 					isFind = true
-					go player.SangokuMusouModule.UpdateAttr(i, player.SangokuMusouModule.AttrMarkupLst[i].Value)
+					go player.SangokuMusouModule.DB_UpdateAttr(i, player.SangokuMusouModule.AttrMarkupLst[i].Value)
 					break
 				}
 			}
 
 			if isFind == false {
 				player.SangokuMusouModule.AttrMarkupLst = append(player.SangokuMusouModule.AttrMarkupLst, TSangokuMusouAttrData2{v.AttrID, v.Value})
-				go player.SangokuMusouModule.AddAttr(TSangokuMusouAttrData2{v.AttrID, v.Value})
+				go player.SangokuMusouModule.DB_AddAttr(TSangokuMusouAttrData2{v.AttrID, v.Value})
 			}
 		}
 	}
@@ -623,7 +623,7 @@ func Hand_SetSangokuMusou_ChapterAttr(w http.ResponseWriter, r *http.Request) {
 	} else {
 		//! 记录玩家领奖
 		player.SangokuMusouModule.ChapterBuffMark.Add(chapter)
-		go player.SangokuMusouModule.UpdateChapterBuffMark()
+		go player.SangokuMusouModule.DB_UpdateChapterBuffMark()
 	}
 
 	//! 清空之前的属性加成选项緩存
@@ -811,7 +811,7 @@ func Hand_BuySangokuMusou_Treasure(w http.ResponseWriter, r *http.Request) {
 
 	player.SangokuMusouModule.IsBuyTreasure = true
 	player.SangokuMusouModule.TreasureID = 0
-	go player.SangokuMusouModule.UpdateTreasure()
+	go player.SangokuMusouModule.DB_UpdateTreasure()
 }
 
 //! 玩家请求重置关卡挑战
@@ -1001,7 +1001,7 @@ func Hand_SangokuMusou_AddEliteCopy(w http.ResponseWriter, r *http.Request) {
 	player.SangokuMusouModule.AddEliteBattleTimes += 1
 
 	response.RetCode = msg.RE_SUCCESS
-	go player.SangokuMusouModule.UpdateEliteBattleTimes()
+	go player.SangokuMusouModule.DB_UpdateEliteBattleTimes()
 }
 
 //! 玩家请求获取已购买的商品列表
@@ -1022,7 +1022,6 @@ func Hand_GetSangokuMusouStore_AleadyBuy(w http.ResponseWriter, r *http.Request)
 
 	//! 创建回复
 	var response msg.MSG_GetSangokuMusouStoreAleadyBuy_Ack
-	response.ItemLst = []msg.MSG_StoreBuyData{}
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	defer func() {
 		b, _ := json.Marshal(&response)
@@ -1043,13 +1042,7 @@ func Hand_GetSangokuMusouStore_AleadyBuy(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	for _, v := range player.SangokuMusouModule.ShoppingLst {
-		var info msg.MSG_StoreBuyData
-		info.ID = v.ID
-		info.Times = v.Times
-		response.ItemLst = append(response.ItemLst, info)
-	}
-
+	response.ItemLst = player.SangokuMusouModule.BuyRecord
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -1142,14 +1135,14 @@ func Hand_GetSangokuMusou_StoreItem(w http.ResponseWriter, r *http.Request) {
 		isExist := player.SangokuMusouModule.IsShoppingInfoExist(req.ID)
 		if isExist == false {
 			//! 没有购买该物品记录则创建新的记录
-			var info TStoreBuyData
+			var info msg.MSG_BuyData
 			info.ID = itemInfo.ID
 			info.Times = 0
-			player.SangokuMusouModule.ShoppingLst = append(player.SangokuMusouModule.ShoppingLst, info)
-			player.SangokuMusouModule.AddStoreItemBuyInfo(info)
+			player.SangokuMusouModule.BuyRecord = append(player.SangokuMusouModule.BuyRecord, info)
+			player.SangokuMusouModule.DB_AddStoreItemBuyInfo(info)
 		}
 
-		for i, v := range player.SangokuMusouModule.ShoppingLst {
+		for i, v := range player.SangokuMusouModule.BuyRecord {
 			if req.ID == v.ID {
 				isExist = true
 				if v.Times+req.Num > itemInfo.BuyTimes {
@@ -1164,9 +1157,9 @@ func Hand_GetSangokuMusou_StoreItem(w http.ResponseWriter, r *http.Request) {
 					}
 
 					player.BagMoudle.AddAwardItem(itemInfo.ItemID, itemInfo.ItemNum*req.Num)
-					player.SangokuMusouModule.ShoppingLst[i].Times += req.Num
-					response.Times = player.SangokuMusouModule.ShoppingLst[i].Times
-					go player.SangokuMusouModule.UpdateStoreItemBuyTimes(v.ID, player.SangokuMusouModule.ShoppingLst[i].Times)
+					player.SangokuMusouModule.BuyRecord[i].Times += req.Num
+					response.Times = player.SangokuMusouModule.BuyRecord[i].Times
+					go player.SangokuMusouModule.DB_UpdateStoreItemBuyTimes(i, player.SangokuMusouModule.BuyRecord[i].Times)
 				}
 			}
 		}
@@ -1280,12 +1273,5 @@ func Hand_GetSanguowsStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 商店
-	response.ItemLst = []msg.MSG_StoreBuyData{}
-	for _, v := range player.SangokuMusouModule.ShoppingLst {
-		var info msg.MSG_StoreBuyData
-		info.ID = v.ID
-		info.Times = v.Times
-		response.ItemLst = append(response.ItemLst, info)
-	}
-
+	response.ItemLst = player.SangokuMusouModule.BuyRecord
 }

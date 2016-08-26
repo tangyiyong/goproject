@@ -8,6 +8,7 @@ import (
 type TRoleRankItem struct {
 	RankID     int32  //角色ID
 	RankValue  int    //排名的值
+	Quality    int8   //品质
 	HeroID     int    //英雄ID
 	Level      int    //等级
 	FightValue int    //战力
@@ -31,12 +32,12 @@ func (ranker *TRoleRanker) InitRanker(show int, rank int) {
 	ranker.RankNum = rank
 	ranker.List = make([]*TRoleRankItem, rank)
 	for i := 0; i < len(ranker.List); i++ {
-		ranker.List[i] = &TRoleRankItem{0, 0, 0, 0, 0, 0, "", "", ""}
+		ranker.List[i] = &TRoleRankItem{0, 0, 0, 0, 0, 0, 0, "", "", ""}
 	}
 }
 
 func (ranker *TRoleRanker) SetRankItem(rankid int32, rankvalue int, level int,
-	fightvalue int, heroid int, svrid int, svrname string, rolename string) int {
+	fightvalue int, heroid int, svrid int, quality int8, svrname string, rolename string) int {
 	ranker.Lock()
 	defer ranker.Unlock()
 	nCount := len(ranker.List)
@@ -63,6 +64,7 @@ func (ranker *TRoleRanker) SetRankItem(rankid int32, rankvalue int, level int,
 			ranker.List[i].SvrID = svrid
 			ranker.List[i].SvrName = svrname
 			ranker.List[i].RoleName = rolename
+			ranker.List[i].Quality = quality
 			myIndex = i
 			break
 		}

@@ -28,9 +28,9 @@ type TTitleModule struct {
 	ownplayer *TPlayer
 }
 
-func (self *TTitleModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *TTitleModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 func (self *TTitleModule) OnCreate(playerid int32) {

@@ -195,9 +195,9 @@ func (self *THeroSoulsModule) CalcAchievementProperty() (propertyLst []THeroSoul
 	return propertyLst
 }
 
-func (self *THeroSoulsModule) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (self *THeroSoulsModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 	self.PlayerID = playerid
-	self.ownplayer = pPlayer
+	self.ownplayer = player
 }
 
 func (self *THeroSoulsModule) OnCreate(playerid int32) {

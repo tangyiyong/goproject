@@ -30,9 +30,9 @@ type TRoleMoudle struct {
 	ownplayer   *TPlayer  //父player指针
 }
 
-func (role *TRoleMoudle) SetPlayerPtr(playerid int32, pPlayer *TPlayer) {
+func (role *TRoleMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
 	role.PlayerID = playerid
-	role.ownplayer = pPlayer
+	role.ownplayer = player
 }
 
 func (role *TRoleMoudle) OnCreate(playerid int32) {

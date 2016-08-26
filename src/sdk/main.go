@@ -4,7 +4,7 @@ import (
 	"appconfig"
 	"gamelog"
 	"mongodb"
-	// "sdk/sdklogic"
+	"sdk/sdklogic"
 	"strconv"
 	"utility"
 )
@@ -31,7 +31,7 @@ func main() {
 	//注册控制台命令处理方法
 	utility.HandleFunc("setloglevel", HandCmd_SetLogLevel)
 
-	// sdklogic.LoadSvrAddrList()
+	sdklogic.LoadSvrAddrCsv()
 
 	//注册所有http消息处理方法
 	RegSdkHttpMsgHandler()

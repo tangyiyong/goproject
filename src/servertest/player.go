@@ -46,12 +46,12 @@ func InitPlayerMgr() {
 }
 
 func CreatePlayer(index int) *TPlayer {
-	var pPlayer = new(TPlayer)
-	pPlayer.AccountName = "acc" + strconv.Itoa(index)
-	pPlayer.Password = "123"
-	pPlayer.PlayerName = "name" + strconv.Itoa(index)
-	G_PlayerMgr[pPlayer.AccountName] = pPlayer
-	return pPlayer
+	var player = new(TPlayer)
+	player.AccountName = "acc" + strconv.Itoa(index)
+	player.Password = "123"
+	player.PlayerName = "name" + strconv.Itoa(index)
+	G_PlayerMgr[player.AccountName] = player
+	return player
 }
 
 func StartTest() {
