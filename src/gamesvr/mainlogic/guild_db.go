@@ -243,22 +243,6 @@ func (self *TGuild) DB_AddGuildMsgBoard(msg TGuildMsgBoard) {
 	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, "msgboard", msg)
 }
 
-//! 增加工会技能信息
-func (self *TGuildModule) DB_AddGuildSkillInfo(skill TGuildSkill) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, "skilllst", skill)
-}
-
-//! 修改工会技能等级
-func (self *TGuildModule) DB_UpdateGuildSkillLevel(skillid int, level int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID, "skilllst.skillid": skillid}, bson.M{"$set": bson.M{
-		"skilllst.$.level": level}})
-}
-
-//! 公会技能研究
-func (self *TGuild) DB_AddGuildSkillLimit(skill TGuildSkill) {
-	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, "skilllst", skill)
-}
-
 //! 公会副本回退状态
 func (self *TGuild) DB_UpdateGuildBackStatus() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, bson.M{"$set": bson.M{
@@ -266,7 +250,8 @@ func (self *TGuild) DB_UpdateGuildBackStatus() {
 }
 
 //! 修改公会技能等级
-func (self *TGuild) DB_UpdateGuildSkillLimit(skillid int, level int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID, "skilllst.skillid": skillid}, bson.M{"$set": bson.M{
-		"skilllst.$.level": level}})
+func (self *TGuild) DB_UpdateGuildSkillLimit(index int) {
+	filedName := fmt.Sprintf("skilllst.%d", index)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, bson.M{"$set": bson.M{
+		filedName: self.SkillLst[index]}})
 }

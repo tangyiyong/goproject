@@ -164,15 +164,16 @@ func (self *PacketWriter) GetDataPtr() []byte {
 	return self.DataPtr
 }
 
-func (self *PacketWriter) BeginWrite(msgid int16) bool {
+func (self *PacketWriter) BeginWrite(msgid int16, extra int16) bool {
 	self.DataPtr = make([]byte, 0, 1024)
 	self.DataPtr = append(self.DataPtr, 0, 0, 0, 0)
 	self.DataPtr = append(self.DataPtr, byte(msgid), byte(msgid>>8))
+	self.DataPtr = append(self.DataPtr, byte(extra), byte(extra>>8))
 	return true
 }
 
 func (self *PacketWriter) EndWrite() bool {
-	var dlen = int32(len(self.DataPtr) - 6)
+	var dlen = int32(len(self.DataPtr) - 8)
 	self.DataPtr[0] = byte(dlen)
 	self.DataPtr[1] = byte(dlen >> 8)
 	self.DataPtr[2] = byte(dlen >> 16)

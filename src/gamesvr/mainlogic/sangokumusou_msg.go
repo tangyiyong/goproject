@@ -1222,7 +1222,6 @@ func Hand_GetSanguowsStatus(w http.ResponseWriter, r *http.Request) {
 	if chapter != nil {
 		chapterInfo := gamedata.GetSGWSChapterCopyLst(chapter.ChapterID)
 
-		gamelog.Info("Chapter: %d CopyID: %d", chapter.ChapterID, player.SangokuMusouModule.PassCopyID+1)
 		if chapter.ChapterID == 1 { //! 第一章不存在上一章节奖励领取
 
 			response.IsRecvAward = 1
@@ -1274,4 +1273,5 @@ func Hand_GetSanguowsStatus(w http.ResponseWriter, r *http.Request) {
 
 	//! 商店
 	response.ItemLst = player.SangokuMusouModule.BuyRecord
+	response.IsBuyTreasure = player.SangokuMusouModule.IsBuyTreasure
 }

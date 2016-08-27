@@ -453,6 +453,7 @@ func RegHttpMsgHandler() {
 		{"/buy_score_fight_time", mainlogic.Hand_BuyScoreFightTime, false},
 		{"/buy_score_store_item", mainlogic.Hand_BuyScoreStoreItem, false},
 		{"/recv_score_continue_award", mainlogic.Hand_RecvContinueWinAward, false},
+		{"/get_score_report_req", mainlogic.Hand_GetScoreBattleReport, false},
 
 		//跨服服来请求玩家数据
 		{"/select_target_player", mainlogic.Hand_SelectTargetPlayer, false},
@@ -539,8 +540,8 @@ func RegHttpMsgHandler() {
 }
 
 func RegTcpMsgHandler() {
-	tcpclient.HandleFunc(msg.MSG_CHECK_IN_ACK, func(pTcpConn *tcpclient.TCPConn, pdata []byte) { return }) //这个消息不用处理
-	tcpclient.HandleFunc(msg.MSG_ONLINE_NOTIFY, mainlogic.Hand_OnlineNotify)                               //玩家上下线通知
+	tcpclient.HandleFunc(msg.MSG_CHECK_IN_ACK, func(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) { return }) //这个消息不用处理
+	tcpclient.HandleFunc(msg.MSG_ONLINE_NOTIFY, mainlogic.Hand_OnlineNotify)                                            //玩家上下线通知
 	tcpclient.HandleFunc(msg.MSG_DISCONNECT, mainlogic.Hand_DisConnect)
 	tcpclient.HandleFunc(msg.MSG_CONNECT, mainlogic.Hand_Connect)
 

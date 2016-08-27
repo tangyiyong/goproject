@@ -31,7 +31,7 @@ type TPlayer struct {
 	SessoinKey string
 
 	BattleSvrAddr string //战场服务器IP地址
-	BatCamp       int
+	BatCamp       int8
 	BatClient     tcpclient.TCPClient
 	EnterCode     int32 //进入码
 
@@ -97,19 +97,17 @@ func (self *TPlayer) TestRoutine() {
 		return
 	}
 
-	// self.TestUpLevel()
-	// self.TestUpLevel()
-	// self.TestUpLevel()
-	// self.TestUpLevel()
-	self.Create_Recharge_Order_2Gamesvr()
-	self.Recharge_Syccess_2SDK()
+	self.TestUpLevel()
+	self.TestUpLevel()
+	self.TestUpLevel()
+	self.TestUpLevel()
+	//	self.Create_Recharge_Order_2Gamesvr()
+	//	self.Recharge_Syccess_2SDK()
 
 	if !self.userSetBatCamp() {
 		gamelog.Error("设置阵营失败!!!!")
 		return
 	}
-
-	return
 
 	if !self.userEnterBattle() {
 		gamelog.Error("进入阵营失败!!!!")
@@ -215,6 +213,8 @@ func (self *TPlayer) userCreatePlayer() bool {
 		fmt.Println("userCreatePlayer failed: ", ack)
 		return false
 	}
+
+	self.PlayerID = ack.PlayerID
 
 	return true
 }

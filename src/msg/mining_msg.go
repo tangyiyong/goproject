@@ -96,6 +96,7 @@ type MSG_MiningElement_GetStone_Ack struct {
 	RetCode     int
 	ItemID      int
 	ItemNum     int
+	Point       int
 	StatusCode  int                 //! 状态码
 	VisualPos   []MSG_MiningDigData //! 新可视区域
 	ActionValue int                 //! 行动力值

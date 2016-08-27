@@ -291,8 +291,8 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 	exp := copyInfo.Experience * player.GetLevel()
 
 	//! 工会技能经验加成
-	if player.RoleMoudle.ExpIncLvl != 0 {
-		expInc := gamedata.GetGuildSkillExpValue(player.RoleMoudle.ExpIncLvl)
+	if player.HeroMoudle.GuildSkiLvl[8] > 0 {
+		expInc := gamedata.GetGuildSkillExpValue(player.HeroMoudle.GuildSkiLvl[8])
 		exp += exp * expInc / 1000
 	}
 

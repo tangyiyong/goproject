@@ -24,7 +24,7 @@ type THeroMoudle struct {
 	CurEquips   [EQUIP_NUM]TEquipData //上阵装备
 	CurGems     [GEM_NUM]TGemData     //上阵宝物
 	CurPets     [BATTLE_NUM]TPetData  //上阵宠物
-	GuildSkiLvl [11]int8              //公会技能等级
+	GuildSkiLvl [9]int8               //公会技能等级
 	TitleID     int                   //称号ID
 	FashionID   int                   //时装ID
 	FashionLvl  int                   //时装等级
@@ -933,9 +933,18 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int {
 	if self.ownplayer != nil && self.ownplayer.pSimpleInfo.GuildID != 0 {
 		for k := 0; k < BATTLE_NUM; k++ {
 			if HeroResults[k].HeroID != 0 {
-				for pid := 0; pid < 11; pid++ {
-					proValue := gamedata.GetGuildSkillValue(int(self.GuildSkiLvl[pid]), pid)
-					HeroResults[k].PropertyValues[pid] += int32(proValue)
+				for i := 0; i < 8; i++ {
+					proID := gamedata.GetGuildSkillPropertyID(i + 1)
+					proValue := gamedata.GetGuildSkillValue(int(self.GuildSkiLvl[i]), i+1)
+					if proID == gamedata.AttackPropertyID {
+						HeroResults[k].PropertyPercents[gamedata.AttackMagicID-1] += int32(proValue)
+						HeroResults[k].PropertyPercents[gamedata.AttackPhysicID-1] += int32(proValue)
+					} else if proID == gamedata.DefencePropertyID {
+						HeroResults[k].PropertyPercents[gamedata.DefenceMagicID-1] += int32(proValue)
+						HeroResults[k].PropertyPercents[gamedata.DefenceMagicID-1] += int32(proValue)
+					} else {
+						HeroResults[k].PropertyPercents[proID-1] += int32(proValue)
+					}
 				}
 			}
 		}
@@ -1109,27 +1118,6 @@ func (self *THeroMoudle) SetBackHeroByPos(pos int, pHero *THeroData) bool {
 	return true
 }
 
-//增加公会技能等级
-func (self *THeroMoudle) AddGuildSkillProLevel(pid int) bool {
-	if pid == gamedata.AttackPropertyID {
-		self.GuildSkiLvl[gamedata.AttackPhysicID-1] += 1
-		self.DB_SaveGuildSkill(gamedata.AttackPhysicID - 1)
-	} else {
-		self.GuildSkiLvl[pid-1] += 1
-		self.DB_SaveGuildSkill(pid - 1)
-	}
-
-	return true
-}
-
-func (self *THeroMoudle) ClearGuildSkillProLevel() {
-	for i := 0; i < len(self.GuildSkiLvl); i++ {
-		self.GuildSkiLvl[i] = 0
-	}
-
-	self.DB_SaveGuildSkillLst()
-}
-
 func (self *THeroMoudle) AddExtraProperty(pid int, pvalue int32, percent bool, camp int) {
 	if pid <= 0 || pid > 11 {
 		gamelog.Error("AddExtraProperty Error : Invalid Pid:%d", pid)
@@ -1169,4 +1157,18 @@ func (self *THeroMoudle) AddExtraProperty(pid int, pvalue int32, percent bool, c
 		}
 	}
 
+}
+
+//! 获取玩家当前公会技能等级
+func (self *THeroMoudle) GetPlayerGuildSKillLevel(id int) int {
+	return int(self.GuildSkiLvl[id-1])
+}
+
+//! 增加玩家公会技能等级
+func (self *THeroMoudle) AddPlayerGuildSkillLevel(id int) {
+	self.GuildSkiLvl[id-1] += 1
+	go self.DB_UpdateGuildSkillLevel(id - 1)
+
+	moneyID, moneyNum := gamedata.GetGuildSkillNeedMoney(int(self.GuildSkiLvl[id-1]), id)
+	self.ownplayer.RoleMoudle.CostMoney(moneyID, moneyNum)
 }

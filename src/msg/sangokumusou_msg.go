@@ -10,10 +10,11 @@ type MSG_GetSangokuMusouStatus_Req struct {
 type MSG_GetSangokuMusouStatus_Ack struct {
 	RetCode int
 
-	CurStar     int //! 当前星数
-	HistoryStar int //! 历史最高星数
-	CanUseStar  int //! 当前可以使用星数
-	IsEnd       int //! 是否已经结束
+	CurStar       int  //! 当前星数
+	HistoryStar   int  //! 历史最高星数
+	CanUseStar    int  //! 当前可以使用星数
+	IsEnd         int  //! 是否已经结束
+	IsBuyTreasure bool //! 是否购买无双迷藏
 
 	PassCopyID   int    //! 当前通关关卡
 	IsRecvAward  int    //! 是否领取上章奖励

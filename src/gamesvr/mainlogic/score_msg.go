@@ -543,8 +543,6 @@ func Hand_BuyScoreFightTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.RetCode = msg.RE_SUCCESS
-
 	cost := gamedata.GetFuncTimeCost(gamedata.FUNC_SCORE_FIGHT_TIME, player.ScoreMoudle.FightTime)
 	pCopyInfo := gamedata.GetCopyBaseInfo(gamedata.ScoreCopyID)
 	if pCopyInfo == nil {
@@ -553,10 +551,12 @@ func Hand_BuyScoreFightTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response.RetCode = msg.RE_SUCCESS
 	player.RoleMoudle.CostMoney(gamedata.ScoreBuyTimeMoneyID, cost)
 	player.RoleMoudle.AddAction(pCopyInfo.ActionType, 1)
 	player.ScoreMoudle.BuyTime += 1
 	player.ScoreMoudle.DB_SaveBuyFightTime()
+	response.BuyTime = player.ScoreMoudle.BuyTime
 	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(pCopyInfo.ActionType)
 
 	return

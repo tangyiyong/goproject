@@ -128,17 +128,17 @@ func ChangeConnGuild(playerid int32, newguildid int) {
 	return
 }
 
-func SendMessageByID(playerid int32, msgid int16, msgdata []byte) bool {
+func SendMessageByID(playerid int32, msgid int16, extra int16, msgdata []byte) bool {
 	pConn := GetConnByID(playerid)
 	if pConn == nil {
 		gamelog.Error("SendMessageByID Invalid playerid : %d", playerid)
 		return false
 	}
 
-	return pConn.WriteMsg(msgid, msgdata)
+	return pConn.WriteMsg(msgid, extra, msgdata)
 }
 
-func SendMessageByName(playername string, msgid int16, msgdata []byte) bool {
+func SendMessageByName(playername string, msgid int16, extra int16, msgdata []byte) bool {
 	G_ConnsMutex.Lock()
 	pConn, ok := G_NameConns[playername]
 	if !ok {
@@ -148,7 +148,7 @@ func SendMessageByName(playername string, msgid int16, msgdata []byte) bool {
 	}
 	G_ConnsMutex.Unlock()
 
-	return pConn.WriteMsg(msgid, msgdata)
+	return pConn.WriteMsg(msgid, extra, msgdata)
 }
 
 func SendMessageToGuild(guildid int, msgid int16, msgdata []byte, sendPlayerID int32) bool {
@@ -164,31 +164,31 @@ func SendMessageToGuild(guildid int, msgid int16, msgdata []byte, sendPlayerID i
 		if playerID == sendPlayerID {
 			continue
 		}
-		conn.WriteMsg(msgid, msgdata)
+		conn.WriteMsg(msgid, 0, msgdata)
 	}
 
 	return true
 }
 
-func SendMessageToWorld(msgid int16, msgdata []byte, sendPlayerID int32) bool {
+func SendMessageToWorld(msgid int16, extra int16, msgdata []byte, sendPlayerID int32) bool {
 	G_ConnsMutex.Lock()
 	for playerID, conn := range G_PlayerConns {
 		if playerID == sendPlayerID {
 			continue
 		}
-		conn.WriteMsg(msgid, msgdata)
+		conn.WriteMsg(msgid, extra, msgdata)
 	}
 	G_ConnsMutex.Unlock()
 	return true
 }
 
-func SendMessageToGameSvr(msgid int16, msgdata []byte) bool {
+func SendMessageToGameSvr(msgid int16, extra int16, msgdata []byte) bool {
 	if G_GameSvrConn == nil {
 		gamelog.Error("SendMessageToGameSvr Error, G_GameSvrConn is nil!!")
 		return false
 	}
 
-	G_GameSvrConn.WriteMsg(msgid, msgdata)
+	G_GameSvrConn.WriteMsg(msgid, extra, msgdata)
 
 	return true
 }

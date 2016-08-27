@@ -44,7 +44,7 @@ type MSG_GetCampBatData_Ack struct {
 type MSG_EnterCampBattle_Req struct {
 	PlayerID   int32
 	SessionKey string
-	BattleCamp int //请求的阵营
+	BattleCamp int8 //请求的阵营
 }
 
 type MSG_EnterCampBattle_Ack struct {

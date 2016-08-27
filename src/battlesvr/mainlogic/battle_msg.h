@@ -67,8 +67,9 @@ struct MSG_Skill_Item
 
 //(Client)
 struct MSG_Skill_Req  
-{
+{	
 	INT32 MsgNo;
+	INT32 PlayerID;
 	INT32 SkillEvents_Cnt;
 	MSG_Skill_Item SkillEvents[1];
 	INT32 AttackEvents_Cnt;
@@ -83,10 +84,11 @@ struct MSG_Move_Item
 
 //(Client)
 struct MSG_Move_Req  
-{
+{	
+	INT32 MsgNo;
+	INT32 PlayerID;
 	INT32 MoveEvents_Cnt;
 	MSG_Move_Item MoveEvents[1];
-	INT32 MsgNo;
 }
 
 struct MSG_HeroItem  
@@ -104,8 +106,8 @@ struct MSG_HeroState_Nty
 //玩家查询当前的水晶品质//(Client)
 struct MSG_PlayerQuery_Req  
 {
-	INT32 PlayerID;
 	INT32 MsgNo;
+	INT32 PlayerID;
 }
 
 //玩家查询当前的水晶品质回复
@@ -118,9 +120,9 @@ struct MSG_PlayerQuery_Ack
 
 //(Client)
 struct MSG_StartCarry_Req  
-{
-	INT32 PlayerID;
+{	
 	INT32 MsgNo;
+	INT32 PlayerID;
 }
 
 struct MSG_StartCarry_Ack  
@@ -134,8 +136,9 @@ struct MSG_StartCarry_Ack
 //(Client)
 struct MSG_FinishCarry_Req  
 {
-	INT32 PlayerID;
 	INT32 MsgNo;
+	INT32 PlayerID;
+	
 }
 
 struct MSG_FinishCarry_Ack  
@@ -149,9 +152,10 @@ struct MSG_FinishCarry_Ack
 //(Client)
 struct MSG_PlayerChange_Req  
 {
+	INT32 MsgNo;
 	INT32 PlayerID;
 	INT32 HighQuality; //直接选择最高品质
-	INT32 MsgNo;
+	
 }
 
 struct MSG_PlayerChange_Ack  
@@ -164,8 +168,8 @@ struct MSG_PlayerChange_Ack
 //(Client)
 struct MSG_PlayerRevive_Req  
 {
-	INT32 PlayerID;
 	INT32 MsgNo;
+	INT32 PlayerID;
 	INT8 ReviveOpt; //复活选项
 }
 
@@ -204,10 +208,10 @@ struct MSG_Revive_Nty
 
 struct MSG_KillEvent_Req  
 {
-	INT32 Killer;		//杀手
+	INT32 PlayerID; 	//杀手
 	INT32 Kill;     	//杀人数
 	INT32 Destroy;   	//团灭数
-	INT32 SeriesKill;   	//连杀人数
+	INT32 SeriesKill;   //连杀人数
 }
 
 struct MSG_KillEvent_Ack 
@@ -285,9 +289,9 @@ struct MSG_SvrLogData  {
 
 //游戏服务器的心跳消息//(Client)
 struct MSG_HeartBeat_Req  {
+	INT32 MsgNo;
 	INT32 SendID;   //客户端是玩家ID, 服务器是服务器ID
 	INT32 BeatCode; //心跳码
-	INT32 MsgNo;
 }
 
 struct MSG_HeroAllDie_Nty 
@@ -298,8 +302,8 @@ struct MSG_HeroAllDie_Nty
 //(Client)
 struct MSG_CmapBatChat_Req 
 {	
-	INT32 PlayerID; //角色ID
 	INT32 MsgNo;	//消息编号
+	INT32 PlayerID; //角色ID
 	STRING Name;    //角色名
 	STRING Content; //消息内容
 }

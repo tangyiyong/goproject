@@ -31,7 +31,6 @@ func RegisterToAccountRoutine() {
 	registerReq.ServerOuterAddr = appconfig.GameSvrOuterIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
 	registerReq.ServerInnerAddr = appconfig.GameSvrInnerIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
 	b, _ := json.Marshal(registerReq)
-	bRegisterOK := false
 
 	for {
 		http.DefaultClient.Timeout = 2 * time.Second
@@ -40,15 +39,10 @@ func RegisterToAccountRoutine() {
 			gamelog.Error("Register to Account Server failed, err : %s !!!!", err.Error())
 			time.Sleep(1 * time.Second)
 			continue
-		} else {
-			bRegisterOK = true
 		}
+
 		response.Body.Close()
-		if bRegisterOK == true {
-			time.Sleep(60 * time.Second)
-		} else {
-			time.Sleep(3 * time.Second)
-		}
+		time.Sleep(60 * time.Second)
 	}
 
 }
@@ -61,7 +55,6 @@ func RegisterToCrossRoutine() {
 	registerReq.ServerOuterAddr = appconfig.GameSvrOuterIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
 	registerReq.ServerInnerAddr = appconfig.GameSvrInnerIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
 	b, _ := json.Marshal(registerReq)
-	bRegisterOK := false
 
 	for {
 		http.DefaultClient.Timeout = 2 * time.Second
@@ -70,15 +63,10 @@ func RegisterToCrossRoutine() {
 			gamelog.Error("Register to Account Server failed, err : %s !!!!", err.Error())
 			time.Sleep(1 * time.Second)
 			continue
-		} else {
-			bRegisterOK = true
 		}
+
 		response.Body.Close()
-		if bRegisterOK == true {
-			time.Sleep(60 * time.Second)
-		} else {
-			time.Sleep(1 * time.Second)
-		}
+		time.Sleep(60 * time.Second)
 	}
 }
 
@@ -88,7 +76,6 @@ func RegisterToSdkSvr() {
 	req.GamesvrID = appconfig.DomainID
 	req.Url = fmt.Sprintf("http://%s:%d/", appconfig.GameSvrInnerIp, appconfig.GameSvrPort)
 	b, _ := json.Marshal(req)
-	bRegisterOK := false
 	for {
 		http.DefaultClient.Timeout = 2 * time.Second
 		response, err := http.Post(PorstUrl, "text/HTML", bytes.NewReader(b))
@@ -96,15 +83,9 @@ func RegisterToSdkSvr() {
 			gamelog.Error("Register to SDK Server failed, err : %s !!!!", err.Error())
 			time.Sleep(1 * time.Second)
 			continue
-		} else {
-			bRegisterOK = true
 		}
+
 		response.Body.Close()
-
-		if bRegisterOK == true {
-			return
-		}
-
-		time.Sleep(5 * time.Second)
+		return
 	}
 }

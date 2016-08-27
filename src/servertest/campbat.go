@@ -16,7 +16,7 @@ func (self *TPlayer) userSetBatCamp() bool {
 	var req msg.MSG_SetBattleCamp_Req
 	req.PlayerID = self.PlayerID
 	req.SessionKey = self.SessoinKey
-	self.BatCamp = int(self.PlayerID%3 + 1)
+	self.BatCamp = int8(self.PlayerID%3 + 1)
 	req.BattleCamp = self.BatCamp
 	b, _ := json.Marshal(req)
 	buffer, err := PostServerReq(reqUrl, bytes.NewReader(b))
@@ -71,7 +71,7 @@ func (self *TPlayer) userStartCarry() bool {
 	req.PlayerID = self.PlayerID
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_START_CARRY_REQ)
+	writer.BeginWrite(msg.MSG_START_CARRY_REQ, 0)
 	req.Write(&writer)
 	writer.EndWrite()
 
@@ -100,7 +100,7 @@ func (self *TPlayer) userEnterRoom() bool {
 	req.MsgNo = 1
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_ENTER_ROOM_REQ)
+	writer.BeginWrite(msg.MSG_ENTER_ROOM_REQ, 0)
 	req.Write(&writer)
 	writer.EndWrite()
 
@@ -129,7 +129,7 @@ func (self *TPlayer) userMove() bool {
 	req.MoveEvents = append(req.MoveEvents, msg.MSG_Move_Item{self.Heros[0].ObjectID, self.Heros[0].Position})
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_MOVE_STATE)
+	writer.BeginWrite(msg.MSG_MOVE_STATE, 0)
 	req.Write(&writer)
 	writer.EndWrite()
 

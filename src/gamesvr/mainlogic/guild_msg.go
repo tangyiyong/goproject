@@ -141,19 +141,8 @@ func Hand_GetGuildStatus(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	response.SkillLst = []msg.TGuildSkill{}
-	if player.pSimpleInfo.GuildID == 0 {
-		response.SkillLst = []msg.TGuildSkill{}
-		response.RetCode = msg.RE_SUCCESS
-	}
-
-	for _, v := range player.GuildModule.SkillLst {
-		var skill msg.TGuildSkill
-		skill.SkillID = v.SkillID
-		skill.Level = v.Level
-		response.SkillLst = append(response.SkillLst, skill)
-	}
-
+	response.SkillLst = player.HeroMoudle.GuildSkiLvl
+	response.SkillLimit = guild.SkillLst
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -924,17 +913,16 @@ func Hand_ApplicationThrough(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 增加玩家公会技能加成
-	if len(player.GuildModule.SkillLst) > 0 {
-		for _, v := range player.GuildModule.SkillLst {
-			for i := 0; i < v.Level; i++ {
-				if v.SkillID == 15 {
-					player.RoleMoudle.AddGuildSkillExpIncLevel()
-				} else {
-					player.HeroMoudle.AddGuildSkillProLevel(v.SkillID)
-				}
-			}
-		}
-	}
+	// for i := 0; i < 9; i++ {
+	// 	propertyID := gamedata.GetGuildSkillPropertyID(i + 1)
+	// 	for j := 0; j < int(player.HeroMoudle.GuildSkiLvl[i]); j++ {
+	// 		if propertyID == 15 {
+	// 			player.RoleMoudle.AddGuildSkillExpIncLevel()
+	// 		} else {
+	// 			player.HeroMoudle.AddGuildSkillProLevel(propertyID)
+	// 		}
+	// 	}
+	// }
 
 	//! 计入公会时间
 	guildInfo.AddGuildEvent(targetPlayer.playerid, GuildEvent_AddMember, 0, 0)
@@ -999,8 +987,8 @@ func Hand_ExitGuild(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 清空公会技能加成
-	player.RoleMoudle.ClearGuildSkillExpIncLevel()
-	player.HeroMoudle.ClearGuildSkillProLevel()
+	//	player.RoleMoudle.ClearGuildSkillExpIncLevel()
+	//	player.HeroMoudle.ClearGuildSkillProLevel()
 
 	G_SimpleMgr.Set_GuildID(player.playerid, 0)
 	player.GuildModule.ActionRecoverTime = 0
@@ -2366,34 +2354,24 @@ func Hnad_ResearchGuildSkill(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断公会等级
-	guildSkillLimit := 0
-	if req.SkillID == 15 {
-		guildSkillLimit = gamedata.GetGuildExpIncSKillLimit(guild.Level)
-	} else {
-		guildSkillLimit = gamedata.GetGuildSkillLimit(guild.Level, req.SkillID)
-	}
+	guildSkillLimit := gamedata.GetGuildSkillLimit(guild.Level, req.ID)
 
 	//! 获取技能等级
-	skillLevel := guild.GetGuildSkillLevel(req.SkillID)
+	skillLevel := guild.GetGuildSkillLevel(req.ID)
 	if skillLevel+1 > guildSkillLimit {
 		response.RetCode = msg.RE_GUILD_SKILL_LIMIT
 		return
 	}
 
 	//! 获取需求经验
-	needExp := 0
-	if req.SkillID == 15 {
-		needExp = gamedata.GetGuildSkillExpNeedExp(skillLevel)
-	} else {
-		needExp = gamedata.GetGuildSkillNeedExp(skillLevel+1, req.SkillID)
-	}
+	needExp := gamedata.GetGuildSkillNeedExp(skillLevel+1, req.ID)
 
 	if guild.CurExp < needExp {
 		response.RetCode = msg.RE_NOT_ENOUGH_GUILD_EXP
 		return
 	}
 
-	guild.AddGuildSkillLevel(req.SkillID, needExp)
+	guild.AddGuildSkillLevel(req.ID, needExp)
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -2435,33 +2413,29 @@ func Hand_StudyGuildSkill(w http.ResponseWriter, r *http.Request) {
 	//! 获取公会技能等级上限
 	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
-	playerSkillLevel := player.GuildModule.GetPlayerGuildSKillLevel(req.SkillID)
-	if playerSkillLevel+1 > guild.GetGuildSkillLevel(req.SkillID) {
+	playerSkillLevel := player.HeroMoudle.GetPlayerGuildSKillLevel(req.ID)
+	if playerSkillLevel+1 > guild.GetGuildSkillLevel(req.ID) {
 		response.RetCode = msg.RE_GUILD_SKILL_LIMIT
 		return
 	}
 
 	//! 检查金钱是否足够
-	moneyID, moneyNum := 0, 0
-	if req.SkillID == 15 {
-		moneyID, moneyNum = gamedata.GetGuildSkillExpNeedMoney(playerSkillLevel + 1)
-	} else {
-		moneyID, moneyNum = gamedata.GetGuildSkillNeedMoney(playerSkillLevel+1, req.SkillID)
-	}
+	moneyID, moneyNum := gamedata.GetGuildSkillNeedMoney(playerSkillLevel+1, req.ID)
 
 	if player.RoleMoudle.CheckMoneyEnough(moneyID, moneyNum) == false {
 		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
 		return
 	}
 
-	player.GuildModule.AddPlayerGuildSkillLevel(req.SkillID)
+	player.HeroMoudle.AddPlayerGuildSkillLevel(req.ID)
 
-	//! 增加属性
-	if req.SkillID != 15 {
-		player.HeroMoudle.AddGuildSkillProLevel(req.SkillID)
-	} else {
-		player.RoleMoudle.AddGuildSkillExpIncLevel()
-	}
+	// perprotyID := gamedata.GetGuildSkillPropertyID(req.ID)
+	// //! 增加属性
+	// if perprotyID != 15 {
+	// 	player.HeroMoudle.AddGuildSkillProLevel(perprotyID)
+	// } else {
+	// 	player.RoleMoudle.AddGuildSkillExpIncLevel()
+	// }
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -2496,19 +2470,7 @@ func Hand_GetGuildSkillInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.SkillLst = []msg.TGuildSkill{}
-	if player.pSimpleInfo.GuildID == 0 {
-		response.SkillLst = []msg.TGuildSkill{}
-		response.RetCode = msg.RE_SUCCESS
-		return
-	}
-
-	for _, v := range player.GuildModule.SkillLst {
-		var skill msg.TGuildSkill
-		skill.SkillID = v.SkillID
-		skill.Level = v.Level
-		response.SkillLst = append(response.SkillLst, skill)
-	}
+	response.SkillLst = player.HeroMoudle.GuildSkiLvl
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -2543,19 +2505,14 @@ func Hand_GetGuildSkillResearchInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if player.pSimpleInfo.GuildID == 0 {
-		response.SkillLst = []msg.TGuildSkill{}
+		response.SkillLst = [9]int{}
 		response.RetCode = msg.RE_SUCCESS
 		return
 	}
 
 	guild := GetGuildByID(player.pSimpleInfo.GuildID)
 
-	for _, v := range guild.SkillLst {
-		var skill msg.TGuildSkill
-		skill.SkillID = v.SkillID
-		skill.Level = v.Level
-		response.SkillLst = append(response.SkillLst, skill)
-	}
+	response.SkillLst = guild.SkillLst
 	response.RetCode = msg.RE_SUCCESS
 }
 

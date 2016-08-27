@@ -39,7 +39,7 @@ func PostMsg(url string, msg interface{}) []byte {
 
 func TestGetScoreTarget(playerid int32, sessionkey string) {
 	reqUrl := "http://127.0.0.1:8082/get_score_target"
-	var req msg.MSG_GetScoreTarget_Req
+	var req msg.MSG_GetScoreData_Req
 	req.SessionKey = sessionkey
 	req.PlayerID = playerid
 	b, _ := json.Marshal(req)
@@ -49,7 +49,7 @@ func TestGetScoreTarget(playerid int32, sessionkey string) {
 		return
 	}
 
-	var ack msg.MSG_GetScoreTarget_Ack
+	var ack msg.MSG_GetScoreData_Ack
 	json.Unmarshal(buffer, &ack)
 	if ack.RetCode != 0 {
 		return

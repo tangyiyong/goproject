@@ -21,20 +21,20 @@ type TCPClient struct {
 	ExtraData       interface{}
 }
 
-type MsgHanler func(pTcpConn *TCPConn, pdata []byte)
+type MsgHanler func(pTcpConn *TCPConn, extra int16, pdata []byte)
 
 var (
-	HandlerMap map[int16]func(pTcpConn *TCPConn, pdata []byte)
+	HandlerMap map[int16]func(pTcpConn *TCPConn, extra int16, pdata []byte)
 )
 
 func Init() bool {
-	HandlerMap = make(map[int16]func(pTcpConn *TCPConn, pdata []byte))
+	HandlerMap = make(map[int16]func(pTcpConn *TCPConn, extra int16, pdata []byte))
 	return true
 }
 
 func HandleFunc(msgid int16, mh MsgHanler) {
 	if HandlerMap == nil {
-		HandlerMap = make(map[int16]func(pTcpConn *TCPConn, pdata []byte), 100)
+		HandlerMap = make(map[int16]func(pTcpConn *TCPConn, extra int16, pdata []byte), 100)
 	}
 
 	HandlerMap[msgid] = mh
@@ -64,7 +64,7 @@ func (client *TCPClient) connectRoutine() {
 		if client.connect() {
 			if client.TcpConn != nil {
 				go client.TcpConn.WriteRoutine()
-				msgDispatcher(client.TcpConn, 1, nil)
+				msgDispatcher(client.TcpConn, 1, 0, nil)
 				client.TcpConn.ReadRoutine()
 				recontime = client.Reconnect
 			}
@@ -106,12 +106,12 @@ func (client *TCPClient) Close() {
 	client.TcpConn = nil
 }
 
-func msgDispatcher(pTcpConn *TCPConn, MsgID int16, pdata []byte) {
-	msghandler, ok := HandlerMap[MsgID]
+func msgDispatcher(pTcpConn *TCPConn, msgid int16, extra int16, pdata []byte) {
+	msghandler, ok := HandlerMap[msgid]
 	if !ok {
-		gamelog.Error("msgid: [%d] need a handler!!!", MsgID)
+		gamelog.Error("msgid: [%d] need a handler!!!", msgid)
 		return
 	}
 
-	msghandler(pTcpConn, pdata)
+	msghandler(pTcpConn, extra, pdata)
 }

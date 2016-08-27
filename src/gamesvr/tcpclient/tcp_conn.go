@@ -54,23 +54,26 @@ func (tcpConn *TCPConn) write(b []byte) {
 	tcpConn.doWrite(b)
 }
 
-func (tcpConn *TCPConn) WriteMsg(msgID int16, msgdata []byte) bool {
+func (tcpConn *TCPConn) WriteMsg(msgID int16, extra int16, msgdata []byte) bool {
 	msgLen := len(msgdata)
-	msgbuffer := make([]byte, 6+msgLen)
+	msgbuffer := make([]byte, 8+msgLen)
 	binary.LittleEndian.PutUint32(msgbuffer, uint32(msgLen))
-	binary.LittleEndian.PutUint16(msgbuffer[4:], uint16(msgID))
-	copy(msgbuffer[6:], msgdata)
+	binary.LittleEndian.PutUint16(msgbuffer[4:6], uint16(msgID))
+	binary.LittleEndian.PutUint16(msgbuffer[6:8], uint16(extra))
+	copy(msgbuffer[8:], msgdata)
 	tcpConn.write(msgbuffer)
 	return true
 }
 
-func (tcpConn *TCPConn) WriteMsgContinue(playerid int32, msgID int16, msgdata []byte) bool {
+func (tcpConn *TCPConn) WriteMsgContinue(playerid int32, msgID int16, extra int16, msgdata []byte) bool {
 	msgLen := len(msgdata)
-	msgbuffer := make([]byte, 12+msgLen)
+	msgbuffer := make([]byte, 16+msgLen)
 	binary.LittleEndian.PutUint32(msgbuffer, uint32(msgLen+10))
 	binary.LittleEndian.PutUint16(msgbuffer[4:], uint16(msg.MSG_GAME_TO_CLIENT))
-	binary.LittleEndian.PutUint32(msgbuffer[6:], uint32(playerid))
-	binary.LittleEndian.PutUint16(msgbuffer[10:], uint16(msgID))
+	binary.LittleEndian.PutUint16(msgbuffer[6:], uint16(0))
+	binary.LittleEndian.PutUint32(msgbuffer[8:], uint32(playerid))
+	binary.LittleEndian.PutUint16(msgbuffer[12:], uint16(msgID))
+	binary.LittleEndian.PutUint16(msgbuffer[14:], uint16(extra))
 	copy(msgbuffer[12:], msgdata)
 	tcpConn.write(msgbuffer)
 
@@ -84,9 +87,11 @@ func (tcpConn *TCPConn) WriteMsgData(msgdata []byte) bool {
 
 func (tcpConn *TCPConn) ReadProcess() error {
 	var err error
-	var msgHeader = make([]byte, 6)
-	var msgID int16
+	var msgHeader = make([]byte, 8)
+
 	var msgLen int32
+	var msgID int16
+	var Extra int16
 
 	//循环结束，会在ReadRoutine中紧接着关闭tcpConn
 	for {
@@ -94,7 +99,7 @@ func (tcpConn *TCPConn) ReadProcess() error {
 			break
 		}
 
-		_, err = io.ReadAtLeast(tcpConn.reader, msgHeader, 6)
+		_, err = io.ReadAtLeast(tcpConn.reader, msgHeader, 8)
 		if err != nil {
 			gamelog.Error("ReadAtLeast error: %s", err.Error())
 			return err
@@ -107,11 +112,13 @@ func (tcpConn *TCPConn) ReadProcess() error {
 			break
 		}
 
-		msgID = int16(binary.LittleEndian.Uint16(msgHeader[4:]))
+		msgID = int16(binary.LittleEndian.Uint16(msgHeader[4:6]))
 		if msgID <= msg.MSG_BEGIN || msgID >= msg.MSG_END {
 			gamelog.Error("ReadProcess error: Invalid msgID :%d", msgID)
 			break
 		}
+
+		Extra = int16(binary.LittleEndian.Uint16(msgHeader[6:8]))
 
 		// data
 		msgData := make([]byte, msgLen)
@@ -121,7 +128,7 @@ func (tcpConn *TCPConn) ReadProcess() error {
 			return err
 		}
 
-		msgDispatcher(tcpConn, msgID, msgData)
+		msgDispatcher(tcpConn, msgID, Extra, msgData)
 	}
 
 	return nil
@@ -147,7 +154,7 @@ func (tcpConn *TCPConn) ReadRoutine() {
 	tcpConn.ReadProcess()
 	tcpConn.Close()
 
-	msgDispatcher(tcpConn, msg.MSG_DISCONNECT, nil)
+	msgDispatcher(tcpConn, msg.MSG_DISCONNECT, 0, nil)
 }
 
 //连接的读协程

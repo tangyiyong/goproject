@@ -240,7 +240,7 @@ type MSG_RotatingWheel_Req struct {
 type MSG_RotatingWheel_Ack struct {
 	RetCode    int
 	AwardItem  []MSG_ItemData
-	AwardIndex []int
+	AwardIndex int
 
 	Score int //! 积分
 

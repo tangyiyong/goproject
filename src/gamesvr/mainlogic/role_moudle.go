@@ -24,7 +24,6 @@ type TRoleMoudle struct {
 	Moneys      []int     //货币集 1: 金币 2: 银币 ...
 	VipLevel    int       //Vip等级
 	NewWizard   string    //新手向导
-	ExpIncLvl   int       //经验加成等级
 	TodayCharge int       //今天的充值额度
 	TotalCharge int       //总的充值额度
 	ownplayer   *TPlayer  //父player指针
@@ -335,18 +334,18 @@ func (role *TRoleMoudle) UpdateAllAction() {
 	return
 }
 
-//增加公会经验技能等级
-func (role *TRoleMoudle) AddGuildSkillExpIncLevel() bool {
-	role.ExpIncLvl += 1
-	role.DB_SaveExpIncLevel()
-	return true
-}
+// //增加公会经验技能等级
+// func (role *TRoleMoudle) AddGuildSkillExpIncLevel() bool {
+// 	role.ExpIncLvl += 1
+// 	role.DB_SaveExpIncLevel()
+// 	return true
+// }
 
-//清空公会经验技能等级
-func (role *TRoleMoudle) ClearGuildSkillExpIncLevel() {
-	role.ExpIncLvl = 0
-	role.DB_SaveExpIncLevel()
-}
+// //清空公会经验技能等级
+// func (role *TRoleMoudle) ClearGuildSkillExpIncLevel() {
+// 	role.ExpIncLvl = 0
+// 	role.DB_SaveExpIncLevel()
+// }
 
 //! 增加VIP经验
 func (role *TRoleMoudle) AddVipExp(exp int) {

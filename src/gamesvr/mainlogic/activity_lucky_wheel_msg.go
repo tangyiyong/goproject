@@ -355,7 +355,11 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 				player.BagMoudle.AddAwardItem(itemID, itemNum)
 				response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{itemID, itemNum})
 			}
-			response.AwardIndex = append(response.AwardIndex, index+1)
+			if i == 9 {
+				//! 十连转取最后一次转到的索引
+				response.AwardIndex = index + 1
+			}
+
 		}
 
 	} else {
@@ -387,7 +391,8 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 			player.BagMoudle.AddAwardItem(itemID, itemNum)
 			response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{itemID, itemNum})
 		}
-		response.AwardIndex = append(response.AwardIndex, index+1)
+
+		response.AwardIndex = index + 1
 	}
 
 	response.NormalMoneyPoor = G_GlobalVariables.NormalMoneyPoor

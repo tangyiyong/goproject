@@ -31,7 +31,8 @@ type MSG_GetGuildStatus_Ack struct {
 	RecvLst           [4]int
 
 	//! 技能
-	SkillLst []TGuildSkill
+	SkillLst   [9]int8
+	SkillLimit [9]int
 }
 
 //! 玩家请求创建公会
@@ -530,7 +531,7 @@ type MSG_QueryGuildCopyRank_Ack struct {
 type MSG_ResearchGuildSkill_Req struct {
 	PlayerID   int32
 	SessionKey string
-	SkillID    int
+	ID         int //! 从1开始
 }
 
 type MSG_ResearchGuildSkill_Ack struct {
@@ -542,16 +543,11 @@ type MSG_ResearchGuildSkill_Ack struct {
 type MSG_StudyGuildSkill_Req struct {
 	PlayerID   int32
 	SessionKey string
-	SkillID    int
+	ID         int //! 从1开始
 }
 
 type MSG_StudyGuildSkill_Ack struct {
 	RetCode int
-}
-
-type TGuildSkill struct {
-	SkillID int
-	Level   int
 }
 
 //! 请求公会技能等级
@@ -563,7 +559,7 @@ type MSG_GetGuildSkillInfo_Req struct {
 
 type MSG_GetGuildSkillInfo_Ack struct {
 	RetCode  int
-	SkillLst []TGuildSkill
+	SkillLst [9]int8
 }
 
 //! 请求公会技能研发等级
@@ -575,7 +571,7 @@ type MSG_GetGuildSkillResearch_Req struct {
 
 type MSG_GetGuildSkillResearch_Ack struct {
 	RetCode  int
-	SkillLst []TGuildSkill
+	SkillLst [9]int
 }
 
 //! 查询公会状态

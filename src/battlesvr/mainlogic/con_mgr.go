@@ -15,7 +15,7 @@ import (
 
 type TBattleData struct {
 	PlayerID int32
-	RoomID   int32
+	RoomID   int16
 	PackNo   int32 //包序号
 }
 
@@ -51,7 +51,7 @@ func AddConnByID(playerid int32, pTcpConn *tcpserver.TCPConn) {
 	return
 }
 
-func AddTcpConn(playerid int32, roomid int32, pTcpConn *tcpserver.TCPConn) {
+func AddTcpConn(playerid int32, roomid int16, pTcpConn *tcpserver.TCPConn) {
 	pData := new(TBattleData)
 	pData.RoomID = roomid
 	pData.PlayerID = playerid
@@ -59,24 +59,6 @@ func AddTcpConn(playerid int32, roomid int32, pTcpConn *tcpserver.TCPConn) {
 	pTcpConn.Cleaned = false
 	AddConnByID(playerid, pTcpConn)
 	return
-}
-
-func CheckAndClean(playerid int32) {
-	if playerid == 0 {
-		gamelog.Error("CheckAndClean Error: Invalid PlayerID:0")
-		return
-	}
-	pConn := GetConnByID(playerid)
-	if pConn == nil {
-		return
-	}
-
-	DelConnByID(playerid)
-	pBattleData := pConn.Data.(*TBattleData)
-	G_RoomMgr.RemovePlayerFromRoom(pBattleData.RoomID, playerid)
-	pConn.Cleaned = true
-	pConn.Close()
-	gamelog.Error("CheckAndClean Error: Clean the unclosed Connection:%d", playerid)
 }
 
 //func SendMessageToPlayer(playerid int, msgid int16, msgdata []byte) bool {
@@ -94,7 +76,7 @@ func CheckAndClean(playerid int32) {
 
 func SendMessageToPlayer(playerid int32, msgid int16, pmsg msg.TMsg) bool {
 	var writer msg.PacketWriter
-	writer.BeginWrite(msgid)
+	writer.BeginWrite(msgid, 0)
 	pmsg.Write(&writer)
 	writer.EndWrite()
 
@@ -110,7 +92,7 @@ func SendMessageToPlayer(playerid int32, msgid int16, pmsg msg.TMsg) bool {
 	return pConn.WriteMsgData(writer.GetDataPtr())
 }
 
-func SendMessageToRoom(playerid int32, roomid int32, msgid int16, pmsg msg.TMsg) bool {
+func SendMessageToRoom(playerid int32, roomid int16, msgid int16, pmsg msg.TMsg) bool {
 	if roomid <= 0 {
 		gamelog.Error("SendMessageToRoom Invalid roomid : %d ", roomid)
 		return false
@@ -123,7 +105,7 @@ func SendMessageToRoom(playerid int32, roomid int32, msgid int16, pmsg msg.TMsg)
 	}
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msgid)
+	writer.BeginWrite(msgid, 0)
 	pmsg.Write(&writer)
 	writer.EndWrite()
 
@@ -162,14 +144,14 @@ func SendMessageToRoom(playerid int32, roomid int32, msgid int16, pmsg msg.TMsg)
 //	return true
 //}
 
-func SendMessageToGameSvr(msgid int16, pmsg msg.TMsg) bool {
+func SendMessageToGameSvr(msgid int16, extra int16, pmsg msg.TMsg) bool {
 	if G_GameSvrConns == nil {
 		gamelog.Error("SendMessageToGameSvr Error : G_GameSvrConns is Nil!!")
 		return false
 	}
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msgid)
+	writer.BeginWrite(msgid, extra)
 	pmsg.Write(&writer)
 	writer.EndWrite()
 	G_GameSvrConns.WriteMsgData(writer.GetDataPtr())

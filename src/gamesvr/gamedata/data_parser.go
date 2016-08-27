@@ -126,7 +126,8 @@ var G_DataParserMap = map[string]TDataParser{
 	"type_guild_sacrifice_award": TDataParser{InitGuildSacrificeAwardParser, ParseGuildSacrificeAwardRecord, nil},
 	"type_guild_store":           TDataParser{InitGuildStoreParser, ParseGuildStoreRecord, nil},
 	"type_guild_skill":           TDataParser{InitGuildSkillParser, ParseGuildSkillRecord, nil},
-	"type_guild_skill_level":     TDataParser{InitGuildSkillLimitParser, ParseGuildSkillLimitRecord, nil},
+	"type_guild_skill_max":       TDataParser{InitGuildSkillLimitParser, ParseGuildSkillLimitRecord, nil},
+	"type_guild_skill_level":     TDataParser{InitGuildSkillMaxParser, ParseGuildSkillMaxRecord, nil},
 
 	//装备配置表
 	"type_equipment":           TDataParser{InitEquipParser, ParseEquipRecord, nil},

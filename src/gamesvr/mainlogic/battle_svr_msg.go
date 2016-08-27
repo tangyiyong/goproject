@@ -10,7 +10,7 @@ import (
 	"utility"
 )
 
-func Hand_Connect(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_Connect(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: Hand_Connect")
 	SendCheckInMsg(pTcpConn)
 
@@ -28,7 +28,7 @@ func Hand_Connect(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_DisConnect(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_DisConnect(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: Hand_DisConnect")
 
 	pClient := pTcpConn.Data.(*tcpclient.TCPClient)
@@ -45,7 +45,7 @@ func Hand_DisConnect(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: MSG_KILL_EVENT_REQ")
 
 	var req msg.MSG_KillEvent_Req
@@ -54,24 +54,24 @@ func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		return
 	}
 
-	player := GetPlayerByID(req.Killer)
+	player := GetPlayerByID(req.PlayerID)
 	if player == nil {
-		gamelog.Error("Hand_KillEventReq : Invalid PlayerID :%d!!!!", req.Killer)
+		gamelog.Error("Hand_KillEventReq : Invalid PlayerID :%d!!!!", req.PlayerID)
 		return
 	}
 
 	var response msg.MSG_KillEvent_Ack
 
 	player.CamBattleModule.Kill += int(req.Kill)
-	response.CurRank = int32(G_CampBat_TodayKill.SetRankItem(req.Killer, player.CamBattleModule.Kill))
-	G_CampBat_KillSum.SetRankItem(req.Killer, player.CamBattleModule.Kill)
-	G_CampBat_CampKill[player.CamBattleModule.BattleCamp-1].SetRankItem(req.Killer, player.CamBattleModule.Kill)
+	response.CurRank = int32(G_CampBat_TodayKill.SetRankItem(req.PlayerID, player.CamBattleModule.Kill))
+	G_CampBat_KillSum.SetRankItem(req.PlayerID, player.CamBattleModule.Kill)
+	G_CampBat_CampKill[player.CamBattleModule.BattleCamp-1].SetRankItem(req.PlayerID, player.CamBattleModule.Kill)
 	if req.Destroy > 0 {
 		player.CamBattleModule.Destroy += int(req.Destroy)
 		player.CamBattleModule.DestroySum += int(req.Destroy)
-		G_CampBat_TodayDestroy.SetRankItem(req.Killer, player.CamBattleModule.Destroy)
-		G_CampBat_DestroySum.SetRankItem(req.Killer, player.CamBattleModule.DestroySum)
-		G_CampBat_CampDestroy[player.CamBattleModule.BattleCamp-1].SetRankItem(req.Killer, player.CamBattleModule.Kill)
+		G_CampBat_TodayDestroy.SetRankItem(req.PlayerID, player.CamBattleModule.Destroy)
+		G_CampBat_DestroySum.SetRankItem(req.PlayerID, player.CamBattleModule.DestroySum)
+		G_CampBat_CampDestroy[player.CamBattleModule.BattleCamp-1].SetRankItem(req.PlayerID, player.CamBattleModule.Kill)
 	}
 
 	if req.SeriesKill == int32(gamedata.CampBat_NtyKillNum) {
@@ -80,7 +80,7 @@ func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 		nty.Camps = append(nty.Camps, player.CamBattleModule.BattleCamp)
 		nty.Params = append(nty.Params, player.RoleMoudle.Name)
 		b, _ := json.Marshal(nty)
-		SendMessageToClient(0, msg.MSG_HORSELAME_NOTIFY, b)
+		SendMessageToClient(0, msg.MSG_HORSELAME_NOTIFY, 0, b)
 	}
 
 	if player.CamBattleModule.KillHonor < gamedata.CampBat_KillHonorMax {
@@ -99,7 +99,7 @@ func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	response.KillNum = int32(player.CamBattleModule.Kill)
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_KILL_EVENT_ACK)
+	writer.BeginWrite(msg.MSG_KILL_EVENT_ACK, extra)
 	response.Write(&writer)
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
@@ -110,7 +110,7 @@ func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_PlayerQueryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_PlayerQueryReq(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: MSG_PLAYER_QUERY_REQ")
 
 	var req msg.MSG_PlayerQuery_Req
@@ -145,7 +145,7 @@ func Hand_PlayerQueryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	response.PlayerID = req.PlayerID
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_PLAYER_QUERY_ACK)
+	writer.BeginWrite(msg.MSG_PLAYER_QUERY_ACK, extra)
 	response.Write(&writer)
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
@@ -154,7 +154,7 @@ func Hand_PlayerQueryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_PlayerReviveReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_PlayerReviveReq(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: MSG_PLAYER_REVIVE_REQ")
 
 	var req msg.MSG_PlayerRevive_Req
@@ -191,14 +191,14 @@ func Hand_PlayerReviveReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	response.BuffTime = int32(pReviveInfo.BuffTime)
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_PLAYER_REVIVE_ACK)
+	writer.BeginWrite(msg.MSG_PLAYER_REVIVE_ACK, extra)
 	response.Write(&writer)
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
 	return
 }
 
-func Hand_PlayerChangeReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_PlayerChangeReq(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: MSG_PLAYER_CHANGE_REQ")
 
 	var req msg.MSG_PlayerChange_Req
@@ -250,7 +250,7 @@ func Hand_PlayerChangeReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 
 	response.PlayerID = req.PlayerID
 	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_PLAYER_CHANGE_ACK)
+	writer.BeginWrite(msg.MSG_PLAYER_CHANGE_ACK, extra)
 	response.Write(&writer)
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
@@ -260,7 +260,7 @@ func Hand_PlayerChangeReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_StartCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_StartCarryReq(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: MSG_START_CARRY_REQ")
 	var req msg.MSG_StartCarry_Req
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
@@ -294,7 +294,7 @@ func Hand_StartCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	response.LeftTimes = int32(player.CamBattleModule.LeftTimes)
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_START_CARRY_ACK)
+	writer.BeginWrite(msg.MSG_START_CARRY_ACK, extra)
 	response.Write(&writer)
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
@@ -304,7 +304,7 @@ func Hand_StartCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_FinishCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_FinishCarryReq(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: MSG_FINISH_CARRY_REQ")
 	var req msg.MSG_FinishCarry_Req
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
@@ -349,7 +349,7 @@ func Hand_FinishCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	response.MoneyNum[1] = int32(pCrystal.MoneyNum[1])
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_FINISH_CARRY_ACK)
+	writer.BeginWrite(msg.MSG_FINISH_CARRY_ACK, extra)
 	response.Write(&writer)
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())
@@ -360,7 +360,7 @@ func Hand_FinishCarryReq(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 }
 
 //! 阵营战服务器加载阵营战数据
-func Hand_LoadCampBatInfo(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_LoadCampBatInfo(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: MSG_LOAD_CAMPBAT_REQ")
 	var req msg.MSG_LoadCampBattle_Req
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
@@ -431,7 +431,7 @@ func Hand_LoadCampBatInfo(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	}
 
 	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_LOAD_CAMPBAT_ACK)
+	writer.BeginWrite(msg.MSG_LOAD_CAMPBAT_ACK, extra)
 	response.Write(&writer)
 	writer.EndWrite()
 	pTcpConn.WriteMsgData(writer.GetDataPtr())

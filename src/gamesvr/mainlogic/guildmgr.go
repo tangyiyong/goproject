@@ -130,7 +130,7 @@ type TGuild struct {
 	Sacrifice         int //! 工会祭天人数
 	SacrificeSchedule int //! 公会祭天进度
 
-	SkillLst []TGuildSkill //! 工会技能信息
+	SkillLst [9]int //! 工会技能信息
 
 	HistoryPassChapter int                   //! 公会副本历史通关
 	PassChapter        int                   //! 当天公会挑战章节
@@ -532,46 +532,23 @@ func (self *TGuild) AddSacrifice(schedule int) {
 }
 
 //! 获取公会技能等级
-func (self *TGuild) GetGuildSkillLevel(skillID int) int {
+func (self *TGuild) GetGuildSkillLevel(id int) int {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
-	for _, v := range self.SkillLst {
-		if v.SkillID == skillID {
-			return v.Level
-		}
-	}
-
-	return 0
+	return self.SkillLst[id-1]
 }
 
 //! 升级公会技能等级
-func (self *TGuild) AddGuildSkillLevel(skillID int, costExp int) {
+func (self *TGuild) AddGuildSkillLevel(id int, costExp int) {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
-	isExist := false
-	level := 0
-	for i, v := range self.SkillLst {
-		if v.SkillID == skillID {
-			self.SkillLst[i].Level += 1
-			level = self.SkillLst[i].Level
-			isExist = true
-			break
-		}
-	}
+	//! 等级提升
+	self.SkillLst[id-1] += 1
+	go self.DB_UpdateGuildSkillLimit(id - 1)
 
-	if isExist == false {
-		var skill TGuildSkill
-		skill.Level = 1
-		skill.SkillID = skillID
-		self.SkillLst = append(self.SkillLst, skill)
-
-		self.DB_AddGuildSkillLimit(skill)
-	} else {
-		go self.DB_UpdateGuildSkillLimit(skillID, level)
-	}
-
+	//! 扣除经验
 	self.CurExp -= costExp
 	go self.DB_UpdateGuildLevel()
 

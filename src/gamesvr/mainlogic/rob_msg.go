@@ -376,8 +376,8 @@ func Hand_RobTreasure(w http.ResponseWriter, r *http.Request) {
 	//! 增加玩家经验
 	response.Exp = copyInfo.Experience * player.GetLevel()
 	//! 工会技能经验加成
-	if player.RoleMoudle.ExpIncLvl != 0 {
-		expInc := gamedata.GetGuildSkillExpValue(player.RoleMoudle.ExpIncLvl)
+	if player.HeroMoudle.GuildSkiLvl[8] > 0 {
+		expInc := gamedata.GetGuildSkillExpValue(player.HeroMoudle.GuildSkiLvl[8])
 		response.Exp += response.Exp * expInc / 1000
 	}
 

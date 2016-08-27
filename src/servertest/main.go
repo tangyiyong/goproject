@@ -14,7 +14,7 @@ func main() {
 	RegTcpMsgHandler()
 
 	InitPlayerMgr()
-	for i := 1; i < 2; i++ {
+	for i := 1; i < 100; i++ {
 		CreatePlayer(i)
 	}
 
@@ -31,10 +31,10 @@ func RegTcpMsgHandler() {
 
 }
 
-func Hand_NoneFunction(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_NoneFunction(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 }
 
-func Hand_Connect(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_Connect(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: Hand_Connect")
 
 	pClient := pTcpConn.Data.(*tcpclient.TCPClient)
@@ -54,7 +54,7 @@ func Hand_Connect(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_DisConnect(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_DisConnect(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: Hand_DisConnect")
 	pClient := pTcpConn.Data.(*tcpclient.TCPClient)
 	if pClient == nil {
@@ -64,7 +64,7 @@ func Hand_DisConnect(pTcpConn *tcpclient.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_EnterRoomAck(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_EnterRoomAck(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: Hand_EnterRoomAck")
 	pClient := pTcpConn.Data.(*tcpclient.TCPClient)
 	if pClient == nil {

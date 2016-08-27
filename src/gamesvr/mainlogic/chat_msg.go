@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func Hand_OnlineNotify(pTcpConn *tcpclient.TCPConn, pdata []byte) {
+func Hand_OnlineNotify(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: Hand_OnlineNotify")
 	var req msg.MSG_OnlineNotify_Req
 	if json.Unmarshal(pdata, &req) != nil {

@@ -62,16 +62,17 @@ func (tcpConn *TCPConn) write(b []byte) {
 	tcpConn.doWrite(b)
 }
 
-func (tcpConn *TCPConn) WriteMsg(msgID int16, msgdata []byte) bool {
+func (tcpConn *TCPConn) WriteMsg(msgID int16, extra int16, msgdata []byte) bool {
 	if tcpConn.closeFlag {
 		return false
 	}
 
 	msgLen := len(msgdata)
-	msgbuffer := make([]byte, 6, 6+msgLen)
+	msgbuffer := make([]byte, 8, 8+msgLen)
 	binary.LittleEndian.PutUint32(msgbuffer, uint32(msgLen))
 	binary.LittleEndian.PutUint16(msgbuffer[4:], uint16(msgID))
-	msgbuffer = append(msgbuffer[:6], msgdata...)
+	binary.LittleEndian.PutUint16(msgbuffer[6:], uint16(extra))
+	msgbuffer = append(msgbuffer[:8], msgdata...)
 	tcpConn.write(msgbuffer)
 
 	return true
@@ -84,9 +85,10 @@ func (tcpConn *TCPConn) WriteMsgData(msgdata []byte) bool {
 
 func (tcpConn *TCPConn) ReadProcess() error {
 	var err error
-	var msgHeader = make([]byte, 6)
-	var msgID int16
+	var msgHeader = make([]byte, 8)
 	var msgLen int32
+	var msgID int16
+	var Extra int16
 	var firstTime bool = true
 
 	//循环结束，会在ReadRoutine中紧接着关闭tcpConn
@@ -102,7 +104,7 @@ func (tcpConn *TCPConn) ReadProcess() error {
 			tcpConn.conn.SetReadDeadline(time.Time{})
 		}
 
-		_, err = io.ReadAtLeast(tcpConn.reader, msgHeader, 6)
+		_, err = io.ReadAtLeast(tcpConn.reader, msgHeader, 8)
 		if err != nil {
 			gamelog.Error("ReadProcess error: Read Header Error : Disconnect from client")
 			return err
@@ -110,7 +112,8 @@ func (tcpConn *TCPConn) ReadProcess() error {
 
 		// parse len
 		msgLen = int32(binary.LittleEndian.Uint16(msgHeader[:4]))
-		msgID = int16(binary.LittleEndian.Uint16(msgHeader[4:]))
+		msgID = int16(binary.LittleEndian.Uint16(msgHeader[4:6]))
+		Extra = int16(binary.LittleEndian.Uint16(msgHeader[6:]))
 		if msgLen <= 0 || msgLen > 10240 {
 			gamelog.Error("ReadProcess error: Invalid msgLen :%d", msgLen)
 			break
@@ -129,7 +132,7 @@ func (tcpConn *TCPConn) ReadProcess() error {
 			return err
 		}
 
-		msgDispatcher(tcpConn, msgID, msgData)
+		MsgDispatcher(tcpConn, msgID, Extra, msgData)
 	}
 
 	return nil
@@ -159,10 +162,7 @@ func (tcpConn *TCPConn) WriteRoutine() {
 func (tcpConn *TCPConn) ReadRoutine() {
 	tcpConn.ReadProcess()
 	tcpConn.Close()
-	if tcpConn.OnNetClose != nil {
-		tcpConn.OnNetClose()
-	}
-
+	tcpConn.OnNetClose()
 	//通知业务层net断开
-	msgDispatcher(tcpConn, msg.MSG_DISCONNECT, nil)
+	MsgDispatcher(tcpConn, msg.MSG_DISCONNECT, 0, nil)
 }

@@ -83,6 +83,7 @@ type MSG_BuyScoreTime_Ack struct {
 	ActionID    int   //!行动力ID
 	ActionValue int   //!行动力值
 	ActionTime  int64 //!行动力恢复起始时间
+	BuyTime     int   //!己购买次数
 }
 
 //! 玩家请求积分赛战斗次数奖励

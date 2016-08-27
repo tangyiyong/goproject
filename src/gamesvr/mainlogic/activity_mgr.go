@@ -15,6 +15,7 @@ import (
 
 //! 活动刷新
 func ActivityTimerFunc(now int64) bool {
+	gamelog.Info("Timer: ActivityTimerFunc")
 	//! 检测新启活动
 	for i := 0; i < len(G_GlobalVariables.ActivityLst); i++ {
 		if now >= G_GlobalVariables.ActivityLst[i].endTime && G_GlobalVariables.ActivityLst[i].endTime > 0 {
@@ -22,7 +23,6 @@ func ActivityTimerFunc(now int64) bool {
 			EndActivity(G_GlobalVariables.ActivityLst[i].activityType, G_GlobalVariables.ActivityLst[i].ActivityID)
 			G_GlobalVariables.ActivityLst[i].ResetCode += 1
 			G_GlobalVariables.ActivityLst[i].VersionCode = 0
-			go G_GlobalVariables.DB_UpdateActivityStatus(i)
 
 			//! 计算下一次开始时间
 			beginTime, endTime := gamedata.GetActivityNextBeginTime(G_GlobalVariables.ActivityLst[i].ActivityID, GetOpenServerDay())
@@ -32,9 +32,10 @@ func ActivityTimerFunc(now int64) bool {
 			//! 没有到结束时间或者永久存在并正在运行的活动执行刷新
 			RefreshActivity(G_GlobalVariables.ActivityLst[i].activityType, G_GlobalVariables.ActivityLst[i].ActivityID)
 			G_GlobalVariables.ActivityLst[i].VersionCode += 1
-			go G_GlobalVariables.DB_UpdateActivityStatus(i)
 		}
 	}
+
+	go G_GlobalVariables.DB_UpdateActivityLst()
 
 	return true
 }
@@ -149,6 +150,7 @@ func EndActivity(activityType int, activityID int) bool {
 
 //! 刷新运营活动 每天整点刷新一次
 func RefreshActivity(activityType int, activityID int) bool {
+	//gamelog.Info("Timer: RefreshActivity")
 	if activityType == gamedata.Activity_Moon_Card {
 	} else if activityType == gamedata.Activity_Singel_Recharge {
 	} else if activityType == gamedata.Activity_Limit_Daily_Task {

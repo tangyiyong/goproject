@@ -82,6 +82,7 @@ func (self *Timer) Init() {
 
 //! 结算排行奖励
 func (self *Timer) ArenaFunc(now int64) bool {
+	gamelog.Info("Timer: ArenaFunc")
 	//! 获取竞技场排行榜配置
 	arenaConfig := gamedata.GetArenaConfig()
 	if arenaConfig == nil {
@@ -113,6 +114,7 @@ func (self *Timer) ArenaFunc(now int64) bool {
 
 //! 刷新名人堂
 func (self *Timer) RefreshFameHallLstFunc(now int64) bool {
+	gamelog.Info("Timer: RefreshFameHallLstFunc")
 	if len(G_FameHallLst) != 0 {
 		G_FameHallLst = [2][6]TFameHallInfo{}
 	}
@@ -200,6 +202,7 @@ func (self *Timer) RefreshFameHallLstFunc(now int64) bool {
 }
 
 func (self *Timer) OnNewDayFunc(nowUnix int64) bool {
+	gamelog.Info("Timer: OnNewDayFunc")
 	//先发今日击杀
 	for i := 0; i < len(G_CampBat_TodayKill.List); i++ {
 		if G_CampBat_TodayKill.List[i].RankID <= 0 {
@@ -293,6 +296,7 @@ func (self *Timer) OnNewDayFunc(nowUnix int64) bool {
 
 //! 结算夺粮战排行奖励
 func (self *Timer) FoodWarFunc(nowUnix int64) bool {
+	gamelog.Info("Timer: FoodWarFunc")
 	isOpen := false
 	now := time.Now()
 	nowSec := now.Hour()*3600 + now.Minute()*60 + now.Second()
@@ -343,6 +347,7 @@ func (self *Timer) FoodWarFunc(nowUnix int64) bool {
 
 //! 结算排行奖励
 func (self *Timer) RebelFunc(now int64) bool {
+	gamelog.Info("Timer: RebelFunc")
 	//! 开始结算奖励
 	var awardData TAwardData
 	awardData.TextType = Text_Rebel_Damage

@@ -40,21 +40,6 @@ func (role *TRoleMoudle) DB_SaveNewWizard() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerRole", bson.M{"_id": role.PlayerID}, bson.M{"$set": bson.M{"newwizard": role.NewWizard}})
 }
 
-//保存经验加成等级信息
-func (role *TRoleMoudle) DB_SaveExpIncLevel() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerRole", bson.M{"_id": role.PlayerID}, bson.M{"$set": bson.M{"expinclvl": role.ExpIncLvl}})
-}
-
-//保存经验加成等级信息
-func (role *TRoleMoudle) DB_AddColHero(heroid int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerRole", bson.M{"_id": role.PlayerID}, bson.M{"$push": bson.M{"colheros": heroid}})
-}
-
-//保存经验加成等级信息
-func (role *TRoleMoudle) DB_AddColPet(petid int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerRole", bson.M{"_id": role.PlayerID}, bson.M{"$push": bson.M{"colpets": petid}})
-}
-
 //保存全部货币
 func (role *TRoleMoudle) DB_UpdateChargeMoney() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerRole", bson.M{"_id": role.PlayerID}, bson.M{"$set": bson.M{"todaycharge": role.TodayCharge, "totalcharge": role.TotalCharge}})

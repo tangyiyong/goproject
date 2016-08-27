@@ -546,7 +546,7 @@ func (player *TPlayer) OnChargeMoney(rmb int) {
 	player.ActivityModule.MonthFund.SetMonthFund(rmb)
 
 	//! 周周盈
-	player.ActivityModule.WeekAward.AddRechargeNum(rmb * gamedata.ChargeMoneyRatio)
+	player.ActivityModule.WeekAward.AddRechargeNum(rmb)
 
 	//! 首充/次充
 	player.ActivityModule.FirstRecharge.CheckRecharge(rmb)

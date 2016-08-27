@@ -208,6 +208,12 @@ func (self *TActivitySign) SetSignPlusStatus() {
 		return
 	}
 	self.SignPlusStatus = SignPlus_Can_Receive
+	go self.DB_UpdateSignPlusStatus()
+}
+
+func (self *TActivitySign) DB_UpdateSignPlusStatus() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+		"sign.signplusstatus": self.SignPlusStatus}})
 }
 
 func (self *TActivitySign) DB_Reset() bool {

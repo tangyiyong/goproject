@@ -23,7 +23,6 @@ func InitBuyOpenFundNum() bool {
 		}
 	}
 
-	gamelog.Info("BuyNum: %d", count)
 	G_BuyFundNum = count
 	return true
 }

@@ -287,6 +287,7 @@ func Hand_MiningEvent_ActionAward(w http.ResponseWriter, r *http.Request) {
 	if element != gamedata.MiningEvent_Action_Award {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -440,7 +441,7 @@ func Hand_MiningEvent_BalckMarket(w http.ResponseWriter, r *http.Request) {
 	if element != gamedata.MiningEvent_Black_Market {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
-		gamelog.Error("Error pos: x %v  y: %v Event: %d  Need: %d", req.PlayerPos.X, req.PlayerPos.Y, element, gamedata.MiningEvent_Black_Market)
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -600,7 +601,7 @@ func Hand_MiningEvent_BuyBlackMarketItem(w http.ResponseWriter, r *http.Request)
 	}
 
 	//! 奖励玩家积分
-	player.MiningModule.Point += (eventInfo.Value1 * value)
+	player.MiningModule.Point += (goodsInfo.Point * value)
 	go player.MiningModule.DB_SavePlayerPoint()
 
 	response.Point = player.MiningModule.Point
@@ -667,6 +668,7 @@ func Hand_MiningEvent_MonsterInfo(w http.ResponseWriter, r *http.Request) {
 		element != gamedata.MiningEvent_Elite_Monster {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -753,6 +755,7 @@ func Hand_MiningEvent_Monster(w http.ResponseWriter, r *http.Request) {
 		element != gamedata.MiningEvent_Elite_Monster {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -977,6 +980,7 @@ func Hand_MiningEvent_Treasure(w http.ResponseWriter, r *http.Request) {
 	if element != gamedata.MiningEvent_Treasure {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -1138,6 +1142,7 @@ func Hand_MiningEvent_MagicBox(w http.ResponseWriter, r *http.Request) {
 	if element != gamedata.MiningEvent_MagicBox {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -1184,6 +1189,7 @@ func Hand_MiningEvent_MagicBox(w http.ResponseWriter, r *http.Request) {
 
 	//! 奖励玩家积分
 	player.MiningModule.Point += (response.RandPoint * value)
+	response.RandPoint *= value
 	go player.MiningModule.DB_SavePlayerPoint()
 
 	player.MiningModule.AddMiningStatusCode()
@@ -1273,6 +1279,7 @@ func Hand_MiningEvent_Scan(w http.ResponseWriter, r *http.Request) {
 	if element != gamedata.MiningEvent_Scanning {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -1436,6 +1443,7 @@ func Hand_MiningEvent_Question(w http.ResponseWriter, r *http.Request) {
 	if element != gamedata.MiningEvent_Question {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -1577,6 +1585,7 @@ func Hand_MiningEvent_Buff(w http.ResponseWriter, r *http.Request) {
 	if element != gamedata.MiningEvent_Buff {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -1602,7 +1611,6 @@ func Hand_MiningEvent_Buff(w http.ResponseWriter, r *http.Request) {
 	go player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MiningMap[req.PlayerPos.Y])
 
 	//! 删除事件
-	gamelog.Info("Delete Pos: %d %d", player.MiningModule.LastPos.X, player.MiningModule.LastPos.Y)
 	player.MiningModule.DeleteElement(index)
 
 	//! 随机一个Buff值
@@ -1616,20 +1624,20 @@ func Hand_MiningEvent_Buff(w http.ResponseWriter, r *http.Request) {
 
 	//! 判断buff
 	eventInfo := gamedata.GetMiningEventInfo(gamedata.MiningEvent_Buff)
-	value := 1
-	if player.MiningModule.Buff.BuffType == 2 {
-		value = player.MiningModule.Buff.Value
-		player.MiningModule.Buff.Times -= 1
-		if player.MiningModule.Buff.Times == 0 {
-			player.MiningModule.Buff = TMiningBuff{}
-			go player.MiningModule.DB_SavePlayerBuff()
-		} else {
-			go player.MiningModule.DB_SubMiningBuffTimes(1)
-		}
-	}
+	// value := 1
+	// if player.MiningModule.Buff.BuffType == 2 {
+	// 	value = player.MiningModule.Buff.Value
+	// 	player.MiningModule.Buff.Times -= 1
+	// 	if player.MiningModule.Buff.Times == 0 {
+	// 		player.MiningModule.Buff = TMiningBuff{}
+	// 		go player.MiningModule.DB_SavePlayerBuff()
+	// 	} else {
+	// 		go player.MiningModule.DB_SubMiningBuffTimes(1)
+	// 	}
+	// }
 
 	//! 奖励玩家积分
-	player.MiningModule.Point += (eventInfo.Value1 * value)
+	player.MiningModule.Point += eventInfo.Value1
 	go player.MiningModule.DB_SavePlayerPoint()
 
 	response.Point = player.MiningModule.Point
@@ -1726,6 +1734,7 @@ func Hand_MiningElement_RefiningStone(w http.ResponseWriter, r *http.Request) {
 		element != gamedata.MinintElement_Can_Break_Obstacle {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -1778,11 +1787,29 @@ func Hand_MiningElement_RefiningStone(w http.ResponseWriter, r *http.Request) {
 		response.ItemID = elementInfo.ItemID
 		response.ItemNum = itemNum * itemValue
 
+		value := 1
+		if player.MiningModule.Buff.BuffType == 2 {
+			value = player.MiningModule.Buff.Value
+			player.MiningModule.Buff.Times -= 1
+			if player.MiningModule.Buff.Times == 0 {
+				player.MiningModule.Buff = TMiningBuff{}
+				go player.MiningModule.DB_SavePlayerBuff()
+			} else {
+				go player.MiningModule.DB_SubMiningBuffTimes(1)
+			}
+		}
+
+		//! 奖励玩家积分
+		player.MiningModule.Point += (1 * value)
+		player.MiningModule.DB_SavePlayerPoint()
+
 	}
 
 	//! 版本号改变
 	player.MiningModule.AddMiningStatusCode()
 	response.StatusCode = player.MiningModule.StatusCode
+
+	response.Point = player.MiningModule.Point
 
 	//! 回复成功
 	response.RetCode = msg.RE_SUCCESS
@@ -1859,6 +1886,7 @@ func Hand_GetRandBossAward(w http.ResponseWriter, r *http.Request) {
 	monster, _ := player.MiningModule.GetBossInfo()
 	if monster.Life > 0 {
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -1930,6 +1958,7 @@ func Hand_SelectBossAward(w http.ResponseWriter, r *http.Request) {
 	monster, _ := player.MiningModule.GetBossInfo()
 	if monster.Life > 0 {
 		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 

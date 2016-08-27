@@ -77,3 +77,10 @@ func (self *THeroMoudle) DB_SaveExtraPropertyAt(pid int, pvalue int, percent boo
 		}
 	}
 }
+
+//! 修改玩家公会技能等级
+func (self *THeroMoudle) DB_UpdateGuildSkillLevel(index int) {
+	filedName := fmt.Sprintf("guildskilvl.%d", index)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+		filedName: self.GuildSkiLvl[index]}})
+}

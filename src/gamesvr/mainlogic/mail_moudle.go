@@ -47,10 +47,12 @@ type TMailInfo struct {
 type TScoreReport struct {
 	Name       string //名字
 	HeroID     int    //英雄ID
+	Quality    int8   //品质
 	FightValue int    //战力
 	Time       int64  //时间点
 	Score      int    //积分
 	Attack     bool   //是攻击还是防守
+	win        bool   //胜负
 }
 
 //角色邮件基本数据表结构
@@ -192,13 +194,15 @@ func SendRechargeMail(playerid int32, money int) {
 }
 
 //3. 积分赛战报邮件
-func SendScoreResultMail(playerid int32, name string, fight int, heroid int, attack bool, score int) {
+func SendScoreResultMail(playerid int32, name string, fight int, heroid int, quaity int8, attack bool, score int, win bool) {
 	var result TScoreReport
 	result.Name = name
 	result.FightValue = fight
 	result.HeroID = heroid
 	result.Attack = attack
 	result.Score = score
+	result.win = win
+	result.Quality = quaity
 	result.Time = time.Now().Unix()
 	player := GetPlayerByID(playerid)
 	if player != nil {

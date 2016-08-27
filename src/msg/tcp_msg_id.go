@@ -59,6 +59,7 @@ const (
 	MSG_ALL_DIE_NTY       = 40 //玩家英雄全部死亡通知
 	MSG_CAMPBAT_CHAT_REQ  = 41 //阵营战聊天请求
 	MSG_CAMPBAT_CHAT_ACK  = 42 //阵营战聊天回复
+	MSG_LEAVE_BY_DISCONNT = 43 //角色因为断线离开房间
 
 	MSG_SVR_LOGDATA = 99 //GameSvr 发到 LogSvr的日志数据
 

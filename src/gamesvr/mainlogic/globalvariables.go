@@ -337,12 +337,9 @@ func (self *TGlobalVariables) DB_AddNewActivity(activity TActivityData) {
 	mongodb.AddToArray(appconfig.GameDbName, "GlobalVariables", bson.M{"_id": 1}, "activitylst", activity)
 }
 
-func (self *TGlobalVariables) DB_UpdateActivityStatus(index int) {
-	filedName2 := fmt.Sprintf("activitylst.%d.versioncode", index)
-	filedName3 := fmt.Sprintf("activitylst.%d.resetcode", index)
+func (self *TGlobalVariables) DB_UpdateActivityLst() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "GlobalVariables", bson.M{"_id": 1}, bson.M{"$set": bson.M{
-		filedName2: self.ActivityLst[index].VersionCode,
-		filedName3: self.ActivityLst[index].ResetCode}})
+		"activitylst": self.ActivityLst}})
 }
 
 func (self *TGlobalVariables) DB_AddSevenDayBuyInfo(seven TSevenDayBuyInfo) {

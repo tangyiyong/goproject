@@ -62,8 +62,6 @@ type TGuildModule struct {
 
 	ExitGuildTime int64 //! 退出公会时间
 
-	SkillLst []TGuildSkill //! 工会技能信息
-
 	ResetDay uint32 //! 重置天数
 
 	ownplayer *TPlayer
@@ -289,45 +287,6 @@ func (self *TGuildModule) RecoverAction() {
 	self.ActionRecoverTime = self.ActionRecoverTime + int64(action*gamedata.GuildActionRecoverTime)
 	self.ActionTimes += action
 	go self.DB_UpdateCopyAction()
-}
-
-//! 获取玩家当前公会技能等级
-func (self *TGuildModule) GetPlayerGuildSKillLevel(skillID int) int {
-	for _, v := range self.SkillLst {
-		if v.SkillID == skillID {
-			return v.Level
-		}
-	}
-
-	return 0
-}
-
-//! 增加玩家公会技能等级
-func (self *TGuildModule) AddPlayerGuildSkillLevel(skillID int) {
-	isExist := false
-	level := 0
-	for i, v := range self.SkillLst {
-		if v.SkillID == skillID {
-			self.SkillLst[i].Level += 1
-			level = self.SkillLst[i].Level
-			isExist = true
-			break
-		}
-	}
-
-	if isExist == false {
-		var skill TGuildSkill
-		skill.Level = 1
-		skill.SkillID = skillID
-		self.SkillLst = append(self.SkillLst, skill)
-
-		go self.DB_AddGuildSkillInfo(skill)
-	} else {
-		go self.DB_UpdateGuildSkillLevel(skillID, level)
-	}
-
-	moneyID, moneyNum := gamedata.GetGuildSkillNeedMoney(level+1, skillID)
-	self.ownplayer.RoleMoudle.CostMoney(moneyID, moneyNum)
 }
 
 //! 红点提示

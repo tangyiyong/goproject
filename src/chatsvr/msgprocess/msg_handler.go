@@ -8,7 +8,7 @@ import (
 	"tcpserver"
 )
 
-func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	var req msg.MSG_CheckIn_Req
 	if json.Unmarshal(pdata, &req) != nil {
 		gamelog.Error("Hand_CheckInReq : Unmarshal error!!!!")
@@ -32,7 +32,7 @@ func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	var response msg.MSG_Chat_Ack
 	response.RetCode = msg.RE_SUCCESS
 	b, _ := json.Marshal(response)
-	pTcpConn.WriteMsg(msg.MSG_CHECK_IN_ACK, b)
+	pTcpConn.WriteMsg(msg.MSG_CHECK_IN_ACK, 0, b)
 
 	if req.PlayerID >= 10000 {
 		SendOnlineNotify(req.PlayerID, true)
@@ -41,7 +41,7 @@ func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_ChatMsgReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+func Hand_ChatMsgReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: Hand_ChatMsgReq")
 	if pTcpConn.Data.(*TChatData).PlayerID == 0 {
 		gamelog.Error("Hand_ChatMsgReq pTcpConn.PlayerID == 0!!!!")
@@ -69,21 +69,21 @@ func Hand_ChatMsgReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	buff, _ := json.Marshal(chatMsgNotify)
 
 	if req.TargetChannel == msg.MSG_CHANNEL_PLAYER {
-		SendMessageByName(req.TargetName, msg.MSG_CHATMSG_NOTIFY, buff)
+		SendMessageByName(req.TargetName, msg.MSG_CHATMSG_NOTIFY, 0, buff)
 	} else if req.TargetChannel == msg.MSG_CHANNEL_GUILD {
 		SendMessageToGuild(req.TargetGuildID, msg.MSG_CHATMSG_NOTIFY, buff, chatMsgNotify.SourcePlayerID)
 	} else if req.TargetChannel == msg.MSG_CHANNEL_WORLD {
-		SendMessageToWorld(msg.MSG_CHATMSG_NOTIFY, buff, chatMsgNotify.SourcePlayerID)
+		SendMessageToWorld(msg.MSG_CHATMSG_NOTIFY, 0, buff, chatMsgNotify.SourcePlayerID)
 	}
 
 	response.RetCode = msg.RE_SUCCESS
 	b, _ := json.Marshal(response)
-	pTcpConn.WriteMsg(msg.MSG_CHATMSG_ACK, b)
+	pTcpConn.WriteMsg(msg.MSG_CHATMSG_ACK, 0, b)
 	gamelog.Info("Return: %s", b)
 	return
 }
 
-func Hand_DisConnect(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+func Hand_DisConnect(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	if pTcpConn.Data == nil || pTcpConn.Data.(*TChatData).PlayerID <= 0 {
 		return
 	}
@@ -96,24 +96,25 @@ func Hand_DisConnect(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_Game_To_Client(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+func Hand_Game_To_Client(pTcpConn *tcpserver.TCPConn, e int16, pdata []byte) {
 	if len(pdata) < 6 {
 		gamelog.Error("Hand_Game_To_Client : message data errror!!!!")
 		return
 	}
 	playerid := int32(binary.LittleEndian.Uint64(pdata[:4]))
 	msgid := int16(binary.LittleEndian.Uint16(pdata[4:6]))
+	extra := int16(binary.LittleEndian.Uint16(pdata[6:8]))
 
 	if playerid == 0 {
-		SendMessageToWorld(msgid, pdata[6:], 0)
+		SendMessageToWorld(msgid, extra, pdata[8:], 0)
 	} else {
-		SendMessageByID(playerid, msgid, pdata[6:])
+		SendMessageByID(playerid, msgid, extra, pdata[8:])
 	}
 
 	return
 }
 
-func Hand_GuildChange_Notify(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+func Hand_GuildChange_Notify(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	var req msg.MSG_GuildNotify_Req
 	if json.Unmarshal(pdata, &req) != nil {
 		gamelog.Error("Hand_GuildChange_Notify : Unmarshal error!!!!")
@@ -125,7 +126,7 @@ func Hand_GuildChange_Notify(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_HeartBeat(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+func Hand_HeartBeat(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: MSG_HEART_BEAT")
 	var req msg.MSG_HeartBeat_Req
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {

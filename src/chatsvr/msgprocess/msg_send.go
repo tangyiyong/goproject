@@ -11,5 +11,5 @@ func SendOnlineNotify(playerid int32, online bool) bool {
 	req.PlayerID = playerid
 	req.Online = online
 	buff, _ := json.Marshal(req)
-	return SendMessageToGameSvr(msg.MSG_ONLINE_NOTIFY, buff)
+	return SendMessageToGameSvr(msg.MSG_ONLINE_NOTIFY, 0, buff)
 }

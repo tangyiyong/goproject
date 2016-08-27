@@ -4,24 +4,15 @@ import (
 	"battlesvr/gamedata"
 	"gamelog"
 	"msg"
-	"tcpserver"
 	"utility"
 )
 
-func Hand_SkillState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+func (self *TBattleRoom) Hand_SkillState(pdata []byte) {
 	gamelog.Info("message: MSG_SKILL_STATE")
-	playerid := pTcpConn.Data.(*TBattleData).PlayerID
-	roomid := pTcpConn.Data.(*TBattleData).RoomID
 
 	var req msg.MSG_Skill_Req
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
 		gamelog.Error("Hand_SkillState : Message Reader Error!!!!")
-		return
-	}
-
-	pRoom := G_RoomMgr.GetRoomByID(pTcpConn.Data.(*TBattleData).RoomID)
-	if pRoom == nil {
-		gamelog.Error("Hand_SkillState : Invalid RoomID:%d!!!!", pTcpConn.Data.(*TBattleData).RoomID)
 		return
 	}
 
@@ -30,11 +21,11 @@ func Hand_SkillState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 		return
 	}
 
-	SendMessageToRoom(playerid, roomid, msg.MSG_SKILL_STATE, &req)
+	SendMessageToRoom(req.PlayerID, self.RoomID, msg.MSG_SKILL_STATE, &req)
 
-	pSrcBatObj := pRoom.GetBattleByPID(playerid)
+	pSrcBatObj := self.GetBattleByPID(req.PlayerID)
 	if pSrcBatObj == nil {
-		gamelog.Error("Hand_SkillState : Invalid playerid:%d!!!!", playerid)
+		gamelog.Error("Hand_SkillState : Invalid playerid:%d!!!!", req.PlayerID)
 		return
 	}
 
@@ -52,7 +43,7 @@ func Hand_SkillState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 			continue
 		}
 
-		pHeroAttacker := pRoom.GetHeroObject(req.SkillEvents[i].S_ID)
+		pHeroAttacker := self.GetHeroObject(req.SkillEvents[i].S_ID)
 		if pHeroAttacker.CurHp <= 0 {
 			gamelog.Error("Hand_SkillState Error: pHeroAttacker CurHp is 0!!!!")
 			continue
@@ -81,9 +72,9 @@ func Hand_SkillState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 
 		//}
 		var killreq msg.MSG_KillEvent_Req
-		killreq.Killer = req.SkillEvents[i].S_ID
+		killreq.PlayerID = req.SkillEvents[i].S_ID
 		for j := 0; j < len(req.SkillEvents[i].TargetIDs); j++ {
-			pHeroDefender := pRoom.GetHeroObject(req.SkillEvents[i].TargetIDs[j])
+			pHeroDefender := self.GetHeroObject(req.SkillEvents[i].TargetIDs[j])
 			if pHeroDefender == nil {
 				gamelog.Error("Hand_SkillState Error: pHeroDefender is nil i:%d,j :%d", i, j)
 				continue
@@ -106,7 +97,7 @@ func Hand_SkillState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 				killreq.Kill += 1
 				killreq.SeriesKill = pSrcBatObj.SeriesKill
 
-				pDefBatObj := pRoom.GetBattleByOID(pHeroDefender.ObjectID)
+				pDefBatObj := self.GetBattleByOID(pHeroDefender.ObjectID)
 				if pDefBatObj == nil {
 					gamelog.Error("Hand_SkillState Error: cannot get the def batobj!!")
 				}
@@ -118,7 +109,7 @@ func Hand_SkillState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 
 			//向服务器发送击杀事件
 			if killreq.Kill > 0 {
-				SendMessageToGameSvr(msg.MSG_KILL_EVENT_REQ, &killreq)
+				SendMessageToGameSvr(msg.MSG_KILL_EVENT_REQ, self.RoomID, &killreq)
 			}
 
 			ackHeroState.Heros = append(ackHeroState.Heros, msg.MSG_HeroItem{ObjectID: pHeroDefender.ObjectID, CurHp: pHeroDefender.CurHp})
@@ -127,14 +118,20 @@ func Hand_SkillState(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 
 	ackHeroState.Heros_Cnt = int32(len(ackHeroState.Heros))
 	if ackHeroState.Heros_Cnt > 0 {
-		SendMessageToRoom(0, roomid, msg.MSG_HERO_STATE, &ackHeroState)
+		SendMessageToRoom(0, self.RoomID, msg.MSG_HERO_STATE, &ackHeroState)
+	}
+
+	pTcpConn := GetConnByID(req.PlayerID)
+	if pTcpConn == nil {
+		gamelog.Error("Hand_SkillState Error: Invalid PlayerID:%d", req.PlayerID)
+		return
 	}
 
 	if bNewSkill {
 		var msgNewSkill msg.MSG_NewSkill_Nty
 		msgNewSkill.NewSkillID = pSrcBatObj.SkillState[3].ID
 		var writer msg.PacketWriter
-		writer.BeginWrite(msg.MSG_NEW_SKILL_NTY)
+		writer.BeginWrite(msg.MSG_NEW_SKILL_NTY, 0)
 		msgNewSkill.Write(&writer)
 		writer.EndWrite()
 		pTcpConn.WriteMsgData(writer.GetDataPtr())

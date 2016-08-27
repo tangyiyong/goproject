@@ -10,7 +10,10 @@ import (
 )
 
 type ConnSet map[net.Conn]bool
-type MsgHanler func(pTcpConn *TCPConn, pdata []byte)
+type MsgHanler func(pTcpConn *TCPConn, Extra int16, pdata []byte)
+
+var MsgDispatcher func(pTcpConn *TCPConn, MsgID int16, Extra int16, pdata []byte)
+
 type TCPServer struct {
 	Addr            string
 	MaxConnNum      int
@@ -22,7 +25,7 @@ type TCPServer struct {
 	wgConns         sync.WaitGroup
 }
 
-var HandlerMap map[int16]func(pTcpConn *TCPConn, pdata []byte)
+var HandlerMap map[int16]func(pTcpConn *TCPConn, extra int16, pdata []byte)
 var G_Server *TCPServer
 
 func ServerRun(addr string, maxconn int) {
@@ -30,6 +33,10 @@ func ServerRun(addr string, maxconn int) {
 	G_Server.Addr = addr
 	G_Server.MaxConnNum = maxconn
 	G_Server.PendingWriteNum = 32
+	if MsgDispatcher == nil {
+		MsgDispatcher = DefalutDispatcher
+	}
+
 	G_Server.start()
 	G_Server.close()
 	return
@@ -136,26 +143,26 @@ func (server *TCPServer) close() {
 	gamelog.Info("server been closed!!")
 }
 
-func msgDispatcher(pTcpConn *TCPConn, MsgID int16, pdata []byte) {
-	msghandler, ok := HandlerMap[MsgID]
+func DefalutDispatcher(pTcpConn *TCPConn, msgid int16, extra int16, pdata []byte) {
+	msghandler, ok := HandlerMap[msgid]
 	if !ok {
-		gamelog.Error("msgid : %d have not a msg handler!!", MsgID)
+		gamelog.Error("msgid : %d have not a msg handler!!", msgid)
 		return
 	}
 
 	defer func() {
 		if r := recover(); r != nil {
 			if _, ok := r.(runtime.Error); ok {
-				gamelog.Error("MsgID %d Error  %s", MsgID, debug.Stack())
+				gamelog.Error("MsgID %d Error  %s", msgid, debug.Stack())
 			}
 		}
 	}()
-	msghandler(pTcpConn, pdata)
+	msghandler(pTcpConn, extra, pdata)
 }
 
 func HandleFunc(msgid int16, mh MsgHanler) {
 	if HandlerMap == nil {
-		HandlerMap = make(map[int16]func(pTcpConn *TCPConn, pdata []byte), 100)
+		HandlerMap = make(map[int16]func(pTcpConn *TCPConn, extra int16, pdata []byte), 100)
 	}
 
 	HandlerMap[msgid] = mh
