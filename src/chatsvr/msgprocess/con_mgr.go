@@ -9,6 +9,7 @@ import (
 type TChatData struct {
 	PlayerID int32
 	GuildID  int
+	SendTime int32
 }
 
 type TGuildConns struct {
@@ -16,24 +17,24 @@ type TGuildConns struct {
 }
 
 var (
-	G_GuildConns  map[int]*TGuildConns
+	G_GuildConns  map[int32]*TGuildConns
 	G_NameConns   map[string]*tcpserver.TCPConn
-	G_PlayerGuild map[int32]int
+	G_PlayerGuild map[int32]int32
 	G_PlayerConns map[int32]*tcpserver.TCPConn
 	G_GameSvrConn *tcpserver.TCPConn
 	G_ConnsMutex  sync.Mutex
 )
 
 func Init() bool {
-	G_GuildConns = make(map[int]*TGuildConns, 1)
+	G_GuildConns = make(map[int32]*TGuildConns, 1)
 	G_NameConns = make(map[string]*tcpserver.TCPConn, 1)
 	G_PlayerConns = make(map[int32]*tcpserver.TCPConn, 1)
-	G_PlayerGuild = make(map[int32]int, 1)
+	G_PlayerGuild = make(map[int32]int32, 1)
 
 	return true
 }
 
-func (guild *TGuildConns) Init(guildid int) {
+func (guild *TGuildConns) Init(guildid int32) {
 	guild.connMap = make(map[int32]*tcpserver.TCPConn, 30)
 }
 
@@ -44,13 +45,12 @@ func GetConnByID(playerid int32) *tcpserver.TCPConn {
 	return pConn
 }
 
-func AddTcpConn(playerid int32, guildid int, name string, pTcpConn *tcpserver.TCPConn) {
+func AddTcpConn(playerid int32, guildid int32, name string, pTcpConn *tcpserver.TCPConn) {
 	G_ConnsMutex.Lock()
 	defer G_ConnsMutex.Unlock()
 
-	pTcpConn.Data = new(TChatData)
-	pTcpConn.Data.(*TChatData).GuildID = guildid
-	pTcpConn.Data.(*TChatData).PlayerID = playerid
+	pTcpConn.Extra = guildid
+	pTcpConn.ConnID = playerid
 	pTcpConn.Cleaned = false
 
 	tGuildConns, ok := G_GuildConns[guildid]
@@ -95,7 +95,7 @@ func CheckAndClean(playerid int32) {
 	pOldConn.Close()
 }
 
-func ChangeConnGuild(playerid int32, newguildid int) {
+func ChangeConnGuild(playerid int32, newguildid int32) {
 	G_ConnsMutex.Lock()
 	defer G_ConnsMutex.Unlock()
 
@@ -104,12 +104,12 @@ func ChangeConnGuild(playerid int32, newguildid int) {
 		return
 	}
 
-	if pTcpConn.Data.(*TChatData).GuildID == newguildid {
+	if pTcpConn.Extra == newguildid {
 		return
 	}
 
 	//首先从之前的位置清掉
-	oldGuildConns, ok := G_GuildConns[pTcpConn.Data.(*TChatData).GuildID]
+	oldGuildConns, ok := G_GuildConns[pTcpConn.Extra]
 	if ok {
 		delete(oldGuildConns.connMap, playerid)
 	}
@@ -151,7 +151,7 @@ func SendMessageByName(playername string, msgid int16, extra int16, msgdata []by
 	return pConn.WriteMsg(msgid, extra, msgdata)
 }
 
-func SendMessageToGuild(guildid int, msgid int16, msgdata []byte, sendPlayerID int32) bool {
+func SendMessageToGuild(guildid int32, msgid int16, msgdata []byte, sendPlayerID int32) bool {
 	G_ConnsMutex.Lock()
 	tGuildConns, ok := G_GuildConns[guildid]
 	if !ok {

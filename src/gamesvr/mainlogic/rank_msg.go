@@ -388,7 +388,7 @@ func Hand_GetGuildLevelRank(w http.ResponseWriter, r *http.Request) {
 		if len(response.GuildList) >= G_GuildLevelRanker.ShowNum {
 			break
 		}
-		pGuildInfo := GetGuildByID(int(G_GuildLevelRanker.List[i].RankID))
+		pGuildInfo := GetGuildByID(G_GuildLevelRanker.List[i].RankID)
 		if pGuildInfo != nil {
 			var info msg.MSG_GuildRankInfo
 			info.GuildID = pGuildInfo.GuildID
@@ -443,7 +443,7 @@ func Hand_GetGuildCopyRank(w http.ResponseWriter, r *http.Request) {
 		if len(response.GuildList) >= G_GuildCopyRanker.ShowNum {
 			break
 		}
-		pGuildInfo := GetGuildByID(int(G_GuildLevelRanker.List[i].RankID))
+		pGuildInfo := GetGuildByID(G_GuildLevelRanker.List[i].RankID)
 		if pGuildInfo != nil {
 			var info msg.MSG_GuildRankInfo
 			info.GuildID = pGuildInfo.GuildID

@@ -98,13 +98,14 @@ func (ranker *TRanker) SetRankItem(rankid int32, rankvalue int) int {
 }
 
 //战力排行榜专用, 其它的排行榜暂时不要用
-func (ranker *TRanker) SetRankItemEx(rankid int32, orgvalue int, newvalue int) int {
+func (ranker *TRanker) SetRankItemEx(rankid int32, orgvalue int, newvalue int) {
 	ranker.Lock()
 	defer ranker.Unlock()
 	nCount := len(ranker.List)
 	MinValue := ranker.List[nCount-1].RankValue
 
 	myIndex := -1
+
 	if orgvalue >= MinValue {
 		for i := 0; i < nCount; i++ {
 			if rankid == ranker.List[i].RankID {
@@ -112,23 +113,21 @@ func (ranker *TRanker) SetRankItemEx(rankid int32, orgvalue int, newvalue int) i
 				break
 			}
 		}
-		if myIndex > 0 {
-			ranker.List[myIndex].RankValue = newvalue
-			sort.Sort(&ranker.List)
-		}
+	}
 
-	} else {
-		if newvalue > MinValue {
-			ranker.List[nCount-1].RankValue = newvalue
-			sort.Sort(&ranker.List)
-		}
+	if myIndex >= 0 {
+		ranker.List[myIndex].RankValue = newvalue
+		sort.Sort(&ranker.List)
+		return
 	}
 
 	if newvalue > MinValue {
-		return ranker.GetRankIndex(rankid, newvalue)
+		ranker.List[nCount-1].RankID = rankid
+		ranker.List[nCount-1].RankValue = newvalue
+		sort.Sort(&ranker.List)
 	}
 
-	return -1
+	return
 }
 
 func (ranker *TRanker) GetRankIndex(rankid int32, rankvalue int) int {

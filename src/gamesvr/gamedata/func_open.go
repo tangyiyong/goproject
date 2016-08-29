@@ -5,10 +5,10 @@ import (
 )
 
 type ST_FuncOpen struct {
-	FuncID    int //! 功能ID
-	OpenLevel int //! 开放等级
-	VipLevel  int //! VIP提前开放等级
-	Logic     int //! 逻辑关系 1->优先VIP 2->同时满足
+	FuncID    int  //! 功能ID
+	OpenLevel int  //! 开放等级
+	VipLevel  int8 //! VIP提前开放等级
+	Logic     int  //! 逻辑关系 1->优先VIP 2->同时满足
 }
 
 var GT_FuncOpen_List []ST_FuncOpen = nil
@@ -22,7 +22,7 @@ func ParseFuncOpenRecord(rs *RecordSet) {
 	funcID := CheckAtoi(rs.Values[0], 0)
 	GT_FuncOpen_List[funcID].FuncID = funcID
 	GT_FuncOpen_List[funcID].OpenLevel = rs.GetFieldInt("level")
-	GT_FuncOpen_List[funcID].VipLevel = rs.GetFieldInt("viplevel")
+	GT_FuncOpen_List[funcID].VipLevel = int8(rs.GetFieldInt("viplevel"))
 	GT_FuncOpen_List[funcID].Logic = rs.GetFieldInt("logic")
 }
 
@@ -36,7 +36,7 @@ func GetFuncOpenInfo(funcid int) *ST_FuncOpen {
 }
 
 //! 检测是否满足功能开启条件
-func IsFuncOpen(funcid int, level int, viplevel int) bool {
+func IsFuncOpen(funcid int, level int, viplevel int8) bool {
 	pFuncOpen := GetFuncOpenInfo(funcid)
 	if pFuncOpen == nil {
 		gamelog.Error("IsFuncOpen Error: invalid funcid %d", funcid)

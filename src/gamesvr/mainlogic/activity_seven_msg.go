@@ -149,6 +149,12 @@ func Hand_GetSevenActivityAward(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if taskInfo == nil {
+		gamelog.Error("Hand_GetSevenDay Error: Can't find task id: %d", req.TaskID)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
 	awardItems := gamedata.GetItemsFromAwardID(taskData.AwardItem)
 
 	//!  三选一类型奖励

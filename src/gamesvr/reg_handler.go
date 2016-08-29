@@ -89,6 +89,7 @@ func RegHttpMsgHandler() {
 		{"/arena_check", mainlogic.Hand_ArenaCheck, false},                                 //! 玩家请求挑战排位检测
 		{"/arena_store_buy_item", mainlogic.Hand_BuyArenaStoreItem, false},                 //! 玩家请求购买声望商店物品
 		{"/arena_store_query_award", mainlogic.Hand_GetArenaStoreAleadyBuyAwardLst, false}, //! 玩家请求已购买的声望商店奖励ID列表
+		{"/arena_battle", mainlogic.Hand_ArenaBattle, false},                               //! 多次挑战竞技场
 
 		//! 夺宝消息处理
 		{"/get_rob_list", mainlogic.Hand_GetRobList, false},            //! 玩家请求抢劫名单

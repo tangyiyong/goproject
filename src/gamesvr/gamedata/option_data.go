@@ -307,6 +307,8 @@ var (
 	FashionMeltingSum     int //!时装的熔炼总值
 	FashionMeltingAwardID int //!时装熔炼的产出ID
 
+	//竞技场
+	ArenaBattleVictoryPercent int //! 竞技场挑战多次胜率
 )
 
 func InitOptionParser(total int) bool {
@@ -1234,7 +1236,10 @@ func ParseOptionRecord(rs *RecordSet) {
 		{
 			FashionMeltingAwardID = CheckAtoiName(rs.Values[2], "fashion_melting_awardid")
 		}
-
+	case "arena_battle_victory_percent":
+		{
+			ArenaBattleVictoryPercent = CheckAtoiName(rs.Values[2], "arena_battle_victory_percent")
+		}
 	default:
 		{
 			panic(fmt.Sprintf("[%s] not processed !!!", rs.Values[0]))

@@ -26,8 +26,8 @@ func ParseVipRecord(rs *RecordSet) {
 	return
 }
 
-func GetVipInfo(level int) *ST_VipLevelExpInfo {
-	if level >= len(GT_Vip_List) || level < 0 {
+func GetVipInfo(level int8) *ST_VipLevelExpInfo {
+	if int(level) >= len(GT_Vip_List) || level < 0 {
 		gamelog.Error("GetVipInfo Error: invalid level %d", level)
 		return nil
 	}
@@ -35,7 +35,7 @@ func GetVipInfo(level int) *ST_VipLevelExpInfo {
 	return &GT_Vip_List[level]
 }
 
-func CalcVipLevelByExp(exp int, oldlevel int) int {
+func CalcVipLevelByExp(exp int, oldlevel int8) int8 {
 	if len(GT_Vip_List) == 0 {
 		gamelog.Error("CalcVipLevelByExp fail. Vip list is nil")
 		return oldlevel

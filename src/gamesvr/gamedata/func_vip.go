@@ -1,13 +1,12 @@
 package gamedata
 
 import (
-	"fmt"
 	"gamelog"
 )
 
 //! VIP特权表
 const (
-	VIPLevelLimit = 12
+	VIPLevelLimit = int8(12)
 )
 
 type ST_FuncVipInfo struct {
@@ -26,15 +25,23 @@ func ParseVipPrivilegeRecord(rs *RecordSet) {
 	funcid := rs.GetFieldInt("func_id")
 	GT_FuncVipList[funcid].FuncID = funcid
 
-	//! 加入特权
-	for i := 0; i <= VIPLevelLimit; i++ {
-		fieldName := fmt.Sprintf("vip%d", i)
-		GT_FuncVipList[funcid].VipValue[i] = rs.GetFieldInt(fieldName)
-	}
+	GT_FuncVipList[funcid].VipValue[0] = rs.GetFieldInt("vip0")
+	GT_FuncVipList[funcid].VipValue[1] = rs.GetFieldInt("vip1")
+	GT_FuncVipList[funcid].VipValue[2] = rs.GetFieldInt("vip2")
+	GT_FuncVipList[funcid].VipValue[3] = rs.GetFieldInt("vip3")
+	GT_FuncVipList[funcid].VipValue[4] = rs.GetFieldInt("vip4")
+	GT_FuncVipList[funcid].VipValue[5] = rs.GetFieldInt("vip5")
+	GT_FuncVipList[funcid].VipValue[6] = rs.GetFieldInt("vip6")
+	GT_FuncVipList[funcid].VipValue[7] = rs.GetFieldInt("vip7")
+	GT_FuncVipList[funcid].VipValue[8] = rs.GetFieldInt("vip8")
+	GT_FuncVipList[funcid].VipValue[9] = rs.GetFieldInt("vip9")
+	GT_FuncVipList[funcid].VipValue[10] = rs.GetFieldInt("vip10")
+	GT_FuncVipList[funcid].VipValue[11] = rs.GetFieldInt("vip11")
+	GT_FuncVipList[funcid].VipValue[12] = rs.GetFieldInt("vip12")
 }
 
 //! 查询特权
-func GetFuncVipValue(funcID int, vipLevel int) int {
+func GetFuncVipValue(funcID int, vipLevel int8) int {
 	if vipLevel > VIPLevelLimit || vipLevel < 0 {
 		gamelog.Error("GetFuncVipValue Error : Invalid vip level: %d", vipLevel)
 		return 0

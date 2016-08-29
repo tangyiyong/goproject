@@ -11,19 +11,19 @@ const (
 type MSG_CheckIn_Req struct {
 	PlayerName string
 	PlayerID   int32
-	GuildID    int
+	GuildID    int32
 }
 
 //MSG_CHATMSG_REQ
 type MSG_Chat_Req struct {
 	SourceName     string
 	TargetChannel  int
-	TargetGuildID  int
+	TargetGuildID  int32
 	TargetName     string
-	TargetPlayerID int
+	TargetPlayerID int32
 	MsgContent     string
 	HeroID         int
-	Quality        int
+	Quality        int8
 }
 
 //MSG_CHATMSG_ACK
@@ -37,10 +37,10 @@ type MSG_Chat_Msg_Notify struct {
 	SourcePlayerID int32
 	SourceName     string
 	TargetChannel  int
-	TargetGuildID  int
+	TargetGuildID  int32
 	MsgContent     string
 	HeroID         int
-	Quality        int
+	Quality        int8
 }
 
 type MSG_CheckIn_Ack struct {
@@ -58,7 +58,7 @@ type MSG_GameSvr_Nofity struct {
 //MSG_GUILD_NOTIFY
 type MSG_GuildNotify_Req struct {
 	PlayerID   int32
-	NewGuildID int //新的公会ID
+	NewGuildID int32 //新的公会ID
 }
 
 //玩家上下线变化通知消息

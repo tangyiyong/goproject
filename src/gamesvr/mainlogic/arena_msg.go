@@ -212,6 +212,117 @@ func Hand_ArenaCheck(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//! 多次挑战竞技场结果
+func Hand_ArenaBattle(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接收信息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.MSG_ArenaBattle_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_ChallengeArenaResult Unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_ArenaBattle_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+		gamelog.Info("Return: %s", b)
+	}()
+
+	//! 常规检测
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	if player.ArenaModule.CurrentRank > req.Rank {
+		gamelog.Error("Hand_ArenaBattle Error: Challenge rank high. Rank: %d", req.Rank)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
+	arenaConfig := gamedata.GetArenaConfig()
+	if arenaConfig == nil {
+		gamelog.Error("Hand_ArenaBattle GetArenaConfig Fail")
+		return
+	}
+
+	copyInfo := gamedata.GetCopyBaseInfo(arenaConfig.CopyID)
+	if copyInfo == nil {
+		gamelog.Error("Hand_ArenaBattle GetCopyBaseInfo fail. CopyID: %d", arenaConfig.CopyID)
+		return
+	}
+
+	const JingLiDanID = 101
+	if req.IsUseItem == 1 {
+		if player.BagMoudle.IsItemEnough(JingLiDanID, 1) == false {
+			gamelog.Error("Hand_ArenaBattle Error: Item not enough")
+			response.RetCode = msg.RE_ITEM_NOT_ENOUGH
+			return
+		}
+
+		player.BagMoudle.RemoveNormalItem(JingLiDanID, 1)
+
+		itemInfo := gamedata.GetItemInfo(JingLiDanID)
+		player.RoleMoudle.AddAction(copyInfo.ActionType, (itemInfo.Data2 - copyInfo.ActionValue))
+	} else {
+		if player.RoleMoudle.CheckActionEnough(copyInfo.ActionType, copyInfo.ActionValue) == false {
+			gamelog.Error("Hand_ArenaBattle Error: Action not enough")
+			response.RetCode = msg.RE_NOT_ENOUGH_ACTION
+			return
+		}
+
+		player.RoleMoudle.CostAction(copyInfo.ActionType, copyInfo.ActionValue)
+	}
+
+	//! 增加玩家经验
+	randValue := rand.New(rand.NewSource(time.Now().UnixNano()))
+	response.IsVictory = (randValue.Intn(1000)+1 < gamedata.ArenaBattleVictoryPercent)
+	if response.IsVictory == true {
+		//! 获胜的翻牌随机奖励
+		awardLst := gamedata.GetItemsFromAwardIDEx(copyInfo.AwardID)
+		if len(awardLst) != 3 {
+			gamelog.Error("GetItemsFromAwardIDEx error: %v  awardID: %d", awardLst, copyInfo.AwardID)
+			return
+		}
+		response.ItemID = awardLst[0].ItemID
+		response.ItemNum = awardLst[0].ItemNum
+
+		//! 发放获胜奖励声望
+		player.RoleMoudle.AddMoney(arenaConfig.VictoryMoneyID, arenaConfig.VictoryMoneyNum)
+		response.Money2 = arenaConfig.VictoryMoneyNum
+	} else {
+		//! 发放失败奖励声望
+		player.RoleMoudle.AddMoney(arenaConfig.FailedMoneyID, arenaConfig.FailedMoneyNum)
+		response.Money2 = arenaConfig.FailedMoneyNum
+	}
+
+	//! 工会技能经验加成
+	exp := copyInfo.Experience * player.GetLevel()
+
+	if player.HeroMoudle.GuildSkiLvl[8] > 0 {
+		expInc := gamedata.GetGuildSkillExpValue(player.HeroMoudle.GuildSkiLvl[8])
+		exp += exp * expInc / 1000
+	}
+
+	response.Exp = exp
+	response.Money = copyInfo.MoneyNum * player.GetLevel()
+
+	player.HeroMoudle.AddMainHeroExp(exp)
+	player.RoleMoudle.AddMoney(copyInfo.MoneyID, response.Money)
+	player.BagMoudle.AddAwardItem(response.ItemID, response.ItemNum)
+	response.RetCode = msg.RE_SUCCESS
+}
+
 //! 玩家反馈挑战竞技场结果
 func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())

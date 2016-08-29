@@ -56,9 +56,9 @@ type MSG_TestAddVip_Req struct {
 }
 
 type MSG_TestAddVip_Ack struct {
-	RetCode  int //返回码
-	VipLevel int //返回当前等级
-	VipExp   int //返回当前的VIP经验
+	RetCode  int  //返回码
+	VipLevel int8 //返回当前等级
+	VipExp   int  //返回当前的VIP经验
 }
 
 //玩家增加工会经验
@@ -121,5 +121,5 @@ type MSG_ChargeTestMoney_Req struct {
 type MSG_ChargeTestMoney_Ack struct {
 	RetCode  int //返回码
 	VIPExp   int
-	VIPLevel int
+	VIPLevel int8
 }

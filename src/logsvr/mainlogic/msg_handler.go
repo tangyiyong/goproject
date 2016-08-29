@@ -7,7 +7,7 @@ import (
 	"tcpserver"
 )
 
-func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	var req msg.MSG_CheckIn_Req
 	if json.Unmarshal(pdata, &req) != nil {
 		gamelog.Error("Hand_CheckInReq : Unmarshal error!!!!")
@@ -27,7 +27,7 @@ func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	return
 }
 
-func Hand_OnLogData(pTcpConn *tcpserver.TCPConn, pdata []byte) {
+func Hand_OnLogData(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	G_LogDataMgr.Append(pdata)
 	//如果不用写数据库，则消息不用解析出来
 	//如果需要写数据库，则消息需要解析出来

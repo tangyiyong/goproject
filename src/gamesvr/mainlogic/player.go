@@ -383,8 +383,8 @@ func (player *TPlayer) CalcFightValue() int {
 	oldValue := player.pSimpleInfo.FightValue
 	value := player.HeroMoudle.CalcFightValue(nil)
 	if true == G_SimpleMgr.Set_FightValue(player.playerid, value, player.GetLevel()) {
-		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FIGHT_VALUE, value)
 		G_FightRanker.SetRankItemEx(player.playerid, oldValue, value)
+		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FIGHT_VALUE, value)
 	}
 	return value
 }
@@ -422,7 +422,7 @@ func (player *TPlayer) GetLevel() int {
 }
 
 //获取角色的VIP等级
-func (player *TPlayer) GetVipLevel() int {
+func (player *TPlayer) GetVipLevel() int8 {
 	return player.RoleMoudle.VipLevel
 }
 

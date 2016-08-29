@@ -10,7 +10,8 @@ import (
 
 type TActivityFirstRecharge struct {
 	ActivityID         int              //! 活动ID
-	FirstRechargeAward int              //! 首充标记 0->不能领取 1->可以领取 2->已领取并开启次充奖励 3->次充奖励可领取 4->已领取次充奖励
+	FirstRechargeAward int              //! 首充标记 0->不能领取 1->可以领取 2->已领取
+	NextRechargeAward  int              //! 次充标记 0->不能领取 1->可以领取 2->已领取
 	VersionCode        int32            //! 版本号
 	ResetCode          int32            //! 迭代号
 	activityModule     *TActivityModule //! 指针
@@ -27,6 +28,7 @@ func (self *TActivityFirstRecharge) Init(activityID int, mPtr *TActivityModule, 
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.FirstRechargeAward = 0
+	self.NextRechargeAward = 0
 	self.activityModule = mPtr
 	self.activityModule.activityPtrs[self.ActivityID] = self
 	self.VersionCode = vercode
@@ -60,7 +62,7 @@ func (self *TActivityFirstRecharge) RedTip() bool {
 		return false
 	}
 
-	if self.FirstRechargeAward == 1 || self.FirstRechargeAward == 3 {
+	if self.FirstRechargeAward == 1 || self.NextRechargeAward == 1 {
 		return true
 	}
 	return false
@@ -70,8 +72,8 @@ func (self *TActivityFirstRecharge) RedTip() bool {
 func (self *TActivityFirstRecharge) CheckRecharge(rmb int) {
 	if self.FirstRechargeAward == 0 { //! 首充
 		self.FirstRechargeAward = 1
-	} else if self.FirstRechargeAward == 2 && rmb == gamedata.NextAwardNeedRecharge { //! 次充
-		self.FirstRechargeAward = 3
+	} else if rmb >= gamedata.NextAwardNeedRecharge { //! 次充
+		self.NextRechargeAward = 1
 	}
 
 	go self.DB_SetFirstRechargeMark()
@@ -96,5 +98,6 @@ func (self *TActivityFirstRecharge) DB_Reset() bool {
 
 func (self *TActivityFirstRecharge) DB_SetFirstRechargeMark() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
-		"firstrecharge.firstrechargeaward": self.FirstRechargeAward}})
+		"firstrecharge.firstrechargeaward": self.FirstRechargeAward,
+		"firstrecharge.nextrechargeaward":  self.NextRechargeAward}})
 }

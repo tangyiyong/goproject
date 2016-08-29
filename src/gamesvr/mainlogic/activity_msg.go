@@ -138,6 +138,7 @@ func HuntTreasureRankAward(awardType int, player *TPlayer, indexToday int) (awar
 		totalRank := G_HuntTreasureTotalRanker.GetRankIndex(player.playerid, info.Score)
 		if totalRank <= 0 {
 			retCode = msg.RE_NOT_ENOUGH_RANK
+			gamelog.Error("Hand_GetHuntRankAward Error: Can't receive award rank: %d", totalRank)
 			return awardItem, retCode
 		}
 
@@ -295,6 +296,7 @@ func Hand_GetActivityRankAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if response.RetCode != msg.RE_SUCCESS {
+		gamelog.Error("Hand_GetActivityRankAward Error: ErrorCode %d", response.RetCode)
 		return
 	}
 

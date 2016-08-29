@@ -6,12 +6,12 @@ import (
 
 //! 签到奖励
 type ST_SignInfo struct {
-	DayID     int //! 天数
-	AwardItem int //! 奖品
-	Count     int //! 奖励个数
-	VipLevel  int //! 倍数奖励需求VIP等级
-	Multiple  int //! 领取奖励倍数
-	Type      int //! 种类
+	DayID     int  //! 天数
+	AwardItem int  //! 奖品
+	Count     int  //! 奖励个数
+	VipLevel  int8 //! 倍数奖励需求VIP等级
+	Multiple  int  //! 领取奖励倍数
+	Type      int  //! 种类
 }
 
 var GT_Sign_List []ST_SignInfo = nil
@@ -28,7 +28,7 @@ func ParseSignRecord(rs *RecordSet) {
 	GT_Sign_List[dayID].DayID = dayID
 	GT_Sign_List[dayID].AwardItem = rs.GetFieldInt("awarditem")
 	GT_Sign_List[dayID].Count = rs.GetFieldInt("count")
-	GT_Sign_List[dayID].VipLevel = rs.GetFieldInt("viplevel")
+	GT_Sign_List[dayID].VipLevel = int8(rs.GetFieldInt("viplevel"))
 	GT_Sign_List[dayID].Multiple = rs.GetFieldInt("multiple")
 	GT_Sign_List[dayID].Type = rs.GetFieldInt("type")
 }

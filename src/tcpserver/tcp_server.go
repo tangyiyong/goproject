@@ -119,7 +119,7 @@ func (server *TCPServer) run() {
 			server.mutexConns.Lock()
 			delete(server.connset, tcpConn.conn)
 			close(tcpConn.writeChan) //服务端没有重连，直接关闭chan
-			gamelog.Info("Connect Endded:Data:%v, ConnNum is:%d", tcpConn.Data, len(server.connset))
+			gamelog.Info("Connect Endded:ConnID:%d, ConnNum is:%d", tcpConn.ConnID, len(server.connset))
 			server.mutexConns.Unlock()
 			server.wgConns.Done()
 		}

@@ -24,10 +24,10 @@ type MSG_GetChargeResult_Req struct {
 }
 
 type MSG_GetChargeResult_Ack struct {
-	RetCode  int //返回码
-	VipLevel int //当前的VIP等级
-	VipExp   int //当前的Vip经验
-	MoneyNum int //元宝数
+	RetCode  int  //返回码
+	VipLevel int8 //当前的VIP等级
+	VipExp   int  //当前的Vip经验
+	MoneyNum int  //元宝数
 }
 
 //! 玩家领取月卡

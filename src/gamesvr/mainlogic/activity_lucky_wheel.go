@@ -126,17 +126,15 @@ func (self *TActivityWheel) RedTip() bool {
 		}
 
 		//! 检查昨日排行榜
-		for _, v := range G_LuckyWheelYesterdayRanker.List {
-			if v.RankID == self.activityModule.PlayerID && self.IsRecvTodayRankAward == false {
-				return true
-			}
+		rank := G_HuntTreasureYesterdayRanker.GetRankIndex(self.activityModule.PlayerID, self.GetYesterdayScore())
+		if rank > 0 && rank <= 50 {
+			return true
 		}
 	} else {
 		//! 检查总排行榜
-		for _, v := range G_LuckyWheelTotalRanker.List {
-			if v.RankID == self.activityModule.PlayerID && self.IsRecvTotalRankAward == false {
-				return true
-			}
+		totayRank := G_HuntTreasureTotalRanker.GetRankIndex(self.activityModule.PlayerID, self.TotalScore)
+		if totayRank > 0 && totayRank <= 50 {
+			return true
 		}
 	}
 

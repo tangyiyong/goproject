@@ -32,7 +32,6 @@ func Hand_QueryHuntTreasure(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -98,7 +97,6 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -382,7 +380,6 @@ func Hand_QueryHuntTurnsAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -419,7 +416,6 @@ func Hand_GetHuntTurnsAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -498,7 +494,6 @@ func Hand_QueryHuntTreasureStore(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -558,7 +553,6 @@ func Hand_BuyHuntTreasureStroreItem(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -669,7 +663,6 @@ func Hand_CleanHuntStore(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查

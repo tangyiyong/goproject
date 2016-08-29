@@ -184,9 +184,9 @@ func Handle_BindTourist(w http.ResponseWriter, r *http.Request) {
 
 //处理登录请求
 func Handle_ServerList(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
-	gamelog.Info("message: %v", r.URL.String())
 
 	var req msg.MSG_ServerList_Req
 	if json.Unmarshal(buffer, &req) != nil {

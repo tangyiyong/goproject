@@ -49,21 +49,15 @@ func BatSvrMsgDispatcher(pTcpConn *tcpserver.TCPConn, MsgID int16, extra int16, 
 		G_RoomMgr.Hand_HeartBeat(pTcpConn, pdata)
 	default:
 		{
-			pBatData := pTcpConn.Data.(*TBattleData)
-			if pTcpConn.Data == nil || pBatData == nil {
-				gamelog.Error("BatSvrMsgDispatcher Error: pBatData == nil ||pTcpConn.Data == nil ")
-				return
-			}
-
 			var pRoom *TBattleRoom = nil
-			if pBatData.RoomID == 0 || pBatData.PlayerID < 10000 {
+			if pTcpConn.Extra == 0 || pTcpConn.ConnID < 10000 {
 				pRoom = G_RoomMgr.GetRoomByID(extra)
 			} else {
-				pRoom = G_RoomMgr.GetRoomByID(pBatData.RoomID)
+				pRoom = G_RoomMgr.GetRoomByID(int16(pTcpConn.Extra))
 			}
 
 			if pRoom == nil {
-				gamelog.Error("BatSvrMsgDispatcher Error: Invalid RoomID:%d, PlayerID:%d", pBatData.RoomID, pBatData.PlayerID)
+				gamelog.Error("BatSvrMsgDispatcher Error: Invalid RoomID:%d, PlayerID:%d", pTcpConn.Extra, pTcpConn.ConnID)
 				return
 			}
 

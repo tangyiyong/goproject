@@ -15,6 +15,8 @@ func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 		return
 	}
 
+	gamelog.Info("message: MSG_CHECK_IN_REQ id:%d, name:%s", req.PlayerID, req.PlayerName)
+
 	if req.PlayerID == 0 {
 		gamelog.Error("Hand_CheckInReq req.PlayerID == 0")
 		return
@@ -27,12 +29,11 @@ func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	}
 
 	CheckAndClean(req.PlayerID)
-	gamelog.Info("message: Hand_CheckInReq id:%d, name:%s", req.PlayerID, req.PlayerName)
 	AddTcpConn(req.PlayerID, req.GuildID, req.PlayerName, pTcpConn)
-	var response msg.MSG_Chat_Ack
-	response.RetCode = msg.RE_SUCCESS
-	b, _ := json.Marshal(response)
-	pTcpConn.WriteMsg(msg.MSG_CHECK_IN_ACK, 0, b)
+	//var response msg.MSG_Chat_Ack
+	//response.RetCode = msg.RE_SUCCESS
+	//b, _ := json.Marshal(response)
+	//pTcpConn.WriteMsg(msg.MSG_CHECK_IN_ACK, 0, b)
 
 	if req.PlayerID >= 10000 {
 		SendOnlineNotify(req.PlayerID, true)
@@ -43,7 +44,7 @@ func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 
 func Hand_ChatMsgReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: Hand_ChatMsgReq")
-	if pTcpConn.Data.(*TChatData).PlayerID == 0 {
+	if pTcpConn.ConnID == 0 {
 		gamelog.Error("Hand_ChatMsgReq pTcpConn.PlayerID == 0!!!!")
 		return
 	}
@@ -55,11 +56,9 @@ func Hand_ChatMsgReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 		return
 	}
 
-	gamelog.Info("recv: %v", req)
-
 	var chatMsgNotify msg.MSG_Chat_Msg_Notify
 	chatMsgNotify.SourceName = req.SourceName
-	chatMsgNotify.SourcePlayerID = pTcpConn.Data.(*TChatData).PlayerID
+	chatMsgNotify.SourcePlayerID = pTcpConn.ConnID
 	chatMsgNotify.TargetChannel = req.TargetChannel
 	chatMsgNotify.TargetGuildID = req.TargetGuildID
 	chatMsgNotify.MsgContent = req.MsgContent
@@ -79,18 +78,17 @@ func Hand_ChatMsgReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	response.RetCode = msg.RE_SUCCESS
 	b, _ := json.Marshal(response)
 	pTcpConn.WriteMsg(msg.MSG_CHATMSG_ACK, 0, b)
-	gamelog.Info("Return: %s", b)
 	return
 }
 
 func Hand_DisConnect(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
-	if pTcpConn.Data == nil || pTcpConn.Data.(*TChatData).PlayerID <= 0 {
+	if pTcpConn == nil || pTcpConn.ConnID <= 0 {
 		return
 	}
-	SendOnlineNotify(pTcpConn.Data.(*TChatData).PlayerID, false)
+	SendOnlineNotify(pTcpConn.ConnID, false)
 
 	if pTcpConn.Cleaned == false {
-		CheckAndClean(pTcpConn.Data.(*TChatData).PlayerID)
+		CheckAndClean(pTcpConn.ConnID)
 	}
 
 	return
@@ -102,8 +100,8 @@ func Hand_Game_To_Client(pTcpConn *tcpserver.TCPConn, e int16, pdata []byte) {
 		return
 	}
 	playerid := int32(binary.LittleEndian.Uint64(pdata[:4]))
-	msgid := int16(binary.LittleEndian.Uint16(pdata[4:6]))
-	extra := int16(binary.LittleEndian.Uint16(pdata[6:8]))
+	extra := int16(binary.LittleEndian.Uint16(pdata[4:6]))
+	msgid := int16(binary.LittleEndian.Uint16(pdata[6:8]))
 
 	if playerid == 0 {
 		SendMessageToWorld(msgid, extra, pdata[8:], 0)

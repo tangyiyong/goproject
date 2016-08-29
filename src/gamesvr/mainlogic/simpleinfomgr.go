@@ -12,7 +12,7 @@ import (
 type TSimpleInfo struct {
 	PlayerID      int32  `bson:"_id"` //玩家ID
 	AccountID     int32  //账号ID
-	GuildID       int    //公会ID
+	GuildID       int32  //公会ID
 	HeroID        int    //英雄ID
 	Quality       int8   //主角品质
 	Name          string //玩家名字
@@ -251,7 +251,7 @@ func (mgr *TSimpleInfoMgr) Set_LoginDay(playerid int32, day uint32) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_GuildID(playerid int32, guildid int) {
+func (mgr *TSimpleInfoMgr) Set_GuildID(playerid int32, guildid int32) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -263,7 +263,7 @@ func (mgr *TSimpleInfoMgr) Set_GuildID(playerid int32, guildid int) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Get_GuildID(playerid int32) int {
+func (mgr *TSimpleInfoMgr) Get_GuildID(playerid int32) int32 {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()

@@ -210,7 +210,7 @@ func Hand_CreateGuild(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	player.GuildModule.ApplyGuildList = IntLst{}
+	player.GuildModule.ApplyGuildList = Int32Lst{}
 	go player.GuildModule.DB_ResetApplyList()
 
 	response.RetCode = msg.RE_SUCCESS
@@ -883,7 +883,7 @@ func Hand_ApplicationThrough(w http.ResponseWriter, r *http.Request) {
 	SendGuildChangeMsg(req.TargetPlayerID, player.pSimpleInfo.GuildID)
 
 	//! 移除目标玩家申请列表
-	targetPlayer.GuildModule.ApplyGuildList = []int{}
+	targetPlayer.GuildModule.ApplyGuildList = []int32{}
 
 	hour := gamedata.GuildCopyBattleTimeBegin / 60 * 60
 	min := (gamedata.GuildCopyBattleTimeBegin - hour*3600) / 60

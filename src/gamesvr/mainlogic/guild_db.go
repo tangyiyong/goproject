@@ -14,22 +14,22 @@ func DB_CreateGuild(info *TGuild) {
 }
 
 //! 解散公会
-func DB_RemoveGuild(guildID int) {
+func DB_RemoveGuild(guildID int32) {
 	mongodb.RemoveFromDB(appconfig.GameDbName, "Guild", bson.M{"_id": guildID})
 }
 
 //! 添加工会成员
-func DB_GuildAddMember(guildID int, member *TMember) {
+func DB_GuildAddMember(guildID int32, member *TMember) {
 	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, "memberlist", *member)
 }
 
 //! 删除工会成员
-func DB_GuildRemoveMember(guildID int, member *TMember) {
+func DB_GuildRemoveMember(guildID int32, member *TMember) {
 	mongodb.RemoveFromArray(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, "memberlist", *member)
 }
 
 //! 修改工会成员信息
-func DB_GuildUpdateMember(guildID int, member *TMember, index int) {
+func DB_GuildUpdateMember(guildID int32, member *TMember, index int) {
 	filedName := fmt.Sprintf("memberlist.%d", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, bson.M{"$set": bson.M{
 		filedName: *member}})
@@ -46,22 +46,22 @@ func (self *TGuild) DB_RemoveGuildEvent(event GuildEvent) {
 }
 
 //! 增加申请名单
-func DB_AddApplyList(guildID int, playerid int32) {
+func DB_AddApplyList(guildID int32, playerid int32) {
 	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, "applylist", playerid)
 }
 
 //! 删除申请名单
-func DB_RemoveApplyList(guildID int, playerid int32) {
+func DB_RemoveApplyList(guildID int32, playerid int32) {
 	mongodb.RemoveFromArray(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, "applylist", playerid)
 }
 
 //! 增加申请帮派名单
-func (self *TGuildModule) DB_AddApplyGuildList(guildID int) {
+func (self *TGuildModule) DB_AddApplyGuildList(guildID int32) {
 	mongodb.AddToArray(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, "applyguildlist", guildID)
 }
 
 //! 删除申请帮派名单
-func (self *TGuildModule) DB_RemoveApplyGuildList(guildID int) {
+func (self *TGuildModule) DB_RemoveApplyGuildList(guildID int32) {
 	mongodb.RemoveFromArray(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, "applyguildlist", guildID)
 }
 

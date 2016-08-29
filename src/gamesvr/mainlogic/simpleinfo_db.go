@@ -51,6 +51,6 @@ func (simple *TSimpleInfoMgr) DB_SetAwardCenterID(playerid int32, awardCenterID 
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerSimple", bson.M{"_id": playerid}, bson.M{"$set": bson.M{"awardcenterid": awardCenterID}})
 }
 
-func (simple *TSimpleInfoMgr) DB_SetGuildID(playerid int32, guildid int) {
+func (simple *TSimpleInfoMgr) DB_SetGuildID(playerid int32, guildid int32) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerSimple", bson.M{"_id": playerid}, bson.M{"$set": bson.M{"guildid": guildid}})
 }

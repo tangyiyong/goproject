@@ -16,8 +16,12 @@ type TCPConn struct {
 	writeChan  chan []byte
 	closeFlag  bool
 	Cleaned    bool
-	Data       interface{}
 	OnNetClose func()
+
+	//应用级的数据
+	ConnID int32 //一般是用户ID或者服务器ID为int32,这个是必须的。
+	Extra  int32 //用户ID之外的数据，在战场服作roomid，在聊天聊作guildid。
+	PackNo int32 //包序号
 }
 
 func newTCPConn(conn net.Conn, pendingWriteNum int) *TCPConn {
@@ -25,7 +29,6 @@ func newTCPConn(conn net.Conn, pendingWriteNum int) *TCPConn {
 	tcpConn.conn = conn
 	tcpConn.reader = bufio.NewReader(conn)
 	tcpConn.writeChan = make(chan []byte, pendingWriteNum)
-	tcpConn.Data = nil
 	return tcpConn
 }
 func (tcpConn *TCPConn) Close() {
@@ -70,8 +73,8 @@ func (tcpConn *TCPConn) WriteMsg(msgID int16, extra int16, msgdata []byte) bool 
 	msgLen := len(msgdata)
 	msgbuffer := make([]byte, 8, 8+msgLen)
 	binary.LittleEndian.PutUint32(msgbuffer, uint32(msgLen))
-	binary.LittleEndian.PutUint16(msgbuffer[4:], uint16(msgID))
-	binary.LittleEndian.PutUint16(msgbuffer[6:], uint16(extra))
+	binary.LittleEndian.PutUint16(msgbuffer[4:], uint16(extra))
+	binary.LittleEndian.PutUint16(msgbuffer[6:], uint16(msgID))
 	msgbuffer = append(msgbuffer[:8], msgdata...)
 	tcpConn.write(msgbuffer)
 
@@ -112,8 +115,8 @@ func (tcpConn *TCPConn) ReadProcess() error {
 
 		// parse len
 		msgLen = int32(binary.LittleEndian.Uint16(msgHeader[:4]))
-		msgID = int16(binary.LittleEndian.Uint16(msgHeader[4:6]))
-		Extra = int16(binary.LittleEndian.Uint16(msgHeader[6:]))
+		Extra = int16(binary.LittleEndian.Uint16(msgHeader[4:6]))
+		msgID = int16(binary.LittleEndian.Uint16(msgHeader[6:]))
 		if msgLen <= 0 || msgLen > 10240 {
 			gamelog.Error("ReadProcess error: Invalid msgLen :%d", msgLen)
 			break

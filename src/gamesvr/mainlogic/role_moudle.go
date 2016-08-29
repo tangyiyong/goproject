@@ -22,10 +22,10 @@ type TRoleMoudle struct {
 	Name        string    //玩家角色名
 	Actions     []TAction //活力值 ....
 	Moneys      []int     //货币集 1: 金币 2: 银币 ...
-	VipLevel    int       //Vip等级
+	VipLevel    int8      //Vip等级
 	NewWizard   string    //新手向导
-	TodayCharge int       //今天的充值额度
-	TotalCharge int       //总的充值额度
+	TodayCharge int32     //今天的充值额度
+	TotalCharge int32     //总的充值额度
 	ownplayer   *TPlayer  //父player指针
 }
 

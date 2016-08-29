@@ -51,6 +51,7 @@ func Hand_QueryActivityFirstRechargeInfo(w http.ResponseWriter, r *http.Request)
 
 	//! 首充奖励状态
 	response.FirstRechargeStatus = player.ActivityModule.FirstRecharge.FirstRechargeAward
+	response.NextRechargeStatus = player.ActivityModule.FirstRecharge.NextRechargeAward
 }
 
 //! 请求领取首充奖励
@@ -94,7 +95,7 @@ func Hand_GetFirstRechargeAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 判断当前是否能够领取首充奖励
 	if (player.ActivityModule.FirstRecharge.FirstRechargeAward != 1 && req.GetAwardType == 1) ||
-		(player.ActivityModule.FirstRecharge.FirstRechargeAward != 3 && req.GetAwardType == 2) {
+		(player.ActivityModule.FirstRecharge.NextRechargeAward != 1 && req.GetAwardType == 2) {
 		gamelog.Error("Hand_GetFirstRechargeAward Error: Can't recvice first recharge award")
 		response.RetCode = msg.RE_NOT_RECHARGE
 		return
@@ -116,7 +117,12 @@ func Hand_GetFirstRechargeAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 修改标记
-	player.ActivityModule.FirstRecharge.FirstRechargeAward += 1
+	if req.GetAwardType == 1 {
+		player.ActivityModule.FirstRecharge.FirstRechargeAward = 2
+	} else if req.GetAwardType == 2 {
+		player.ActivityModule.FirstRecharge.NextRechargeAward = 2
+	}
+
 	go player.ActivityModule.FirstRecharge.DB_SetFirstRechargeMark()
 
 	//! 返回成功

@@ -28,6 +28,25 @@ type MSG_ArenaPlayerInfo struct {
 	FightValue int
 }
 
+//! 玩家竞技场挑战次数
+//! 消息: /arena_battle
+type MSG_ArenaBattle_Req struct {
+	PlayerID   int32
+	SessionKey string
+	Rank       int //! 挑战的玩家名次
+	IsUseItem  int //! 使用道具 1-> 使用 0-> 不使用
+}
+
+type MSG_ArenaBattle_Ack struct {
+	RetCode   int
+	IsVictory bool
+	ItemID    int
+	ItemNum   int
+	Exp       int
+	Money     int //! 银币
+	Money2    int //! 声望
+}
+
 //! 玩家请求竞技场信息
 //! 消息: /get_arena_info
 type MSG_GetArenaInfo_Req struct {

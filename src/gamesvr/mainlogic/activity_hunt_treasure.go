@@ -4,10 +4,9 @@ import (
 	"appconfig"
 	"fmt"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"utility"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type THuntStoreItem struct {
@@ -121,19 +120,17 @@ func (self *TActivityHunt) RedTip() bool {
 		if self.FreeTimes != 0 { //! 有免费次数则返回红点
 			return true
 		}
-
 		//! 检查昨日排行榜
-		for _, v := range G_HuntTreasureYesterdayRanker.List {
-			if v.RankID == self.activityModule.PlayerID && self.IsRecvTodayRankAward == false {
-				return true
-			}
+		rank := G_HuntTreasureYesterdayRanker.GetRankIndex(self.activityModule.PlayerID, self.GetYesterdayScore())
+		if rank > 0 && rank <= 50 {
+			return true
 		}
+
 	} else {
 		//! 检查总排行榜
-		for _, v := range G_HuntTreasureTotalRanker.List {
-			if v.RankID == self.activityModule.PlayerID && self.IsRecvTotalRankAward == false {
-				return true
-			}
+		totayRank := G_HuntTreasureTotalRanker.GetRankIndex(self.activityModule.PlayerID, self.Score)
+		if totayRank > 0 && totayRank <= 50 {
+			return true
 		}
 	}
 

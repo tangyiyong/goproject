@@ -58,8 +58,8 @@ func (tcpConn *TCPConn) WriteMsg(msgID int16, extra int16, msgdata []byte) bool 
 	msgLen := len(msgdata)
 	msgbuffer := make([]byte, 8+msgLen)
 	binary.LittleEndian.PutUint32(msgbuffer, uint32(msgLen))
-	binary.LittleEndian.PutUint16(msgbuffer[4:6], uint16(msgID))
-	binary.LittleEndian.PutUint16(msgbuffer[6:8], uint16(extra))
+	binary.LittleEndian.PutUint16(msgbuffer[4:6], uint16(extra))
+	binary.LittleEndian.PutUint16(msgbuffer[6:8], uint16(msgID))
 	copy(msgbuffer[8:], msgdata)
 	tcpConn.write(msgbuffer)
 	return true
@@ -69,11 +69,11 @@ func (tcpConn *TCPConn) WriteMsgContinue(playerid int32, msgID int16, extra int1
 	msgLen := len(msgdata)
 	msgbuffer := make([]byte, 16+msgLen)
 	binary.LittleEndian.PutUint32(msgbuffer, uint32(msgLen+10))
-	binary.LittleEndian.PutUint16(msgbuffer[4:], uint16(msg.MSG_GAME_TO_CLIENT))
-	binary.LittleEndian.PutUint16(msgbuffer[6:], uint16(0))
-	binary.LittleEndian.PutUint32(msgbuffer[8:], uint32(playerid))
-	binary.LittleEndian.PutUint16(msgbuffer[12:], uint16(msgID))
-	binary.LittleEndian.PutUint16(msgbuffer[14:], uint16(extra))
+	binary.LittleEndian.PutUint16(msgbuffer[4:6], uint16(0))
+	binary.LittleEndian.PutUint16(msgbuffer[6:8], uint16(msg.MSG_GAME_TO_CLIENT))
+	binary.LittleEndian.PutUint32(msgbuffer[8:12], uint32(playerid))
+	binary.LittleEndian.PutUint16(msgbuffer[12:14], uint16(extra))
+	binary.LittleEndian.PutUint16(msgbuffer[14:16], uint16(msgID))
 	copy(msgbuffer[12:], msgdata)
 	tcpConn.write(msgbuffer)
 
@@ -112,13 +112,12 @@ func (tcpConn *TCPConn) ReadProcess() error {
 			break
 		}
 
-		msgID = int16(binary.LittleEndian.Uint16(msgHeader[4:6]))
+		Extra = int16(binary.LittleEndian.Uint16(msgHeader[4:6]))
+		msgID = int16(binary.LittleEndian.Uint16(msgHeader[6:8]))
 		if msgID <= msg.MSG_BEGIN || msgID >= msg.MSG_END {
 			gamelog.Error("ReadProcess error: Invalid msgID :%d", msgID)
 			break
 		}
-
-		Extra = int16(binary.LittleEndian.Uint16(msgHeader[6:8]))
 
 		// data
 		msgData := make([]byte, msgLen)

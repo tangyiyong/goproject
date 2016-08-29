@@ -13,12 +13,6 @@ import (
 	"time"
 )
 
-type TBattleData struct {
-	PlayerID int32
-	RoomID   int16
-	PackNo   int32 //包序号
-}
-
 var (
 	G_PlayerConns  map[int32]*tcpserver.TCPConn
 	G_ConnsMutex   sync.Mutex
@@ -51,11 +45,9 @@ func AddConnByID(playerid int32, pTcpConn *tcpserver.TCPConn) {
 	return
 }
 
-func AddTcpConn(playerid int32, roomid int16, pTcpConn *tcpserver.TCPConn) {
-	pData := new(TBattleData)
-	pData.RoomID = roomid
-	pData.PlayerID = playerid
-	pTcpConn.Data = pData
+func AddTcpConn(playerid int32, roomid int32, pTcpConn *tcpserver.TCPConn) {
+	pTcpConn.Extra = int32(roomid)
+	pTcpConn.ConnID = playerid
 	pTcpConn.Cleaned = false
 	AddConnByID(playerid, pTcpConn)
 	return
@@ -123,26 +115,26 @@ func SendMessageToRoom(playerid int32, roomid int16, msgid int16, pmsg msg.TMsg)
 	return true
 }
 
-//func SendMessageToRoom(playerid int, roomid int, msgid int16, msgdata []byte) bool {
-//	pRoom := G_RoomMgr.GetRoomByID(roomid)
-//	if pRoom == nil {
-//		gamelog.Error("SendMessageToRoom Invalid roomid : %d", roomid)
-//		return false
-//	}
+func SendMessageDataToRoom(playerid int32, roomid int16, msgdata []byte) bool {
+	pRoom := G_RoomMgr.GetRoomByID(roomid)
+	if pRoom == nil {
+		gamelog.Error("SendMessageToRoom Invalid roomid : %d", roomid)
+		return false
+	}
 
-//	G_ConnsMutex.Lock()
-//	for i := 0; i < max_room_player; i++ {
-//		if pRoom.Players[i] != nil && pRoom.Players[i].PlayerID != playerid && pRoom.Players[i].PlayerID > 0 {
-//			pConn, ok := G_PlayerConns[pRoom.Players[i].PlayerID]
-//			if ok && pConn != nil {
-//				pConn.WriteMsg(msgid, msgdata)
-//			}
-//		}
-//	}
-//	G_ConnsMutex.Unlock()
+	G_ConnsMutex.Lock()
+	for i := 0; i < max_room_player; i++ {
+		if pRoom.Players[i] != nil && pRoom.Players[i].PlayerID != playerid && pRoom.Players[i].PlayerID > 0 {
+			pConn, ok := G_PlayerConns[pRoom.Players[i].PlayerID]
+			if ok && pConn != nil {
+				pConn.WriteMsgData(msgdata)
+			}
+		}
+	}
+	G_ConnsMutex.Unlock()
 
-//	return true
-//}
+	return true
+}
 
 func SendMessageToGameSvr(msgid int16, extra int16, pmsg msg.TMsg) bool {
 	if G_GameSvrConns == nil {

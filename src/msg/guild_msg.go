@@ -57,7 +57,7 @@ type MSG_GetGuildInfo_Req struct {
 }
 
 type MSG_GuildInfo struct {
-	GuildID   int    //! 军团ID
+	GuildID   int32  //! 军团ID
 	Name      string //! 军团名字
 	BossID    int32  //! 会长ID
 	BossName  string //! 会长名字
@@ -93,7 +93,7 @@ type MSG_GetGuildLst_Ack struct {
 type MSG_EnterGuild_Req struct {
 	PlayerID   int32
 	SessionKey string
-	GuildID    int
+	GuildID    int32
 }
 
 type MSG_EnterGuild_Ack struct {
@@ -117,7 +117,7 @@ type MSG_GetApplyGuildList_Ack struct {
 type MSG_CancellationGuildApply_Req struct {
 	PlayerID   int32
 	SessionKey string
-	GuildID    int
+	GuildID    int32
 }
 
 type MSG_CancellationGuildApply_Ack struct {

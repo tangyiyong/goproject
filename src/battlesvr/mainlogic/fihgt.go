@@ -109,7 +109,7 @@ func (self *TBattleRoom) Hand_SkillState(pdata []byte) {
 
 			//向服务器发送击杀事件
 			if killreq.Kill > 0 {
-				SendMessageToGameSvr(msg.MSG_KILL_EVENT_REQ, self.RoomID, &killreq)
+				SendMessageToGameSvr(msg.MSG_KILL_EVENT_REQ, int16(self.RoomID), &killreq)
 			}
 
 			ackHeroState.Heros = append(ackHeroState.Heros, msg.MSG_HeroItem{ObjectID: pHeroDefender.ObjectID, CurHp: pHeroDefender.CurHp})

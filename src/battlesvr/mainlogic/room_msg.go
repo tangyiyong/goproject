@@ -41,7 +41,7 @@ func (self *TBattleRoom) Hand_LeaveRoom(pdata []byte) {
 	}
 
 	pTcpConn := GetConnByID(req.PlayerID)
-	if pTcpConn == nil || pTcpConn.Data == nil {
+	if pTcpConn == nil {
 		gamelog.Error("Hand_LeaveRoom : Invalid Playerid:%d", req.PlayerID)
 		return
 	}
@@ -208,8 +208,8 @@ func (self *TBattleRoom) Hand_StartCarryAck(pdata []byte) {
 		return
 	}
 
-	playerid := pConn.Data.(*TBattleData).PlayerID
-	roomid := pConn.Data.(*TBattleData).RoomID
+	playerid := pConn.ConnID
+	roomid := int16(pConn.Extra)
 	if playerid <= 0 || roomid <= 0 {
 		gamelog.Info("Hand_StartCarryAck Error: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
 		return
@@ -251,8 +251,8 @@ func (self *TBattleRoom) Hand_FinishCarryAck(pdata []byte) {
 	}
 
 	if req.RetCode == msg.RE_SUCCESS {
-		playerid := pConn.Data.(*TBattleData).PlayerID
-		roomid := pConn.Data.(*TBattleData).RoomID
+		playerid := pConn.ConnID
+		roomid := int16(pConn.Extra)
 		if playerid <= 0 || roomid <= 0 {
 			gamelog.Info("Hand_FinishCarryAck Error: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
 			return
@@ -323,8 +323,8 @@ func (self *TBattleRoom) Hand_PlayerReviveAck(pdata []byte) {
 		return
 	}
 
-	playerid := pConn.Data.(*TBattleData).PlayerID
-	roomid := pConn.Data.(*TBattleData).RoomID
+	playerid := pConn.ConnID
+	roomid := int16(pConn.Extra)
 	if playerid <= 0 || roomid <= 0 {
 		gamelog.Info("Hand_PlayerReviveReq Error: Invalid PlayerID :%d and roomid :%d", playerid, roomid)
 		return

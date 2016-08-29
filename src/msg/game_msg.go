@@ -37,7 +37,7 @@ type MSG_EnterGameSvr_Req struct {
 
 type MSG_EnterGameSvr_Ack struct {
 	RetCode     int    //返回码
-	GuildID     int    //工会ID
+	GuildID     int32  //工会ID
 	SvrTime     int64  //服务器时间
 	ChatSvrAddr string //聊天服的地址
 	PlayerName  string //玩家角色名
@@ -53,7 +53,7 @@ type MSG_GetRoleData_Req struct {
 
 type MSG_GetRoleData_Ack struct {
 	RetCode    int     //返回码
-	VipLevel   int     //VIP等级
+	VipLevel   int8    //VIP等级
 	VipExp     int     //VIP经验
 	BatCamp    int8    //阵营战阵营
 	Actions    []int   //行动力表
@@ -656,7 +656,7 @@ type MSG_GetRebelRank_Ack struct {
 }
 
 type MSG_GuildRankInfo struct {
-	GuildID     int    //公会ID
+	GuildID     int32  //公会ID
 	GuildName   string //公公名
 	Icon        int    //公会图标
 	Level       int    //公会等级

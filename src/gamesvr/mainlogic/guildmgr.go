@@ -112,7 +112,7 @@ func (self MemberLst) Swap(i int, j int) {
 
 //公会表结构
 type TGuild struct {
-	GuildID     int       `bson:"_id"` //! 军团ID
+	GuildID     int32     `bson:"_id"` //! 军团ID
 	Name        string    //! 军团名字
 	bossName    string    //! 军团长姓名
 	Icon        int       //! 军团Icon
@@ -144,14 +144,14 @@ type TGuild struct {
 	ResetDay uint32 //! 重置天数
 }
 
-type GuildMap map[int]*TGuild
-type GuildKeyLst []int //! 用于排序的Key值Slice
+type GuildMap map[int32]*TGuild
+type GuildKeyLst []int32 //! 用于排序的Key值Slice
 
 var (
 	G_Guild_List     GuildMap
 	G_Guild_Key_List GuildKeyLst
 	Guild_Map_Mutex  sync.Mutex
-	G_CurGuildID     int
+	G_CurGuildID     int32
 )
 
 func (self *TGuild) GetCopyLifeInfo(copyID int) int64 {
@@ -286,7 +286,7 @@ func CreateNewGuild(playerid int32, name string, icon int) *TGuild {
 }
 
 //! 解散公会
-func RemoveGuild(guildID int) {
+func RemoveGuild(guildID int32) {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 	delete(G_Guild_List, guildID)
@@ -334,7 +334,7 @@ func (self *TGuild) SortDamage() {
 }
 
 //获取一个工会
-func GetGuildByID(guildid int) *TGuild {
+func GetGuildByID(guildid int32) *TGuild {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
@@ -363,7 +363,7 @@ func GetGuildByName(name string) *TGuild {
 }
 
 //获取公会名
-func GetGuildName(guildid int) string {
+func GetGuildName(guildid int32) string {
 	if guildid == 0 {
 		return ""
 	}

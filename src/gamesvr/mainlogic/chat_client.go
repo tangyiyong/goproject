@@ -33,7 +33,7 @@ func SendCheckInMsg(pTcpConn *tcpclient.TCPConn) bool {
 	return pTcpConn.WriteMsg(msg.MSG_CHECK_IN_REQ, 0, buffer)
 }
 
-func SendGuildChangeMsg(playerid int32, guilid int) bool {
+func SendGuildChangeMsg(playerid int32, guilid int32) bool {
 	var req msg.MSG_GuildNotify_Req
 	req.PlayerID = playerid
 	req.NewGuildID = guilid

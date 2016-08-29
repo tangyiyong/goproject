@@ -41,7 +41,7 @@ func Hand_GetBlackMarketInfo(w http.ResponseWriter, r *http.Request) {
 
 	player.BlackMarketModule.CheckReset()
 
-	if player.GetVipLevel() < gamedata.EnterVipLevel && player.BlackMarketModule.OpenEndTime < time.Now().Unix() {
+	if player.GetVipLevel() < int8(gamedata.EnterVipLevel) && player.BlackMarketModule.OpenEndTime < time.Now().Unix() {
 		gamelog.Error("BlackMarket not open: vipLevel %d  openEndTime: %d", player.GetVipLevel(), player.BlackMarketModule.OpenEndTime)
 		response.RetCode = msg.RE_BLACK_MARKET_NOT_OPEN
 		return
@@ -96,9 +96,7 @@ func Hand_BuyBlackMarketGoods(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//player.BlackMarketModule.CheckReset()
-
-	if player.GetVipLevel() <= gamedata.EnterVipLevel && player.BlackMarketModule.OpenEndTime < time.Now().Unix() {
+	if player.GetVipLevel() <= int8(gamedata.EnterVipLevel) && player.BlackMarketModule.OpenEndTime < time.Now().Unix() {
 		response.RetCode = msg.RE_BLACK_MARKET_NOT_OPEN
 		return
 	}

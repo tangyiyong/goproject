@@ -51,7 +51,7 @@ type TGuildModule struct {
 	HistoryContribution int //! 历史贡献
 	TodayContribution   int //! 今日贡献
 
-	ApplyGuildList IntLst //! 申请帮派列表
+	ApplyGuildList Int32Lst //! 申请帮派列表
 
 	ShoppingLst TGuildShopInfoLst //! 商店购买信息
 

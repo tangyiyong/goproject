@@ -58,7 +58,8 @@ type MSG_QueryActivity_FirstRecharge_Req struct {
 type MSG_QueryActivity_FirstRecharge_Ack struct {
 	//! 首充活动状态
 	RetCode             int
-	FirstRechargeStatus int //! 0->不能领取 1->可以领取 2->已领取首充并开启次充奖励 3->次充奖励可领取 4->已领取次充奖励
+	FirstRechargeStatus int //! 0->不能领取 1->可以领取 2->已领取
+	NextRechargeStatus  int //! 0->不能领取 1->可以领取 2->已领取
 }
 
 //! 查询领取体力活动信息

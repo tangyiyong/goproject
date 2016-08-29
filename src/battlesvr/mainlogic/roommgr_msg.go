@@ -24,11 +24,10 @@ func (self *TRoomMgr) Hand_EnterRoom(pTcpConn *tcpserver.TCPConn, pdata []byte) 
 	poldConn := GetConnByID(req.PlayerID)
 	if poldConn != nil {
 		DelConnByID(req.PlayerID)
-		pBattleData := poldConn.Data.(*TBattleData)
-		if pBattleData != nil && pBattleData.RoomID > 0 {
-			pRoom := G_RoomMgr.GetRoomByID(pBattleData.RoomID)
+		if poldConn.Extra > 0 {
+			pRoom := G_RoomMgr.GetRoomByID(int16(poldConn.Extra))
 			if pRoom == nil {
-				gamelog.Error("Hand_EnterRoom : Invalid RoomID :%d", pBattleData.RoomID)
+				gamelog.Error("Hand_EnterRoom : Invalid RoomID :%d", poldConn.Extra)
 				return
 			}
 
@@ -100,7 +99,7 @@ func (self *TRoomMgr) Hand_LoadCampBatAck(pTcpConn *tcpserver.TCPConn, pdata []b
 		gamelog.Error("Hand_LoadCampBatAck Error AddPlayerToRoom Failed!!!")
 		return
 	}
-	pConn.Data.(*TBattleData).RoomID = RoomID
+	pConn.Extra = int32(RoomID)
 
 	var resAck msg.MSG_EnterRoom_Ack
 	resAck.MoveEndTime = req.MoveEndTime
@@ -170,12 +169,13 @@ func (self *TRoomMgr) Hand_LoadCampBatAck(pTcpConn *tcpserver.TCPConn, pdata []b
 }
 
 func (self *TRoomMgr) Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, pdata []byte) {
-	gamelog.Info("message: MSG_CHECK_IN_REQ")
 	var req msg.MSG_CheckIn_Req
 	if json.Unmarshal(pdata, &req) != nil {
 		gamelog.Error("Hand_CheckInReq : Unmarshal error!!!!:%s", pdata)
 		return
 	}
+
+	gamelog.Info("message: MSG_CHECK_IN_REQ id:%d, name:%s", req.PlayerID, req.PlayerName)
 
 	if req.PlayerID == 0 || req.PlayerID >= 10000 {
 		gamelog.Error("Hand_CheckInReq  Invalid PlayerID:%d", req.PlayerID)
@@ -184,10 +184,8 @@ func (self *TRoomMgr) Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, pdata []byte)
 
 	//收到的是服务器连接
 
-	pData := new(TBattleData)
-	pData.RoomID = 0
-	pData.PlayerID = req.PlayerID
-	pTcpConn.Data = pData
+	pTcpConn.Extra = 0
+	pTcpConn.ConnID = req.PlayerID
 	pTcpConn.Cleaned = false
 	G_GameSvrConns = pTcpConn
 	gamelog.Info("message: Hand_CheckInReq id:%d, name:%s", req.PlayerID, req.PlayerName)
@@ -196,7 +194,7 @@ func (self *TRoomMgr) Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, pdata []byte)
 
 func (self *TRoomMgr) Hand_Disconnect(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	gamelog.Info("message: MSG_DISCONNECT")
-	if pTcpConn == nil || pTcpConn.Data == nil {
+	if pTcpConn == nil || pTcpConn.ConnID <= 0 || pTcpConn.Extra <= 0 {
 		gamelog.Error("Hand_Disconnect Error :pTcpConn == nil || pTcpConn.Data == nil")
 		return
 	}
@@ -206,34 +204,24 @@ func (self *TRoomMgr) Hand_Disconnect(pTcpConn *tcpserver.TCPConn, pdata []byte)
 		return
 	}
 
-	pData := pTcpConn.Data.(*TBattleData)
-	if pData == nil || pData.PlayerID <= 0 || pData.RoomID <= 0 {
-		gamelog.Error("Hand_Disconnect Error :pData == nil || pData.PlayerID <= 0 || pData.RoomID <= 0")
-		return
-	}
+	DelConnByID(pTcpConn.ConnID)
 
-	DelConnByID(pData.PlayerID)
-
-	pRoom := G_RoomMgr.GetRoomByID(pData.RoomID)
+	pRoom := G_RoomMgr.GetRoomByID(int16(pTcpConn.Extra))
 	if pRoom == nil {
-		gamelog.Error("Hand_Disconnect Error : Invalid RoomID:%d", pData.RoomID)
+		gamelog.Error("Hand_Disconnect Error : Invalid RoomID:%d", pTcpConn.Extra)
 		return
 	}
 
 	var tmsg TMessage
 	tmsg.MsgID = msg.MSG_LEAVE_BY_DISCONNT
 	tmsg.MsgData = make([]byte, 4)
-	tmsg.MsgData = append(tmsg.MsgData, byte(pData.PlayerID), byte(pData.PlayerID>>8), byte(pData.PlayerID>>16), byte(pData.PlayerID>>24))
+	tmsg.MsgData = append(tmsg.MsgData, byte(pTcpConn.ConnID), byte(pTcpConn.ConnID>>8), byte(pTcpConn.ConnID>>16), byte(pTcpConn.ConnID>>24))
 	pRoom.MsgList <- tmsg
 	return
 }
 
 func (self *TRoomMgr) Hand_HeartBeat(pTcpConn *tcpserver.TCPConn, pdata []byte) {
 	gamelog.Info("message: MSG_HEART_BEAT")
-	if pTcpConn.Data == nil {
-		gamelog.Info("Hand_PlayerChatReq Error: pTcpConn.Data == nil")
-		return
-	}
 	var req msg.MSG_HeartBeat_Req
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
 		gamelog.Error("Hand_HeartBeat : Message Reader Error!!!!")

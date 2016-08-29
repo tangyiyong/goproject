@@ -265,7 +265,7 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 		random := rand.New(rand.NewSource(time.Now().UnixNano()))
 		//! 随机出现黑市
 		isBlackMarket := false
-		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < gamedata.EnterVipLevel && player.GetLevel() >= 30 {
+		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < int8(gamedata.EnterVipLevel) && player.GetLevel() >= 30 {
 			randValue := random.Intn(1000)
 
 			if randValue < gamedata.BlackMarketPro {
@@ -306,7 +306,7 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 		random := rand.New(rand.NewSource(time.Now().UnixNano()))
 		//! 随机出现黑市
 		isBlackMarket := false
-		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < gamedata.EnterVipLevel && player.GetLevel() >= 30 {
+		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < int8(gamedata.EnterVipLevel) && player.GetLevel() >= 30 {
 			randValue := random.Intn(1000)
 
 			if randValue < gamedata.BlackMarketPro {
@@ -472,7 +472,7 @@ func Hand_SweepCopy(w http.ResponseWriter, r *http.Request) {
 		random := rand.New(rand.NewSource(time.Now().UnixNano()))
 		//! 随机出现黑市
 		isBlackMarket := false
-		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < gamedata.EnterVipLevel && player.GetLevel() >= 30 {
+		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < int8(gamedata.EnterVipLevel) && player.GetLevel() >= 30 {
 			randValue := random.Intn(1000)
 
 			if randValue < gamedata.BlackMarketPro {
@@ -521,7 +521,7 @@ func Hand_SweepCopy(w http.ResponseWriter, r *http.Request) {
 		random := rand.New(rand.NewSource(time.Now().UnixNano()))
 		//! 随机出现黑市
 		isBlackMarket := false
-		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < gamedata.EnterVipLevel && player.GetLevel() >= 30 {
+		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < int8(gamedata.EnterVipLevel) && player.GetLevel() >= 30 {
 			randValue := random.Intn(1000)
 
 			if randValue < gamedata.BlackMarketPro {
@@ -666,6 +666,7 @@ func Hand_GetEliteCopyInvadeInfo(w http.ResponseWriter, r *http.Request) {
 	//! 入侵检测
 	player.CopyMoudle.CheckEliteInvade()
 
+	response.InvadeID = []int{}
 	response.InvadeID = append(response.InvadeID, player.CopyMoudle.Elite.InvadeChapter...)
 
 	response.RetCode = msg.RE_SUCCESS
