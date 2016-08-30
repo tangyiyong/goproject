@@ -140,3 +140,15 @@ func (elite_copy *TCopyMoudle) AddEliteInvade(chapter int) {
 func (elite_copy *TCopyMoudle) RemoveEliteInvade(chapter int) {
 	mongodb.RemoveFromArray(appconfig.GameDbName, "PlayerCopy", bson.M{"_id": elite_copy.PlayerID}, "elite.invadechapter", chapter)
 }
+
+func (main_copy *TCopyMoudle) UpdateMainCopyInfo() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCopy", bson.M{"_id": main_copy.PlayerID}, bson.M{"$set": bson.M{
+		"main.curcopyid":  main_copy.Main.CurCopyID,
+		"main.curchapter": main_copy.Main.CurChapter}})
+}
+
+func (elite_copy *TCopyMoudle) UpdateEliteCopyInfo() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCopy", bson.M{"_id": elite_copy.PlayerID}, bson.M{"$set": bson.M{
+		"elite.curcopyid":  elite_copy.Elite.CurCopyID,
+		"elite.curchapter": elite_copy.Elite.CurChapter}})
+}

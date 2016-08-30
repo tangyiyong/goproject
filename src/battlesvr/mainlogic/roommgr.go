@@ -16,8 +16,9 @@ const (
 
 type TRoomMgr struct {
 	sync.Mutex
-	LowRooms  []TBattleRoom //低等级房间
-	HighRooms []TBattleRoom //高等级房间
+	//两个等级房间都创建1000间， 每个等级都可以容纳15000人，基本够用。
+	LowRooms  [1000]TBattleRoom //低等级房间
+	HighRooms [1000]TBattleRoom //高等级房间
 }
 
 var (
@@ -25,9 +26,6 @@ var (
 )
 
 func InitRoomMgr() bool {
-	//两个等级房间都创建1000间， 每个等级都可以容纳15000人，基本够用。
-	G_RoomMgr.LowRooms = make([]TBattleRoom, 1000, 1000)
-	G_RoomMgr.HighRooms = make([]TBattleRoom, 1000, 1000)
 	for i := int16(0); i < 1000; i++ {
 		G_RoomMgr.LowRooms[i].Init(i+1, Room_Type_Low)
 		G_RoomMgr.HighRooms[i].Init(i+HighRooM_StartID, Room_Type_High)

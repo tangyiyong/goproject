@@ -322,6 +322,7 @@ func Hand_RobTreasure(w http.ResponseWriter, r *http.Request) {
 
 	bRet := player.RoleMoudle.CheckActionEnough(copyInfo.ActionType, copyInfo.ActionValue)
 	if bRet == false {
+		gamelog.Error("Hand_RobTreasure CheckActionEnough not enough")
 		response.RetCode = msg.RE_NOT_ENOUGH_ACTION
 		return
 	}

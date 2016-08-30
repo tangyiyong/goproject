@@ -181,7 +181,6 @@ func RegHttpMsgHandler() {
 		{"/get_festival_task_award", mainlogic.Hand_GetFestivalTaskAward, false},                  //! 玩家请求领取欢庆佳节任务奖励
 		{"/exchange_festival_award", mainlogic.Hand_ExchangeFestivalAward, false},                 //! 玩家兑换奖励
 		{"/clean_hunt_store", mainlogic.Hand_CleanHuntStore, false},                               //! 清除巡回商店数据
-		{"/get_diff_price", mainlogic.Hand_GetGroupPurchaseCost, false},                           //! 领取团购差价
 		{"/get_activity_rank", mainlogic.Hand_GetActivityRank, false},                             //! 获取活动排行榜
 		{"/get_activity_rank_award", mainlogic.Hand_GetActivityRankAward, false},                  //! 获取活动排行榜奖励
 		{"/get_week_award_status", mainlogic.Hand_GetWeekAwardStatus, false},                      //! 获取周周盈状态
@@ -424,6 +423,7 @@ func RegHttpMsgHandler() {
 		{"/test_heros_property", mainlogic.Hand_GetHerosProperty, false},      //测试获取玩家各项属性
 		{"/test_add_item", mainlogic.Hand_TestAddItem, false},
 		{"/test_charge_money", mainlogic.Hand_TestAddCharge, false}, //! 测试活动充值相关
+		{"/test_pass_copy", mainlogic.Hand_TestPassCopy, false},     //! 测试直接通关副本
 
 		//充值消息处理
 		{"/get_charge_info", mainlogic.Hand_GetChargeInfo, false},       //! 玩家请求充值结果

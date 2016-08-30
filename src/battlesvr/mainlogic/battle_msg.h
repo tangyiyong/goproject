@@ -30,7 +30,7 @@ struct MSG_EnterRoom_Ack
 	INT32 MoveEndTime;     //搬运结束时间
 	INT32 BeginMsgNo;	   //起始消息编号
 	INT32 SkillID[4];      //四个技能ID
-	MSG_HeroObj Heros[6];
+	MSG_HeroObj Heros[6];  //六个英雄
 }
 
 struct MSG_EnterRoom_Notify  
@@ -85,7 +85,7 @@ struct MSG_Move_Item
 //(Client)
 struct MSG_Move_Req  
 {	
-	INT32 MsgNo;
+	INT32 MsgNo; //消息编号
 	INT32 PlayerID;
 	INT32 MoveEvents_Cnt;
 	MSG_Move_Item MoveEvents[1];
@@ -106,7 +106,7 @@ struct MSG_HeroState_Nty
 //玩家查询当前的水晶品质//(Client)
 struct MSG_PlayerQuery_Req  
 {
-	INT32 MsgNo;
+	INT32 MsgNo; //消息编号
 	INT32 PlayerID;
 }
 
@@ -121,7 +121,7 @@ struct MSG_PlayerQuery_Ack
 //(Client)
 struct MSG_StartCarry_Req  
 {	
-	INT32 MsgNo;
+	INT32 MsgNo; 		//消息编号
 	INT32 PlayerID;
 }
 
@@ -136,7 +136,7 @@ struct MSG_StartCarry_Ack
 //(Client)
 struct MSG_FinishCarry_Req  
 {
-	INT32 MsgNo;
+	INT32 MsgNo; 	//消息编号
 	INT32 PlayerID;
 	
 }
@@ -152,9 +152,9 @@ struct MSG_FinishCarry_Ack
 //(Client)
 struct MSG_PlayerChange_Req  
 {
-	INT32 MsgNo;
+	INT32 MsgNo; 		//消息编号
 	INT32 PlayerID;
-	INT32 HighQuality; //直接选择最高品质
+	INT32 HighQuality; 	//直接选择最高品质
 	
 }
 

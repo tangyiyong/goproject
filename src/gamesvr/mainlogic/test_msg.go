@@ -339,3 +339,57 @@ func Hand_TestAddItem(w http.ResponseWriter, r *http.Request) {
 	response.Count = req.AddNum
 	response.RetCode = msg.RE_SUCCESS
 }
+
+func Hand_TestPassCopy(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+	var req msg.MSG_GetPassCopy_Req
+	if json.Unmarshal(buffer, &req) != nil {
+		gamelog.Error("Hand_TestPassCopy : Unmarshal error!!!!")
+		return
+	}
+
+	var response msg.MSG_GetPassCopy_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	if req.CopyType == gamedata.COPY_TYPE_Main {
+		//! 获取章节最后关卡
+		chapterInfo := gamedata.GetMainChapterInfo(req.Chapter)
+		if chapterInfo == nil {
+			gamelog.Error("GetMainChapterInfo Error: Not exist chapter %d", req.Chapter)
+			response.RetCode = msg.RE_INVALID_PARAM
+			return
+		}
+
+		player.CopyMoudle.Main.CurChapter = req.Chapter
+		player.CopyMoudle.Main.CurCopyID = chapterInfo.EndID
+		go player.CopyMoudle.UpdateMainCopyInfo()
+
+	} else if req.CopyType == gamedata.COPY_TYPE_Elite {
+		//! 获取章节最后关卡
+		chapterInfo := gamedata.GetEliteChapterInfo(req.Chapter)
+		if chapterInfo == nil {
+			gamelog.Error("GetEliteChapterInfo Error: Not exist chapter %d", req.Chapter)
+			response.RetCode = msg.RE_INVALID_PARAM
+			return
+		}
+
+		player.CopyMoudle.Elite.CurChapter = req.Chapter
+		player.CopyMoudle.Elite.CurCopyID = chapterInfo.EndID
+		go player.CopyMoudle.UpdateEliteCopyInfo()
+
+	}
+
+	response.RetCode = msg.RE_SUCCESS
+}

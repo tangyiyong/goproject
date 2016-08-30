@@ -296,18 +296,18 @@ type MSG_GetGroupPurchaseInfo_Req struct {
 }
 
 type MSG_GroupPurchase struct {
-	ItemID       int //! 物品ID
-	SaleNum      int //! 销售数量
-	CanBuyNum    int //! 还可购买次数
-	ItemUseLimit int //! 团购券使用上限
+	ItemID    int //! 物品ID
+	SaleNum   int //! 销售数量
+	CanBuyNum int //! 还可购买次数
 }
 
 type MSG_GetGroupPurchaseInfo_Ack struct {
-	RetCode            int
-	ItemInfo           []MSG_GroupPurchase
-	Score              int  //! 总积分
-	IsReceiveDiffMoney bool //! 是否领取过差价
-	TicketID           int  //! 团购券ID
+	RetCode   int
+	AwardType int
+	ItemInfo  []MSG_GroupPurchase
+	Score     int   //! 总积分
+	EndTime   int64 //! 结束
+	AwardTime int64 //! 领奖
 }
 
 //! 玩家请求团购

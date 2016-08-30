@@ -358,6 +358,10 @@ func GetGroupPurchaseScoreAward(id int) *ST_GroupPurchaseScoreAward {
 	return &GT_GroupPurchaseScoreLst[id]
 }
 
+func GetGroupPurchaseScoreAwardCount() int {
+	return len(GT_GroupPurchaseScoreLst) - 1
+}
+
 //! 欢庆佳节任务库
 type ST_FestivalTask struct {
 	ID        int    //! 唯一标识

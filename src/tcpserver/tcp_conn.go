@@ -14,7 +14,7 @@ type TCPConn struct {
 	conn       net.Conn
 	reader     *bufio.Reader //包装conn减少conn.Read的io次数
 	writeChan  chan []byte
-	closeFlag  bool
+	closeFlag  bool //此标记仅在ResetConn、Close中设置，其它地方只读
 	Cleaned    bool
 	OnNetClose func()
 
@@ -26,10 +26,16 @@ type TCPConn struct {
 
 func newTCPConn(conn net.Conn, pendingWriteNum int) *TCPConn {
 	tcpConn := new(TCPConn)
-	tcpConn.conn = conn
-	tcpConn.reader = bufio.NewReader(conn)
+	tcpConn.ResetConn(conn)
 	tcpConn.writeChan = make(chan []byte, pendingWriteNum)
 	return tcpConn
+}
+
+//closeFlag仅在ResetConn、Close中设置，其它地方只读
+func (tcpConn *TCPConn) ResetConn(conn net.Conn) {
+	tcpConn.conn = conn
+	tcpConn.reader = bufio.NewReader(conn)
+	tcpConn.closeFlag = false
 }
 func (tcpConn *TCPConn) Close() {
 	if tcpConn.closeFlag {

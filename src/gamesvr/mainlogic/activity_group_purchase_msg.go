@@ -38,16 +38,13 @@ func Hand_GetGroupPurchaseInfo(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
-	response.IsReceiveDiffMoney = player.ActivityModule.GroupPurchase.IsDifferenceReceive
 	response.Score = player.ActivityModule.GroupPurchase.Score
-	response.TicketID = gamedata.GroupPurchaseCostItemID
 
 	for _, v := range player.ActivityModule.GroupPurchase.PurchaseCostLst {
 		var itemInfo msg.MSG_GroupPurchase
 		itemInfo.ItemID = v.ItemID
 
 		groupItemData := gamedata.GetGroupPurchaseItemInfo(v.ItemID, player.ActivityModule.GroupPurchase.ActivityID)
-		itemInfo.ItemUseLimit = groupItemData.UseItemMax
 		itemInfo.CanBuyNum = groupItemData.BuyTimes - v.Times
 
 		groupItemInfo, _ := G_GlobalVariables.GetGroupPurchaseItemInfo(v.ItemID)
@@ -55,86 +52,16 @@ func Hand_GetGroupPurchaseInfo(w http.ResponseWriter, r *http.Request) {
 		response.ItemInfo = append(response.ItemInfo, itemInfo)
 	}
 
-	response.RetCode = msg.RE_SUCCESS
-}
-
-//! 玩家请求领取差价
-func Hand_GetGroupPurchaseCost(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message:%s", r.URL.String())
-
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-
-	var req msg.MSG_GetGroupPurchaseDiffPrice_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_GetGroupPurchaseCost Error: Unmarshal fail")
-		return
-	}
-
-	var response msg.MSG_GetGroupPurchaseDiffPrice_Ack
-	response.RetCode = msg.RE_UNKNOWN_ERR
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-		gamelog.Info("Return: %s", b)
-	}()
-
-	var player *TPlayer = nil
-	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if player == nil {
-		return
-	}
-
-	player.ActivityModule.CheckReset()
-
-	if G_GlobalVariables.IsActivityOpen(player.ActivityModule.GroupPurchase.ActivityID) == false {
-		gamelog.Error("Hand_GetGroupPurchaseCost Error: Activity is over")
-		response.RetCode = msg.RE_ACTIVITY_IS_OVER
-		return
-	}
-
-	isEnd, _ := G_GlobalVariables.IsActivityTime(player.ActivityModule.GroupPurchase.ActivityID)
-	if isEnd == true {
-		gamelog.Error("Hand_GetGroupPurchaseCost Error: Award time yet")
-		response.RetCode = msg.RE_ACTIVITY_NOT_OVER
-		return
-	}
-
-	if player.ActivityModule.GroupPurchase.IsDifferenceReceive == true {
-		gamelog.Error("Hand_GetGroupPurchaseCost Error: Already received")
-		response.RetCode = msg.RE_ALREADY_RECEIVED
-		return
-	}
-
-	awardType := G_GlobalVariables.GetActivityAwardType(player.ActivityModule.GroupPurchase.ActivityID)
-
-	//! 计算差价
-	diffPrice := 0
-	for i := 0; i < len(player.ActivityModule.GroupPurchase.PurchaseCostLst); i++ {
-		costItemID := player.ActivityModule.GroupPurchase.PurchaseCostLst[i].ItemID
-		costMoney := 0
-		costTimes := 0
-		for _, v := range player.ActivityModule.GroupPurchase.PurchaseCostLst {
-			if v.ItemID == costItemID {
-				costMoney += v.MoneyNum
-				costTimes += v.Times
-			}
+	for _, v := range G_GlobalVariables.ActivityLst {
+		if v.ActivityID == player.ActivityModule.GroupPurchase.ActivityID {
+			activityInfo := gamedata.GetActivityInfo(v.ActivityID)
+			response.EndTime = v.endTime - int64(activityInfo.AwardTime*60*60*24)
+			response.AwardTime = v.endTime
 		}
-
-		//! 获取现价
-		saleInfo, _ := G_GlobalVariables.GetGroupPurchaseItemInfo(costItemID)
-		salePriceInfo := gamedata.GetGroupPurchaseItemInfoFromSale(costItemID, awardType, saleInfo.SaleNum)
-
-		//! 获取差价
-		diffPrice = costMoney - costTimes*salePriceInfo.MoneyNum
 	}
 
-	player.RoleMoudle.AddMoney(1, diffPrice)
-	response.AwardItem = msg.MSG_ItemData{1, diffPrice}
-	player.ActivityModule.GroupPurchase.IsDifferenceReceive = true
+	response.AwardType = G_GlobalVariables.GetActivityAwardType(player.ActivityModule.GroupPurchase.ActivityID)
 	response.RetCode = msg.RE_SUCCESS
-	go player.ActivityModule.GroupPurchase.DB_SaveIdfferenceMark()
 }
 
 //! 玩家请求购买团购
@@ -295,7 +222,7 @@ func Hand_GetGroupPurchaseScoreAward(w http.ResponseWriter, r *http.Request) {
 	player.ActivityModule.CheckReset()
 
 	//! 检查玩家是否已经领取
-	if player.ActivityModule.GroupPurchase.ScoreAwardMark.IsExist(req.ID) < 0 {
+	if player.ActivityModule.GroupPurchase.ScoreAwardMark.IsExist(req.ID) > 0 {
 		gamelog.Error("Hand_GetGroupPurchaseScoreAward Error: Player aleady received")
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return

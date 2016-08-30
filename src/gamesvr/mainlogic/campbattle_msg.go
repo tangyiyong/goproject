@@ -169,7 +169,6 @@ func Hand_EnterCampBattle(w http.ResponseWriter, r *http.Request) {
 
 	player.CamBattleModule.enterCode = int32(utility.Rand())
 	response.BattleSvrAddr = GetRecommendSvrAddr()
-	gamelog.Error("Hand_EnterCampBattle Genarate EnterCode:%d", player.CamBattleModule.enterCode)
 	response.EnterCode = player.CamBattleModule.enterCode
 	response.RetCode = msg.RE_SUCCESS
 }

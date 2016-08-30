@@ -188,7 +188,6 @@ func (self *TRoomMgr) Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, pdata []byte)
 	pTcpConn.ConnID = req.PlayerID
 	pTcpConn.Cleaned = false
 	G_GameSvrConns = pTcpConn
-	gamelog.Info("message: Hand_CheckInReq id:%d, name:%s", req.PlayerID, req.PlayerName)
 	return
 }
 

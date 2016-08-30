@@ -3,6 +3,7 @@ package mainlogic
 import (
 	"appconfig"
 	"fmt"
+	"gamesvr/gamedata"
 	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
@@ -17,14 +18,13 @@ type TActivityPurchaseCost struct {
 
 //! 团购
 type TActivityGroupPurchase struct {
-	ActivityID          int                     //! 活动ID
-	PurchaseCostLst     []TActivityPurchaseCost //! 个人花费信息
-	Score               int                     //! 积分
-	ScoreAwardMark      IntLst                  //! 积分奖励领取标记
-	IsDifferenceReceive bool                    //! 差价领取标记
-	VersionCode         int32                   //! 更新号
-	ResetCode           int32                   //! 迭代号
-	activityModule      *TActivityModule        //! 活动模块指针
+	ActivityID      int                     //! 活动ID
+	PurchaseCostLst []TActivityPurchaseCost //! 个人花费信息
+	Score           int                     //! 积分
+	ScoreAwardMark  IntLst                  //! 积分奖励领取标记
+	VersionCode     int32                   //! 更新号
+	ResetCode       int32                   //! 迭代号
+	activityModule  *TActivityModule        //! 活动模块指针
 }
 
 //! 赋值基础数据
@@ -42,7 +42,6 @@ func (self *TActivityGroupPurchase) Init(activityID int, mPtr *TActivityModule, 
 	self.PurchaseCostLst = []TActivityPurchaseCost{}
 	self.Score = 0
 	self.ScoreAwardMark = IntLst{}
-	self.IsDifferenceReceive = false
 
 	self.VersionCode = vercode
 	self.ResetCode = resetcode
@@ -59,7 +58,6 @@ func (self *TActivityGroupPurchase) End(versionCode int32, resetCode int32) {
 	self.PurchaseCostLst = []TActivityPurchaseCost{}
 	self.Score = 0
 	self.ScoreAwardMark = IntLst{}
-	self.IsDifferenceReceive = false
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 
@@ -80,9 +78,13 @@ func (self *TActivityGroupPurchase) RedTip() bool {
 		return false
 	}
 
-	isEnd, _ := G_GlobalVariables.IsActivityTime(self.ActivityID)
-	if isEnd == false && self.IsDifferenceReceive == false && len(self.PurchaseCostLst) != 0 {
-		return true //! 活动结束有返还货币的情况则返回红点
+	count := gamedata.GetGroupPurchaseScoreAwardCount()
+	for i := 1; i <= count; i++ {
+		scoreInfo := gamedata.GetGroupPurchaseScoreAward(i)
+
+		if self.Score >= scoreInfo.NeedScore && self.ScoreAwardMark.IsExist(i) < 0 {
+			return true //! 有未领的积分奖励
+		}
 	}
 
 	return false
@@ -128,19 +130,13 @@ func (self *TActivityGroupPurchase) DB_Refresh() bool {
 //! 存储数据库
 func (self *TActivityGroupPurchase) DB_Reset() bool {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
-		"grouppurchase.activityid":          self.ActivityID,
-		"grouppurchase.purchasecostlst":     self.PurchaseCostLst,
-		"grouppurchase.score":               self.Score,
-		"grouppurchase.scoreawardmark":      self.ScoreAwardMark,
-		"grouppurchase.isdifferencereceive": self.IsDifferenceReceive,
-		"grouppurchase.versioncode":         self.VersionCode,
-		"grouppurchase.resetcode":           self.ResetCode}})
+		"grouppurchase.activityid":      self.ActivityID,
+		"grouppurchase.purchasecostlst": self.PurchaseCostLst,
+		"grouppurchase.score":           self.Score,
+		"grouppurchase.scoreawardmark":  self.ScoreAwardMark,
+		"grouppurchase.versioncode":     self.VersionCode,
+		"grouppurchase.resetcode":       self.ResetCode}})
 	return true
-}
-
-func (self *TActivityGroupPurchase) DB_SaveIdfferenceMark() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
-		"grouppurchase.isdifferencereceive": self.IsDifferenceReceive}})
 }
 
 func (self *TActivityGroupPurchase) DB_SaveScore() {

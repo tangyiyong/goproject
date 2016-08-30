@@ -6,15 +6,11 @@ func InitBuffPool(poolsize int) {
 	G_BuffPool = make(chan []byte, poolsize)
 }
 
-func makeBuffer() []byte {
-	return make([]byte, 0, 2048)
-}
-
 func AllocBuff() (buff []byte) {
 	select {
 	case buff = <-G_BuffPool:
 	default:
-		buff = makeBuffer()
+		buff = make([]byte, 0, 2048)
 	}
 
 	return

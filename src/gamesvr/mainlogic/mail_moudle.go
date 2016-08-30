@@ -33,6 +33,7 @@ const (
 	TextCampBatTodayDestroy   = 19 //阵营战今日团灭排名奖励邮件
 	TextCampBatCampKill       = 20 //阵营战阵营击杀排名奖励邮件
 	TextCampBatCampDestroy    = 21 //阵营战阵营团灭排名奖励邮件
+	Text_Group_Purchase       = 22 //团购差价补齐
 
 	TextCampBatHorseLamp = 101 //阵营战连杀跑马灯
 

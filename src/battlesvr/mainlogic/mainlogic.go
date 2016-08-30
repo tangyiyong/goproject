@@ -22,7 +22,7 @@ func Init() bool {
 	return true
 }
 
-func BatSvrMsgDispatcher(pTcpConn *tcpserver.TCPConn, MsgID int16, extra int16, pdata []byte) {
+func BatSvrMsgDispatcher(pTcpConn *tcpserver.TCPConn, msgid int16, extra int16, pdata []byte) {
 	if pTcpConn == nil {
 		gamelog.Error("BatSvrMsgDispatcher Error: pTcpConn == nil")
 		return
@@ -31,12 +31,12 @@ func BatSvrMsgDispatcher(pTcpConn *tcpserver.TCPConn, MsgID int16, extra int16, 
 	defer func() {
 		if r := recover(); r != nil {
 			if _, ok := r.(runtime.Error); ok {
-				gamelog.Error("MsgID %d Error  %s", MsgID, debug.Stack())
+				gamelog.Error("MsgID %d Error  %s", msgid, debug.Stack())
 			}
 		}
 	}()
 
-	switch MsgID {
+	switch msgid {
 	case msg.MSG_ENTER_ROOM_REQ:
 		G_RoomMgr.Hand_EnterRoom(pTcpConn, pdata)
 	case msg.MSG_LOAD_CAMPBAT_ACK:
@@ -62,7 +62,7 @@ func BatSvrMsgDispatcher(pTcpConn *tcpserver.TCPConn, MsgID int16, extra int16, 
 			}
 
 			var msg TMessage
-			msg.MsgID = MsgID
+			msg.MsgID = msgid
 			msg.MsgData = pdata
 			pRoom.MsgList <- msg
 		}

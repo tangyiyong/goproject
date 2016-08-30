@@ -183,7 +183,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 
 	bEnough := player.RoleMoudle.CheckActionEnough(gamedata.AttackRebelActionID, needActionNum)
 	if !bEnough {
-		gamelog.Error("Hand_AttackRebel error: Action Not Enough  PlayerID: %v", req.AttackType, player.playerid)
+		gamelog.Error("Hand_AttackRebel error: Action Not Enough  , AttackType: %d , PlayerID: %d", req.AttackType, player.playerid)
 		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
 		return
 	}

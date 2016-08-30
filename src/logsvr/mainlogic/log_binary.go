@@ -1,6 +1,7 @@
 package mainlogic
 
 import (
+	"bufio"
 	"gamelog"
 	"os"
 	"time"
@@ -8,30 +9,38 @@ import (
 )
 
 type TBinaryLog struct {
-	file *os.File
+	file   *os.File
+	writer *bufio.Writer
 }
 
-func NewBinaryLog(name string) *TBinaryLog {
+func (self *TBinaryLog) Start() bool {
+	return true
+}
+
+func (self *TBinaryLog) WriteLog(pdata []byte) {
+	self.writer.Write(pdata)
+}
+
+func (self *TBinaryLog) Close() {
+	self.file.Close()
+}
+
+func (self *TBinaryLog) Flush() {
+	self.writer.Flush()
+}
+
+func CreateBinaryFile(name string) *TBinaryLog {
 	var err error = nil
 	timeStr := time.Now().Format("20060102_150405")
 	logFileName := utility.GetCurrPath() + "log\\" + name + "_" + timeStr + ".blog"
 
-	log := new(TBinaryLog)
-	log.file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_APPEND, os.ModePerm)
+	var blog TBinaryLog
+	blog.file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_APPEND, os.ModePerm)
 	if err != nil {
-		gamelog.Error("NewBinaryLog : %s", err.Error())
+		gamelog.Error("CreateBinaryFile Error : %s", err.Error())
 		return nil
 	}
-	return log
-}
-func (self *TBinaryLog) Close() {
-	self.file.Close()
-}
-func (self *TBinaryLog) Write(data1, data2 [][]byte) {
-	for _, v := range data1 {
-		self.file.Write(v)
-	}
-	for _, v := range data2 {
-		self.file.Write(v)
-	}
+
+	blog.writer = bufio.NewWriter(blog.file)
+	return &blog
 }

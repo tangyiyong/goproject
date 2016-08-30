@@ -1,26 +1,48 @@
 package mainlogic
 
-var (
-	G_LogDataMgr *AsyncLog
-
-	g_binaryLog *TBinaryLog
-	g_mysqlLog  *TMysqlLog
+import (
+	"appconfig"
+	"gamelog"
 )
 
-func InitLogMgr() {
-	G_LogDataMgr = NewAsyncLog(1024, _doWriteBinaryLog)
+type TLog interface {
+	Start() bool
+	WriteLog(pdata []byte)
+	Flush()
+	Close()
+}
 
-	g_binaryLog = NewBinaryLog("logsvr")
-	g_mysqlLog = NewMysqlLog()
-	if g_binaryLog == nil || g_mysqlLog == nil {
-		panic("logsvr InitMgr fail!")
-		return
+const (
+	FT_BINIARY = 1 //二进制文件类型
+	FT_MYSQL   = 2 //MySql文件类型
+)
+
+var G_LogFile TLog
+
+func InitLogMgr() bool {
+	switch appconfig.LogFileType {
+	case FT_BINIARY:
+		{ //二进制文件
+			G_LogFile = CreateBinaryFile(appconfig.LogFileName)
+		}
+	case FT_MYSQL:
+		{ //mysql数据库
+			G_LogFile = CreateMysqlFile(appconfig.LogFileName)
+		}
 	}
+
+	if G_LogFile == nil {
+		return false
+	}
+
+	if false == G_LogFile.Start() {
+		gamelog.Error("InitLogMgr Error")
+		return false
+	}
+
+	return true
 }
 
-func _doWriteBinaryLog(data1, data2 [][]byte) {
-	g_binaryLog.Write(data1, data2)
-}
-func _doWriteMysqlLog(data1, data2 [][]byte) {
-	g_mysqlLog.Write(data1, data2)
+func AppendLog(pdata []byte) {
+	G_LogFile.WriteLog(pdata)
 }

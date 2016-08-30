@@ -123,3 +123,16 @@ type MSG_ChargeTestMoney_Ack struct {
 	VIPExp   int
 	VIPLevel int8
 }
+
+//玩家跳过副本章节
+//消息:/test_pass_copy
+type MSG_GetPassCopy_Req struct {
+	PlayerID   int32  //玩家ID
+	SessionKey string //Sessionkey
+	Chapter    int    //! 章节
+	CopyType   int    //! 副本类型
+}
+
+type MSG_GetPassCopy_Ack struct {
+	RetCode int //返回码
+}

@@ -137,6 +137,12 @@ func CopyCheck(player *TPlayer, copyID int, chapter int, copyType int) (bool, in
 		if famousCopy != nil && famousCopy.BattleTimes >= 1 {
 			return false, msg.RE_NOT_ENOUGH_TIMES
 		}
+	} else if copyType == gamedata.COPY_TYPE_Elite_Invade { //! 精英关卡入侵
+		//! 检测该章节是否有入侵
+		if player.CopyMoudle.IsHaveInvade(chapter) == false {
+			gamelog.Error("CopyCheck error Not have Invade")
+			return false, msg.RE_INVADE_ALEADY_ESCAPE
+		}
 	}
 	return true, msg.RE_SUCCESS
 }
@@ -1580,13 +1586,19 @@ func Hand_AttackInvade(w http.ResponseWriter, r *http.Request) {
 	//! 获得掉落奖励
 	chapterInfo := gamedata.GetEliteChapterInfo(req.Chapter)
 	if chapterInfo == nil {
-		gamelog.Error("GetEliteChapterInfo fail. Chapter: %d", req.Chapter)
+		gamelog.Error("Hand_AttackInvade GetEliteChapterInfo fail. Chapter: %d", req.Chapter)
 		return
 	}
 
 	copyInfo := gamedata.GetCopyBaseInfo(chapterInfo.InvadeID)
 	if copyInfo == nil {
-		gamelog.Error("GetCopyBaseInfo fail. InvadeID: %d", chapterInfo.InvadeID)
+		gamelog.Error("Hand_AttackInvade GetCopyBaseInfo fail. InvadeID: %d", chapterInfo.InvadeID)
+		return
+	}
+
+	if player.RoleMoudle.CheckActionEnough(copyInfo.ActionType, copyInfo.ActionValue) == false {
+		gamelog.Error("Hand_AttackInvade CheckActionEnough fail.")
+		response.RetCode = msg.RE_NOT_ENOUGH_ACTION
 		return
 	}
 

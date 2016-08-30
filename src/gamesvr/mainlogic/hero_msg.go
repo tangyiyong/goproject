@@ -257,6 +257,19 @@ func Hand_ChangeBackHero(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	pSrcInfo := gamedata.GetHeroInfo(req.SourceID)
+	if pSrcInfo == nil {
+		gamelog.Error("Hand_ChangeHero Invalid req.SourceID:%d", req.SourceID)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
+	if pSrcInfo.Setup <= 0 {
+		gamelog.Error("Hand_ChangeHero heor %d can set to battle", req.SourceID)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
 	if req.TargetID == 0 { //上阵
 		if !gamedata.IsFuncOpen(gamedata.FUNC_BACK_POS_BEGIN+req.TargetPos-1, player.GetLevel(), 0) {
 			gamelog.Error("Hand_ChangeBackHero battle pos is not open!")
@@ -326,6 +339,19 @@ func Hand_ChangeHero(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
+	pSrcInfo := gamedata.GetHeroInfo(req.SourceID)
+	if pSrcInfo == nil {
+		gamelog.Error("Hand_ChangeHero Invalid req.SourceID:%d", req.SourceID)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
+	if pSrcInfo.Setup <= 0 {
+		gamelog.Error("Hand_ChangeHero hero %d can set to battle", req.SourceID)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
 	var player *TPlayer = nil
 	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
 	if player == nil {
@@ -354,19 +380,6 @@ func Hand_ChangeHero(w http.ResponseWriter, r *http.Request) {
 	tempSource := player.BagMoudle.HeroBag.Heros[req.SourcePos]
 	if tempSource.ID != req.SourceID || req.SourceID == 0 {
 		gamelog.Error("Hand_ChangeHero req.SourePos :%d : SourceID:%d, req.SourceID:%d", req.SourcePos, tempSource.ID, req.SourceID)
-		response.RetCode = msg.RE_INVALID_PARAM
-		return
-	}
-
-	pSrcInfo := gamedata.GetHeroInfo(req.SourceID)
-	if pSrcInfo == nil {
-		gamelog.Error("Hand_ChangeHero Invalid req.SourceID:%d", req.SourceID)
-		response.RetCode = msg.RE_INVALID_PARAM
-		return
-	}
-
-	if pSrcInfo.Setup <= 0 {
-		gamelog.Error("Hand_ChangeHero heor %d can set to battle", req.SourceID)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
@@ -4510,7 +4523,6 @@ func Hand_FashionRecast(w http.ResponseWriter, r *http.Request) {
 		gamelog.Error("Hand_FashionRecast Error: Invalid Fashion quality %d, level :%d", pFashionInfo.Quality, player.BagMoudle.FashionBag.Fashions[nIndex].Level)
 		return
 	}
-
 }
 
 func IsFashionMapOK(pMap *gamedata.ST_FashionMapInfo, Fashions []TFashionData) bool {

@@ -2,6 +2,7 @@ package mainlogic
 
 import (
 	"appconfig"
+	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
 	"mongodb"
@@ -146,6 +147,14 @@ func (self *TBlackMarketModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup)
 	self.PlayerID = playerid
 }
 
+func (self *TBlackMarketModule) GetBlackMarketItemInfo(index int) *TBlackMarketGoods {
+	if index >= len(self.GoodsLst) {
+		return nil
+	}
+
+	return &self.GoodsLst[index]
+}
+
 func (self *TBlackMarketModule) DB_SaveGoods() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBlackMarket", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
 		"goodslst":    self.GoodsLst,
@@ -155,7 +164,9 @@ func (self *TBlackMarketModule) DB_SaveGoods() {
 }
 
 func (self *TBlackMarketModule) DB_UpdateBuyMark(id int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBlackMarket", bson.M{"_id": self.PlayerID, "goodslst.id": id}, bson.M{"$set": bson.M{"goodslst.$.isbuy": true}})
+	filedName := fmt.Sprintf("goodslst.%d.isbuy", id)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBlackMarket", bson.M{"_id": self.PlayerID},
+		bson.M{"$set": bson.M{filedName: true}})
 }
 
 func (self *TBlackMarketModule) DB_Reset() {

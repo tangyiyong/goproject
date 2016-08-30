@@ -30,7 +30,6 @@ func Hand_GetBlackMarketInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -87,7 +86,6 @@ func Hand_BuyBlackMarketGoods(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -102,26 +100,23 @@ func Hand_BuyBlackMarketGoods(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测商品是否能够购买
-	isExist := false
-	for _, v := range player.BlackMarketModule.GoodsLst {
-		if v.ID == req.ID {
-			isExist = true
-
-			if v.IsBuy == true {
-				response.RetCode = msg.RE_ALEADY_BUY
-				return
-			}
-		}
+	itemInfo := player.BlackMarketModule.GetBlackMarketItemInfo(req.ID - 1)
+	if itemInfo == nil {
+		gamelog.Error("Hand_BuyBlackMarketGoods Error: Invalid Index: %d", req.ID-1)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
 	}
 
-	if isExist == false {
-		response.RetCode = msg.RE_INVALID_PARAM
+	if itemInfo.IsBuy == true {
+		gamelog.Error("Hand_BuyBlackMarketGoods Error: Aleady buy item Index: %d", req.ID-1)
+		response.RetCode = msg.RE_ALEADY_BUY
 		return
 	}
 
 	//! 检测商品金钱是否足够
 	goodsData := gamedata.GetBlackMarketGoodsInfo(req.ID)
 	if player.RoleMoudle.CheckMoneyEnough(goodsData.CostMoneyID, goodsData.CostMoneyNum) == false {
+		gamelog.Error("Hand_BuyBlackMarketGoods Error: Not enough money Index: %d", req.ID-1)
 		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
 		return
 	}
@@ -133,13 +128,9 @@ func Hand_BuyBlackMarketGoods(w http.ResponseWriter, r *http.Request) {
 	player.BagMoudle.AddAwardItem(goodsData.ItemID, goodsData.ItemNum)
 
 	//! 设置状态
-	for i, v := range player.BlackMarketModule.GoodsLst {
-		if v.ID == req.ID {
-			player.BlackMarketModule.GoodsLst[i].IsBuy = true
-		}
-	}
+	itemInfo.IsBuy = true
 
-	go player.BlackMarketModule.DB_UpdateBuyMark(req.ID)
+	go player.BlackMarketModule.DB_UpdateBuyMark(req.ID - 1)
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -165,7 +156,6 @@ func Hand_GetBlackMarketStatus(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil

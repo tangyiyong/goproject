@@ -42,8 +42,7 @@ func AddConnByID(playerid int32, pTcpConn *tcpserver.TCPConn) {
 }
 
 func AddTcpConn(serverid int32, name string, pTcpConn *tcpserver.TCPConn) {
-	pTcpConn.Data = new(TLogData)
-	pTcpConn.Data.(*TLogData).ServerID = serverid
+	pTcpConn.ConnID = serverid
 	pTcpConn.Cleaned = false
 	AddConnByID(serverid, pTcpConn)
 	return

@@ -57,7 +57,9 @@ var (
 	LogSvrOuterIp  string
 	LogSvrPort     int
 	LogSvrLogLevel int
-	LogSvrMaxCon   int //最大连接数
+	LogSvrMaxCon   int    //最大连接数
+	LogFileType    int    //日志文件类型
+	LogFileName    string //日志文件名
 
 	//SDK
 	SdkSvrInnerIp string
@@ -159,6 +161,10 @@ func ParseConfigValue(key string, value string) {
 		LogSvrMaxCon, _ = strconv.Atoi(value)
 	case "log_svr_log_level":
 		LogSvrLogLevel, _ = strconv.Atoi(value)
+	case "log_svr_file_type":
+		LogFileType, _ = strconv.Atoi(value)
+	case "log_svr_file_name":
+		LogFileName = value
 	case "sdk_svr_inner_ip":
 		SdkSvrInnerIp = value
 	case "sdk_svr_outer_ip":

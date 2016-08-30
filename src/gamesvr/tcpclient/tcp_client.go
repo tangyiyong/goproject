@@ -85,8 +85,7 @@ func (client *TCPClient) connect() bool {
 	}
 
 	if client.TcpConn != nil {
-		client.TcpConn.conn = conn
-		client.TcpConn.closeFlag = false
+		client.TcpConn.ResetConn(conn)
 	} else {
 		if client.ConType <= 0 {
 			gamelog.Error("connect error invalid contype : %d", client.ConType)

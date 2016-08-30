@@ -106,6 +106,29 @@ func UpdateCsv(path string, records [][]string) error {
 	csvWriter.UseCRLF = true
 	return csvWriter.WriteAll(records)
 }
+func AppendCsv(path string, record []string) error {
+	file, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND, os.ModePerm)
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+
+	fstate, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	if fstate.IsDir() {
+		return &StrError{"AppendCsv is dir!", nil}
+	}
+
+	csvWriter := csv.NewWriter(file)
+	csvWriter.UseCRLF = true
+	if err := csvWriter.Write(record); err != nil {
+		return err
+	}
+	csvWriter.Flush()
+	return nil
+}
 
 func GetCurDay() uint32 {
 	day := uint32(time.Now().Day())

@@ -28,7 +28,7 @@ func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 }
 
 func Hand_OnLogData(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
-	G_LogDataMgr.Append(pdata)
+	AppendLog(pdata)
 	//如果不用写数据库，则消息不用解析出来
 	//如果需要写数据库，则消息需要解析出来
 	// var req msg.MSG_SvrLogData

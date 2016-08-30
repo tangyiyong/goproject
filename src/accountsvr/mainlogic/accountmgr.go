@@ -70,6 +70,7 @@ func (accountmgr *TAccountMgr) ResetAccount(name string, password string, newnam
 	account.Password = newpassword
 	accountmgr.accountMap[accountid] = account
 	accountmgr.accountNameMap[newname] = account.AccountID
+	delete(accountmgr.accountNameMap, name)
 	accountmgr.accmutex.Unlock()
 	mongodb.UpdateToDB(appconfig.AccountDbName, "Account", bson.M{"_id": accountid}, bson.M{"$set": bson.M{
 		"name":     newname,

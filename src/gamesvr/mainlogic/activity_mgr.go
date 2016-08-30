@@ -141,6 +141,51 @@ func EndActivity(activityType int, activityID int) bool {
 			SendAwardToPlayer(v.RankID, &awardData)
 		}
 	} else if activityType == gamedata.Activity_Group_Purchase { //! 团购
+		activityLst := []TActivityModule{}
+		s := mongodb.GetDBSession()
+		defer s.Close()
+
+		//! 获取所有参与过团购玩家信息
+		err := s.DB(appconfig.GameDbName).C("PlayerActivity").Find(bson.M{"grouppurchase.score": bson.M{"$gt": 0}}).All(&activityLst)
+		if err != nil {
+			gamelog.Error("PlayerActivity Load Error :%s", err.Error())
+			return false
+		}
+
+		for i := 0; i < len(activityLst); i++ {
+			activity := activityLst[i]
+
+			awardType := G_GlobalVariables.GetActivityAwardType(activity.GroupPurchase.ActivityID)
+
+			//! 计算差价
+			diffPrice := 0
+			var awardData TAwardData
+			for i := 0; i < len(activity.GroupPurchase.PurchaseCostLst); i++ {
+				costItemID := activity.GroupPurchase.PurchaseCostLst[i].ItemID
+				costMoney := 0
+				costTimes := 0
+				for _, v := range activity.GroupPurchase.PurchaseCostLst {
+					if v.ItemID == costItemID {
+						costMoney += v.MoneyNum
+						costTimes += v.Times
+					}
+				}
+
+				//! 获取现价
+				saleInfo, _ := G_GlobalVariables.GetGroupPurchaseItemInfo(costItemID)
+				salePriceInfo := gamedata.GetGroupPurchaseItemInfoFromSale(costItemID, awardType, saleInfo.SaleNum)
+
+				//! 获取差价
+				diffPrice = costMoney - costTimes*salePriceInfo.MoneyNum
+
+				awardData.TextType = Text_Group_Purchase
+				awardData.Time = time.Now().Unix()
+				awardData.ItemLst = append(awardData.ItemLst, gamedata.ST_ItemData{1, diffPrice})
+				SendAwardToPlayer(activity.PlayerID, &awardData)
+			}
+
+		}
+
 		//! 清除全局团购记录
 		G_GlobalVariables.DB_CleanGroupPurchase()
 	}

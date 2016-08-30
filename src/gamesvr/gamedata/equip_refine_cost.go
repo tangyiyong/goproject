@@ -15,11 +15,30 @@ type ST_ShenBinInfo struct {
 	Level      int //等级
 	Propertyid int //属性ID
 	PropertyV  int //属性值
+	SkillID    int //神兵技能ID
+}
+
+const (
+	SBST_DOUBLE_HURT   = 1 //双倍伤害
+	SBST_RESTORE_HP    = 2 //恢复生命
+	SBST_REBOUND_MAGIC = 3 //反弹法伤
+	SBST_REBOUND_PHYIS = 4 //反弹物伤
+	SBST_IGNORE_DEF    = 5 //无视防御
+	SBST_SUCK_BLOOD    = 6 //吸血
+
+)
+
+type ST_ShenBinSkillInfo struct {
+	ID    int //技能ID
+	Type  int //技能类型
+	Ratio int //概率
+	Value int //数值
 }
 
 var (
 	GT_EquipRefineCostList []ST_EquipRefineCost  = nil
 	GT_ShenBinList         [7][51]ST_ShenBinInfo //最大精练等级装备50， 宝物20, 六个位置
+	GT_ShenBinSkillList    []ST_ShenBinSkillInfo = nil
 )
 
 func InitEquipRefineCostParser(total int) bool {
@@ -75,7 +94,7 @@ func ParseShenBinRecord(rs *RecordSet) {
 	GT_ShenBinList[pos][level].Level = level
 	GT_ShenBinList[pos][level].Propertyid = rs.GetFieldInt("p_id")
 	GT_ShenBinList[pos][level].PropertyV = rs.GetFieldInt("p_value")
-
+	GT_ShenBinList[pos][level].SkillID = rs.GetFieldInt("skill_id")
 	return
 }
 
@@ -98,4 +117,18 @@ func GetShenBinInfo(pos int, level int) *ST_ShenBinInfo {
 	}
 
 	return &GT_ShenBinList[pos][level]
+}
+
+func InitShenBinSkillParser(total int) bool {
+	GT_ShenBinSkillList = make([]ST_ShenBinSkillInfo, total+1)
+	return true
+}
+
+func ParseShenBinSkillRecord(rs *RecordSet) {
+	id := rs.GetFieldInt("id")
+	GT_ShenBinSkillList[id].ID = id
+	GT_ShenBinSkillList[id].Type = rs.GetFieldInt("type")
+	GT_ShenBinSkillList[id].Ratio = rs.GetFieldInt("ratio")
+	GT_ShenBinSkillList[id].Value = rs.GetFieldInt("value")
+	return
 }

@@ -19,18 +19,20 @@ type ST_CopyBase struct {
 }
 
 const (
-	COPY_TYPE_Main      = 1  //主线
-	COPY_TYPE_Elite     = 2  //精英
-	COPY_TYPE_Famous    = 3  //名将
-	COPY_TYPE_Daily     = 4  //日常
-	COPY_TYPE_GuaJi     = 5  //挂机
-	COPY_TYPE_SGWS      = 6  //三国无双
-	COPY_TYPE_SGWSJY    = 7  //三国无双精英
-	COPY_TYPE_Territory = 8  //领地征讨
-	COPY_TYPE_Rebel     = 9  //叛军
-	COPY_TYPE_Guild     = 10 //公会副本
-	COPY_TYPE_Wander    = 11 //云游副本
-
+	COPY_TYPE_Main         = 1  //主线
+	COPY_TYPE_Elite        = 2  //精英
+	COPY_TYPE_Famous       = 3  //名将
+	COPY_TYPE_Daily        = 4  //日常
+	COPY_TYPE_GuaJi        = 5  //挂机
+	COPY_TYPE_SGWS         = 6  //三国无双
+	COPY_TYPE_SGWSJY       = 7  //三国无双精英
+	COPY_TYPE_Territory    = 8  //领地征讨
+	COPY_TYPE_Rebel        = 9  //叛军
+	COPY_TYPE_Guild        = 10 //公会副本
+	COPY_TYPE_Wander       = 11 //云游副本
+	COPY_TYPE_PVP          = 12 //PVP副本
+	COPY_TYPE_Mining       = 13 //矿洞
+	COPY_TYPE_Elite_Invade = 14 //精英入侵
 )
 
 var (
