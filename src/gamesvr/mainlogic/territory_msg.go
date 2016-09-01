@@ -669,7 +669,7 @@ func Hand_SuppressRiot(w http.ResponseWriter, r *http.Request) {
 	//! 处理暴动奖励
 	award := gamedata.ST_ItemData{gamedata.SuppressRiotFriendAwardItem, gamedata.SuppressRiotFriendAwardNum}
 	territoryInfo.AwardItem = append(territoryInfo.AwardItem, award)
-	go friendTerritory.AddTerritoryAward(territoryInfo.ID, award)
+	go friendTerritory.DB_AddTerritoryAward(territoryInfo.ID, award)
 
 	//! 设置领地信息暴动信息
 	for i, n := range territoryInfo.RiotInfo {
@@ -680,13 +680,13 @@ func Hand_SuppressRiot(w http.ResponseWriter, r *http.Request) {
 			territoryInfo.RiotInfo[i].IsRoit = false
 			territoryInfo.RiotInfo[i].DealTime = time.Now().Unix()
 			territoryInfo.RiotInfo[i].HelperName = friendPlayerInfo.Name
-			go friendTerritory.UpdateRiotInfo(index, i, territoryInfo.RiotInfo[i])
+			go friendTerritory.DB_UpdateRiotInfo(index, i, territoryInfo.RiotInfo[i])
 		}
 	}
 
 	//! 暴动次数加一
 	player.TerritoryModule.SuppressRiotTimes += 1
-	go player.TerritoryModule.UpdateRiotTimes()
+	go player.TerritoryModule.DB_UpdateRiotTimes()
 
 	//! 自己获取元宝奖励
 	response.ItemID = gamedata.SuppressRiotAwardItem

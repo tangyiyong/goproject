@@ -189,11 +189,7 @@ func (self *TActivitySign) SignPlus() []gamedata.ST_ItemData {
 	self.IsSignPlus = true
 
 	//! 更新奖励标记到数据库
-	ret := self.DB_UpdateSignPlusInfoToDatabase()
-	if ret == false {
-		gamelog.Error("DB_UpdateSignPlusInfoToDatabase error.")
-		return []gamedata.ST_ItemData{}
-	}
+	go self.DB_UpdateSignPlusInfoToDatabase()
 
 	//! 发放奖励
 	self.activityModule.ownplayer.BagMoudle.AddAwardItems(self.SignPlusAward)
@@ -216,7 +212,7 @@ func (self *TActivitySign) DB_UpdateSignPlusStatus() {
 		"sign.signplusstatus": self.SignPlusStatus}})
 }
 
-func (self *TActivitySign) DB_Reset() bool {
+func (self *TActivitySign) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"sign.activityid":     self.ActivityID,
 		"sign.issign":         self.IsSign,
@@ -226,27 +222,26 @@ func (self *TActivitySign) DB_Reset() bool {
 		"sign.signplusstatus": self.SignPlusStatus,
 		"sign.versioncode":    self.VersionCode,
 		"sign.resetcode":      self.ResetCode}})
-	return true
 }
 
 //! 更新豪华签到信息到数据库
-func (self *TActivitySign) DB_UpdateSignPlusInfoToDatabase() bool {
-	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+func (self *TActivitySign) DB_UpdateSignPlusInfoToDatabase() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"sign.signplusaward":  self.SignPlusAward,
 		"sign.issignplus":     self.IsSignPlus,
 		"sign.signplusstatus": self.SignPlusStatus}})
 }
 
 //! 更新普通签到信息到数据库
-func (self *TActivitySign) DB_UpdateSignInfoToDatabase() bool {
-	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+func (self *TActivitySign) DB_UpdateSignInfoToDatabase() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"sign.signday":     self.SignDay,
 		"sign.issign":      self.IsSign,
 		"sign.versioncode": self.VersionCode}})
 }
 
-func (self *TActivitySign) DB_Refresh() bool {
-	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+func (self *TActivitySign) DB_Refresh() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"sign.signplusaward":  self.SignPlusAward,
 		"sign.issignplus":     self.IsSignPlus,
 		"sign.signday":        self.SignDay,

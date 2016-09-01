@@ -117,7 +117,7 @@ func (self *TTerritoryModule) OnNewDay(newday uint32) {
 	//! 开始重置
 	self.SuppressRiotTimes = 0
 	self.ResetDay = utility.GetCurDay()
-	go self.UpdateResetTime()
+	go self.DB_UpdateResetTime()
 }
 
 //! 检测领地是否已被挑战
@@ -139,7 +139,7 @@ func (self *TTerritoryModule) ChallengeTerritory(id int) {
 	var territory TTerritoryInfo
 	territory.ID = territoryInfo.ID
 	self.TerritoryLst = append(self.TerritoryLst, territory)
-	go self.AddTerritory(territory)
+	go self.DB_AddTerritory(territory)
 
 	//! 发放奖励
 	copyInfo := gamedata.GetCopyBaseInfo(territoryInfo.CopyID)
@@ -211,7 +211,7 @@ func (self *TTerritoryModule) PatrolTerritory(id int, heroID int, patrol *gameda
 			riot.BeginTime = now + int64(i*awardTime)
 			riot.IsRoit = true
 			territory.RiotInfo = append(territory.RiotInfo, riot)
-			go self.AddTerritoryRiotInfo(index, riot)
+			go self.DB_DB_AddTerritoryRiotInfo(index, riot)
 
 			riotEndTime = now + int64(i*awardTime) + int64(gamedata.RiotTime)
 		}
@@ -220,7 +220,7 @@ func (self *TTerritoryModule) PatrolTerritory(id int, heroID int, patrol *gameda
 
 	territory.AwardItem = append(territory.AwardItem, gamedata.ST_ItemData{pHeroInfo.PieceID, pieceNum})
 	//! 更新到数据库
-	go self.UpdateTerritory(index, territory)
+	go self.DB_UpdateTerritory(index, territory)
 }
 
 //! 领地是否暴动
@@ -259,14 +259,14 @@ func (self *TTerritoryModule) GetTerritoryAward(id int) {
 	territory.PatrolTime = 0
 	territory.AwardTime = 0
 	territory.RiotInfo = []TTerritoryRiotData{}
-	go self.UpdateTerritory(index, territory)
+	go self.DB_UpdateTerritory(index, territory)
 }
 
 //! 升级领地技能
 func (self *TTerritoryModule) TerritorySkillLevelUp(id int) {
 	territory, index := self.GetTerritory(id)
 	territory.SkillLevel += 1
-	go self.UpdateTerritorySkill(index, territory.SkillLevel)
+	go self.DB_UpdateTerritorySkill(index, territory.SkillLevel)
 }
 
 //! 获取领地数量

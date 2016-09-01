@@ -9,8 +9,6 @@ import (
 	"time"
 )
 
-
-
 type TMysqlLog struct {
 	db    *sql.DB
 	tx    *sql.Tx
@@ -35,6 +33,7 @@ func (self *TMysqlLog) WriteLog(pdata []byte) {
 }
 
 func (self *TMysqlLog) Close() {
+	self.tx.Commit()
 	self.db.Close()
 }
 

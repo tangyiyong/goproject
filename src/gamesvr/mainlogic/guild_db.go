@@ -20,12 +20,12 @@ func DB_RemoveGuild(guildID int32) {
 
 //! 添加工会成员
 func DB_GuildAddMember(guildID int32, member *TMember) {
-	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, "memberlist", *member)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, bson.M{"$push": bson.M{"memberlist": *member}})
 }
 
 //! 删除工会成员
 func DB_GuildRemoveMember(guildID int32, member *TMember) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, "memberlist", *member)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, bson.M{"$pull": bson.M{"memberlist": *member}})
 }
 
 //! 修改工会成员信息
@@ -37,32 +37,32 @@ func DB_GuildUpdateMember(guildID int32, member *TMember, index int) {
 
 //! 增加帮派事件
 func (self *TGuild) DB_AddGuildEvent(event GuildEvent) {
-	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, "eventlst", event)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, bson.M{"$push": bson.M{"eventlst": event}})
 }
 
 //! 删除帮派事件
 func (self *TGuild) DB_RemoveGuildEvent(event GuildEvent) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, "eventlst", event)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, bson.M{"$pull": bson.M{"eventlst": event}})
 }
 
 //! 增加申请名单
 func DB_AddApplyList(guildID int32, playerid int32) {
-	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, "applylist", playerid)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, bson.M{"$push": bson.M{"applylist": playerid}})
 }
 
 //! 删除申请名单
 func DB_RemoveApplyList(guildID int32, playerid int32) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, "applylist", playerid)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": guildID}, bson.M{"$pull": bson.M{"applylist": playerid}})
 }
 
 //! 增加申请帮派名单
 func (self *TGuildModule) DB_AddApplyGuildList(guildID int32) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, "applyguildlist", guildID)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"applyguildlist": guildID}})
 }
 
 //! 删除申请帮派名单
 func (self *TGuildModule) DB_RemoveApplyGuildList(guildID int32) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, "applyguildlist", guildID)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$pull": bson.M{"applyguildlist": guildID}})
 }
 
 //! 更改祭天标记
@@ -140,7 +140,7 @@ func (self *TGuild) DB_UpdateGuildSacrifice() {
 
 //! 更新祭天奖励领取标记
 func (self *TGuildModule) DB_AddSacrificeMark(awardID int) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, "sacrificeawardlst", awardID)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"sacrificeawardlst": awardID}})
 }
 
 //! 增加购买次数
@@ -151,7 +151,7 @@ func (self *TGuildModule) DB_AddShoppingTimes(id int, times int) {
 
 //! 增加购买信息
 func (self *TGuildModule) DB_AddShoppingInfo(info TGuildShopInfo) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, "shoppinglst", info)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"shoppinglst": info}})
 }
 
 //! 更新刷新标记
@@ -189,7 +189,7 @@ func (self *TGuild) DB_CostCampLife(copyID int, life int64) {
 
 //! 增加通关章节记录
 func (self *TGuild) DB_AddPassChapter(chapter PassAwardChapter) {
-	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, "awardchapterlst", chapter)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, bson.M{"$push": bson.M{"awardchapterlst": chapter}})
 }
 
 //! 下一章节
@@ -203,12 +203,12 @@ func (self *TGuild) DB_UpdateChapter() {
 
 //! 增加领取记录
 func (self *TGuild) DB_AddRecvRecord(treasure GuildCopyTreasure) {
-	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, "copytreasure", treasure)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, bson.M{"$push": bson.M{"copytreasure": treasure}})
 }
 
 //! 增加章节奖励领取记录
 func (self *TGuildModule) DB_AddChapterAwardRecord(chapter int) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, "copyawardmark", chapter)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"copyawardmark": chapter}})
 }
 
 //! 修改工会基础信息
@@ -235,18 +235,17 @@ func (self *TGuildModule) DB_KickPlayer(playerid int32) {
 
 //! 移除公会留言板信息
 func (self *TGuild) DB_RemoveGuildMsgBoard(msg TGuildMsgBoard) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, "msgboard", msg)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, bson.M{"$pull": bson.M{"msgboard": msg}})
 }
 
 //! 增加公会留言板信息
 func (self *TGuild) DB_AddGuildMsgBoard(msg TGuildMsgBoard) {
-	mongodb.AddToArray(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, "msgboard", msg)
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, bson.M{"$push": bson.M{"msgboard": msg}})
 }
 
 //! 公会副本回退状态
 func (self *TGuild) DB_UpdateGuildBackStatus() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, bson.M{"$set": bson.M{
-		"isback": self.IsBack}})
+	mongodb.UpdateToDB(appconfig.GameDbName, "Guild", bson.M{"_id": self.GuildID}, bson.M{"$set": bson.M{"isback": self.IsBack}})
 }
 
 //! 修改公会技能等级

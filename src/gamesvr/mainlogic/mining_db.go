@@ -63,7 +63,7 @@ func (self *TMiningModule) DB_SubMiningBuffTimes(times int) {
 
 //! 增加元素
 func (self *TMiningModule) DB_AddElement(value int) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerMining", bson.M{"_id": self.PlayerID}, "element", value)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMining", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"element": value}})
 }
 
 //! 修改元素
@@ -75,17 +75,17 @@ func (self *TMiningModule) DB_SetElement(index int, value int) {
 
 //! 删除元素
 func (self *TMiningModule) DB_RemoveElement(index int) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "PlayerMining", bson.M{"_id": self.PlayerID}, "element", index)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMining", bson.M{"_id": self.PlayerID}, bson.M{"$pull": bson.M{"element": index}})
 }
 
 //! 删除怪物
 func (self *TMiningModule) DB_RemoveMonster(index TMiningMonster) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "PlayerMining", bson.M{"_id": self.PlayerID}, "monsterlst", index)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMining", bson.M{"_id": self.PlayerID}, bson.M{"$pull": bson.M{"monsterlst": index}})
 }
 
 //! 增加怪物
 func (self *TMiningModule) DB_AddMonster(value TMiningMonster) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerMining", bson.M{"_id": self.PlayerID}, "monsterlst", value)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMining", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"monsterlst": value}})
 }
 
 //! 设置怪物
@@ -121,7 +121,7 @@ func (self *TMiningModule) DB_UpdateMiningStatusCode() {
 
 //! 增加黑市商品
 func (self *TMiningModule) DB_AddBlackMarketMark(itemid int) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerMining", bson.M{"_id": self.PlayerID}, "blackmarketbuymark", itemid)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMining", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"blackmarketbuymark": itemid}})
 }
 
 //! 更改黑市购买标记

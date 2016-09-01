@@ -324,19 +324,10 @@ type MSG_BuyGroupPurchase_Ack struct {
 	CostItemNum  int //! 使用团购券数量
 	CostMoneyID  int //! 使用货币ID
 	CostMoneyNum int //! 使用货币数量
+	ItemID       int //! 获取道具ID
+	ItemNum      int //! 获取道具数量
+	SaleNum      int //! 销售数量
 	Score        int //! 总积分
-}
-
-//! 玩家请求领取差价
-//! 消息: /get_diff_price
-type MSG_GetGroupPurchaseDiffPrice_Req struct {
-	PlayerID   int32
-	SessionKey string
-}
-
-type MSG_GetGroupPurchaseDiffPrice_Ack struct {
-	RetCode   int
-	AwardItem MSG_ItemData
 }
 
 //! 玩家请求查询积分奖励

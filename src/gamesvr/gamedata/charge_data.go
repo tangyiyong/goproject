@@ -7,6 +7,7 @@ import (
 type ST_ChargeItem struct {
 	ID           int //充值ID
 	RenMinBi     int //充值的人民币
+	Diamond      int //获得钻石数
 	FirstAwardID int //首冲奖励
 	AwardID      int //常规奖励ID
 }
@@ -39,6 +40,7 @@ func ParseChargeItemRecord(rs *RecordSet) {
 	data := &GT_ChargeItemList[id]
 	data.ID = id
 	data.RenMinBi = rs.GetFieldInt("renminbi")
+	data.Diamond = rs.GetFieldInt("diamond")
 	data.FirstAwardID = rs.GetFieldInt("first_award_id")
 	data.AwardID = rs.GetFieldInt("award_id")
 }

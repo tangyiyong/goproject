@@ -15,25 +15,6 @@ type TSingleRechargeRecord struct {
 	Status int
 }
 
-type SingleRechargeRecordLst []TSingleRechargeRecord
-
-func (self SingleRechargeRecordLst) Len() int {
-	return len(self)
-}
-
-func (self SingleRechargeRecordLst) Less(i int, j int) bool {
-	if (self)[i].Money < (self)[j].Money {
-		return true
-	}
-	return false
-}
-
-func (self SingleRechargeRecordLst) Swap(i int, j int) {
-	temp := (self)[i]
-	(self)[i] = (self)[j]
-	(self)[j] = temp
-}
-
 type TActivityRechargeInfo struct {
 	Index int //! 领取索引
 	Times int //! 领取次数
@@ -42,7 +23,7 @@ type TActivityRechargeInfo struct {
 //! 充值活动数据
 type TActivitySingleRecharge struct {
 	ActivityID     int                     //! 活动ID
-	RechargeRecord SingleRechargeRecordLst //! 活动期间单笔充值记录
+	RechargeRecord []TSingleRechargeRecord //! 活动期间单笔充值记录
 	SingleAwardLst []TActivityRechargeInfo //! 单充奖励领取记录
 	VersionCode    int32                   //! 版本号
 	ResetCode      int32                   //! 迭代号
@@ -132,7 +113,7 @@ func (self *TActivitySingleRecharge) GetSingleRechargeAwardTimes(index int) (*TA
 	return nil, 0
 }
 
-func (self *TActivitySingleRecharge) DB_Refresh() bool {
+func (self *TActivitySingleRecharge) DB_Refresh() {
 	index := -1
 	for i, v := range self.activityModule.SingleRecharge {
 		if v.ActivityID == self.ActivityID {
@@ -143,17 +124,15 @@ func (self *TActivitySingleRecharge) DB_Refresh() bool {
 
 	if index < 0 {
 		gamelog.Error("SingleRecharge DB_Refresh fail. ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName := fmt.Sprintf("singlerecharge.%d.versioncode", index)
-
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
-	return true
 }
 
-func (self *TActivitySingleRecharge) DB_Reset() bool {
+func (self *TActivitySingleRecharge) DB_Reset() {
 	index := -1
 	for i, v := range self.activityModule.SingleRecharge {
 		if v.ActivityID == self.ActivityID {
@@ -164,7 +143,7 @@ func (self *TActivitySingleRecharge) DB_Reset() bool {
 
 	if index < 0 {
 		gamelog.Error("SingleRecharge DB_Reset fail. ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName1 := fmt.Sprintf("singlerecharge.%d.rechargerecord", index)
@@ -176,10 +155,9 @@ func (self *TActivitySingleRecharge) DB_Reset() bool {
 		filedName2: self.SingleAwardLst,
 		filedName3: self.VersionCode,
 		filedName4: self.ResetCode}})
-	return true
 }
 
 func (self *TActivitySingleRecharge) DB_AddSingleRecharge(index int, info TActivityRechargeInfo) {
 	filedName := fmt.Sprintf("singlerecharge.%d.singleawardlst", index)
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, filedName, info)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{filedName: info}})
 }

@@ -22,6 +22,7 @@ func (self *TBinaryLog) WriteLog(pdata []byte) {
 }
 
 func (self *TBinaryLog) Close() {
+	self.writer.Flush()
 	self.file.Close()
 }
 

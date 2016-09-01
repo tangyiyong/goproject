@@ -121,6 +121,6 @@ func (self *TSummonModule) UpdateSummonStatus() {
 		self.Normal.SummonCounts = 0
 		self.Normal.SummonTime = now
 		self.Normal.ResetTime = GetTodayTime() + 24*60*60
-		go self.UpdateNormalSummon()
+		go self.DB_UpdateNormalSummon()
 	}
 }

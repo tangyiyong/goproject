@@ -43,10 +43,10 @@ type TActivity interface {
 	RedTip() bool
 
 	//重置的数据存储(在End接口内部调用)
-	DB_Reset() bool
+	DB_Reset()
 
 	//更新的数据存储(在Refresh接口内部调用)
-	DB_Refresh() bool
+	DB_Refresh()
 }
 
 //! 活动模块

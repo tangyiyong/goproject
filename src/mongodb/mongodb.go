@@ -102,27 +102,6 @@ func UpdateToDB(dbname string, collection string, search bson.M, stuff bson.M) b
 	return true
 }
 
-//更新一条记录  某个字段的值
-//增加了数组修改器的修改，修改数组中某个索引的值
-//err := coll.UpdateToDB("PlayerDB", "PlayerHero", bson.M{"herolist.heroid": 3}, bson.M{"$set": bson.M{"herolist.$.skilllist": skill}})
-//err := UpdateArrayField("PlayerDB", "PlayerHero", bson.M{"herolist.heroid": 3}, "herolist.$.skilllist",  skill)
-//一次更新全部的技能，但不用更新所有的集合，而是更新一条记录，数据量要小得多。
-//mongodb.UpdateToDB("PlayerDB", "PlayerHero", bson.M{"herolist.heroid": 3}, bson.M{"$set": bson.M{"herolist.$.skilllist": skill}})
-
-//增加一个字段值
-func IncFieldValue(dbname string, collection string, search bson.M, field string, value int) bool {
-	s := GetDBSession()
-	defer s.Close()
-	coll := s.DB(dbname).C(collection)
-	err := coll.Update(search, bson.M{"$inc": bson.M{field: value}})
-	if err != nil {
-		gamelog.Error3("IncFieldValue Failed: DB:[%s] Collection:[%s] Error:[%s]", dbname, collection, err.Error())
-		return false
-	}
-
-	return true
-}
-
 //插入一条记录
 func InsertToDB(dbname string, collection string, data interface{}) bool {
 	s := GetDBSession()
@@ -173,21 +152,6 @@ func IsRecordExist(dbname string, collection string, search bson.M) bool {
 	panic(err.Error())
 
 	return false
-}
-
-//删掉指定的一条记录
-func AddToArray(dbname string, collection string, search bson.M, fieldname string, data interface{}) bool {
-	return UpdateToDB(dbname, collection, search, bson.M{"$push": bson.M{fieldname: data}})
-}
-
-//删掉指定的一条记录
-func RemoveFromArray(dbname string, collection string, search bson.M, fieldname string, data interface{}) bool {
-	return UpdateToDB(dbname, collection, search, bson.M{"$pull": bson.M{fieldname: data}})
-}
-
-//删除数组中指定索引的记录
-func ArrayRemoveIndex(dbname string, collection string, search bson.M, fieldname string, data interface{}) bool {
-	return UpdateToDB(dbname, collection, search, bson.M{"$pull": bson.M{fieldname: data}})
 }
 
 //! 查询一条数据

@@ -162,13 +162,13 @@ func (self *TActivityLevelGift) CheckDeadLine() {
 	}
 }
 
-func (self *TActivityLevelGift) DB_Refresh() bool {
-	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+func (self *TActivityLevelGift) DB_Refresh() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"levelgift.versioncode": self.VersionCode}})
 }
 
-func (self *TActivityLevelGift) DB_Reset() bool {
-	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+func (self *TActivityLevelGift) DB_Reset() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"levelgift.activityid":    self.ActivityID,
 		"levelgift.resetcode":     self.ResetCode,
 		"levelgift.ishavenewitem": self.IsHaveNewItem,
@@ -177,11 +177,11 @@ func (self *TActivityLevelGift) DB_Reset() bool {
 }
 
 func (self *TActivityLevelGift) DB_RemoveDeadGift(gift *TLevelGiftInfo) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, "levelgift.giftlst", *gift)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$pull": bson.M{"levelgift.giftlst": *gift}})
 }
 
 func (self *TActivityLevelGift) DB_AddGift(gift *TLevelGiftInfo) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, "levelgift.giftlst", *gift)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{"levelgift.giftlst": *gift}})
 
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"levelgift.ishavenewitem": self.IsHaveNewItem}})

@@ -38,7 +38,7 @@ func (self *TCardMasterInfo) Init(activityID int, mPtr *TActivityModule, vercode
 	self.activityModule.activityPtrs[self.ActivityID] = self
 	self.CardList = make([]uint16, len(gamedata.G_CardCsv))
 	self.ExchangeTimes = make([]uint16, len(gamedata.G_CMExchangeItemCsv))
-	// gamelog.Info("！！！CardMaster Init")
+	gamelog.Info("！！！CardMaster Init")
 }
 func (self *TCardMasterInfo) SetModulePtr(mPtr *TActivityModule) {
 	self.activityModule = mPtr
@@ -117,7 +117,7 @@ func (self *TCardMasterInfo) AddCard(id int, count_ int) int {
 	}
 	self.CardList[id] += count
 	// gamelog.Info("AddCard -- addCnt:%d, resultCnt: %d", count, self.CardList[id])
-	self.db_SaveCardList(id)
+	self.DB_SaveCardList(id)
 	return int(self.CardList[id])
 }
 func (self *TCardMasterInfo) DelCard(id int, count_ int) bool {
@@ -130,7 +130,7 @@ func (self *TCardMasterInfo) DelCard(id int, count_ int) bool {
 		return false
 	} else {
 		self.CardList[id] -= count
-		self.db_SaveCardList(id)
+		self.DB_SaveCardList(id)
 		return true
 	}
 }
@@ -151,7 +151,7 @@ func (self *TCardMasterInfo) DelCards(cards []gamedata.ST_ItemData) bool {
 	// 判断都通过，批量删除
 	for _, v := range cards {
 		self.CardList[v.ItemID] -= uint16(v.ItemNum)
-		self.db_SaveCardList(v.ItemID)
+		self.DB_SaveCardList(v.ItemID)
 	}
 	return true
 }
@@ -162,14 +162,14 @@ func (self *TCardMasterInfo) AddExchangeTimes(id int, count_ int) int {
 		return 0
 	}
 	self.ExchangeTimes[id] += count
-	self.db_SaveExchangeTimes(id)
+	self.DB_SaveExchangeTimes(id)
 	return int(self.ExchangeTimes[id])
 }
 func (self *TCardMasterInfo) AddJiFen(num int) {
 	newJiFen := self.GetTodayScore() + num
 	self.SetTodayScore(newJiFen)
 	self.TotalJiFen += num
-	self.db_SaveJiFen()
+	self.DB_SaveJiFen()
 
 	G_CardMasterTodayRanker.SetRankItem(self.activityModule.PlayerID, newJiFen)
 	G_CardMasterTotalRanker.SetRankItem(self.activityModule.PlayerID, self.TotalJiFen)
@@ -202,31 +202,31 @@ func (self *TCardMasterInfo) GetTotalScore() int {
 }
 
 //! DB相关
-func (self *TCardMasterInfo) db_SaveCardList(nIndex int) {
+func (self *TCardMasterInfo) DB_SaveCardList(nIndex int) {
 	FieldName := fmt.Sprintf("cardmaster.cardlist.%d", nIndex)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{FieldName: self.CardList[nIndex]}})
 }
-func (self *TCardMasterInfo) db_SavePoint() {
+func (self *TCardMasterInfo) DB_SavePoint() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{"cardmaster.point": self.Point}})
 }
-func (self *TCardMasterInfo) db_SaveFreeTimes() {
+func (self *TCardMasterInfo) DB_SaveFreeTimes() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{"cardmaster.freenormaldrawtimes": self.FreeNormalDrawTimes}})
 }
-func (self *TCardMasterInfo) db_SaveJiFen() {
+func (self *TCardMasterInfo) DB_SaveJiFen() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"cardmaster.jifen":      self.JiFen,
 		"cardmaster.totaljifen": self.TotalJiFen}})
 }
-func (self *TCardMasterInfo) db_SaveRankAwardFlag() {
+func (self *TCardMasterInfo) DB_SaveRankAwardFlag() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"cardmaster.isgettodayrankaward": self.IsGetTodayRankAward,
 		"cardmaster.isgettotalrankaward": self.IsGetTotalRankAward}})
 }
-func (self *TCardMasterInfo) db_SaveExchangeTimes(nIndex int) {
+func (self *TCardMasterInfo) DB_SaveExchangeTimes(nIndex int) {
 	FieldName := fmt.Sprintf("cardmaster.exchangetimes.%d", nIndex)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{FieldName: self.ExchangeTimes[nIndex]}})
 }
-func (self *TCardMasterInfo) DB_Refresh() bool {
+func (self *TCardMasterInfo) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"cardmaster.exchangetimes":       self.ExchangeTimes,
 		"cardmaster.freenormaldrawtimes": self.FreeNormalDrawTimes,
@@ -237,10 +237,9 @@ func (self *TCardMasterInfo) DB_Refresh() bool {
 		"cardmaster.activityid":          self.ActivityID,
 		"cardmaster.versioncode":         self.VersionCode,
 		"cardmaster.resetcode":           self.ResetCode}})
-	return true
 }
 
-func (self *TCardMasterInfo) DB_Reset() bool {
+func (self *TCardMasterInfo) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"cardmaster.exchangetimes":       self.ExchangeTimes,
 		"cardmaster.freenormaldrawtimes": self.FreeNormalDrawTimes,
@@ -251,7 +250,6 @@ func (self *TCardMasterInfo) DB_Reset() bool {
 		"cardmaster.activityid":          self.ActivityID,
 		"cardmaster.versioncode":         self.VersionCode,
 		"cardmaster.resetcode":           self.ResetCode}})
-	return true
 }
 
 //！ 逻辑代码
@@ -269,7 +267,7 @@ func (self *TCardMasterInfo) NormalDraw() []gamedata.ST_ItemData { // 普通抽�
 func (self *TCardMasterInfo) cost_NormalDraw() bool {
 	if self.FreeNormalDrawTimes > 0 {
 		self.FreeNormalDrawTimes--
-		self.db_SaveFreeTimes()
+		self.DB_SaveFreeTimes()
 		return true
 	}
 	if self.activityModule.ownplayer.BagMoudle.RemoveNormalItem(gamedata.CardMaster_RaffleTicket, 1) {
@@ -358,7 +356,7 @@ func (self *TCardMasterInfo) Card2Point(cards []gamedata.ST_ItemData) bool {
 	}
 	if self.DelCards(cards) {
 		self.Point += sumPoint
-		self.db_SavePoint()
+		self.DB_SavePoint()
 		return true
 	}
 	return false
@@ -374,7 +372,7 @@ func (self *TCardMasterInfo) Point2Card(cards []gamedata.ST_ItemData) bool {
 	}
 	if self.Point >= sumPoint {
 		self.Point -= sumPoint
-		self.db_SavePoint()
+		self.DB_SavePoint()
 		for _, v := range cards {
 			self.AddCard(v.ItemID, v.ItemNum)
 		}

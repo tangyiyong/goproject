@@ -274,7 +274,7 @@ func (self *TGlobalVariables) InitSevenDayBuyLst() bool {
 	return true
 }
 
-func (self *TGlobalVariables) AddGroupPurchaseRecord(itemID int, saleNum int) bool {
+func (self *TGlobalVariables) AddGroupPurchaseRecord(itemID int, saleNum int) int {
 	//! 获取团购记录
 	recordInfo, index := self.GetGroupPurchaseItemInfo(itemID)
 
@@ -282,12 +282,12 @@ func (self *TGlobalVariables) AddGroupPurchaseRecord(itemID int, saleNum int) bo
 	recordInfo.SaleNum += saleNum
 	go self.DB_UpdateGroupPurchaseSaleNum(index)
 
-	return true
+	return recordInfo.SaleNum
 }
 
 //! 添加团购记录
 func (self *TGlobalVariables) DB_AddNewGroupPurchaseRecord(record *TGroupPurchaseInfo) {
-	mongodb.AddToArray(appconfig.GameDbName, "GlobalVariables", bson.M{"_id": 1}, "grouppurchaselst", *record)
+	mongodb.UpdateToDB(appconfig.GameDbName, "GlobalVariables", bson.M{"_id": 1}, bson.M{"$push": bson.M{"grouppurchaselst": *record}})
 }
 
 //! 更新团购商品购买记录
@@ -334,7 +334,7 @@ func (self *TGlobalVariables) DB_SaveGlobalVariables() {
 }
 
 func (self *TGlobalVariables) DB_AddNewActivity(activity TActivityData) {
-	mongodb.AddToArray(appconfig.GameDbName, "GlobalVariables", bson.M{"_id": 1}, "activitylst", activity)
+	mongodb.UpdateToDB(appconfig.GameDbName, "GlobalVariables", bson.M{"_id": 1}, bson.M{"$push": bson.M{"activitylst": activity}})
 }
 
 func (self *TGlobalVariables) DB_UpdateActivityLst() {
@@ -343,7 +343,7 @@ func (self *TGlobalVariables) DB_UpdateActivityLst() {
 }
 
 func (self *TGlobalVariables) DB_AddSevenDayBuyInfo(seven TSevenDayBuyInfo) {
-	mongodb.AddToArray(appconfig.GameDbName, "GlobalVariables", bson.M{"_id": 1}, "sevendaylimit", seven)
+	mongodb.UpdateToDB(appconfig.GameDbName, "GlobalVariables", bson.M{"_id": 1}, bson.M{"$push": bson.M{"sevendaylimit": seven}})
 }
 
 func (self *TGlobalVariables) DB_CleanSevenDayInfo(activityID int) {
@@ -381,25 +381,25 @@ func (self *TGlobalVariables) AddSvrAward(pAwardData *TAwardData) {
 	pAwardData.ID = self.SvrAwardIncID
 	pAwardData.Time = time.Now().Unix()
 	self.SvrAwardList = append(self.SvrAwardList, *pAwardData)
-	self.db_AddAward(pAwardData)
-	self.db_SaveIncrementID()
+	self.DB_AddAward(pAwardData)
+	self.DB_SaveIncrementID()
 }
 func (self *TGlobalVariables) DelSvrAward(id int) {
 	for i, v := range self.SvrAwardList {
 		if v.ID == id {
 			self.SvrAwardList = append(self.SvrAwardList[:i], self.SvrAwardList[i+1:]...)
-			self.db_DelAward(id)
+			self.DB_DelAward(id)
 			break
 		}
 	}
 }
-func (self *TGlobalVariables) db_AddAward(pAwardData *TAwardData) {
-	mongodb.AddToArray(appconfig.GameDbName, "SvrAwardCenter", bson.M{"_id": 0}, "svrawardlist", *pAwardData)
+func (self *TGlobalVariables) DB_AddAward(pAwardData *TAwardData) {
+	mongodb.UpdateToDB(appconfig.GameDbName, "SvrAwardCenter", bson.M{"_id": 0}, bson.M{"$push": bson.M{"svrawardlist": *pAwardData}})
 }
-func (self *TGlobalVariables) db_DelAward(id int) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "SvrAwardCenter", bson.M{"_id": 0}, "svrawardlist", bson.M{"id": id})
+func (self *TGlobalVariables) DB_DelAward(id int) {
+	mongodb.UpdateToDB(appconfig.GameDbName, "SvrAwardCenter", bson.M{"_id": 0}, bson.M{"$pull": bson.M{"svrawardlist": bson.M{"id": id}}})
 }
-func (self *TGlobalVariables) db_SaveIncrementID() {
+func (self *TGlobalVariables) DB_SaveIncrementID() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "SvrAwardCenter", bson.M{"_id": 0}, bson.M{"$set": bson.M{"svrawardincid": self.SvrAwardIncID}})
 }
 

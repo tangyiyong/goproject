@@ -27,7 +27,6 @@ func Hand_GetGroupPurchaseInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -38,18 +37,36 @@ func Hand_GetGroupPurchaseInfo(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
+	awardType := G_GlobalVariables.GetActivityAwardType(player.ActivityModule.GroupPurchase.ActivityID)
+
 	response.Score = player.ActivityModule.GroupPurchase.Score
 
-	for _, v := range player.ActivityModule.GroupPurchase.PurchaseCostLst {
+	for _, n := range gamedata.GT_GroupPurchaseLst[awardType] {
 		var itemInfo msg.MSG_GroupPurchase
-		itemInfo.ItemID = v.ItemID
+		itemInfo.ItemID = n.ItemID
+		itemInfo.CanBuyNum = n.BuyTimes
 
-		groupItemData := gamedata.GetGroupPurchaseItemInfo(v.ItemID, player.ActivityModule.GroupPurchase.ActivityID)
-		itemInfo.CanBuyNum = groupItemData.BuyTimes - v.Times
-
-		groupItemInfo, _ := G_GlobalVariables.GetGroupPurchaseItemInfo(v.ItemID)
+		groupItemInfo, _ := G_GlobalVariables.GetGroupPurchaseItemInfo(n.ItemID)
 		itemInfo.SaleNum = groupItemInfo.SaleNum
-		response.ItemInfo = append(response.ItemInfo, itemInfo)
+
+		for _, v := range player.ActivityModule.GroupPurchase.PurchaseCostLst {
+			if n.ItemID == v.ItemID {
+				itemInfo.CanBuyNum -= v.Times
+				break
+			}
+		}
+
+		isExist := false
+		for _, v := range response.ItemInfo {
+			if v.ItemID == n.ItemID {
+				isExist = true
+				break
+			}
+		}
+
+		if isExist == false {
+			response.ItemInfo = append(response.ItemInfo, itemInfo)
+		}
 	}
 
 	for _, v := range G_GlobalVariables.ActivityLst {
@@ -60,7 +77,7 @@ func Hand_GetGroupPurchaseInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	response.AwardType = G_GlobalVariables.GetActivityAwardType(player.ActivityModule.GroupPurchase.ActivityID)
+	response.AwardType = awardType
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -113,47 +130,45 @@ func Hand_BuyGroupPurchaseItem(w http.ResponseWriter, r *http.Request) {
 	itemSaleInfo := gamedata.GetGroupPurchaseItemInfoFromSale(req.ItemID, awardType, saleInfo.SaleNum)
 
 	//! 检测玩家货币是否足够
-	useItemNum := 0
-	useMoneyNum := itemSaleInfo.MoneyNum
-	if itemSaleInfo.MoneyNum > player.RoleMoudle.Moneys[gamedata.GroupPurchaseCostMoneyID-1] {
-		//! 使用团购券来湊
-		useItemNum = itemSaleInfo.MoneyNum - player.RoleMoudle.Moneys[gamedata.GroupPurchaseCostMoneyID-1]
-		if useItemNum > itemData.UseItemMax {
-			gamelog.Error("Hand_BuyGroupPurchaseItem Error: Money not enough")
-			response.RetCode = msg.RE_NOT_ENOUGH_MONEY
-			return
-		}
-
-		useMoneyNum -= useItemNum
+	curItemNum := player.BagMoudle.GetNormalItemCount(gamedata.GroupPurchaseCostItemID)
+	needMoney := itemSaleInfo.MoneyNum
+	if curItemNum >= itemSaleInfo.UseItemMax {
+		curItemNum = itemSaleInfo.UseItemMax
 	}
 
-	if useItemNum != 0 {
+	needMoney -= curItemNum
+
+	if curItemNum != 0 {
 		//! 扣除团购券
-		player.BagMoudle.RemoveNormalItem(gamedata.GroupPurchaseCostItemID, useItemNum)
+		player.BagMoudle.RemoveNormalItem(gamedata.GroupPurchaseCostItemID, curItemNum)
 		response.CostItemID = gamedata.GroupPurchaseCostItemID
-		response.CostItemNum = useItemNum
+		response.CostItemNum = curItemNum
 	}
 
-	player.RoleMoudle.CostMoney(gamedata.GroupPurchaseCostMoneyID, useMoneyNum)
+	player.RoleMoudle.CostMoney(gamedata.GroupPurchaseCostMoneyID, needMoney)
 	response.CostMoneyID = gamedata.GroupPurchaseCostMoneyID
-	response.CostMoneyNum = useMoneyNum
+	response.CostMoneyNum = needMoney
 
 	//! 发放物品
 	player.BagMoudle.AddAwardItem(itemData.ItemID, itemData.ItemNum)
 
+	response.ItemID = itemData.ItemID
+	response.ItemNum = itemData.ItemNum
+
 	//! 增加积分
-	response.Score = useItemNum + useMoneyNum*10
+	response.Score = curItemNum + needMoney*10
 	player.ActivityModule.GroupPurchase.Score += response.Score
 	response.Score = player.ActivityModule.GroupPurchase.Score
 	go player.ActivityModule.GroupPurchase.DB_SaveScore()
 
 	//! 增加购买记录
-	costInfo.MoneyNum += useMoneyNum
+	costInfo.MoneyNum += needMoney
 	costInfo.Times += 1
 	go player.ActivityModule.GroupPurchase.DB_UpdatePurchaseCostInfo(costIndex)
 
 	//! 增加总购买记录
-	G_GlobalVariables.AddGroupPurchaseRecord(req.ItemID, 1)
+	response.SaleNum = G_GlobalVariables.AddGroupPurchaseRecord(req.ItemID, 1)
+
 	response.RetCode = msg.RE_SUCCESS
 }
 

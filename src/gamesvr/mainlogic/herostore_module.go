@@ -238,13 +238,13 @@ func (storemodule *TStoreModule) PaymentTerms(storeType int) (int, int) {
 			//! 免费刷新次数减一
 			storemodule.FreeRefreshCount -= 1
 			storemodule.RefreshCount -= 1
-			go storemodule.UpdateRefreshCount(gamedata.StoreType_Hero)
+			go storemodule.DB_UpdateRefreshCount(gamedata.StoreType_Hero)
 			if storemodule.FreeRefreshTime == 0 {
 				//! 设置刷新次数CD时间
 				storemodule.FreeRefreshTime = time.Now().Unix() + int64(gamedata.StoreFreeRefreshAddTime)
 			}
 
-			go storemodule.UpdateRefreshFreeCount(gamedata.StoreType_Hero)
+			go storemodule.DB_UpdateRefreshFreeCount(gamedata.StoreType_Hero)
 
 			return 1, 1
 		}
@@ -257,7 +257,7 @@ func (storemodule *TStoreModule) PaymentTerms(storeType int) (int, int) {
 
 			//! 当天可刷新总次数减一
 			storemodule.RefreshCount -= 1
-			go storemodule.UpdateRefreshCount(gamedata.StoreType_Hero)
+			go storemodule.DB_UpdateRefreshCount(gamedata.StoreType_Hero)
 			return 2, 1
 		}
 
@@ -266,20 +266,20 @@ func (storemodule *TStoreModule) PaymentTerms(storeType int) (int, int) {
 
 		//! 当天可刷新总次数减一
 		storemodule.RefreshCount -= 1
-		go storemodule.UpdateRefreshCount(gamedata.StoreType_Hero)
+		go storemodule.DB_UpdateRefreshCount(gamedata.StoreType_Hero)
 	} else if storeType == gamedata.StoreType_Awake {
 		if storemodule.AwakeFreeRefreshCount > 0 {
 
 			//! 免费刷新次数减一
 			storemodule.AwakeFreeRefreshCount -= 1
 			storemodule.AwakeRefreshCount -= 1
-			go storemodule.UpdateRefreshCount(gamedata.StoreType_Awake)
+			go storemodule.DB_UpdateRefreshCount(gamedata.StoreType_Awake)
 			if storemodule.AwakeFreeRefreshTime == 0 {
 				//! 设置刷新次数CD时间
 				storemodule.AwakeFreeRefreshTime = time.Now().Unix() + int64(gamedata.StoreFreeRefreshAddTime)
 			}
 
-			go storemodule.UpdateRefreshFreeCount(gamedata.StoreType_Awake)
+			go storemodule.DB_UpdateRefreshFreeCount(gamedata.StoreType_Awake)
 
 			return 1, 1
 		}
@@ -292,7 +292,7 @@ func (storemodule *TStoreModule) PaymentTerms(storeType int) (int, int) {
 
 			//! 当天可刷新总次数减一
 			storemodule.AwakeRefreshCount -= 1
-			go storemodule.UpdateRefreshCount(gamedata.StoreType_Awake)
+			go storemodule.DB_UpdateRefreshCount(gamedata.StoreType_Awake)
 			return 2, 1
 		}
 
@@ -301,7 +301,7 @@ func (storemodule *TStoreModule) PaymentTerms(storeType int) (int, int) {
 
 		//! 当天可刷新总次数减一
 		storemodule.AwakeRefreshCount -= 1
-		go storemodule.UpdateRefreshCount(gamedata.StoreType_Awake)
+		go storemodule.DB_UpdateRefreshCount(gamedata.StoreType_Awake)
 
 	} else if storeType == gamedata.StoreType_Pet {
 		if storemodule.PetFreeRefreshCount > 0 {
@@ -309,13 +309,13 @@ func (storemodule *TStoreModule) PaymentTerms(storeType int) (int, int) {
 			//! 免费刷新次数减一
 			storemodule.PetFreeRefreshCount -= 1
 			storemodule.PetRefreshCount -= 1
-			go storemodule.UpdateRefreshCount(gamedata.StoreType_Pet)
+			go storemodule.DB_UpdateRefreshCount(gamedata.StoreType_Pet)
 			if storemodule.PetFreeRefreshTime == 0 {
 				//! 设置刷新次数CD时间
 				storemodule.PetFreeRefreshTime = time.Now().Unix() + int64(gamedata.StoreFreeRefreshAddTime)
 			}
 
-			go storemodule.UpdateRefreshFreeCount(gamedata.StoreType_Pet)
+			go storemodule.DB_UpdateRefreshFreeCount(gamedata.StoreType_Pet)
 
 			return 1, 1
 		}
@@ -328,7 +328,7 @@ func (storemodule *TStoreModule) PaymentTerms(storeType int) (int, int) {
 
 			//! 当天可刷新总次数减一
 			storemodule.PetRefreshCount -= 1
-			go storemodule.UpdateRefreshCount(gamedata.StoreType_Pet)
+			go storemodule.DB_UpdateRefreshCount(gamedata.StoreType_Pet)
 			return 2, 1
 		}
 
@@ -337,7 +337,7 @@ func (storemodule *TStoreModule) PaymentTerms(storeType int) (int, int) {
 
 		//! 当天可刷新总次数减一
 		storemodule.PetRefreshCount -= 1
-		go storemodule.UpdateRefreshCount(gamedata.StoreType_Pet)
+		go storemodule.DB_UpdateRefreshCount(gamedata.StoreType_Pet)
 	}
 
 	return 3, gamedata.HeroStoreRefreshNeedMoneyNum
@@ -419,7 +419,7 @@ func (storemodule *TStoreModule) PayGoods(id int, storeType int) {
 	//! 发放奖励
 	storemodule.ownplayer.BagMoudle.AddAwardItem(item.ItemID, item.ItemNum)
 
-	go storemodule.UpdateShopItemStatusToDatabase(id, storeType)
+	go storemodule.DB_UpdateShopItemStatusToDatabase(id, storeType)
 
 }
 
@@ -431,7 +431,7 @@ func (storemodule *TStoreModule) CheckReset(now int64) {
 		storemodule.PetRefreshCount = storemodule.RefreshCount
 
 		storemodule.ResetDay = utility.GetCurDay()
-		go storemodule.UpdateResetTime()
+		go storemodule.DB_UpdateResetTime()
 	}
 
 	//! 免费次数不得大于最大免费次数限制
@@ -502,7 +502,7 @@ func (storemodule *TStoreModule) CheckReset(now int64) {
 	}
 
 	//! 存储到数据库
-	go storemodule.UpdateRefreshFreeCount(gamedata.StoreType_Hero)
-	go storemodule.UpdateRefreshFreeCount(gamedata.StoreType_Awake)
-	go storemodule.UpdateRefreshFreeCount(gamedata.StoreType_Pet)
+	go storemodule.DB_UpdateRefreshFreeCount(gamedata.StoreType_Hero)
+	go storemodule.DB_UpdateRefreshFreeCount(gamedata.StoreType_Awake)
+	go storemodule.DB_UpdateRefreshFreeCount(gamedata.StoreType_Pet)
 }

@@ -45,5 +45,7 @@ type MSG_BuyBlackMarket_Req struct {
 }
 
 type MSG_BuyBlackMarket_Ack struct {
-	RetCode int
+	RetCode      int
+	CostMoneyID  int
+	CostMoneyNum int
 }

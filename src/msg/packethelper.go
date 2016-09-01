@@ -32,24 +32,23 @@ func (self *PacketReader) BeginRead(ptr []byte, datalen int) *PacketReader {
 	return self
 
 }
-
 func (self *PacketReader) EndRead() bool {
 	return true
 }
-
+func (self *PacketReader) readableBytes() int { //剩余多少字节没读
+	return self.TotalLen - self.ReadPos
+}
 func (self *PacketReader) ReadInt8() (ret int8) {
-	if self.ReadPos >= self.TotalLen {
+	if self.readableBytes() < 1 {
 		gamelog.Error("ReadInt8 Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
 		return 0
 	}
-
 	ret = int8(self.DataPtr[self.ReadPos])
 	self.ReadPos++
 	return
 }
-
 func (self *PacketReader) ReadInt16() (ret int16) {
-	if self.ReadPos >= self.TotalLen {
+	if self.readableBytes() < 2 {
 		gamelog.Error("ReadInt16 Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
 		return 0
 	}
@@ -57,19 +56,8 @@ func (self *PacketReader) ReadInt16() (ret int16) {
 	self.ReadPos += 2
 	return
 }
-
-//func (self *PacketReader) ReadInt32() (ret int32) {
-//	if self.ReadPos >= self.TotalLen {
-//		gamelog.Error("ReadInt16 Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
-//		return 0
-//	}
-//	ret = int32(self.DataPtr[self.ReadPos])<<24 | int32(self.DataPtr[self.ReadPos+1])<<16 | int32(self.DataPtr[self.ReadPos+2])<<8 | int32(self.DataPtr[self.ReadPos+3])
-//	self.ReadPos += 4
-//	return
-//}
-
 func (self *PacketReader) ReadInt32() (ret int32) {
-	if self.ReadPos >= self.TotalLen {
+	if self.readableBytes() < 4 {
 		gamelog.Error("ReadInt16 Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
 		return 0
 	}
@@ -77,23 +65,20 @@ func (self *PacketReader) ReadInt32() (ret int32) {
 	self.ReadPos += 4
 	return
 }
-
 func (self *PacketReader) ReadInt64() (ret int64) {
-	if self.ReadPos >= self.TotalLen {
+	if self.readableBytes() < 8 {
 		gamelog.Error("ReadInt16 Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
 		return 0
 	}
 
-	ret = 0
-	for i := 7; i < 0; i-- {
-		ret |= int64(self.DataPtr[self.ReadPos+i]) << uint((7-i)*8)
+	for i := 0; i < 8; i++ {
+		ret |= int64(self.DataPtr[self.ReadPos+i]) << uint(i*8)
 	}
 	self.ReadPos += 8
 	return
 }
-
 func (self *PacketReader) ReadUint8() (ret uint8) {
-	if self.ReadPos >= self.TotalLen {
+	if self.readableBytes() < 1 {
 		gamelog.Error("ReadInt8 Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
 		return 0
 	}
@@ -102,9 +87,8 @@ func (self *PacketReader) ReadUint8() (ret uint8) {
 	self.ReadPos++
 	return
 }
-
 func (self *PacketReader) ReadUint16() (ret uint16) {
-	if self.ReadPos >= self.TotalLen {
+	if self.readableBytes() < 2 {
 		gamelog.Error("ReadInt16 Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
 		return 0
 	}
@@ -114,7 +98,7 @@ func (self *PacketReader) ReadUint16() (ret uint16) {
 }
 
 func (self *PacketReader) ReadUint32() (ret uint32) {
-	if self.ReadPos >= self.TotalLen {
+	if self.readableBytes() < 4 {
 		gamelog.Error("ReadInt16 Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
 		return 0
 	}
@@ -122,16 +106,14 @@ func (self *PacketReader) ReadUint32() (ret uint32) {
 	self.ReadPos += 4
 	return
 }
-
 func (self *PacketReader) ReadUint64() (ret uint64) {
-	if self.ReadPos >= self.TotalLen {
+	if self.readableBytes() < 8 {
 		gamelog.Error("ReadInt16 Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
 		return 0
 	}
 
-	ret = 0
-	for i := 7; i < 0; i-- {
-		ret |= uint64(self.DataPtr[self.ReadPos+i]) << uint((7-i)*8)
+	for i := 0; i < 8; i++ {
+		ret |= uint64(self.DataPtr[self.ReadPos+i]) << uint(i*8)
 	}
 	self.ReadPos += 8
 	return
@@ -144,16 +126,15 @@ func (self *PacketReader) ReadFloat() (ret float32) {
 }
 
 func (self *PacketReader) ReadString() string {
-	if self.ReadPos >= self.TotalLen {
+	length := int(self.ReadUint16())
+	if self.readableBytes() < length {
 		gamelog.Error("ReadString Error, readpos:%d > self.totallen:%d", self.ReadPos, self.TotalLen)
 		return ""
 	}
 
-	len := self.ReadInt16()
-	bytes := self.DataPtr[self.ReadPos : self.ReadPos+int(len)]
-	self.ReadPos += int(len)
-	ret := string(bytes)
-	return ret
+	bytes := self.DataPtr[self.ReadPos : self.ReadPos+length]
+	self.ReadPos += length
+	return string(bytes)
 }
 
 type PacketWriter struct {

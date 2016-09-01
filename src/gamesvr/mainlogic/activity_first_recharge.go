@@ -81,19 +81,17 @@ func (self *TActivityFirstRecharge) CheckRecharge(rmb int) {
 }
 
 //! 更新
-func (self *TActivityFirstRecharge) DB_Refresh() bool {
+func (self *TActivityFirstRecharge) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"firstrecharge.versioncode": self.VersionCode}})
-	return true
 }
 
 //! 重置
-func (self *TActivityFirstRecharge) DB_Reset() bool {
+func (self *TActivityFirstRecharge) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"firstrecharge.activityid":  self.ActivityID,
 		"firstrecharge.resetcode":   self.ResetCode,
 		"firstrecharge.versioncode": self.VersionCode}})
-	return true
 }
 
 func (self *TActivityFirstRecharge) DB_SetFirstRechargeMark() {

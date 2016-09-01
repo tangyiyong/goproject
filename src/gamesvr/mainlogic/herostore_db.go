@@ -9,7 +9,7 @@ import (
 )
 
 //! 修改商品标记
-func (storemodule *TStoreModule) UpdateShopItemStatusToDatabase(index int, storeType int) {
+func (storemodule *TStoreModule) DB_UpdateShopItemStatusToDatabase(index int, storeType int) {
 	if storeType == gamedata.StoreType_Hero {
 		filedName := fmt.Sprintf("shopitemlst.%d.status", index)
 		mongodb.UpdateToDB(appconfig.GameDbName, "HeroStore", bson.M{"_id": storemodule.PlayerID}, bson.M{"$set": bson.M{
@@ -27,7 +27,7 @@ func (storemodule *TStoreModule) UpdateShopItemStatusToDatabase(index int, store
 }
 
 //! 存取刷新数据到数据库
-func (storemodule *TStoreModule) SaveRefreshInfoToDatabase(storeType int) {
+func (storemodule *TStoreModule) DB_SaveRefreshInfoToDatabase(storeType int) {
 	if storeType == gamedata.StoreType_Hero {
 		mongodb.UpdateToDB(appconfig.GameDbName, "HeroStore", bson.M{"_id": storemodule.PlayerID}, bson.M{"$set": bson.M{
 			"refreshcount":     storemodule.RefreshCount,
@@ -51,7 +51,7 @@ func (storemodule *TStoreModule) SaveRefreshInfoToDatabase(storeType int) {
 }
 
 //! 更新商品列表
-func (storemodule *TStoreModule) UpdateShopItemToDatabase(storeType int) {
+func (storemodule *TStoreModule) DB_UpdateShopItemToDatabase(storeType int) {
 	if storeType == gamedata.StoreType_Hero {
 		mongodb.UpdateToDB(appconfig.GameDbName, "HeroStore", bson.M{"_id": storemodule.PlayerID}, bson.M{"$set": bson.M{
 			"shopitemlst": storemodule.ShopItemLst}})
@@ -66,7 +66,7 @@ func (storemodule *TStoreModule) UpdateShopItemToDatabase(storeType int) {
 }
 
 //! 更新免费刷新时间
-func (storemodule *TStoreModule) UpdateFreeRefreshtime(storeType int) {
+func (storemodule *TStoreModule) DB_UpdateFreeRefreshtime(storeType int) {
 	if storeType == gamedata.StoreType_Hero {
 		mongodb.UpdateToDB(appconfig.GameDbName, "HeroStore", bson.M{"_id": storemodule.PlayerID}, bson.M{"$set": bson.M{
 			"freerefreshtime": storemodule.FreeRefreshTime}})
@@ -81,7 +81,7 @@ func (storemodule *TStoreModule) UpdateFreeRefreshtime(storeType int) {
 }
 
 //! 更新免费次数
-func (storemodule *TStoreModule) UpdateRefreshFreeCount(storeType int) {
+func (storemodule *TStoreModule) DB_UpdateRefreshFreeCount(storeType int) {
 	if storeType == gamedata.StoreType_Hero {
 		mongodb.UpdateToDB(appconfig.GameDbName, "HeroStore", bson.M{"_id": storemodule.PlayerID}, bson.M{"$set": bson.M{
 			"freerefreshtime":  storemodule.FreeRefreshTime,
@@ -99,7 +99,7 @@ func (storemodule *TStoreModule) UpdateRefreshFreeCount(storeType int) {
 }
 
 //! 更新次数
-func (storemodule *TStoreModule) UpdateRefreshCount(storeType int) {
+func (storemodule *TStoreModule) DB_UpdateRefreshCount(storeType int) {
 	if storeType == gamedata.StoreType_Hero {
 		mongodb.UpdateToDB(appconfig.GameDbName, "HeroStore", bson.M{"_id": storemodule.PlayerID}, bson.M{"$set": bson.M{
 			"refreshcount": storemodule.RefreshCount}})
@@ -113,7 +113,7 @@ func (storemodule *TStoreModule) UpdateRefreshCount(storeType int) {
 }
 
 //! 更新重置时间
-func (storemodule *TStoreModule) UpdateResetTime() {
+func (storemodule *TStoreModule) DB_UpdateResetTime() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "HeroStore", bson.M{"_id": storemodule.PlayerID}, bson.M{"$set": bson.M{
 		"resetday": storemodule.ResetDay}})
 }

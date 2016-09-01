@@ -78,7 +78,7 @@ func (self *TActivityLogin) AddLoginDay(index int) {
 	go self.DB_AddLoginDay(index)
 }
 
-func (self *TActivityLogin) DB_Reset() bool {
+func (self *TActivityLogin) DB_Reset() {
 	index := -1
 	for i, v := range self.activityModule.Login {
 		if v.ActivityID == self.ActivityID {
@@ -89,7 +89,7 @@ func (self *TActivityLogin) DB_Reset() bool {
 
 	if index < 0 {
 		gamelog.Error("Login DB_Reset fail. self.ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName1 := fmt.Sprintf("login.%d.loginday", index)
@@ -101,7 +101,6 @@ func (self *TActivityLogin) DB_Reset() bool {
 		filedName2: self.LoginAward,
 		filedName4: self.VersionCode,
 		filedName5: self.ResetCode}})
-	return true
 }
 
 func (self *TActivityLogin) DB_AddLoginDay(index int) {
@@ -114,8 +113,7 @@ func (self *TActivityLogin) DB_AddLoginDay(index int) {
 
 }
 
-func (self *TActivityLogin) DB_Refresh() bool {
-
+func (self *TActivityLogin) DB_Refresh() {
 	index := -1
 	for i, v := range self.activityModule.Login {
 		if v.ActivityID == self.ActivityID {
@@ -126,7 +124,7 @@ func (self *TActivityLogin) DB_Refresh() bool {
 
 	if index < 0 {
 		gamelog.Error("Login DB_Refresh fail. self.ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName := fmt.Sprintf("login.%d.loginday", index)
@@ -134,8 +132,6 @@ func (self *TActivityLogin) DB_Refresh() bool {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName:  self.LoginDay,
 		filedName3: self.VersionCode}})
-
-	return true
 }
 
 func (self *TActivityLogin) DB_UpdateLoginAward(activityIndex int) {

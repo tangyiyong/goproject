@@ -405,6 +405,9 @@ func Hand_ChallengeHeroSouls(w http.ResponseWriter, r *http.Request) {
 	player.HeroSoulsModule.HeroSoulsLst[player.HeroSoulsModule.TargetIndex].IsExist = false
 	go player.HeroSoulsModule.DB_UpdateHeroSoulsMark(player.HeroSoulsModule.TargetIndex)
 
+	//! 获取英灵
+	player.BagMoudle.AddHeroSoul(heroSouls.HeroID, 1)
+
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -700,6 +703,7 @@ func Hand_BuyHeroSoulsStoreItem(w http.ResponseWriter, r *http.Request) {
 
 	//! 扣除货币
 	player.RoleMoudle.CostMoney(goodsInfo.MoneyID, goodsInfo.MoneyNum)
+	response.CostMoneyID, response.CostMoneyNum = goodsInfo.MoneyID, goodsInfo.MoneyNum
 
 	//! 修改商品购买标记
 	goodsInfo.IsBuy = true

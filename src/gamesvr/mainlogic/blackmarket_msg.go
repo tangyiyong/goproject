@@ -127,6 +127,8 @@ func Hand_BuyBlackMarketGoods(w http.ResponseWriter, r *http.Request) {
 	//! 给予物品
 	player.BagMoudle.AddAwardItem(goodsData.ItemID, goodsData.ItemNum)
 
+	response.CostMoneyID, response.CostMoneyNum = goodsData.CostMoneyID, goodsData.CostMoneyNum
+
 	//! 设置状态
 	itemInfo.IsBuy = true
 

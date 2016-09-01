@@ -266,7 +266,7 @@ func Hand_RefreshHeroStore(w http.ResponseWriter, r *http.Request) {
 	player.StoreModule.RefreshGoods(req.StoreType)
 
 	//! 存储数据库
-	player.StoreModule.UpdateShopItemToDatabase(req.StoreType)
+	player.StoreModule.DB_UpdateShopItemToDatabase(req.StoreType)
 
 	//! 返回消息赋值
 	if req.StoreType == gamedata.StoreType_Hero {

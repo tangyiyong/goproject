@@ -143,7 +143,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 				//! 修改标记
 				player.SummonModule.Normal.SummonCounts += 1
 				player.SummonModule.Normal.SummonTime = time.Now().Unix() + int64(gamedata.NormalSummonFreeCDTime)
-				go player.SummonModule.UpdateNormalSummon()
+				go player.SummonModule.DB_UpdateNormalSummon()
 			}
 
 			if hasFree == false {
@@ -165,11 +165,11 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 				if player.HeroMoudle.CurHeros[0].ID == 3 { //! 女主人公
 					heroID = 407
 					player.SummonModule.IsFirst = false
-					go player.SummonModule.UpdateFirstSummon()
+					go player.SummonModule.DB_UpdateFirstSummon()
 				} else {
 					heroID = 428
 					player.SummonModule.IsFirst = false
-					go player.SummonModule.UpdateFirstSummon()
+					go player.SummonModule.DB_UpdateFirstSummon()
 				}
 
 			}
@@ -255,7 +255,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 
 				//! 修改标记
 				player.SummonModule.Senior.SummonTime = time.Now().Unix() + int64(gamedata.SeniorSummonFreeCDTime)
-				go player.SummonModule.UpdateSeniorSummon()
+				go player.SummonModule.DB_UpdateSeniorSummon()
 			}
 
 			if hasFree == false {
@@ -312,7 +312,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 			response.HeroID = append(response.HeroID, heroID)
 			response.RetCode = msg.RE_SUCCESS
 
-			player.SummonModule.UpdateSeniorSummon()
+			player.SummonModule.DB_UpdateSeniorSummon()
 
 			//! 更新状态状态
 			go player.SummonModule.UpdateSummonStatus()
@@ -399,7 +399,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 				player.SummonModule.Senior.SummonPoint = summonConfig.NeedPoint
 			}
 
-			go player.SummonModule.UpdateSeniorSummon()
+			go player.SummonModule.DB_UpdateSeniorSummon()
 			response.RetCode = msg.RE_SUCCESS
 
 			//! 更新状态状态
@@ -512,7 +512,7 @@ func Hand_ExchangeHero(w http.ResponseWriter, r *http.Request) {
 	player.BagMoudle.AddHeroByID(req.HeroID, 1)
 
 	//! 存储数据
-	go player.SummonModule.UpdateSeniorSummon()
+	go player.SummonModule.DB_UpdateSeniorSummon()
 
 	response.RetCode = msg.RE_SUCCESS
 

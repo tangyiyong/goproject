@@ -207,16 +207,15 @@ func (self *TActivityWheel) RandWheelAward(wheelType int) (itemID int, itemNum i
 	return 0, 0, 0, 0
 }
 
-func (self *TActivityWheel) DB_Refresh() bool {
+func (self *TActivityWheel) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"luckywheel.isrecvtodayrankaward": self.IsRecvTodayRankAward,
 		"luckywheel.normalfreetimes":      self.NormalFreeTimes,
 		"luckywheel.excitedfreetimes":     self.ExcitedFreeTimes,
 		"luckywheel.versioncode":          self.VersionCode}})
-	return true
 }
 
-func (self *TActivityWheel) DB_Reset() bool {
+func (self *TActivityWheel) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"luckywheel.activityid":           self.ActivityID,
 		"luckywheel.normalawardlst":       self.NormalAwardLst,
@@ -229,7 +228,6 @@ func (self *TActivityWheel) DB_Reset() bool {
 		"luckywheel.todayscore":           self.TodayScore,
 		"luckywheel.totalscore":           self.TotalScore,
 		"luckywheel.resetcode":            self.ResetCode}})
-	return true
 }
 
 func (self *TActivityWheel) DB_SaveLuckyWheelScore() {

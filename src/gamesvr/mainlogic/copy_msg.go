@@ -273,7 +273,7 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 		isBlackMarket := false
 		if player.BlackMarketModule.IsOpen == false && player.GetVipLevel() < int8(gamedata.EnterVipLevel) && player.GetLevel() >= 30 {
 			randValue := random.Intn(1000)
-
+			randValue = 1
 			if randValue < gamedata.BlackMarketPro {
 				//! 随机出现黑市
 				player.BlackMarketModule.RefreshGoods(true)
@@ -1305,7 +1305,7 @@ func Hand_ResetMainBattleTimes(w http.ResponseWriter, r *http.Request) {
 
 	response.RetCode = msg.RE_SUCCESS
 
-	go player.CopyMoudle.UpdateMainCopyAt(copyIndex)
+	go player.CopyMoudle.DB_UpdateMainCopyAt(copyIndex)
 }
 
 //! 玩家请求精英副本重置挑战
@@ -1392,7 +1392,7 @@ func Hand_ResetEliteBattleTimes(w http.ResponseWriter, r *http.Request) {
 
 	response.RetCode = msg.RE_SUCCESS
 
-	go player.CopyMoudle.UpdateEliteCopyAt(copyIndex)
+	go player.CopyMoudle.DB_UpdateEliteCopyAt(copyIndex)
 }
 
 //! 玩家请求获取日常副本信息
@@ -1679,7 +1679,7 @@ func Hand_GetFamousCopyAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 记录状态
 	player.CopyMoudle.Famous.Chapter[req.Chapter].ChapterAward = true
-	go player.CopyMoudle.UpdateFamousAward(req.Chapter)
+	go player.CopyMoudle.DB_UpdateFamousAward(req.Chapter)
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

@@ -222,7 +222,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 	player.BagMoudle.AddAwardItem(gamedata.RebelAchievements, req.AttackType*50)
 
 	//! 存储伤害与功勋
-	player.RebelModule.UpdateExploit()
+	player.RebelModule.DB_UpdateExploit()
 
 	//! 扣除道具
 	player.RoleMoudle.CostAction(gamedata.AttackRebelActionID, needActionNum)
@@ -272,7 +272,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 		SendAwardToPlayer(player.playerid, &award)
 	}
 
-	go rebelModulePtr.UpdateRebelInfo()
+	go rebelModulePtr.DB_UpdateRebelInfo()
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
@@ -388,7 +388,7 @@ func Hand_GetExploitAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 设置标记
 	player.RebelModule.ExploitAwardLst.Add(req.ExploitAwardID)
-	go player.RebelModule.UpdateExploitAward(req.ExploitAwardID)
+	go player.RebelModule.DB_UpdateExploitAward(req.ExploitAwardID)
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

@@ -85,7 +85,7 @@ func (self *TActivitySevenDay) RedTip() bool {
 	return false
 }
 
-func (self *TActivitySevenDay) DB_Refresh() bool {
+func (self *TActivitySevenDay) DB_Refresh() {
 	index := -1
 	for i, v := range self.activityModule.SevenDay {
 		if v.ActivityID == self.ActivityID {
@@ -96,16 +96,15 @@ func (self *TActivitySevenDay) DB_Refresh() bool {
 
 	if index < 0 {
 		gamelog.Error("Sevenday DB_Refresh fail. ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName := fmt.Sprintf("sevenday.%d.versioncode", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
-	return true
 }
 
-func (self *TActivitySevenDay) DB_Reset() bool {
+func (self *TActivitySevenDay) DB_Reset() {
 	index := -1
 	for i, v := range self.activityModule.SevenDay {
 		if v.ActivityID == self.ActivityID {
@@ -116,7 +115,7 @@ func (self *TActivitySevenDay) DB_Reset() bool {
 
 	if index < 0 {
 		gamelog.Error("Sevenday DB_Reset fail. ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName1 := fmt.Sprintf("sevenday.%d.tasklist", index)
@@ -129,7 +128,6 @@ func (self *TActivitySevenDay) DB_Reset() bool {
 		filedName2: self.BuyLst,
 		filedName3: self.ResetCode,
 		filedName4: self.VersionCode}})
-	return true
 }
 
 //! 设置玩家任务进度
@@ -183,5 +181,5 @@ func (self *TActivitySevenDay) DB_AddPlayerSevenTaskMark(ID int) {
 	}
 
 	filedName1 := fmt.Sprintf("sevenday.%d.buylst", index)
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, filedName1, ID)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{filedName1: ID}})
 }

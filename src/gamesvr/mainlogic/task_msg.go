@@ -112,7 +112,7 @@ func Hand_GetTaskAward(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	player.TaskMoudle.UpdatePlayerTask(req.TaskID, player.TaskMoudle.TaskList[index].TaskCount, Task_Received)
+	player.TaskMoudle.DB_UpdatePlayerTask(req.TaskID, player.TaskMoudle.TaskList[index].TaskCount, Task_Received)
 
 	//! 返回当前任务积分
 	response.TaskScore = player.TaskMoudle.TaskScore
@@ -185,7 +185,7 @@ func Hand_GetTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 	player.TaskMoudle.ScoreAwardStatus.Add(req.ScoreAwardID)
 
 	//! 当前领取状态更新到数据库
-	go player.TaskMoudle.UpdatePlayerTaskScoreAwardStatus()
+	go player.TaskMoudle.DB_UpdatePlayerTaskScoreAwardStatus()
 
 	response.RetCode = msg.RE_SUCCESS
 
@@ -349,13 +349,13 @@ func Hand_GetAchievementAward(w http.ResponseWriter, r *http.Request) {
 		if player.TaskMoudle.AchievementList[i].ID == req.AchievementID {
 			//! 修改成就标记
 			player.TaskMoudle.AchievementList[i].TaskStatus = Task_Received
-			player.TaskMoudle.UpdatePlayerAchievement(player.TaskMoudle.AchievementList[i].ID,
+			player.TaskMoudle.DB_UpdatePlayerAchievement(player.TaskMoudle.AchievementList[i].ID,
 				player.TaskMoudle.AchievementList[i].TaskCount,
 				player.TaskMoudle.AchievementList[i].TaskStatus)
 
 			//! 增加成就完成列表
 			player.TaskMoudle.AchievedList = append(player.TaskMoudle.AchievedList, player.TaskMoudle.AchievementList[i].ID)
-			player.TaskMoudle.AddAchievementCompleteLst(player.TaskMoudle.AchievementList[i].ID)
+			player.TaskMoudle.DB_AddAchievementCompleteLst(player.TaskMoudle.AchievementList[i].ID)
 
 		}
 	}

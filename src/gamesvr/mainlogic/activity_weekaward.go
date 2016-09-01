@@ -103,14 +103,13 @@ func (self *TActivityWeekAward) AddRechargeNum(rechargeNum int) {
 	go self.DB_UpdateRechargeNum()
 }
 
-func (self *TActivityWeekAward) DB_Refresh() bool {
+func (self *TActivityWeekAward) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"weekaward.loginday":    self.LoginDay,
 		"weekaward.versioncode": self.VersionCode}})
-	return true
 }
 
-func (self *TActivityWeekAward) DB_Reset() bool {
+func (self *TActivityWeekAward) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"weekaward.activityid":  self.ActivityID,
 		"weekaward.loginday":    self.LoginDay,
@@ -118,7 +117,6 @@ func (self *TActivityWeekAward) DB_Reset() bool {
 		"weekaward.rechargenum": self.RechargeNum,
 		"weekaward.versioncode": self.VersionCode,
 		"weekaward.resetcode":   self.ResetCode}})
-	return true
 }
 
 func (self *TActivityWeekAward) DB_UpdateRechargeNum() {

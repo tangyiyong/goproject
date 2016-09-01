@@ -77,7 +77,7 @@ func (self *TActivityDiscountSale) AddItem(info TDiscountSaleGoodsInfo, index in
 	return &self.ShopLst[len(self.ShopLst)-1]
 }
 
-func (self *TActivityDiscountSale) DB_Refresh() bool {
+func (self *TActivityDiscountSale) DB_Refresh() {
 	index := -1
 	for i, v := range self.activityModule.DiscountSale {
 		if v.ActivityID == self.ActivityID {
@@ -88,16 +88,15 @@ func (self *TActivityDiscountSale) DB_Refresh() bool {
 
 	if index < 0 {
 		gamelog.Error("DiscountSale DB_Refresh fail. ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName := fmt.Sprintf("discount.%d.versioncode", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
-	return true
 }
 
-func (self *TActivityDiscountSale) DB_Reset() bool {
+func (self *TActivityDiscountSale) DB_Reset() {
 	index := -1
 	for i, v := range self.activityModule.DiscountSale {
 		if v.ActivityID == self.ActivityID {
@@ -108,7 +107,7 @@ func (self *TActivityDiscountSale) DB_Reset() bool {
 
 	if index < 0 {
 		gamelog.Error("DiscountSale DB_Reset fail. ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName := fmt.Sprintf("discount.%d.shoplst", index)
@@ -118,12 +117,11 @@ func (self *TActivityDiscountSale) DB_Reset() bool {
 		filedName:  self.ShopLst,
 		filedName2: self.VersionCode,
 		filedName3: self.ResetCode}})
-	return true
 }
 
 func (self *TActivityDiscountSale) DB_AddShoppingInfo(activityIndex int, info *TDiscountSaleGoodsInfo) {
 	filedName := fmt.Sprintf("discountsale.%d.shoplst", activityIndex)
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, filedName, *info)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{filedName: *info}})
 }
 
 func (self *TActivityDiscountSale) DB_UpdateShoppingTimes(activityIndex int, index int, info *TDiscountSaleGoodsInfo) {

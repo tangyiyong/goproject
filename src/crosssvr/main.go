@@ -14,7 +14,7 @@ func main() {
 	appconfig.LoadConfig()
 
 	//初始化日志系统
-	gamelog.InitLogger("cross", true)
+	gamelog.InitLogger("cross")
 	gamelog.SetLevel(appconfig.CrossLogLevel)
 
 	//开启控制台窗口，可以接受一些调试命令

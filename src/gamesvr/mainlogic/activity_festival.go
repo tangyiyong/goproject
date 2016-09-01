@@ -152,14 +152,13 @@ func (self *TActivityFestival) RefreshTask(isSaveDB bool) {
 	}
 }
 
-func (self *TActivityFestival) DB_Reset() bool {
+func (self *TActivityFestival) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"festival.activityid":  self.ActivityID,
 		"festival.tasklst":     self.TaskLst,
 		"festival.exchangelst": self.ExchangeLst,
 		"festival.versioncode": self.VersionCode,
 		"festival.resetcode":   self.ResetCode}})
-	return true
 }
 
 func (self *TActivityFestival) DB_RefreshTask() {
@@ -172,11 +171,10 @@ func (self *TActivityFestival) DB_RefreshExchangeReocrd() {
 		"festival.exchangelst": self.ExchangeLst}})
 }
 
-func (self *TActivityFestival) DB_Refresh() bool {
+func (self *TActivityFestival) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"festival.exchangelst": self.ExchangeLst,
 		"festival.versioncode": self.VersionCode}})
-	return true
 }
 
 func (self *TActivityFestival) DB_UpdateTaskStatus(index int) {
@@ -189,7 +187,7 @@ func (self *TActivityFestival) DB_UpdateTaskStatus(index int) {
 }
 
 func (self *TActivityFestival) DB_AddNewExchangeRecord(record TFestivalExchangeRecord) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, "festival.exchangelst", record)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{"festival.exchangelst": record}})
 }
 
 func (self *TActivityFestival) DB_UpdateExchangeTimes(index int, times int) {

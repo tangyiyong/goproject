@@ -103,18 +103,16 @@ func (self *TActivityReceiveAction) GetNextActionAwardTime() int {
 	return (nextTime - nowSec)
 }
 
-func (self *TActivityReceiveAction) DB_Reset() bool {
+func (self *TActivityReceiveAction) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"receiveaction.activityid":  self.ActivityID,
 		"receiveaction.versioncode": self.VersionCode,
 		"receiveaction.recvaction":  self.RecvAction,
 		"receiveaction.resetcode":   self.ResetCode}})
-	return true
 }
 
-func (self *TActivityReceiveAction) DB_Refresh() bool {
+func (self *TActivityReceiveAction) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"receiveaction.recvaction":  self.RecvAction,
 		"receiveaction.versioncode": self.VersionCode}})
-	return true
 }

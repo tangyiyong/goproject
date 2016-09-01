@@ -23,7 +23,7 @@ func (self *TFoodWarModule) DB_Reset() {
 }
 
 func (self *TFoodWarModule) DB_AddAwardRecvRecord(id int) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, "awardrecvlst", id)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"awardrecvlst": id}})
 }
 
 func (self *TFoodWarModule) DB_CheckTime() {
@@ -51,11 +51,11 @@ func (self *TFoodWarModule) DB_SaveRevengeTimes() {
 }
 
 func (self *TFoodWarModule) DB_AddRevengeLst(player TRevengeInfo) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, "revengelst", player)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"revengelst": player}})
 }
 
 func (self *TFoodWarModule) DB_RemoveRevengeLst(player TRevengeInfo) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, "revengelst", player)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$pull": bson.M{"revengelst": player}})
 }
 
 func (self *TFoodWarModule) DB_SaveBuyAttackTimes() {

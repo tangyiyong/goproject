@@ -104,31 +104,31 @@ func (self *TMoonlightShopData) GetShopDtad() *TMoonlightShopData {
 }
 
 //! DB相关
-func (self *TMoonlightShop) db_SaveExchangeTimes(nIndex int) {
+func (self *TMoonlightShop) DB_SaveExchangeTimes(nIndex int) {
 	FieldName := fmt.Sprintf("moonlightshop.exchangetimes.%d", nIndex)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{FieldName: self.ExchangeTimes[nIndex]}})
 }
-func (self *TMoonlightShop) db_SaveAllExchangeTimes() {
+func (self *TMoonlightShop) DB_SaveAllExchangeTimes() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{"moonlightshop.exchangetimes": self.ExchangeTimes}})
 }
-func (self *TMoonlightShop) db_SaveGoods(nIndex int) {
+func (self *TMoonlightShop) DB_SaveGoods(nIndex int) {
 	FieldName := fmt.Sprintf("moonlightshop.goods.%d", nIndex)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{FieldName: self.Goods[nIndex]}})
 }
-func (self *TMoonlightShop) db_SaveAllGoods() {
+func (self *TMoonlightShop) DB_SaveAllGoods() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"moonlightshop.goods":           self.Goods,
 		"moonlightshop.autorefreshtime": self.AutoRefreshTime}})
 }
-func (self *TMoonlightShop) db_Save_Score_Buytimes() {
+func (self *TMoonlightShop) DB_Save_Score_Buytimes() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"moonlightshop.score":    self.Score,
 		"moonlightshop.buytimes": self.BuyTimes}})
 }
-func (self *TMoonlightShop) db_SaveScoreAwardFlag() {
+func (self *TMoonlightShop) DB_SaveScoreAwardFlag() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{"moonlightshop.scoreawardflag": self.ScoreAwardFlag}})
 }
-func (self *TMoonlightShop) DB_Refresh() bool {
+func (self *TMoonlightShop) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"moonlightshop.score":         self.Score,
 		"moonlightshop.buytimes":      self.BuyTimes,
@@ -136,9 +136,8 @@ func (self *TMoonlightShop) DB_Refresh() bool {
 		"moonlightshop.activityid":    self.ActivityID,
 		"moonlightshop.versioncode":   self.VersionCode,
 		"moonlightshop.resetcode":     self.ResetCode}})
-	return true
 }
-func (self *TMoonlightShop) DB_Reset() bool {
+func (self *TMoonlightShop) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"moonlightshop.goods":           self.Goods,
 		"moonlightshop.autorefreshtime": self.AutoRefreshTime,
@@ -147,7 +146,6 @@ func (self *TMoonlightShop) DB_Reset() bool {
 		"moonlightshop.activityid":      self.ActivityID,
 		"moonlightshop.versioncode":     self.VersionCode,
 		"moonlightshop.resetcode":       self.ResetCode}})
-	return true
 }
 
 //！ 逻辑代码
@@ -161,7 +159,7 @@ func (self *TMoonlightShop) ExchangeToken(player *TPlayer, id int) bool {
 		if player.RoleMoudle.CostMoney(csv.CostType, csv.CostNum) {
 			player.BagMoudle.AddNormalItem(gamedata.MoonlightShop_Token_ItemID, csv.GetToken)
 			self.ExchangeTimes[id]++
-			self.db_SaveExchangeTimes(id)
+			self.DB_SaveExchangeTimes(id)
 			return true
 		}
 	}
@@ -176,7 +174,7 @@ func (self *TMoonlightShop) ReduceDiscount(player *TPlayer, goodsID int) (bool, 
 			csv := gamedata.GetMoonlightGoodsCsv(goodsID) // 经过上面的判断，此指针不会为nil
 			if goods.Discount > csv.MinDiscount && player.BagMoudle.RemoveNormalItem(gamedata.MoonlightShop_Token_ItemID, goods.getDiscountCost()) {
 				goods.reduceDiscount(csv.MinDiscount)
-				self.db_SaveGoods(i)
+				self.DB_SaveGoods(i)
 				return true, goods.Discount
 			}
 			return false, goods.Discount
@@ -215,7 +213,7 @@ func (self *TMoonlightShop) RefreshShop_Buy(player *TPlayer) bool {
 	cost := int(gamedata.MoonlightShop_Shop_Refresh_Cost)
 	if player.BagMoudle.RemoveNormalItem(gamedata.MoonlightShop_Token_ItemID, cost) {
 		self.Score += cost
-		self.db_Save_Score_Buytimes()
+		self.DB_Save_Score_Buytimes()
 		self.refreshShop()
 		return true
 	}
@@ -231,7 +229,7 @@ func (self *TMoonlightShop) refreshShop() {
 		csv := gamedata.GetMoonlightGoodsCsv(goods.ID)
 		goods.Discount = byte(utility.RandBetween(int(csv.MinDiscount), int(csv.MaxDiscount)))
 	}
-	self.db_SaveAllGoods()
+	self.DB_SaveAllGoods()
 }
 
 func (self *TMoonlightShop) BuyGoods(player *TPlayer, goodsID int) bool {
@@ -252,8 +250,8 @@ func (self *TMoonlightShop) BuyGoods(player *TPlayer, goodsID int) bool {
 					self.BuyTimes++
 					goods.BuyTimes++
 					self.Score += cost
-					self.db_Save_Score_Buytimes()
-					self.db_SaveGoods(i)
+					self.DB_Save_Score_Buytimes()
+					self.DB_SaveGoods(i)
 				}
 			}
 			gamelog.Error("MoonlightShop BuyGoods Error: ItemID:%d ItemNum:%d cost:%d", csv.ItemID, csv.ItemNum, cost)
@@ -270,7 +268,7 @@ func (self *TMoonlightShop) GetScoreAward(player *TPlayer, awardID int) bool {
 	if self.Score >= csv.NeedScore {
 		if player.BagMoudle.AddAwardItem(csv.ItemID, csv.ItemNum) {
 			self.setScoreAwardFlag(awardID, true)
-			self.db_SaveScoreAwardFlag()
+			self.DB_SaveScoreAwardFlag()
 			return true
 		}
 	}

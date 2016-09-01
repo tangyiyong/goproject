@@ -15,7 +15,7 @@ func DB_AddFriendAppList(hostid int32, appid int32) {
 
 //! 删除申请名单
 func DB_RemoveFriendAppList(hostid int32, appid int32) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "PlayerFriend", bson.M{"_id": hostid}, "applylist", appid)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFriend", bson.M{"_id": hostid}, bson.M{"$pull": bson.M{"applylist": appid}})
 }
 
 func (self *TFriendMoudle) DB_ClearAppList() {
@@ -29,7 +29,7 @@ func DB_AddFriend(hostid int32, friend *TFriendInfo) {
 
 //! 删除好友
 func DB_RemoveFriend(hostid int32, appid int32) {
-	mongodb.RemoveFromArray(appconfig.GameDbName, "PlayerFriend", bson.M{"_id": hostid}, "friendlist", appid)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFriend", bson.M{"_id": hostid}, bson.M{"$pull": bson.M{"friendlist": appid}})
 }
 
 //! 更新好友里邻取状态

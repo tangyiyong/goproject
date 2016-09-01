@@ -47,7 +47,7 @@ func (self *TCampBattleModule) DB_UpdateStoreItemBuyTimes(nindex int, times int)
 
 //! 增加购买信息
 func (self *TCampBattleModule) DB_AddStoreItemBuyInfo(info msg.MSG_BuyData) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, "buyrecord", info)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"buyrecord": info}})
 }
 
 //! 重置购买信息
@@ -58,5 +58,5 @@ func (self *TCampBattleModule) DB_SaveShoppingInfo() {
 
 //! 增加购买奖励信息
 func (self *TCampBattleModule) DB_AddStoreAwardInfo(id int) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, "awardstoreindex", id)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"awardstoreindex": id}})
 }

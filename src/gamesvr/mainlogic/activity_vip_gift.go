@@ -130,7 +130,7 @@ func (self *TActivityVipGift) CheckWeekGiftRefresh() {
 }
 
 //! 重置活动
-func (self *TActivityVipGift) DB_Reset() bool {
+func (self *TActivityVipGift) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"vipgift.activityid":    self.ActivityID,
 		"vipgift.weekgift":      self.WeekGift,
@@ -138,7 +138,6 @@ func (self *TActivityVipGift) DB_Reset() bool {
 		"vipgift.resetcode":     self.ResetCode,
 		"vipgift.isrecvwelfare": self.IsRecvWelfare,
 		"vipgift.resetweek":     self.ResetWeek}})
-	return true
 }
 
 //! 更新每周礼包信息
@@ -149,12 +148,11 @@ func (self *TActivityVipGift) DB_UpdateWeekGiftToDatabase() {
 }
 
 //! 更新VIP日常福利领取时间到数据库
-func (self *TActivityVipGift) DB_Refresh() bool {
+func (self *TActivityVipGift) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"vipgift.isrecvwelfare": self.IsRecvWelfare,
 		"vipgift.versioncode":   self.VersionCode}})
 
-	return true
 }
 
 func (self *TActivityVipGift) DB_SaveDailyResetTime() {

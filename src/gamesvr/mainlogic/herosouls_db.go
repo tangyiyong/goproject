@@ -3,8 +3,9 @@ package mainlogic
 import (
 	"appconfig"
 	"fmt"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 func (self *THeroSoulsModule) DB_SaveHeroSoulsLst() {
@@ -30,7 +31,7 @@ func (self *THeroSoulsModule) DB_UpdateHeroSoulsMark(index int) {
 }
 
 func (self *THeroSoulsModule) DB_AddHeroSoulsLink(link THeroSoulsLink) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerHeroSouls", bson.M{"_id": self.PlayerID}, "herosoulslink", link)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHeroSouls", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"herosoulslink": link}})
 }
 
 func (self *THeroSoulsModule) DB_UnLockChapter() {

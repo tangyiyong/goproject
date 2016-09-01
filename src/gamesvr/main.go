@@ -17,7 +17,7 @@ func main() {
 	appconfig.LoadConfig()
 
 	//初始化日志系统
-	gamelog.InitLogger("game", true)
+	gamelog.InitLogger("game")
 	gamelog.SetLevel(appconfig.GameLogLevel)
 
 	//设置mongodb的服务器地址

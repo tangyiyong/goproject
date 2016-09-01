@@ -89,21 +89,19 @@ func (self *TActivityMonthCard) RedTip() bool {
 }
 
 //! 重置
-func (self *TActivityMonthCard) DB_Reset() bool {
+func (self *TActivityMonthCard) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"monthcard.activityid":  self.ActivityID,
 		"monthcard.resetcode":   self.ResetCode,
 		"monthcard.versioncode": self.VersionCode}})
-	return true
 }
 
 //! 更新月卡状态与时间
-func (self *TActivityMonthCard) DB_Refresh() bool {
+func (self *TActivityMonthCard) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"monthcard.carddays":    self.CardDays,
 		"monthcard.versioncode": self.VersionCode,
 		"monthcard.cardstatus":  self.CardStatus}})
-	return true
 }
 
 func (self *TActivityMonthCard) DB_UpdateCardStatus() {

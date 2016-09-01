@@ -137,7 +137,7 @@ func (self *TActivityHunt) RedTip() bool {
 	return false
 }
 
-func (self *TActivityHunt) DB_Reset() bool {
+func (self *TActivityHunt) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"hunttreasure.activityid":           self.ActivityID,
 		"hunttreasure.huntaward":            self.HuntAward,
@@ -152,7 +152,6 @@ func (self *TActivityHunt) DB_Reset() bool {
 		"hunttreasure.versioncode":          self.VersionCode,
 		"hunttreasure.ishavestore":          self.IsHaveStore,
 		"hunttreasure.resetcode":            self.ResetCode}})
-	return true
 }
 
 func (self *TActivityHunt) DB_UpdateHuntTodayRankAward() {
@@ -162,12 +161,11 @@ func (self *TActivityHunt) DB_UpdateHuntTodayRankAward() {
 		"hunttreasure.versioncode":          self.VersionCode}})
 }
 
-func (self *TActivityHunt) DB_Refresh() bool {
+func (self *TActivityHunt) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"hunttreasure.isrecvtodayrankaward": self.IsRecvTodayRankAward,
 		"hunttreasure.freetimes":            self.FreeTimes,
 		"hunttreasure.versioncode":          self.VersionCode}})
-	return true
 }
 
 func (self *TActivityHunt) DB_UpdateHuntTotalRankAward() {

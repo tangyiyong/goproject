@@ -144,24 +144,22 @@ func (self *TActivityRankGift) CheckRankUp(rank int) {
 	}
 }
 
-func (self *TActivityRankGift) DB_Refresh() bool {
+func (self *TActivityRankGift) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"rankgift.versioncode": self.VersionCode}})
-	return true
 }
 
-func (self *TActivityRankGift) DB_Reset() bool {
+func (self *TActivityRankGift) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"rankgift.activityid":    self.ActivityID,
 		"rankgift.resetcode":     self.ResetCode,
 		"rankgift.ishavenewitem": self.IsHaveNewItem,
 		"rankgift.giftlst":       self.GiftLst,
 		"rankgift.versioncode":   self.VersionCode}})
-	return true
 }
 
 func (self *TActivityRankGift) DB_AddGift(gift *TRankGiftInfo) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, "rankgift.giftlst", *gift)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{"rankgift.giftlst": *gift}})
 
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"rankgift.ishavenewitem": self.IsHaveNewItem}})

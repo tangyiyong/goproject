@@ -116,7 +116,7 @@ func (self *TActivityOpenFund) RedTip() bool {
 	return false
 }
 
-func (self *TActivityOpenFund) DB_Reset() bool {
+func (self *TActivityOpenFund) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"openfund.activityid":    self.ActivityID,
 		"openfund.fundlevelmark": self.FundLevelMark,
@@ -124,13 +124,11 @@ func (self *TActivityOpenFund) DB_Reset() bool {
 		"openfund.isbuyfund":     self.IsBuyFund,
 		"openfund.versioncode":   self.VersionCode,
 		"openfund.resetcode":     self.ResetCode}})
-	return true
 }
 
-func (self *TActivityOpenFund) DB_Refresh() bool {
+func (self *TActivityOpenFund) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"openfund.versioncode": self.VersionCode}})
-	return true
 }
 
 //! 更改购买标记

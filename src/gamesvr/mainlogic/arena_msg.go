@@ -460,7 +460,7 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 			if challangePlayer != nil {
 				challangePlayer.ArenaModule.CurrentRank = player.ArenaModule.CurrentRank
 			}
-			player.ArenaModule.UpdateChallangeRank(challangeInfo.PlayerID, player.ArenaModule.CurrentRank)
+			player.ArenaModule.DB_UpdateChallangeRank(challangeInfo.PlayerID, player.ArenaModule.CurrentRank)
 
 			if player.ArenaModule.CurrentRank <= 5000 {
 				G_Rank_List[player.ArenaModule.CurrentRank-1].PlayerID = loserID
@@ -503,7 +503,7 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//! 存储数据
-		go player.ArenaModule.UpdateRankToDatabase()
+		go player.ArenaModule.DB_UpdateRankToDatabase()
 
 	}
 
@@ -737,7 +737,7 @@ func Hand_BuyArenaStoreItem(w http.ResponseWriter, r *http.Request) {
 	//! 记录购买
 	if item.Type == 2 {
 		player.ArenaModule.StoreAward = append(player.ArenaModule.StoreAward, item.ID)
-		go player.ArenaModule.UpdateStoreToDatabase()
+		go player.ArenaModule.DB_UpdateStoreToDatabase()
 	}
 
 	//! 扣除道具

@@ -10,7 +10,7 @@ import (
 
 func main() {
 	// appconfig.LoadConfig()
-	gamelog.InitLogger("httptest", true)
+	gamelog.InitLogger("httptest")
 	RegTcpMsgHandler()
 
 	InitPlayerMgr()

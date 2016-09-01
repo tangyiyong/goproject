@@ -71,7 +71,7 @@ func Handle_Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if response.RetCode == msg.RE_SUCCESS {
-		go mongodb.IncFieldValue(appconfig.AccountDbName, "Account", bson.M{"_id": response.AccountID}, "logincount", 1)
+		go mongodb.UpdateToDB(appconfig.AccountDbName, "Account", bson.M{"_id": response.AccountID}, bson.M{"$inc": bson.M{"logincount": 1}})
 	}
 }
 

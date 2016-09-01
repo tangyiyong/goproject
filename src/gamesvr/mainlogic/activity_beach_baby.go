@@ -127,7 +127,7 @@ func (self *TBeachBabyInfo) AddScore(num int) {
 	newScore := self.GetTodayScore() + num
 	self.SetTodayScore(newScore)
 	self.TotalScore += num
-	self.db_SaveScore()
+	self.DB_SaveScore()
 
 	G_BeachBabyTodayRanker.SetRankItem(self.activityModule.PlayerID, newScore)
 	G_BeachBabyTotalRanker.SetRankItem(self.activityModule.PlayerID, self.TotalScore)
@@ -157,26 +157,26 @@ func (self *TBeachBabyInfo) GetTotalScore() int {
 }
 
 //! DB相关
-func (self *TBeachBabyInfo) db_SaveGoods(nIndex int) {
+func (self *TBeachBabyInfo) DB_SaveGoods(nIndex int) {
 	FieldName := fmt.Sprintf("beachbaby.goods.%d", nIndex)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{FieldName: self.Goods[nIndex]}})
 }
-func (self *TBeachBabyInfo) db_SaveAllGoods() {
+func (self *TBeachBabyInfo) DB_SaveAllGoods() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"beachbaby.goods":           self.Goods,
 		"beachbaby.autorefreshtime": self.AutoRefreshTime}})
 }
-func (self *TBeachBabyInfo) db_SaveScore() {
+func (self *TBeachBabyInfo) DB_SaveScore() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"beachbaby.score":      self.Score,
 		"beachbaby.totalscore": self.TotalScore}})
 }
-func (self *TBeachBabyInfo) db_SaveRankAwardFlag() {
+func (self *TBeachBabyInfo) DB_SaveRankAwardFlag() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"beachbaby.isgettodayrankaward": self.IsGetTodayRankAward,
 		"beachbaby.isgettotalrankaward": self.IsGetTotalRankAward}})
 }
-func (self *TBeachBabyInfo) DB_Refresh() bool {
+func (self *TBeachBabyInfo) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"beachbaby.score":               self.Score,
 		"beachbaby.totalscore":          self.TotalScore,
@@ -186,10 +186,9 @@ func (self *TBeachBabyInfo) DB_Refresh() bool {
 		"beachbaby.activityid":          self.ActivityID,
 		"beachbaby.versioncode":         self.VersionCode,
 		"beachbaby.resetcode":           self.ResetCode}})
-	return true
 }
 
-func (self *TBeachBabyInfo) DB_Reset() bool {
+func (self *TBeachBabyInfo) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"beachbaby.score":               self.Score,
 		"beachbaby.totalscore":          self.TotalScore,
@@ -199,7 +198,6 @@ func (self *TBeachBabyInfo) DB_Reset() bool {
 		"beachbaby.activityid":          self.ActivityID,
 		"beachbaby.versioncode":         self.VersionCode,
 		"beachbaby.resetcode":           self.ResetCode}})
-	return true
 }
 
 //！ 逻辑代码
@@ -233,13 +231,13 @@ func (self *TBeachBabyInfo) OpenGoods(idx int) (ret gamedata.ST_ItemData, bGetIt
 		if otherIdx >= 0 {
 			self.Goods[idx].IsValid = false
 			self.Goods[otherIdx].IsValid = false
-			self.db_SaveGoods(otherIdx)
+			self.DB_SaveGoods(otherIdx)
 			self.activityModule.ownplayer.BagMoudle.AddAwardItem(csv.ItemID, csv.ItemNum)
 			return ret, true
 		}
 
 		self.AddScore(price)
-		self.db_SaveGoods(idx)
+		self.DB_SaveGoods(idx)
 
 		self.checkRefreshGoods()
 
@@ -375,7 +373,7 @@ func (self *TBeachBabyInfo) refreshGoods() {
 		goods.IsOpen = false
 		goods.IsValid = true
 	}
-	self.db_SaveAllGoods()
+	self.DB_SaveAllGoods()
 }
 func (self *TBeachBabyInfo) checkRefreshGoods() {
 	if self.getOpenGoodsCnt() >= BeachBaby_Goods_Num {

@@ -95,7 +95,7 @@ func (self *TRebelModule) OnNewDay(newday uint32) {
 	self.Damage = 0
 	self.ExploitAwardLst = IntLst{}
 	self.ResetDay = utility.GetCurDay()
-	go self.UpdateResetTime()
+	go self.DB_UpdateResetTime()
 }
 
 //! 是否发现叛军
@@ -122,7 +122,7 @@ func (self *TRebelModule) RandRebel() {
 	self.IsShare = false
 
 	//! 更新到数据库
-	go self.UpdateRebelInfo()
+	go self.DB_UpdateRebelInfo()
 }
 
 //! 检测逃跑时间
@@ -134,7 +134,7 @@ func (self *TRebelModule) CheckEscapeTime() {
 	self.RebelID = 0
 	self.EscapeTime = 0
 	self.IsShare = false
-	go self.UpdateRebelInfo()
+	go self.DB_UpdateRebelInfo()
 }
 
 //! 获取当期叛军等级

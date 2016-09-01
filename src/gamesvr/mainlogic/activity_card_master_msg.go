@@ -307,7 +307,7 @@ func CardMasterRankAward(awardType int, player *TPlayer, indexToday int) (awardI
 
 			//! 更改标记
 			info.IsGetTodayRankAward = true
-			info.db_SaveRankAwardFlag()
+			info.DB_SaveRankAwardFlag()
 			retCode = msg.RE_SUCCESS
 		}
 	case 2: // 累计
@@ -351,7 +351,7 @@ func CardMasterRankAward(awardType int, player *TPlayer, indexToday int) (awardI
 
 			//! 更改标记
 			info.IsGetTotalRankAward = true
-			info.db_SaveRankAwardFlag()
+			info.DB_SaveRankAwardFlag()
 			retCode = msg.RE_SUCCESS
 		}
 	}

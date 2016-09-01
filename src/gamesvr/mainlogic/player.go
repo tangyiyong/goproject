@@ -488,6 +488,7 @@ func (player *TPlayer) GetHeroByPos(postype int, pos int) *THeroData {
 
 //响应充值人民币
 func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
+	var Diamond int
 	//普通充值
 	if chargeid >= 1 && chargeid <= 9 {
 		pChargeInfo := gamedata.GetChargeItem(chargeid)
@@ -495,9 +496,14 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 			gamelog.Error("OnChargeMoney Error : Invalid chargeid :%d", chargeid)
 			return false
 		}
+		if RenMinBi < pChargeInfo.RenMinBi {
+			gamelog.Error("OnChargeMoney RMB not enough: Chargeid(%d), RMB(%d)", chargeid, RenMinBi)
+			return false
+		}
 
 		player.ChargeModule.AddChargeTimes(pChargeInfo.ID)
-		player.RoleMoudle.AddMoney(gamedata.ChargeMoneyID, pChargeInfo.RenMinBi*gamedata.ChargeMoneyRatio)
+		Diamond = pChargeInfo.Diamond
+		player.RoleMoudle.AddMoney(gamedata.ChargeMoneyID, Diamond)
 
 		// 给充值奖励
 		var awardID int
@@ -508,6 +514,7 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 		}
 		items := gamedata.GetItemsFromAwardID(awardID)
 		player.BagMoudle.AddAwardItems(items)
+
 		//! 发放通知邮件
 		SendRechargeMail(player.playerid, RenMinBi)
 	} else if chargeid == 10 || chargeid == 11 {
@@ -518,26 +525,32 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 			gamelog.Error("OnChargeMoney Error : Invalid Cardid :%d", cardId)
 			return false
 		}
+		if RenMinBi < pMonthCard.RenMinBi {
+			gamelog.Error("OnChargeMoney RMB not enough: Cardid(%d), RMB(%d)", cardId, RenMinBi)
+			return false
+		}
 
 		if player.ActivityModule.MonthCard.CardDays[cardId] != 0 {
 			gamelog.Error("OnChargeMoney Error : Repeat purchase")
 			return false
 		}
-
 		player.ActivityModule.MonthCard.CardDays[cardId] += 30
+		Diamond = pMonthCard.MoneyNum
+		player.RoleMoudle.AddMoney(pMonthCard.MoneyID, Diamond)
+
 		go player.ActivityModule.MonthCard.DB_UpdateCardDays(cardId, player.ActivityModule.MonthCard.CardDays[cardId])
 	}
 
-	player.RoleMoudle.AddVipExp(RenMinBi * gamedata.ChargeMoneyRatio)
+	player.RoleMoudle.AddVipExp(Diamond)
 
-	player.OnChargeMoney(RenMinBi)
+	player.OnChargeMoney(RenMinBi, Diamond)
 
 	return true
 }
 
-func (player *TPlayer) OnChargeMoney(rmb int) {
+func (player *TPlayer) OnChargeMoney(rmb, diamond int) {
 	//! 增加任务/七天/限时完成进度
-	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_RECHARGE, rmb*gamedata.ChargeMoneyRatio)
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_RECHARGE, diamond)
 
 	//! 增加单笔充值
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_SINGLE_RECHARGE, rmb)

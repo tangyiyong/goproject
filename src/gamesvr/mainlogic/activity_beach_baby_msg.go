@@ -401,7 +401,7 @@ func BeachBabyRankAward(awardType int, player *TPlayer, indexToday int) (awardIt
 
 			//! 更改标记
 			info.IsGetTodayRankAward = true
-			info.db_SaveRankAwardFlag()
+			info.DB_SaveRankAwardFlag()
 			retCode = msg.RE_SUCCESS
 		}
 	case 2: // 累计
@@ -445,7 +445,7 @@ func BeachBabyRankAward(awardType int, player *TPlayer, indexToday int) (awardIt
 
 			//! 更改标记
 			info.IsGetTotalRankAward = true
-			info.db_SaveRankAwardFlag()
+			info.DB_SaveRankAwardFlag()
 			retCode = msg.RE_SUCCESS
 		}
 	}

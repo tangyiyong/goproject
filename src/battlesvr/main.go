@@ -20,7 +20,7 @@ func main() {
 	appconfig.BattleSvrPort = *port
 
 	//初始化日志系统
-	gamelog.InitLogger("battle"+strconv.Itoa(appconfig.BattleSvrPort), true)
+	gamelog.InitLogger("battle" + strconv.Itoa(appconfig.BattleSvrPort))
 	gamelog.SetLevel(appconfig.BattleLogLevel)
 
 	//初始化工具系统

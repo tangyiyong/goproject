@@ -85,7 +85,7 @@ func (self *TActivityRecharge) RedTip() bool {
 	return false
 }
 
-func (self *TActivityRecharge) DB_Refresh() bool {
+func (self *TActivityRecharge) DB_Refresh() {
 	index := -1
 	for i, v := range self.activityModule.Recharge {
 		if v.ActivityID == self.ActivityID {
@@ -96,16 +96,15 @@ func (self *TActivityRecharge) DB_Refresh() bool {
 
 	if index < 0 {
 		gamelog.Error("Recharge DB_Refresh fail. ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName := fmt.Sprintf("recharge.%d.versioncode", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
-	return true
 }
 
-func (self *TActivityRecharge) DB_Reset() bool {
+func (self *TActivityRecharge) DB_Reset() {
 	index := -1
 	for i, v := range self.activityModule.Recharge {
 		if v.ActivityID == self.ActivityID {
@@ -116,7 +115,7 @@ func (self *TActivityRecharge) DB_Reset() bool {
 
 	if index < 0 {
 		gamelog.Error("Recharge DB_Reset fail. ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName1 := fmt.Sprintf("recharge.%d.rechargevalue", index)
@@ -128,7 +127,6 @@ func (self *TActivityRecharge) DB_Reset() bool {
 		filedName2: self.AwardMark,
 		filedName3: self.VersionCode,
 		filedName4: self.ResetCode}})
-	return true
 }
 
 func (self *TActivityRecharge) DB_UpdateRechargeMark(index int, mark int) {

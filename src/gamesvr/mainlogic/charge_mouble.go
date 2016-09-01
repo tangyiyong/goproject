@@ -62,12 +62,12 @@ func (self *TChargeMoudle) AddChargeTimes(id int) int {
 		return 0
 	}
 	self.ChargeTimes[id]++
-	self.db_SaveChargeTimes(id)
+	self.DB_SaveChargeTimes(id)
 	return self.ChargeTimes[id]
 }
 
 //! DB相关
-func (self *TChargeMoudle) db_SaveChargeTimes(nIndex int) {
+func (self *TChargeMoudle) DB_SaveChargeTimes(nIndex int) {
 	FieldName := fmt.Sprintf("chargetimes.%d", nIndex)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCharge", bson.M{"_id": self.PlayerID},
 		bson.M{"$set": bson.M{FieldName: self.ChargeTimes[nIndex]}})

@@ -106,15 +106,13 @@ func (self *TActivityMoneyGod) DB_UpdateNextTime() {
 		"moneygod.nexttime": self.NextTime}})
 }
 
-func (self *TActivityMoneyGod) DB_Refresh() bool {
-
+func (self *TActivityMoneyGod) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"moneygod.currenttimes":    self.CurrentTimes,
 		"moneygod.nexttime":        self.NextTime,
 		"moneygod.totalmoney":      self.TotalMoney,
 		"moneygod.cumulativetimes": self.CumulativeTimes,
 		"moneygod.versioncode":     self.VersionCode}})
-	return true
 }
 
 func (self *TActivityMoneyGod) DB_UpdateCumulativeTimes() {
@@ -123,10 +121,9 @@ func (self *TActivityMoneyGod) DB_UpdateCumulativeTimes() {
 		"moneygod.cumulativetimes": self.CumulativeTimes}})
 }
 
-func (self *TActivityMoneyGod) DB_Reset() bool {
+func (self *TActivityMoneyGod) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"moneygod.activityid":  self.ActivityID,
 		"moneygod.versioncode": self.VersionCode,
 		"moneygod.resetcode":   self.ResetCode}})
-	return true
 }

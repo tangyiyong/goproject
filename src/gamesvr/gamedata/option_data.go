@@ -126,9 +126,8 @@ var (
 	EliteInvadeTime4 int
 	EliteInvadeNum4  int
 
-	ChargeMoneyID    int //充值货币ID
-	ChargeMoneyRatio int //充值货币系数
-	VipExpMoneyID    int //VIP经验的货币ID
+	ChargeMoneyID int //充值货币ID
+	VipExpMoneyID int //VIP经验的货币ID
 
 	SevenActivityAwardDay int //! 七日活动领奖持续天数
 
@@ -601,10 +600,6 @@ func ParseOptionRecord(rs *RecordSet) {
 	case "charge_money_id":
 		{
 			ChargeMoneyID = CheckAtoiName(rs.Values[2], "charge_money_id")
-		}
-	case "charge_money_ratio":
-		{
-			ChargeMoneyRatio = CheckAtoiName(rs.Values[2], "charge_money_ratio")
 		}
 	case "vip_exp_money_id":
 		{

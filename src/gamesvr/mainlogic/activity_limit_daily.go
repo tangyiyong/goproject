@@ -122,7 +122,7 @@ func (self *TActivityLimitDaily) RedTip() bool {
 	return false
 }
 
-func (self *TActivityLimitDaily) DB_Refresh() bool {
+func (self *TActivityLimitDaily) DB_Refresh() {
 	index := -1
 	for i, v := range self.activityModule.LimitDaily {
 		if v.ActivityID == self.ActivityID {
@@ -133,7 +133,7 @@ func (self *TActivityLimitDaily) DB_Refresh() bool {
 
 	if index < 0 {
 		gamelog.Error("LimitDaily DB_Refresh fail. self.ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName := fmt.Sprintf("limitdaily.%d.tasklst", index)
@@ -143,10 +143,9 @@ func (self *TActivityLimitDaily) DB_Refresh() bool {
 		filedName:  self.TaskLst,
 		filedName2: self.VersionCode,
 		filedName3: self.ResetCode}})
-	return true
 }
 
-func (self *TActivityLimitDaily) DB_Reset() bool {
+func (self *TActivityLimitDaily) DB_Reset() {
 	index := -1
 	for i, v := range self.activityModule.LimitDaily {
 		if v.ActivityID == self.ActivityID {
@@ -157,7 +156,7 @@ func (self *TActivityLimitDaily) DB_Reset() bool {
 
 	if index < 0 {
 		gamelog.Error("LimitDaily DB_Reset fail. self.ActivityID: %d", self.ActivityID)
-		return false
+		return
 	}
 
 	filedName := fmt.Sprintf("limitdaily.%d.tasklst", index)
@@ -167,7 +166,6 @@ func (self *TActivityLimitDaily) DB_Reset() bool {
 		filedName:  self.TaskLst,
 		filedName2: self.VersionCode,
 		filedName3: self.ResetCode}})
-	return true
 }
 
 func (self *TActivityLimitDaily) DB_SaveTask() {

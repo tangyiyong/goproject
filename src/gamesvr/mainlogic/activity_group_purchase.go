@@ -109,8 +109,8 @@ func (self *TActivityGroupPurchase) GetGroupItemInfo(itemID int) (*TActivityPurc
 }
 
 func (self *TActivityGroupPurchase) DB_AddNewPurchaseCostInfo(newRecord *TActivityPurchaseCost) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID},
-		"grouppurchase.purchasecostlst", *newRecord)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID},
+		bson.M{"$push": bson.M{"grouppurchase.purchasecostlst": *newRecord}})
 }
 
 func (self *TActivityGroupPurchase) DB_UpdatePurchaseCostInfo(index int) {
@@ -121,14 +121,13 @@ func (self *TActivityGroupPurchase) DB_UpdatePurchaseCostInfo(index int) {
 		filedName2: self.PurchaseCostLst[index].MoneyNum}})
 }
 
-func (self *TActivityGroupPurchase) DB_Refresh() bool {
+func (self *TActivityGroupPurchase) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"grouppurchase.versioncode": self.VersionCode}})
-	return true
 }
 
 //! 存储数据库
-func (self *TActivityGroupPurchase) DB_Reset() bool {
+func (self *TActivityGroupPurchase) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"grouppurchase.activityid":      self.ActivityID,
 		"grouppurchase.purchasecostlst": self.PurchaseCostLst,
@@ -136,7 +135,6 @@ func (self *TActivityGroupPurchase) DB_Reset() bool {
 		"grouppurchase.scoreawardmark":  self.ScoreAwardMark,
 		"grouppurchase.versioncode":     self.VersionCode,
 		"grouppurchase.resetcode":       self.ResetCode}})
-	return true
 }
 
 func (self *TActivityGroupPurchase) DB_SaveScore() {
@@ -145,5 +143,5 @@ func (self *TActivityGroupPurchase) DB_SaveScore() {
 }
 
 func (self *TActivityGroupPurchase) DB_AddScoreAward(id int) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, "grouppurchase.scoreawardmark", id)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{"grouppurchase.scoreawardmark": id}})
 }

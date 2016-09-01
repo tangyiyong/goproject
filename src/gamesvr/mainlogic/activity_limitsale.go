@@ -149,8 +149,8 @@ func (self *TActivityLimitSale) DB_UpdateAwardMark() {
 		"limitsale.awardmark": self.AwardMark}})
 }
 
-func (self *TActivityLimitSale) DB_Refresh() bool {
-	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+func (self *TActivityLimitSale) DB_Refresh() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"limitsale.versioncode": self.VersionCode,
 		"limitsale.refreshmark": self.RefreshMark,
 		"limitsale.score":       self.Score,
@@ -159,8 +159,8 @@ func (self *TActivityLimitSale) DB_Refresh() bool {
 		"limitsale.itemlst":     self.ItemLst}})
 }
 
-func (self *TActivityLimitSale) DB_Reset() bool {
-	return mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+func (self *TActivityLimitSale) DB_Reset() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"limitsale.versioncode": self.VersionCode,
 		"limitsale.resetcode":   self.ResetCode,
 		"limitsale.refreshmark": self.RefreshMark,

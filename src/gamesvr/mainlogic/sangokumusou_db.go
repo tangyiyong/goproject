@@ -24,7 +24,7 @@ func (self *TSangokuMusouModule) DB_UpdateAttr(index int, value int) {
 
 //! 添加Buff
 func (self *TSangokuMusouModule) DB_AddAttr(buff TSangokuMusouAttrData2) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerSangokuMusou", bson.M{"_id": self.PlayerID}, "attrmarkuplst", buff)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerSangokuMusou", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"attrmarkuplst": buff}})
 }
 
 //! 更新通关记录
@@ -39,7 +39,7 @@ func (self *TSangokuMusouModule) DB_UpdatePassCopyRecord() {
 
 //! 增加通关信息
 func (self *TSangokuMusouModule) DB_AddPassCopyInfoLst(info TSangokuMusouCopyInfo) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerSangokuMusou", bson.M{"_id": self.PlayerID}, "copyinfolst", info)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerSangokuMusou", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"copyinfolst": info}})
 }
 
 //! 更新精英挑战次数
@@ -117,5 +117,5 @@ func (self *TSangokuMusouModule) DB_UpdateStoreItemBuyTimes(index int, times int
 
 //! 增加购买信息
 func (self *TSangokuMusouModule) DB_AddStoreItemBuyInfo(info msg.MSG_BuyData) {
-	mongodb.AddToArray(appconfig.GameDbName, "PlayerSangokuMusou", bson.M{"_id": self.PlayerID}, "buyrecord", info)
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerSangokuMusou", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"buyrecord": info}})
 }

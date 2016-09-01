@@ -160,7 +160,9 @@ type MSG_BuyHeroSouls_Req struct {
 }
 
 type MSG_BuyHeroSouls_Ack struct {
-	RetCode int
+	RetCode      int
+	CostMoneyID  int
+	CostMoneyNum int
 }
 
 //! 查询英灵阵图成就

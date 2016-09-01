@@ -168,13 +168,12 @@ func Hand_GetSingleRechargeAward(w http.ResponseWriter, r *http.Request) {
 		gamelog.Error("Hand_GetSingleRechargeAward Error: Recharge not enough")
 		response.RetCode = msg.RE_NOT_RECHARGE
 		return
-	} else {
+	}
 
-		if activityTimes.Times >= award.Times {
-			gamelog.Error("Hand_GetSingleRechargeAward Error: Receive times is use up.")
-			response.RetCode = msg.RE_NOT_ENOUGH_TIMES
-			return
-		}
+	if activityTimes.Times >= award.Times {
+		gamelog.Error("Hand_GetSingleRechargeAward Error: Receive times is use up.")
+		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
+		return
 	}
 
 	//! 修改充值记录状态

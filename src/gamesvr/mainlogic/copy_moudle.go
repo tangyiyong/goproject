@@ -184,7 +184,7 @@ func (main_copy *TCopyMoudle) PlayerPassMainLevels(copyID int, chapter int, star
 		var chapterInfo TMainChapter
 		chapterInfo.Chapter = chapter
 		main_copy.Main.Chapter = append(main_copy.Main.Chapter, chapterInfo)
-		go main_copy.AddMainChapterInfo(chapterInfo)
+		go main_copy.DB_AddMainChapterInfo(chapterInfo)
 	}
 
 	isExist = false
@@ -201,7 +201,7 @@ func (main_copy *TCopyMoudle) PlayerPassMainLevels(copyID int, chapter int, star
 			}
 
 			isExist = true
-			go main_copy.UpdateMainCopyAt(i)
+			go main_copy.DB_UpdateMainCopyAt(i)
 			break
 		}
 	}
@@ -217,7 +217,7 @@ func (main_copy *TCopyMoudle) PlayerPassMainLevels(copyID int, chapter int, star
 		//! 成就任务总星数更新
 		main_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_MAINCOPY_STAR, star)
 
-		go main_copy.AddMainCopyInfo(mainCopy)
+		go main_copy.DB_AddMainCopyInfo(mainCopy)
 	}
 
 	//! 日常任务进度加一
@@ -249,7 +249,7 @@ func (elite_copy *TCopyMoudle) PlayerPassEliteLevels(copyID int, chapter int, st
 		var chapterInfo TEliteChapter
 		chapterInfo.Chapter = chapter
 		elite_copy.Elite.Chapter = append(elite_copy.Elite.Chapter, chapterInfo)
-		go elite_copy.AddEliteChapterInfo(chapterInfo)
+		go elite_copy.DB_AddEliteChapterInfo(chapterInfo)
 	}
 
 	isExist = false
@@ -266,7 +266,7 @@ func (elite_copy *TCopyMoudle) PlayerPassEliteLevels(copyID int, chapter int, st
 			}
 
 			isExist = true
-			go elite_copy.UpdateEliteCopyAt(i)
+			go elite_copy.DB_UpdateEliteCopyAt(i)
 			break
 		}
 	}
@@ -282,7 +282,7 @@ func (elite_copy *TCopyMoudle) PlayerPassEliteLevels(copyID int, chapter int, st
 		//! 成就任务总星数更新
 		elite_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ELITECOPY_STAR, star)
 
-		go elite_copy.AddEliteCopyInfo(eliteCopy)
+		go elite_copy.DB_AddEliteCopyInfo(eliteCopy)
 	}
 
 	//! 日常任务进度加一
@@ -299,7 +299,7 @@ func (daily_copy *TCopyMoudle) PlayerPassDailyLevels(copyID int) {
 		if daily_copy.Daily.CopyInfo[i].ResID == dailyCopy.ResType {
 			daily_copy.Daily.CopyInfo[i].IsChallenge = true
 
-			go daily_copy.UpdateDailyCopyMask(i, true)
+			go daily_copy.DB_UpdateDailyCopyMask(i, true)
 		}
 	}
 
@@ -311,12 +311,12 @@ func (daily_copy *TCopyMoudle) PlayerPassDailyLevels(copyID int) {
 func (famous_copy *TCopyMoudle) PlayerPassFamousLevels(copyID int, curChapter int) bool {
 	//! 挑战次数+1
 	famous_copy.Famous.BattleTimes += 1
-	go famous_copy.UpdateFamousCopyTotalBattleTimes()
+	go famous_copy.DB_UpdateFamousCopyTotalBattleTimes()
 
 	//! 赋值通过关卡ID
 	if copyID > famous_copy.Famous.CurCopyID {
 		famous_copy.Famous.CurCopyID = copyID
-		go famous_copy.UpdateFamousCopyCurCopyID()
+		go famous_copy.DB_UpdateFamousCopyCurCopyID()
 	}
 
 	chapterInfo := gamedata.GetFamousChapterInfo(curChapter)
@@ -347,9 +347,9 @@ func (famous_copy *TCopyMoudle) PlayerPassFamousLevels(copyID int, curChapter in
 		famousCopy.BattleTimes = 1
 		battleTimes = 1
 		famous_copy.Famous.Chapter[curChapter].PassedCopy = append(famous_copy.Famous.Chapter[curChapter].PassedCopy, famousCopy)
-		go famous_copy.IncFamousCopy(curChapter, famousCopy)
+		go famous_copy.DB_IncFamousCopy(curChapter, famousCopy)
 	} else {
-		go famous_copy.UpdateFamousCopyBattleTimes(curChapter, copyIndex, battleTimes)
+		go famous_copy.DB_UpdateFamousCopyBattleTimes(curChapter, copyIndex, battleTimes)
 	}
 
 	famous_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FAMOUSCOPY_CHALLENGE, 1)
@@ -497,7 +497,7 @@ func (main_copy *TCopyMoudle) PaymentMainAward(chapter int, award int, awardtype
 
 	awardItem := gamedata.GetItemsFromAwardID(awardID)
 	main_copy.ownplayer.BagMoudle.AddAwardItems(awardItem)
-	go main_copy.UpdateMainAward(index)
+	go main_copy.DB_UpdateMainAward(index)
 }
 
 func (elite_copy *TCopyMoudle) PaymentEliteAward(chapter int, award int, awardtype int) {
@@ -526,7 +526,7 @@ func (elite_copy *TCopyMoudle) PaymentEliteAward(chapter int, award int, awardty
 
 	awardItem := gamedata.GetItemsFromAwardID(awardID)
 	elite_copy.ownplayer.BagMoudle.AddAwardItems(awardItem)
-	go elite_copy.UpdateEliteAward(index)
+	go elite_copy.DB_UpdateEliteAward(index)
 }
 
 //! 获取未有入侵的精英副本章节数
@@ -582,7 +582,7 @@ func (elite_copy *TCopyMoudle) RemoveInvade(chapter int) bool {
 		elite_copy.Elite.InvadeChapter = append(elite_copy.Elite.InvadeChapter[:pos], elite_copy.Elite.InvadeChapter[pos+1:]...)
 	}
 
-	go elite_copy.RemoveEliteInvade(chapter)
+	go elite_copy.DB_RemoveEliteInvade(chapter)
 	return true
 }
 
@@ -601,7 +601,7 @@ func (elite_copy *TCopyMoudle) RandNoInvadeEliteChapter(num int) IntLst {
 		if elite_copy.IsHaveInvade(randChapter) == false {
 			elite_copy.Elite.InvadeChapter = append(elite_copy.Elite.InvadeChapter, randChapter)
 			chapter.Add(randChapter)
-			go elite_copy.AddEliteInvade(randChapter)
+			go elite_copy.DB_AddEliteInvade(randChapter)
 		}
 
 		if chapter.Len() == num {
@@ -651,7 +651,7 @@ func (elite_copy *TCopyMoudle) CheckEliteInvade() {
 			elite_copy.LastInvadeTime = invadeTime[i]
 		}
 	}
-	go elite_copy.UpdateEliteInvadeTime()
+	go elite_copy.DB_UpdateEliteInvadeTime()
 }
 
 //! 检查扫荡体力是否足够
@@ -703,7 +703,7 @@ func (self *TCopyMoudle) OnNewDay(newday uint32) {
 	self.UpdateEliteReset()
 
 	self.ResetDay = utility.GetCurDay()
-	go self.UpdateCopy()
+	go self.DB_UpdateCopy()
 }
 
 func (main_copy *TCopyMoudle) UpdateMainReset() {
