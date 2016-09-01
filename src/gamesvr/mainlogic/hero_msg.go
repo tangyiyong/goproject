@@ -917,9 +917,15 @@ func Hand_QueryHeroDestiny(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pCurHeroData := player.GetHeroByPos(req.TargetHero.PosType, req.TargetHero.HeroPos)
-	if (pCurHeroData == nil) || pCurHeroData.ID != req.TargetHero.HeroID {
+	if pCurHeroData == nil {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_QueryHeroDestiny : Wrong Param curid:%d, tid:%d", pCurHeroData.ID, req.TargetHero.HeroID)
+		gamelog.Error("Hand_QueryHeroDestiny : Invalie TargetHero PosType:%d, HeroPos:%d, ID:%d", req.TargetHero.PosType, req.TargetHero.HeroPos, req.TargetHero.HeroID)
+		return
+	}
+
+	if pCurHeroData.ID != req.TargetHero.HeroID {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_QueryHeroDestiny : Invalie TargetHero msg.HeroID:%d, data.HeroID:%d", req.TargetHero.HeroID, pCurHeroData.ID)
 		return
 	}
 	response.NewDestinyState = pCurHeroData.DestinyState

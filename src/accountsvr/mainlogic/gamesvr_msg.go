@@ -9,7 +9,9 @@ import (
 
 //处理游戏服力器的注册请求
 func Handle_RegisterGameSvr(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
 	var buffer []byte
+
 	buffer = make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
@@ -18,12 +20,9 @@ func Handle_RegisterGameSvr(w http.ResponseWriter, r *http.Request) {
 		gamelog.Error("Handle_RegisterGameSvr : Unmarshal error!!!!")
 		return
 	}
-
 	UpdateGameSvrInfo(req.ServerDomainID, req.ServerDomainName, req.ServerOuterAddr, req.ServerInnerAddr)
-
 	var response msg.MSG_RegToAccountSvr_Ack
 	response.RetCode = msg.RE_SUCCESS
-
 	b, _ := json.Marshal(&response)
 	w.Write(b)
 }

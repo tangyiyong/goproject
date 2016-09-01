@@ -23,12 +23,13 @@ func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	CheckAndClean(req.PlayerID)
 	gamelog.Info("message: Hand_CheckInReq id:%d, name:%s", req.PlayerID, req.PlayerName)
 	AddTcpConn(req.PlayerID, req.PlayerName, pTcpConn)
+	NewOneFile(pTcpConn.ConnID)
 
 	return
 }
 
 func Hand_OnLogData(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
-	AppendLog(pdata)
+	WriteSvrLog(pdata, pTcpConn.ConnID)
 	//如果不用写数据库，则消息不用解析出来
 	//如果需要写数据库，则消息需要解析出来
 	// var req msg.MSG_SvrLogData

@@ -55,7 +55,10 @@ func Hand_GetLimitSaleItemInfo(w http.ResponseWriter, r *http.Request) {
 		response.ItemLst = append(response.ItemLst, msg.MSG_LimitSaleItemInfo{item.ID, item.Status})
 	}
 
+	response.AwardMark = int(player.ActivityModule.LimitSale.AwardMark)
+	response.SaleNum = G_GlobalVariables.LimitSaleNum
 	response.RetCode = msg.RE_SUCCESS
+	response.DiscountChargeID = player.ActivityModule.LimitSale.DiscountChargeID
 }
 
 //! 玩家购买限时特惠商品
@@ -79,7 +82,6 @@ func Hand_BuyLimitSaleItem(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -92,8 +94,8 @@ func Hand_BuyLimitSaleItem(w http.ResponseWriter, r *http.Request) {
 	player.ActivityModule.CheckReset()
 
 	//! 检测参数合法性
-	if req.Index >= len(player.ActivityModule.LimitSale.ItemLst) ||
-		req.Index < 0 {
+	if req.Index > len(player.ActivityModule.LimitSale.ItemLst) ||
+		req.Index <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
 		gamelog.Error("Hand_BuyLimitSaleItem Fail: Invalid Index %d ", req.Index)
 		return
@@ -120,7 +122,11 @@ func Hand_BuyLimitSaleItem(w http.ResponseWriter, r *http.Request) {
 
 	//! 增加积分
 	player.ActivityModule.LimitSale.Score += itemInfo.Score
-	if player.ActivityModule.LimitSale.Score > 100 {
+	if player.ActivityModule.LimitSale.Score >= 100 {
+		if player.ActivityModule.LimitSale.DiscountChargeID == 0 {
+			player.ActivityModule.LimitSale.RandDiscountCharge()
+		}
+
 		player.ActivityModule.LimitSale.Score = 100
 	}
 	go player.ActivityModule.LimitSale.DB_UpdateScore()
@@ -162,7 +168,6 @@ func Hand_GetLimitSaleAllAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -187,7 +192,7 @@ func Hand_GetLimitSaleAllAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if awardInfo.NeedNum < G_GlobalVariables.LimitSaleNum {
+	if awardInfo.NeedNum > G_GlobalVariables.LimitSaleNum {
 		gamelog.Error("Hand_GetLimitSaleAllAward Error: Not enough buy num")
 		response.RetCode = msg.RE_NOT_ENOUGH_NUMBER
 		return
@@ -199,7 +204,7 @@ func Hand_GetLimitSaleAllAward(w http.ResponseWriter, r *http.Request) {
 		var awardItem msg.MSG_ItemData
 		awardItem.ID = v.ItemID
 		awardItem.Num = v.ItemNum
-		response.AwardItem = append(response.AwardItem, awardItem)
+		response.AwardLst = append(response.AwardLst, awardItem)
 	}
 
 	player.ActivityModule.LimitSale.AwardMark.Set(uint(req.ID))

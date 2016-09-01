@@ -11,7 +11,7 @@ type MSG_Login_Ack struct {
 	RetCode     int    //返回码 0:成功 1: 账号不存在 2: 密码不正确
 	AccountID   int32  //账号ID
 	LoginKey    string //登录key
-	LastSvrID   int    //上次登录SvrID
+	LastSvrID   int32  //上次登录SvrID
 	LastSvrName string //上次登录svrName
 	LastSvrAddr string //上次登录svr address
 }
@@ -36,9 +36,9 @@ type MSG_ServerList_Req struct {
 }
 
 type ServerNode struct {
-	SvrDomainID   int
+	SvrDomainID   int32
 	SvrDomainName string
-	SvrState      int
+	SvrFlag       int32
 	UpdateTime    int64
 	SvrOutAddr    string
 }

@@ -308,6 +308,7 @@ var (
 
 	//竞技场
 	ArenaBattleVictoryPercent int //! 竞技场挑战多次胜率
+
 )
 
 func InitOptionParser(total int) bool {

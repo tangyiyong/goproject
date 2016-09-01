@@ -102,18 +102,6 @@ func (self *TGlobalVariables) Init() {
 
 }
 
-func (self *TGlobalVariables) CorrectionTime() {
-	//! 特殊矫正活动时间
-	for i, v := range self.ActivityLst {
-		activityInfo := gamedata.GetActivityInfo(v.ActivityID)
-		if activityInfo.ServerType == 2 && activityInfo.ActivityType == gamedata.Activity_Sign {
-			//! 公服期签到为永久存在
-			self.ActivityLst[i].beginTime = 0
-			self.ActivityLst[i].endTime = 0
-		}
-	}
-}
-
 //! 获取活动奖励
 func (self *TGlobalVariables) GetActivityAwardType(activityID int) int {
 	//! 根据活动模板获取对应ID
@@ -131,11 +119,21 @@ func (self *TGlobalVariables) GetActivityAwardType(activityID int) int {
 func (self *TGlobalVariables) IsActivityOpen(activityID int) bool {
 	now := time.Now().Unix()
 	length := len(self.ActivityLst)
+
+	openday := GetOpenServerDay()
 	for i := 0; i < length; i++ {
 		data := &self.ActivityLst[i]
 		if activityID == data.ActivityID &&
 			data.Status == 1 &&
 			((data.beginTime <= now && now <= data.endTime) || (data.beginTime == 0 && data.endTime == 0)) {
+
+			//! 判断公服期
+			activityData := gamedata.GetActivityInfo(data.ActivityID)
+			publicDay := gamedata.GetNewServerTypeActivityEndTime(activityData)
+			if openday <= publicDay && activityData.ServerType == 2 {
+				return false
+			}
+
 			return true
 		}
 	}

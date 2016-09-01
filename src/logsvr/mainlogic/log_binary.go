@@ -2,6 +2,7 @@ package mainlogic
 
 import (
 	"bufio"
+	"fmt"
 	"gamelog"
 	"os"
 	"time"
@@ -30,10 +31,10 @@ func (self *TBinaryLog) Flush() {
 	self.writer.Flush()
 }
 
-func CreateBinaryFile(name string) *TBinaryLog {
+func CreateBinaryFile(name string, svrid int32) *TBinaryLog {
 	var err error = nil
 	timeStr := time.Now().Format("20060102_150405")
-	logFileName := utility.GetCurrPath() + "log\\" + name + "_" + timeStr + ".blog"
+	logFileName := fmt.Sprintf("%slog\\%s_svr%d_%s.blog", utility.GetCurrPath(), name, svrid, timeStr)
 
 	var blog TBinaryLog
 	blog.file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_APPEND, os.ModePerm)

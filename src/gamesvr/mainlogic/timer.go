@@ -19,7 +19,6 @@ const (
 	Timer_Func_Arena    = 1 //! 竞技场
 	Timer_Func_Rebel    = 2 //! 叛军击杀
 	Timer_Func_FoodWar  = 4 //! 夺粮战
-	Timer_Func_FameHall = 5 //! 名人堂
 	Timer_Func_Activity = 6 //! 活动刷新
 	Timer_Func_NewDay   = 7 //! 新的一天
 )
@@ -65,11 +64,6 @@ func (self *Timer) Init() {
 	resetTime = GetTodayTime() + int64(gamedata.FoodWarEndTime)
 	self.AddTimeFunc(Timer_Func_FoodWar, resetTime, 24*60*60, self.FoodWarFunc, true)
 
-	//! 名人堂
-	resetTime = GetTodayTime() + 24*60*60
-	self.AddTimeFunc(Timer_Func_FameHall, resetTime, 24*60*60, self.RefreshFameHallLstFunc, true)
-	self.RefreshFameHallLstFunc(0)
-
 	//! 活动
 	resetTime = GetTodayTime() + 24*60*60
 	self.AddTimeFunc(Timer_Func_Activity, resetTime, 24*60*60, ActivityTimerFunc, true)
@@ -107,95 +101,6 @@ func (self *Timer) ArenaFunc(now int64) bool {
 
 		value := strconv.Itoa(i + 1)
 		SendAwardMail(v.PlayerID, Text_Arean_Win, gamedata.GetItemsFromAwardID(award), []string{value})
-	}
-
-	return true
-}
-
-//! 刷新名人堂
-func (self *Timer) RefreshFameHallLstFunc(now int64) bool {
-	gamelog.Info("Timer: RefreshFameHallLstFunc")
-	if len(G_FameHallLst) != 0 {
-		G_FameHallLst = [2][6]TFameHallInfo{}
-	}
-
-	if G_FightRanker.List.Len() < 6 || G_LevelRanker.List.Len() < 6 {
-		gamelog.Error("RefreshFameHallLstFunc Error: G_FightRanker or G_LevelRanker length is not enough")
-		return true
-	}
-
-	index := 0
-	for i := 0; i < G_FightRanker.List.Len(); i++ {
-		isExist := false
-		for _, v := range G_FameHallLst[0] {
-			if v.PlayerID == G_FightRanker.List[i].RankID {
-				isExist = true
-				break
-			}
-		}
-
-		if isExist == false {
-			G_FameHallLst[0][index].PlayerID = G_FightRanker.List[i].RankID
-			index++
-		}
-
-		if index >= 6 {
-			break
-		}
-	}
-
-	index = 0
-	for i := 0; i < G_LevelRanker.List.Len(); i++ {
-		isExist := false
-		for _, v := range G_FameHallLst[1] {
-			if v.PlayerID == G_LevelRanker.List[i].RankID {
-				isExist = true
-				break
-			}
-		}
-
-		if isExist == false {
-			G_FameHallLst[1][index].PlayerID = G_LevelRanker.List[i].RankID
-			index++
-		}
-
-		if index >= 6 {
-			break
-		}
-	}
-
-	for i, v := range G_FameHallLst {
-
-		for n, m := range v {
-			if m.PlayerID == 0 {
-				continue
-			}
-
-			player := GetPlayerByID(m.PlayerID)
-			if player == nil {
-				s := mongodb.GetDBSession()
-				defer s.Close()
-				var fameHall TFameHallModule
-				err := s.DB(appconfig.GameDbName).C("PlayerFameHall").Find(bson.M{"_id": m.PlayerID}).One(&fameHall)
-				if err != nil {
-					gamelog.Error("FameHallRefresh Load Error :%s， PlayerID: %d", err.Error(), m.PlayerID)
-					continue
-				}
-				G_FameHallLst[i][n].CharmValue = fameHall.CharmValue
-
-				var heroModule THeroMoudle
-				err = s.DB(appconfig.GameDbName).C("PlayerHero").Find(bson.M{"_id": m.PlayerID}).One(&heroModule)
-				if err != nil {
-					gamelog.Error("FameHallRefresh Load Error :%s， PlayerID: %d", err.Error(), m.PlayerID)
-					continue
-				}
-				G_FameHallLst[i][n].HeroID = heroModule.CurHeros[0].ID
-			} else {
-				G_FameHallLst[i][n].CharmValue = player.FameHallModule.CharmValue
-				G_FameHallLst[i][n].HeroID = player.HeroMoudle.CurHeros[0].ID
-			}
-		}
-
 	}
 
 	return true

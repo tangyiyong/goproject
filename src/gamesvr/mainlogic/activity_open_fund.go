@@ -87,6 +87,10 @@ func (self *TActivityOpenFund) RedTip() bool {
 		return false
 	}
 
+	if self.IsBuyFund == false {
+		return false
+	}
+
 	tempLst := IntLst{}
 	for _, v := range gamedata.GT_OpenFundLst[0] {
 		if self.activityModule.ownplayer.GetLevel() >= v.Count {

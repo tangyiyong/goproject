@@ -52,6 +52,7 @@ func (self *TTaskMoudle) DB_UpdateAchievement(info *TAchievementInfo, findID int
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerTask",
 		bson.M{"_id": self.PlayerID, "achievementlist.id": findID}, bson.M{"$set": bson.M{
 			"achievementlist.$.taskstatus": info.TaskStatus,
+			"achievementlist.$.taskcount":  info.TaskCount,
 			"achievementlist.$.id":         info.ID,
 			"achievementlist.$.type":       info.Type}})
 }

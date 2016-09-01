@@ -12,7 +12,7 @@ type TRoleRankItem struct {
 	HeroID     int    //英雄ID
 	Level      int    //等级
 	FightValue int    //战力
-	SvrID      int    //服务器ID
+	SvrID      int32  //服务器ID
 	SvrName    string //服务器名
 	SvrIp      string //服务器IP地址
 	RoleName   string //角色名
@@ -37,7 +37,7 @@ func (ranker *TRoleRanker) InitRanker(show int, rank int) {
 }
 
 func (ranker *TRoleRanker) SetRankItem(rankid int32, rankvalue int, level int,
-	fightvalue int, heroid int, svrid int, quality int8, svrname string, rolename string) int {
+	fightvalue int, heroid int, svrid int32, quality int8, svrname string, rolename string) int {
 	ranker.Lock()
 	defer ranker.Unlock()
 	nCount := len(ranker.List)

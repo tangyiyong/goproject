@@ -29,10 +29,10 @@ func (self *TFameHallModule) DB_UpdateCharm() {
 }
 
 //! 增加赠送玩家ID
-func (self *TFameHallModule) DB_AddSendFightID(index int) {
+func (self *TFameHallModule) DB_AddSendFightID(index int32) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFameHall", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"sendfightid": index}})
 }
 
-func (self *TFameHallModule) DB_AddSendLevelID(index int) {
+func (self *TFameHallModule) DB_AddSendLevelID(index int32) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFameHall", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"sendlevelid": index}})
 }

@@ -109,3 +109,23 @@ type MSG_GetRobPlayerInfo_Ack struct {
 	RetCode    int
 	PlayerData MSG_PlayerData //! 玩家武将信息
 }
+
+//! 一键合成协议
+//! 消息: /one_key_composed
+type MSG_OneKeyRob_Req struct {
+	PlayerID   int32
+	SessionKey string
+	GemID      int //! 宝物ID
+	IsUseItem  int //! 0->未使用  1->已使用
+}
+
+type MSG_OneKeyRob_Ack struct {
+	RetCode    int
+	PieceID    int  //! 碎片ID
+	RobSuccess bool //! 返回抢劫是否成功
+	MoneyID    int  //! 获取货币
+	MoneyNum   int  //! 货币数量
+	Exp        int  //! 获取经验
+	ItemID     int  //! 掉落物品ID
+	ItemNum    int  //! 掉落物品数量
+}

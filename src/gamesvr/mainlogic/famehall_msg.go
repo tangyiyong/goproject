@@ -54,23 +54,23 @@ func Hand_SendFlower(w http.ResponseWriter, r *http.Request) {
 
 	//! 检测是否为已送目标
 	if req.SendType == 0 {
-		if player.FameHallModule.SendFightID.IsExist(req.SendIndex) >= 0 {
+		if player.FameHallModule.SendFightID.IsExist(playerID) >= 0 {
 			gamelog.Error("Hand_SendFlower Error: Aleady send flower index: %d", req.SendIndex)
 			response.RetCode = msg.RE_AlEADY_SEND
 			return
 		}
 
 		player.FameHallModule.SendFightID = append(player.FameHallModule.SendFightID, req.SendIndex)
-		go player.FameHallModule.DB_AddSendFightID(req.SendIndex)
+		go player.FameHallModule.DB_AddSendFightID(playerID)
 	} else {
-		if player.FameHallModule.SendLevelID.IsExist(req.SendIndex) >= 0 {
+		if player.FameHallModule.SendLevelID.IsExist(playerID) >= 0 {
 			gamelog.Error("Hand_SendFlower Error: Aleady send flower index: %d", req.SendIndex)
 			response.RetCode = msg.RE_AlEADY_SEND
 			return
 		}
 
 		player.FameHallModule.SendLevelID = append(player.FameHallModule.SendLevelID, req.SendIndex)
-		go player.FameHallModule.DB_AddSendLevelID(req.SendIndex)
+		go player.FameHallModule.DB_AddSendLevelID(playerID)
 	}
 
 	targetPlayer := GetPlayerByID(playerID)
@@ -136,38 +136,48 @@ func Hand_GetCharmValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.RankType > 1 || req.RankType < 0 {
-		gamelog.Error("Hand_GetCharmValue Error: Invalid Type %d", req.RankType)
-		response.RetCode = msg.RE_INVALID_PARAM
-		return
-	}
-
 	player.FameHallModule.CheckReset()
 
-	for i := 0; i < len(G_FameHallLst[req.RankType]); i++ {
-		if G_FameHallLst[req.RankType][i].PlayerID == 0 {
+	for i := 0; i < len(G_FameHallLst[0]); i++ {
+		if G_FameHallLst[0][i].PlayerID == 0 {
 			continue
 		}
 
-		simpleInfo := G_SimpleMgr.GetSimpleInfoByID(G_FameHallLst[req.RankType][i].PlayerID)
-		response.FightValue = append(response.FightValue, simpleInfo.FightValue)
-		response.CharmValue = append(response.CharmValue, G_FameHallLst[req.RankType][i].CharmValue)
-		response.Level = append(response.Level, simpleInfo.Level)
-		response.Name = append(response.Name, simpleInfo.Name)
-		response.PlayerID = append(response.PlayerID, G_FameHallLst[req.RankType][i].PlayerID)
-		response.HeroID = response.HeroID
-		if len(response.CharmValue) >= 6 {
-			break
+		var info msg.MSG_CharmPlayerInfo
+
+		simpleInfo := G_SimpleMgr.GetSimpleInfoByID(G_FameHallLst[0][i].PlayerID)
+		info.FightValue = simpleInfo.FightValue
+		info.CharmValue = G_FameHallLst[0][i].CharmValue
+		info.Level = simpleInfo.Level
+		info.Name = simpleInfo.Name
+		info.PlayerID = G_FameHallLst[0][i].PlayerID
+		info.HeroID = simpleInfo.HeroID
+		response.FightRankLst = append(response.FightRankLst, info)
+	}
+
+	for i := 0; i < len(G_FameHallLst[1]); i++ {
+		if G_FameHallLst[1][i].PlayerID == 0 {
+			continue
 		}
+
+		var info msg.MSG_CharmPlayerInfo
+
+		simpleInfo := G_SimpleMgr.GetSimpleInfoByID(G_FameHallLst[1][i].PlayerID)
+		info.FightValue = simpleInfo.FightValue
+		info.CharmValue = G_FameHallLst[1][i].CharmValue
+		info.Level = simpleInfo.Level
+		info.Name = simpleInfo.Name
+		info.PlayerID = G_FameHallLst[1][i].PlayerID
+		info.HeroID = simpleInfo.HeroID
+		response.LevelRankLst = append(response.LevelRankLst, info)
 	}
 
 	response.Times = player.FameHallModule.FreeTimes
 
-	if req.RankType == 0 {
-		response.SendID = append(response.SendID, player.FameHallModule.SendFightID...)
-	} else {
-		response.SendID = append(response.SendID, player.FameHallModule.SendLevelID...)
-	}
+	response.FightSendID = []int32{}
+	response.LevelSendID = []int32{}
+	response.FightSendID = append(response.FightSendID, player.FameHallModule.SendFightID...)
+	response.LevelSendID = append(response.LevelSendID, player.FameHallModule.SendLevelID...)
 
 	response.RetCode = msg.RE_SUCCESS
 }

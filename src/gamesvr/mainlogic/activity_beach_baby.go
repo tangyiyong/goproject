@@ -111,7 +111,7 @@ func (self *TBeachBabyInfo) RedTip() bool {
 	}
 
 	//! 领取免费贝壳
-	if self.CanGetFreeConch() {
+	if ok, _ := self.CanGetFreeConch(); ok {
 		return true
 	}
 
@@ -382,20 +382,28 @@ func (self *TBeachBabyInfo) checkRefreshGoods() {
 }
 
 // 领取免费贝壳
-func (self *TBeachBabyInfo) CanGetFreeConch() bool {
-	hour := time.Now().Hour()
+func (self *TBeachBabyInfo) CanGetFreeConch() (can bool, idx int) {
+	hour := byte(time.Now().Hour())
 	for i, v := range gamedata.BeachBaby_GetFreeToken_Time {
-		if v == byte(hour) && self.getFreeConchBit(i) == false {
+		if v == hour {
+			can = (self.getFreeConchBit(i) == false)
+			idx = i
+			return
+		}
+	}
+	return
+}
+func (self *TBeachBabyInfo) GetFreeConch() bool {
+	can, idx := self.CanGetFreeConch()
+	if can {
+		itemID, itemCnt := gamedata.BeachBaby_Token_ItemID, int(gamedata.BeachBaby_GetFreeToken_Cnt)
+
+		if self.activityModule.ownplayer.BagMoudle.AddNormalItem(itemID, itemCnt) > 0 {
+			self.setFreeConchBit(idx, true)
 			return true
 		}
 	}
-	return false
-}
-func (self *TBeachBabyInfo) GetFreeConch() bool {
-	if self.CanGetFreeConch() {
-		itemID, itemCnt := gamedata.BeachBaby_Token_ItemID, int(gamedata.BeachBaby_Token_ItemID)
-		return self.activityModule.ownplayer.BagMoudle.AddNormalItem(itemID, itemCnt) > 0
-	}
+	gamelog.Error("BeachBaby::GetFreeConch fail: hour(%d), idx(%d)", time.Now().Hour(), idx)
 	return false
 }
 func (self *TBeachBabyInfo) getFreeConchBit(idx int) bool {

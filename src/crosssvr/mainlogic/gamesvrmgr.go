@@ -6,23 +6,18 @@ import (
 	"time"
 )
 
-const (
-	SVR_STATE_CLOSE  = 0
-	SVR_STATE_NORMAL = 1
-)
-
 type TGameServerInfo struct {
-	SvrDomainID   int
+	SvrDomainID   int32
 	SvrDomainName string
-	SvrState      int //0 表示关闭， 1 表示正常， 2....
 	UpdateTime    int64
 	SvrOutAddr    string
 	SvrInnerAddr  string //内部地址
+	IsSvrOK       bool   //服务器是否正常
 	SvrFightUrl   string //var reqUrl = "http://" + addr + "/get_fight_target"
 }
 
 var (
-	G_ServerList   = make(map[int]*TGameServerInfo)
+	G_ServerList   [10000]TGameServerInfo
 	CurSelectIndex = 0
 	ListLock       sync.Mutex
 )
@@ -33,9 +28,13 @@ func InitGameSvrMgr() {
 		for {
 			ListLock.Lock()
 			curtime := time.Now().Unix()
-			for _, info := range G_ServerList {
-				if (curtime - info.UpdateTime) > (70) {
-					info.SvrState = 0
+			for i := 0; i < 10000; i++ {
+				if G_ServerList[i].SvrDomainID <= 0 {
+					continue
+				}
+
+				if (curtime - G_ServerList[i].UpdateTime) > (70) {
+					G_ServerList[i].IsSvrOK = false
 				}
 			}
 			ListLock.Unlock()
@@ -46,133 +45,85 @@ func InitGameSvrMgr() {
 	return
 }
 
-func UpdateGameSvrInfo(domainid int, doname string, outaddr string, inaddr string) {
-	if domainid <= 0 {
+func UpdateGameSvrInfo(domainid int32, svrname string, outaddr string, inaddr string) {
+	if domainid <= 0 || domainid >= 10000 {
+		gamelog.Error("UpdateGameSvrInfo Error : Invalid DomainID:%d", domainid)
 		return
 	}
 
 	ListLock.Lock()
 	defer ListLock.Unlock()
 
-	pGameSvrInfo, ok := G_ServerList[domainid]
-	if !ok || pGameSvrInfo == nil {
-		var pInfo *TGameServerInfo = new(TGameServerInfo)
-		pInfo.SvrDomainID = domainid
-		pInfo.SvrDomainName = doname
-		pInfo.SvrInnerAddr = inaddr
-		pInfo.SvrOutAddr = outaddr
-		pInfo.SvrState = 1
-		pInfo.UpdateTime = time.Now().Unix()
-		G_ServerList[domainid] = pInfo
-		return
-	}
+	if G_ServerList[domainid].SvrDomainID == 0 {
+		G_ServerList[domainid].SvrDomainID = domainid
+		G_ServerList[domainid].SvrDomainName = svrname
+		G_ServerList[domainid].SvrInnerAddr = inaddr
+		G_ServerList[domainid].SvrOutAddr = outaddr
+		G_ServerList[domainid].IsSvrOK = true
+		G_ServerList[domainid].UpdateTime = time.Now().Unix()
+	} else {
+		if G_ServerList[domainid].SvrDomainName != svrname {
+			gamelog.Error("UpdateGameSvrInfo Error : %d has two domainname:%s, %s", domainid, svrname, G_ServerList[domainid].SvrDomainName)
+		}
 
-	if pGameSvrInfo.SvrDomainName != doname {
-		gamelog.Error("UpdateGameSvrInfo Error : %d has two domainname:%s, %s", domainid, doname, pGameSvrInfo.SvrDomainName)
+		G_ServerList[domainid].SvrInnerAddr = inaddr
+		G_ServerList[domainid].SvrOutAddr = outaddr
+		G_ServerList[domainid].IsSvrOK = true
+		G_ServerList[domainid].UpdateTime = time.Now().Unix()
 	}
-
-	pGameSvrInfo.UpdateTime = time.Now().Unix()
-	pGameSvrInfo.SvrState = 1
 
 }
 
-func AddGameSvrInfo(pInfo *TGameServerInfo) {
+func GetGameSvrName(domainid int32) string {
 	ListLock.Lock()
 	defer ListLock.Unlock()
 
-	if pInfo == nil {
-		gamelog.Error("AddGameSvrInfo Error pInfo is nil")
-		return
-	}
-
-	pGameSvrInfo, ok := G_ServerList[pInfo.SvrDomainID]
-	if !ok || pGameSvrInfo == nil {
-		G_ServerList[pInfo.SvrDomainID] = pInfo
-		return
-	}
-
-	if pGameSvrInfo.SvrDomainName != pInfo.SvrDomainName {
-		gamelog.Error("AddGameSvrInfo Error : %d has two domainname:%s, %s", pInfo.SvrDomainID, pInfo.SvrDomainName, pGameSvrInfo.SvrDomainName)
-	}
-
-	pGameSvrInfo.UpdateTime = pInfo.UpdateTime
-	pGameSvrInfo.SvrState = 1
-
-	return
-}
-
-func GetGameSvrName(domainid int) string {
-	ListLock.Lock()
-	defer ListLock.Unlock()
-
-	pGameSvrInfo, ok := G_ServerList[domainid]
-	if !ok || pGameSvrInfo == nil {
+	if G_ServerList[domainid].SvrDomainID == 0 {
 		gamelog.Error("GetGameSvrName Error Invalid domainid :%d", domainid)
 		return ""
 	}
 
-	return pGameSvrInfo.SvrDomainName
+	return G_ServerList[domainid].SvrDomainName
 }
 
-func GetGameSvrOutAddr(domainid int) string {
+func GetGameSvrOutAddr(domainid int32) string {
 	ListLock.Lock()
 	defer ListLock.Unlock()
-	pGameSvrInfo, ok := G_ServerList[domainid]
-	if !ok || pGameSvrInfo == nil {
+
+	if G_ServerList[domainid].SvrDomainID == 0 {
 		gamelog.Error("GetGameSvrAddr Error Invalid domainid :%d", domainid)
 		return ""
 	}
 
-	return pGameSvrInfo.SvrOutAddr
+	return G_ServerList[domainid].SvrOutAddr
 }
 
-func GetGameSvrInAddr(domainid int) string {
+func GetGameSvrInAddr(domainid int32) string {
 	ListLock.Lock()
 	defer ListLock.Unlock()
-	pGameSvrInfo, ok := G_ServerList[domainid]
-	if !ok || pGameSvrInfo == nil {
+	if G_ServerList[domainid].SvrDomainID == 0 {
 		return ""
 	}
 
-	return pGameSvrInfo.SvrInnerAddr
+	return G_ServerList[domainid].SvrInnerAddr
 }
 
-func GetGameSvrFightTarAddr(domainid int) string {
+func GetGameSvrInfo(domainid int32) (pInfo *TGameServerInfo) {
 	ListLock.Lock()
 	defer ListLock.Unlock()
-	pGameSvrInfo, ok := G_ServerList[domainid]
-	if !ok || pGameSvrInfo == nil {
-		return ""
-	}
 
-	if len(pGameSvrInfo.SvrFightUrl) <= 0 {
-		pGameSvrInfo.SvrFightUrl = "http://" + pGameSvrInfo.SvrInnerAddr + "/get_fight_target"
-	}
-
-	return pGameSvrInfo.SvrFightUrl
-}
-
-func GetGameSvrInfo(domainid int) (pInfo *TGameServerInfo) {
-	if domainid <= 0 {
+	if G_ServerList[domainid].SvrDomainID == 0 {
 		gamelog.Error("GetGameSvrInfo Error Invalid domainid :%d", domainid)
 		return nil
 	}
 
-	ListLock.Lock()
-	defer ListLock.Unlock()
-	pGameSvrInfo, ok := G_ServerList[domainid]
-	if !ok || pGameSvrInfo == nil {
-		gamelog.Error("GetGameSvrInfo Error Invalid domainid :%d", domainid)
-		return nil
-	}
-
-	return pGameSvrInfo
+	return &G_ServerList[domainid]
 }
 
-func RemoveGameSvrInfo(domainid int) bool {
+func RemoveGameSvrInfo(domainid int32) bool {
 	ListLock.Lock()
 	defer ListLock.Unlock()
-	delete(G_ServerList, domainid)
+	G_ServerList[domainid].SvrDomainID = 0
 	return true
 }
 
@@ -181,10 +132,24 @@ func GetSelectSvrAddr() string {
 	defer ListLock.Unlock()
 
 	for _, v := range G_ServerList {
-		if v.SvrState == SVR_STATE_NORMAL {
+		if v.IsSvrOK == true {
 			return v.SvrInnerAddr
 		}
 	}
 
 	return ""
+}
+
+func GetGameSvrFightTarAddr(domainid int32) string {
+	ListLock.Lock()
+	defer ListLock.Unlock()
+	if G_ServerList[domainid].SvrDomainID == 0 {
+		return ""
+	}
+
+	if len(G_ServerList[domainid].SvrFightUrl) <= 0 {
+		G_ServerList[domainid].SvrFightUrl = "http://" + G_ServerList[domainid].SvrInnerAddr + "/get_fight_target"
+	}
+
+	return G_ServerList[domainid].SvrFightUrl
 }

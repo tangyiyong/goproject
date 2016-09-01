@@ -784,10 +784,12 @@ type MSG_LimitSaleItemInfo struct {
 }
 
 type MSG_GetLimitSaleInfo_Ack struct {
-	RetCode   int
-	Score     int //! 玩家积分
-	ItemLst   []MSG_LimitSaleItemInfo
-	AwardMark int
+	RetCode          int
+	Score            int //! 玩家积分
+	ItemLst          []MSG_LimitSaleItemInfo
+	AwardMark        int
+	SaleNum          int
+	DiscountChargeID int //! 优惠充值ID
 }
 
 //! 玩家购买限时特惠
@@ -815,5 +817,5 @@ type MSG_GetLimitSale_AllAward_Req struct {
 type MSG_GetLimitSale_AllAward_Ack struct {
 	RetCode   int
 	AwardMark int
-	AwardItem []MSG_ItemData
+	AwardLst  []MSG_ItemData
 }

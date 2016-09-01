@@ -6,7 +6,7 @@ type MSG_Target struct {
 	Name       string //角色名
 	FightValue int    //战力
 	Level      int    //等级
-	SvrID      int    //服务器ID
+	SvrID      int32  //服务器ID
 	SvrName    string //服务器名
 	Quality    int8   //品质
 }
@@ -36,8 +36,8 @@ type MSG_ScoreRankInfo struct {
 	Quality    int8   //! 品质
 	Name       string //! 角色名字
 	FightValue int    //! 战力值
-	Score      int    //！积分值
-	SvrID      int    //! 服务器ID
+	Score      int    //! 积分值
+	SvrID      int32  //! 服务器ID
 	SvrName    string //! 服务器名字
 }
 
@@ -153,7 +153,7 @@ type MSG_CrossQueryScoreRank_Ack struct {
 type MSG_CrossQueryScoreTarget_Req struct {
 	PlayerID   int32  //角色ID
 	HeroID     int    //英雄ID
-	SvrID      int    //服务器ID
+	SvrID      int32  //服务器ID
 	SvrName    string //服务器名
 	Score      int    //当前的积分
 	Level      int    //等级
@@ -181,7 +181,7 @@ type MSG_GameSelectPlayer_Ack struct {
 
 //! 向跨服服务器请求战斗目标数据
 type MSG_GetFightTarget_Req struct {
-	SvrID    int   //服务器ID
+	SvrID    int32 //服务器ID
 	PlayerID int32 //角色ID
 }
 

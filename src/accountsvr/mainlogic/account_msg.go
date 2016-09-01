@@ -63,7 +63,7 @@ func Handle_Login(w http.ResponseWriter, r *http.Request) {
 
 		if pGameInfo != nil {
 			response.LastSvrName = pGameInfo.SvrDomainName
-			response.LastSvrAddr = pGameInfo.SvrOutAddr
+			response.LastSvrAddr = pGameInfo.svrOutAddr
 		}
 		G_AccountMgr.AddLoginKey(response.AccountID, response.LoginKey)
 	} else {
@@ -213,8 +213,8 @@ func Handle_ServerList(w http.ResponseWriter, r *http.Request) {
 	for _, v := range G_ServerList {
 		response.SvrList[i].SvrDomainID = v.SvrDomainID
 		response.SvrList[i].SvrDomainName = v.SvrDomainName
-		response.SvrList[i].SvrState = v.SvrState
-		response.SvrList[i].SvrOutAddr = v.SvrOutAddr
+		response.SvrList[i].SvrFlag = v.SvrFlag
+		response.SvrList[i].SvrOutAddr = v.svrOutAddr
 		i = i + 1
 	}
 }

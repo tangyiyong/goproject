@@ -217,10 +217,10 @@ func LoadOneFile(file *os.File) {
 	}
 
 	tblname := strings.TrimSuffix(fstate.Name(), path.Ext(file.Name()))
-	var mapInterface interface{}
+	var reflectParser interface{}
 	DataParser, ok := G_DataParserMap[tblname]
 	if !ok {
-		mapInterface, ok = G_ReflectParserMap[tblname]
+		reflectParser, ok = G_ReflectParserMap[tblname]
 		if !ok {
 			gamelog.Error("table: %-30s need a parser!!", tblname)
 			return
@@ -228,7 +228,7 @@ func LoadOneFile(file *os.File) {
 	}
 
 	//明确表示不需要解析的表
-	if DataParser.OnInit == nil {
+	if DataParser.OnInit == nil && reflectParser == nil {
 		return
 	}
 
@@ -238,20 +238,21 @@ func LoadOneFile(file *os.File) {
 		gamelog.Error("LoadOneFile %s error : %s", fstate.Name(), err.Error())
 		return
 	}
-
-	// 是否为空档
 	if len(records) == 0 {
 		gamelog.Error("LoadOneFile %s empty csv file ", fstate.Name())
 		return
 	}
 
-	if mapInterface != nil {
-		ParseRefCsv(records, mapInterface)
-		return
+	if reflectParser != nil {
+		ParseRefCsv(records, reflectParser)
+	} else {
+		ParserDataCsv(tblname, records, &DataParser)
 	}
+}
 
+func ParserDataCsv(tblname string, records [][]string, parser *TDataParser) {
 	nCount := len(records) - 1 //实际有效数据的长度
-	if !DataParser.OnInit(nCount) {
+	if false == parser.OnInit(nCount) {
 		gamelog.Error("table: %-30s OnInitParser error!!", tblname)
 		return
 	}
@@ -275,11 +276,11 @@ func LoadOneFile(file *os.File) {
 	// 记录数据, 第一行为表头，因此从第二行开始
 	for line = 1; line <= nCount; line++ {
 		rs.Values = records[line]
-		DataParser.OnParseData(&rs)
+		parser.OnParseData(&rs)
 	}
 
-	if DataParser.OnFinish != nil {
-		DataParser.OnFinish()
+	if parser.OnFinish != nil {
+		parser.OnFinish()
 	}
 
 	ColMap = nil

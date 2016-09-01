@@ -1614,6 +1614,7 @@ func Hand_AttackInvade(w http.ResponseWriter, r *http.Request) {
 
 	player.HeroMoudle.AddMainHeroExp(response.Exp)
 
+	response.DropItems = []msg.MSG_ItemData{}
 	for _, v := range awardItems {
 		var item msg.MSG_ItemData
 		item.ID = v.ItemID

@@ -488,17 +488,29 @@ func (player *TPlayer) GetHeroByPos(postype int, pos int) *THeroData {
 
 //响应充值人民币
 func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
-	var Diamond int
+	var (
+		Diamond = 0
+	)
+
+	pChargeInfo := gamedata.GetChargeItem(chargeid)
+	if pChargeInfo == nil {
+		gamelog.Error("OnChargeMoney Error : Invalid chargeid :%d", chargeid)
+		return false
+	}
+
 	//普通充值
-	if chargeid >= 1 && chargeid <= 9 {
-		pChargeInfo := gamedata.GetChargeItem(chargeid)
-		if pChargeInfo == nil {
-			gamelog.Error("OnChargeMoney Error : Invalid chargeid :%d", chargeid)
-			return false
-		}
+	if pChargeInfo.Type == 1 || pChargeInfo.Type == 3 { //! 普通充值或优惠充值
 		if RenMinBi < pChargeInfo.RenMinBi {
 			gamelog.Error("OnChargeMoney RMB not enough: Chargeid(%d), RMB(%d)", chargeid, RenMinBi)
 			return false
+		}
+
+		if pChargeInfo.Type == 3 {
+			//! 特惠充值判断
+			if player.ActivityModule.LimitSale.GetDiscountCharge() == 0 {
+				gamelog.Error("OnChargeMoney Error : Not have permission. Discount chargeID: %d", chargeid)
+				return false
+			}
 		}
 
 		player.ChargeModule.AddChargeTimes(pChargeInfo.ID)
@@ -512,33 +524,38 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 		} else {
 			awardID = pChargeInfo.AwardID
 		}
+
+		if pChargeInfo.Type == 3 {
+			//! 通知充值优惠模块,清空充值优惠字段
+			awardID = pChargeInfo.AwardID
+
+			player.RoleMoudle.AddMoney(1, pChargeInfo.ExtraAward)
+
+			player.ActivityModule.LimitSale.DiscountChargeClear()
+		}
+
 		items := gamedata.GetItemsFromAwardID(awardID)
 		player.BagMoudle.AddAwardItems(items)
 
 		//! 发放通知邮件
 		SendRechargeMail(player.playerid, RenMinBi)
-	} else if chargeid == 10 || chargeid == 11 {
-		cardId := chargeid - 9
+
+	} else if pChargeInfo.Type == 2 { //! 月卡
 		player.ActivityModule.CheckReset()
-		pMonthCard := gamedata.GetMonthCardInfo(cardId)
-		if pMonthCard == nil {
-			gamelog.Error("OnChargeMoney Error : Invalid Cardid :%d", cardId)
-			return false
-		}
-		if RenMinBi < pMonthCard.RenMinBi {
-			gamelog.Error("OnChargeMoney RMB not enough: Cardid(%d), RMB(%d)", cardId, RenMinBi)
+
+		if RenMinBi < pChargeInfo.RenMinBi {
+			gamelog.Error("OnChargeMoney RMB not enough: ChargeID(%d), RMB(%d)", pChargeInfo.ID, RenMinBi)
 			return false
 		}
 
-		if player.ActivityModule.MonthCard.CardDays[cardId] != 0 {
+		if player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID] != 0 {
 			gamelog.Error("OnChargeMoney Error : Repeat purchase")
 			return false
 		}
-		player.ActivityModule.MonthCard.CardDays[cardId] += 30
-		Diamond = pMonthCard.MoneyNum
-		player.RoleMoudle.AddMoney(pMonthCard.MoneyID, Diamond)
+		player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID] += 30
+		player.RoleMoudle.AddMoney(1, pChargeInfo.ExtraAward)
 
-		go player.ActivityModule.MonthCard.DB_UpdateCardDays(cardId, player.ActivityModule.MonthCard.CardDays[cardId])
+		go player.ActivityModule.MonthCard.DB_UpdateCardDays(pChargeInfo.ID, player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID])
 	}
 
 	player.RoleMoudle.AddVipExp(Diamond)

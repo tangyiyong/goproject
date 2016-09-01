@@ -835,6 +835,5 @@ func (famous_copy *TCopyMoudle) GetFamousCopyInfo(copyID int, chapter int) *TFam
 		}
 	}
 
-	gamelog.Error("GetFamousCopyInfo fail. CopyID: %d Chapter: %d", copyID, chapter)
 	return nil
 }

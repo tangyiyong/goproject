@@ -15,7 +15,7 @@ type TScorePlayer struct {
 	PlayerID   int32  //玩家ID
 	Name       string //角色名
 	HeroID     int    //英雄ID
-	SvrID      int    //服务器ID
+	SvrID      int32  //服务器ID
 	SvrName    string //服务器名字
 	FightValue int    //战力
 	Level      int    //等级

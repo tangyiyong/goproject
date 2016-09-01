@@ -4,7 +4,7 @@ package msg
 
 //游戏服向账号服务器注册消息
 type MSG_RegToAccountSvr_Req struct {
-	ServerDomainID   int //
+	ServerDomainID   int32 //
 	ServerDomainName string
 	ServerOuterAddr  string
 	ServerInnerAddr  string
@@ -17,7 +17,7 @@ type MSG_RegToAccountSvr_Ack struct {
 
 //游戏服向账号服务器注册消息
 type MSG_RegToCrossSvr_Req struct {
-	ServerDomainID   int //
+	ServerDomainID   int32 //
 	ServerDomainName string
 	ServerOuterAddr  string
 	ServerInnerAddr  string

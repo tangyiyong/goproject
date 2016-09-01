@@ -24,7 +24,7 @@ type TAccount struct {
 	LoginCount int    //登录次数
 	DeviceID   int    //设备ID
 	Forbidden  bool   //是否禁用
-	LastSvrID  int    //上次登录的GameSvrID
+	LastSvrID  int32  //上次登录的GameSvrID
 }
 
 type TAccountMgr struct {
@@ -135,11 +135,9 @@ func InitAccountMgr() bool {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 	err := s.DB(appconfig.AccountDbName).C("Account").Find(nil).Sort("+_id").All(&accountset)
-	if err != nil {
-		if err != mgo.ErrNotFound {
-			gamelog.Error("InitAccountMgr DB Error!!!")
-			return false
-		}
+	if err != nil && err != mgo.ErrNotFound {
+		gamelog.Error("InitAccountMgr DB Error!!!")
+		return false
 	}
 
 	if len(accountset) <= 0 {

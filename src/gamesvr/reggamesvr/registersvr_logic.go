@@ -26,7 +26,7 @@ func RegisterToSvr() {
 //注册到账号服务器
 func RegisterToAccountRoutine() {
 	var registerReq msg.MSG_RegToAccountSvr_Req
-	registerReq.ServerDomainID = appconfig.DomainID
+	registerReq.ServerDomainID = int32(appconfig.DomainID)
 	registerReq.ServerDomainName = appconfig.DomainName
 	registerReq.ServerOuterAddr = appconfig.GameSvrOuterIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
 	registerReq.ServerInnerAddr = appconfig.GameSvrInnerIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
@@ -50,7 +50,7 @@ func RegisterToAccountRoutine() {
 //注册到跨服服务器
 func RegisterToCrossRoutine() {
 	var registerReq msg.MSG_RegToCrossSvr_Req
-	registerReq.ServerDomainID = appconfig.DomainID
+	registerReq.ServerDomainID = int32(appconfig.DomainID)
 	registerReq.ServerDomainName = appconfig.DomainName
 	registerReq.ServerOuterAddr = appconfig.GameSvrOuterIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
 	registerReq.ServerInnerAddr = appconfig.GameSvrInnerIp + ":" + strconv.Itoa(appconfig.GameSvrPort)

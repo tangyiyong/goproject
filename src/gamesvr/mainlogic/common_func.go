@@ -45,8 +45,8 @@ func GetOpenServerDay() int {
 }
 
 //获取当前服务器ID
-func GetCurServerID() int {
-	return appconfig.DomainID
+func GetCurServerID() int32 {
+	return int32(appconfig.DomainID)
 }
 
 //获取当前服务器名称
