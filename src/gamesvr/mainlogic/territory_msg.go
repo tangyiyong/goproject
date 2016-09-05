@@ -97,7 +97,6 @@ func Hand_ChallengeTerritory(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -156,7 +155,6 @@ func Hand_PatrolTerritory(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -302,7 +300,6 @@ func Hand_GetTerritoryRiotInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -351,7 +348,6 @@ func Hand_GetTerritoryAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -403,7 +399,6 @@ func Hand_TerritorySkillLevelUp(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -478,7 +473,6 @@ func Hand_GetFriendTerritoryStatus(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -552,7 +546,6 @@ func Hand_GetFriendTerritoryDetail(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -621,7 +614,6 @@ func Hand_SuppressRiot(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测

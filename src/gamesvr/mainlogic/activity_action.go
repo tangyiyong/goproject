@@ -73,7 +73,7 @@ func (self *TActivityReceiveAction) RedTip() bool {
 	}
 
 	//! 判断当前时间段是否已领取
-	if self.RecvAction.Get(uint(index)) == true {
+	if self.RecvAction.Get(uint32(index)) == true {
 		return false
 	}
 

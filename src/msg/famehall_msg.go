@@ -26,7 +26,7 @@ type MSG_CharmPlayerInfo struct {
 	HeroID     int
 	CharmValue int
 	Name       string
-	FightValue int
+	FightValue int32
 	PlayerID   int32
 	Level      int
 }

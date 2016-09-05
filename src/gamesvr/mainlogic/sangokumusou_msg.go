@@ -30,7 +30,6 @@ func Hand_GetSangokuMusou_StarInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -83,7 +82,6 @@ func Hand_GetSangokuMuSou_CopyInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -167,7 +165,6 @@ func Hand_GetSangokuMusou_EliteCopy(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -271,6 +268,13 @@ func Hand_PassSangokuMusou_Copy(w http.ResponseWriter, r *http.Request) {
 	}
 	dropItemLst := player.SangokuMusouModule.PassCopy(req.CopyID, req.StarNum, isVictory)
 
+	nextCopyID = gamedata.GetSangokuMusouNextCopy(player.SangokuMusouModule.PassCopyID)
+	if nextCopyID == 0 {
+		//! 全部通关, 将状态置为结束
+		player.SangokuMusouModule.IsEnd = true
+		go player.SangokuMusouModule.DB_UpdateIsEndMark()
+	}
+
 	response.RetCode = msg.RE_SUCCESS
 	response.DropItem = dropItemLst
 	return
@@ -299,7 +303,6 @@ func Hand_PassSangokuMusou_EliteCopy(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -322,8 +325,6 @@ func Hand_PassSangokuMusou_EliteCopy(w http.ResponseWriter, r *http.Request) {
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
-
-	gamelog.Info("EliteBattleTimes: %d", player.SangokuMusouModule.EliteBattleTimes)
 
 	//! 检测挑战次数
 	if player.SangokuMusouModule.EliteBattleTimes <= 0 {
@@ -371,7 +372,6 @@ func Hand_SangokuMusou_Sweep(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -414,7 +414,6 @@ func Hand_GetSangokuMusou_ChapterAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -489,7 +488,6 @@ func Hand_GetSangokuMusou_ChapterAttr(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -560,7 +558,6 @@ func Hand_SetSangokuMusou_ChapterAttr(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -664,7 +661,6 @@ func Hand_GetSangokuMusou_Attr(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -718,7 +714,6 @@ func Hand_GetSangokuMusou_Treasure(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -766,7 +761,6 @@ func Hand_BuySangokuMusou_Treasure(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -836,7 +830,6 @@ func Hand_SangokuMusou_ResetCopy(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -910,7 +903,6 @@ func Hand_GetSangokuMusou_AddEliteCopy(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -956,7 +948,6 @@ func Hand_SangokuMusou_AddEliteCopy(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -1026,7 +1017,6 @@ func Hand_GetSangokuMusouStore_AleadyBuy(w http.ResponseWriter, r *http.Request)
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -1068,7 +1058,6 @@ func Hand_GetSangokuMusou_StoreItem(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -1191,7 +1180,6 @@ func Hand_GetSanguowsStatus(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测

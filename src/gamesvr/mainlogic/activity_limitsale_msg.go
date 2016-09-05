@@ -29,7 +29,6 @@ func Hand_GetLimitSaleItemInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -143,6 +142,7 @@ func Hand_BuyLimitSaleItem(w http.ResponseWriter, r *http.Request) {
 	G_GlobalVariables.LimitSaleNum += 1
 	G_GlobalVariables.DB_UpdateLimitSaleNum()
 
+	response.DiscountChargeID = player.ActivityModule.LimitSale.DiscountChargeID
 	response.Score = player.ActivityModule.LimitSale.Score
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -179,7 +179,7 @@ func Hand_GetLimitSaleAllAward(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
-	if player.ActivityModule.LimitSale.AwardMark.Get(uint(req.ID)) == true {
+	if player.ActivityModule.LimitSale.AwardMark.Get(uint32(req.ID)) == true {
 		gamelog.Error("Hand_GetLimitSaleAllAward Error: Aleady received. ID: %d", req.ID)
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
@@ -207,7 +207,7 @@ func Hand_GetLimitSaleAllAward(w http.ResponseWriter, r *http.Request) {
 		response.AwardLst = append(response.AwardLst, awardItem)
 	}
 
-	player.ActivityModule.LimitSale.AwardMark.Set(uint(req.ID))
+	player.ActivityModule.LimitSale.AwardMark.Set(uint32(req.ID))
 	go player.ActivityModule.LimitSale.DB_UpdateAwardMark()
 
 	response.AwardMark = int(player.ActivityModule.LimitSale.AwardMark)

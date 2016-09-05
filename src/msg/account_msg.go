@@ -36,11 +36,10 @@ type MSG_ServerList_Req struct {
 }
 
 type ServerNode struct {
-	SvrDomainID   int32
-	SvrDomainName string
-	SvrFlag       int32
-	UpdateTime    int64
-	SvrOutAddr    string
+	SvrID      int32
+	SvrName    string
+	SvrFlag    uint32
+	SvrOutAddr string
 }
 
 type MSG_ServerList_Ack struct {

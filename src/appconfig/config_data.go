@@ -35,8 +35,8 @@ var (
 	GameMaxCon      int
 	GameLogLevel    int
 	GameOpenSvrTime int64  //服务器开服时间
-	DomainName      string //服务器域名
-	DomainID        int    //服务器ID
+	GameSvrName     string //服务器域名
+	GameSvrID       int    //服务器ID
 
 	//聊天服配置
 	ChatSvrInnerIp string
@@ -58,6 +58,7 @@ var (
 	LogSvrPort     int
 	LogSvrLogLevel int
 	LogSvrMaxCon   int    //最大连接数
+	LogSvrFlushCnt int    //
 	LogFileType    int    //日志文件类型
 	LogFileName    string //日志文件名
 
@@ -85,9 +86,9 @@ func ParseConfigValue(key string, value string) {
 	case "version":
 		Version = value
 	case "domain":
-		DomainName = value
+		GameSvrName = value
 	case "domainid":
-		DomainID, _ = strconv.Atoi(value)
+		GameSvrID, _ = strconv.Atoi(value)
 	case "account_svr_inner_ip":
 		AccountSvrInnerIp = value
 	case "account_svr_outer_ip":
@@ -159,6 +160,8 @@ func ParseConfigValue(key string, value string) {
 		LogSvrPort, _ = strconv.Atoi(value)
 	case "log_svr_max_con":
 		LogSvrMaxCon, _ = strconv.Atoi(value)
+	case "log_svr_flush_count":
+		LogSvrFlushCnt, _ = strconv.Atoi(value)
 	case "log_svr_log_level":
 		LogSvrLogLevel, _ = strconv.Atoi(value)
 	case "log_svr_file_type":

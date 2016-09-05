@@ -66,7 +66,7 @@ func Handle_Create_Recharge_Order(w http.ResponseWriter, r *http.Request) {
 	// 转发给SDK进程
 	var sdkReq msg.SDKMsg_create_recharge_order_Req
 	var sdkAck msg.SDKMsg_create_recharge_order_Ack
-	sdkReq.GamesvrID = appconfig.DomainID
+	sdkReq.GamesvrID = appconfig.GameSvrID
 	sdkReq.PlayerID = req.PlayerID
 	sdkReq.OrderID = req.OrderID
 	sdkReq.Channel = req.Channel

@@ -241,7 +241,7 @@ func Hand_RecomandFriend(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(g_Players) <= 1 {
+	if len(G_Players) <= 1 {
 		response.RetCode = msg.RE_SUCCESS
 		return
 	}
@@ -501,7 +501,7 @@ func Hand_SearchFriend(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.RetCode = msg.RE_SUCCESS
-	for _, pTarget := range g_Players {
+	for _, pTarget := range G_Players {
 		if pTarget.playerid == req.PlayerID {
 			continue
 		}

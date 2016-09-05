@@ -26,6 +26,11 @@ func RegHttpMsgHandler() {
 
 	//游戏服务器注册
 	http.HandleFunc("/reggameserver", mainlogic.Handle_RegisterGameSvr)
+
+	//以下是GM后台的指令
+	http.HandleFunc("/set_gamesvr_flag", mainlogic.Handle_SetGamesvrFlag)
+	http.HandleFunc("/get_server_list", mainlogic.Handle_GetServerList)
+	http.HandleFunc("/gm_login", mainlogic.Handle_GmLogin)
 }
 
 //注册TCP处理消息

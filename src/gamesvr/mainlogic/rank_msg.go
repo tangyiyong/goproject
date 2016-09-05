@@ -123,7 +123,7 @@ func Hand_GetFightRank(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if response.MyRank < 0 {
-		response.MyRank = G_FightRanker.GetRankIndex(player.playerid, player.GetFightValue())
+		response.MyRank = G_FightRanker.GetRankIndex(player.playerid, int(player.GetFightValue()))
 	}
 
 	response.RetCode = msg.RE_SUCCESS
@@ -515,7 +515,7 @@ func Hand_GetWanderRank(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if response.MyRank < 0 {
-		response.MyRank = G_WanderRanker.GetRankIndex(player.playerid, player.GetFightValue())
+		response.MyRank = G_WanderRanker.GetRankIndex(player.playerid, int(player.GetFightValue()))
 	}
 
 	response.RetCode = msg.RE_SUCCESS

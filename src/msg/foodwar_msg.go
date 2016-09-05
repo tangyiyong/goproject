@@ -14,7 +14,7 @@ type MSG_FoodWar_Challenger struct {
 	Quality    int8
 	CanRobFood int
 	TotalFood  int
-	FightValue int
+	FightValue int32
 	Level      int
 }
 

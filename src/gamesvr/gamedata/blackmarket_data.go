@@ -45,10 +45,10 @@ func BlackMarketRandGoods(level int) []int {
 
 	//! 随机六个商品
 	goodsLst := []int{}
-
+	length := len(randLst)
 	for i := 0; i < 6; i++ {
 
-		id := randLst[r.Intn(len(randLst))].ID
+		id := randLst[r.Intn(length)].ID
 
 		isExist := false
 		for _, v := range goodsLst {

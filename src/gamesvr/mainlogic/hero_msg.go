@@ -71,19 +71,14 @@ func Hand_UpgradeHero(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.TargetHero.HeroPos < 0 {
+	if req.TargetHero.PosType == POSTYPE_BATTLE && req.TargetHero.HeroPos == 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_UpgradeHero error : Invalid Target Hero Pos : %d !", req.TargetHero.HeroPos)
+		gamelog.Error("Hand_UpgradeHero error : Main Hero Can't Upgrade!")
 		return
 	}
 
 	var pTargetHeroData *THeroData = nil
 	if req.TargetHero.PosType == POSTYPE_BATTLE {
-		if req.TargetHero.HeroPos == 0 {
-			response.RetCode = msg.RE_INVALID_PARAM
-			gamelog.Error("Hand_UpgradeHero error : Main Hero Can't Upgrade!")
-			return
-		}
 		pTargetHeroData = player.HeroMoudle.GetBattleHeroByPos(req.TargetHero.HeroPos)
 	} else if req.TargetHero.PosType == POSTYPE_BAG {
 		pTargetHeroData = player.BagMoudle.GetBagHeroByPos(req.TargetHero.HeroPos)
@@ -94,7 +89,7 @@ func Hand_UpgradeHero(w http.ResponseWriter, r *http.Request) {
 	//检验目标英雄是不是正确
 	if pTargetHeroData == nil || pTargetHeroData.ID != req.TargetHero.HeroID {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_UpgradeHero error : heroid:%d--req.heroid:%d", pTargetHeroData.ID, req.TargetHero.HeroID)
+		gamelog.Error("Hand_UpgradeHero error : data.heroid:%d--req.heroid:%d", pTargetHeroData.ID, req.TargetHero.HeroID)
 		return
 	}
 
@@ -115,7 +110,7 @@ func Hand_UpgradeHero(w http.ResponseWriter, r *http.Request) {
 		pTempHeroData := player.BagMoudle.GetBagHeroByPos(t.HeroPos)
 		if pTempHeroData == nil || pTempHeroData.ID != t.HeroID || t.HeroID == 0 {
 			response.RetCode = msg.RE_INVALID_PARAM
-			gamelog.Error("Hand_UpgradeHero error :  Invalid SourcePos: %d", t.HeroPos)
+			gamelog.Error("Hand_UpgradeHero error :  costid: %d, costpos :%d", t.HeroID, t.HeroPos)
 			return
 		}
 
@@ -132,7 +127,7 @@ func Hand_UpgradeHero(w http.ResponseWriter, r *http.Request) {
 		if req.TargetHero.PosType == POSTYPE_BAG {
 			if t.HeroPos == req.TargetHero.HeroPos {
 				response.RetCode = msg.RE_INVALID_PARAM
-				gamelog.Error("Hand_UpgradeHero error :  Invalid TargetPos: %d", t.HeroPos)
+				gamelog.Error("Hand_UpgradeHero error :   TargetPos == costpos: %d", t.HeroPos)
 				return
 			}
 		}
@@ -155,7 +150,7 @@ func Hand_UpgradeHero(w http.ResponseWriter, r *http.Request) {
 		player.BagMoudle.RemoveHeroAt(req.CostHeros[t].HeroPos)
 	}
 
-	player.BagMoudle.DB_SaveHeroBag()
+	go player.BagMoudle.DB_SaveHeroBag()
 	response.RetCode = msg.RE_SUCCESS
 	response.CostMoney = ExpSum * pHeroLevelInfo.MoneyNum
 
@@ -774,7 +769,7 @@ func Hand_UpgodHero(w http.ResponseWriter, r *http.Request) {
 	//检测所需的道具是否足够
 	if false == player.RoleMoudle.CheckMoneyEnough(pHeroGodInfo.NeedMoneyID, pHeroGodInfo.NeedMoneyNum) {
 		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
-		gamelog.Error("Hand_UpgodHero : Not Enough Money!!!")
+		gamelog.Error("Hand_UpgodHero : Not Enough Money!,id:%d, num;%d", pHeroGodInfo.NeedMoneyID, pHeroGodInfo.NeedMoneyNum)
 		return
 	}
 
@@ -787,7 +782,7 @@ func Hand_UpgodHero(w http.ResponseWriter, r *http.Request) {
 	if pHeroGodInfo.NeedType == 1 { //货币
 		if false == player.RoleMoudle.CheckMoneyEnough(pHeroGodInfo.NeedID, pHeroGodInfo.NeedNum) {
 			response.RetCode = msg.RE_NOT_ENOUGH_MONEY
-			gamelog.Error("Hand_UpgodHero : Not Enough Money!!!")
+			gamelog.Error("Hand_UpgodHero : Not Enough Money!,id:%d, num;%d", pHeroGodInfo.NeedMoneyID, pHeroGodInfo.NeedMoneyNum)
 			return
 		}
 
@@ -1503,6 +1498,10 @@ func Hand_EquipStrengthen(w http.ResponseWriter, r *http.Request) {
 		}
 
 		costMoney = tempCost
+	}
+
+	if pEquipData.StrengLevel > player.GetLevel()*2+1 {
+		pEquipData.StrengLevel = player.GetLevel()*2 + 1
 	}
 
 	if oldlevel < pEquipData.StrengLevel {
@@ -2265,7 +2264,6 @@ func Hand_QueryHeroDecomposeCost(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -2370,7 +2368,6 @@ func Hand_DecomposeHero(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -2500,7 +2497,6 @@ func Hand_QueryEquipDecomposeCost(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -2575,7 +2571,6 @@ func Hand_QueryDecomposePetCost(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -2657,7 +2652,6 @@ func Hand_DecomposePet(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -2852,7 +2846,6 @@ func Hand_QueryGemRelive(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -2922,7 +2915,6 @@ func Hand_QueryPetRelive(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -3074,7 +3066,6 @@ func Hand_RelivePet(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -3256,7 +3247,6 @@ func Hand_ReliveHero(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -3379,7 +3369,6 @@ func Hand_ReliveEquip(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -3467,7 +3456,6 @@ func Hand_ReliveGem(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -3602,26 +3590,12 @@ func Hand_UpgradeDiaoWen(w http.ResponseWriter, r *http.Request) {
 
 	//雕文品质加1
 	pTargetHeroData.DiaoWenQuality[req.DiaoWenID-1] += 1
-
-	var bChanged = false
-	for i := 0; i < 5; i++ {
-		if pTargetHeroData.DiaoWenPtys[i+(req.DiaoWenID-1)*5] < int32(pDiaoWenItem.Propertys[i].Value[0]) {
-			pTargetHeroData.DiaoWenPtys[i+(req.DiaoWenID-1)*5] = int32(pDiaoWenItem.Propertys[i].Value[0])
-			bChanged = true
-		}
-	}
-
-	if bChanged {
-		player.DB_SaveHeroXiLian(req.TargetHero.PosType, req.TargetHero.HeroPos)
-	}
-
 	player.RoleMoudle.CostMoney(pDiaoWenItem.CostMoneyID, pDiaoWenItem.CostMoneyNum)
-
 	response.RetCode = msg.RE_SUCCESS
 	response.DiaoWenID = req.DiaoWenID
 	response.DiaoWenQuality = pTargetHeroData.DiaoWenQuality[req.DiaoWenID-1]
 	response.FightValue = player.CalcFightValue()
-	player.DB_SaveHeroDiaoWenQuality(req.TargetHero.PosType, req.TargetHero.HeroPos)
+	player.DB_SaveHeroXiLian(req.TargetHero.PosType, req.TargetHero.HeroPos)
 
 	//! 任务进度
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_DIAOWEN_QUALITY, int(response.DiaoWenQuality))

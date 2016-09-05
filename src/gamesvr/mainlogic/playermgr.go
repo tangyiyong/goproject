@@ -11,19 +11,18 @@ import (
 )
 
 var (
-	mMutex        sync.Mutex
-	g_Players     map[int32]*TPlayer //玩家集
-	g_OnlineCount int                //在线玩家数量
+	G_Player_Mutex sync.Mutex
+	G_Players      map[int32]*TPlayer //玩家集
 
-	g_CurSelectIndex int        //当前选择索引
-	g_SelectPlayers  []*TPlayer //用来选择用的玩家表
+	G_SelectPlayers  []*TPlayer //用来选择用的玩家表
+	G_CurSelectIndex int        //当前选择索引
 
 )
 
 func GetPlayerByID(playerid int32) *TPlayer {
-	mMutex.Lock()
-	defer mMutex.Unlock()
-	info, ok := g_Players[playerid]
+	G_Player_Mutex.Lock()
+	defer G_Player_Mutex.Unlock()
+	info, ok := G_Players[playerid]
 	if ok {
 		return info
 	}
@@ -32,21 +31,21 @@ func GetPlayerByID(playerid int32) *TPlayer {
 }
 
 func CreatePlayer(playerid int32, name string, heroid int) (*TPlayer, bool) {
-	mMutex.Lock()
-	_, ok := g_Players[playerid]
+	G_Player_Mutex.Lock()
+	_, ok := G_Players[playerid]
 	if ok {
-		mMutex.Unlock()
+		G_Player_Mutex.Unlock()
 		gamelog.Error("Create Player Failed Error : playerid : %d exist!!!", playerid)
 		return nil, false
 	}
 
 	player := new(TPlayer)
-	g_Players[playerid] = player
-	g_SelectPlayers = append(g_SelectPlayers, player)
+	G_Players[playerid] = player
+	G_SelectPlayers = append(G_SelectPlayers, player)
 	player.InitModules(playerid)
 	player.SetPlayerName(name)
 	player.SetMainHeroID(heroid)
-	mMutex.Unlock()
+	G_Player_Mutex.Unlock()
 
 	return player, true
 }
@@ -57,31 +56,24 @@ func LoadPlayerFromDB(playerid int32) *TPlayer {
 		return nil
 	}
 
-	mMutex.Lock()
+	G_Player_Mutex.Lock()
 	player := new(TPlayer)
-	g_Players[playerid] = player
-	g_SelectPlayers = append(g_SelectPlayers, player)
-	mMutex.Unlock()
+	G_Players[playerid] = player
+	G_SelectPlayers = append(G_SelectPlayers, player)
+	G_Player_Mutex.Unlock()
 	player.OnPlayerLoad(playerid)
 	player.pSimpleInfo = G_SimpleMgr.GetSimpleInfoByID(playerid)
 
 	return player
 }
 
-func GetOnlineCount() int {
-	mMutex.Lock()
-	defer mMutex.Unlock()
-
-	return g_OnlineCount
-}
-
 func DestroyPlayer(playerid int32) bool {
-	mMutex.Lock()
-	defer mMutex.Unlock()
+	G_Player_Mutex.Lock()
+	defer G_Player_Mutex.Unlock()
 
-	player, ok := g_Players[playerid]
+	player, ok := G_Players[playerid]
 	if ok {
-		delete(g_Players, playerid)
+		delete(G_Players, playerid)
 		player.OnDestroy(playerid)
 	}
 
@@ -112,8 +104,8 @@ func PreLoadPlayers() {
 		//fmt.Printf("%8d", result.ID)
 
 		player := new(TPlayer)
-		g_Players[result.ID] = player
-		g_SelectPlayers = append(g_SelectPlayers, player)
+		G_Players[result.ID] = player
+		G_SelectPlayers = append(G_SelectPlayers, player)
 		player.OnPlayerLoadSync(result.ID)
 		player.pSimpleInfo = G_SimpleMgr.GetSimpleInfoByID(result.ID)
 	}
@@ -122,30 +114,30 @@ func PreLoadPlayers() {
 }
 
 func GetSelectPlayer(selectfunc func(p *TPlayer, value int) bool, selectvalue int) *TPlayer {
-	nTotal := len(g_SelectPlayers)
+	nTotal := len(G_SelectPlayers)
 	if nTotal <= 0 {
 		return nil
 	}
-	if nTotal <= g_CurSelectIndex {
+	if nTotal <= G_CurSelectIndex {
 		for i := 0; i < nTotal; i++ {
-			if true == selectfunc(g_SelectPlayers[i], selectvalue) {
-				g_CurSelectIndex = i + 1
-				return g_SelectPlayers[i]
+			if true == selectfunc(G_SelectPlayers[i], selectvalue) {
+				G_CurSelectIndex = i + 1
+				return G_SelectPlayers[i]
 			}
 		}
-		g_CurSelectIndex = 0
+		G_CurSelectIndex = 0
 	} else {
-		for i := g_CurSelectIndex; i < nTotal; i++ {
-			if true == selectfunc(g_SelectPlayers[i], selectvalue) {
-				g_CurSelectIndex = i + 1
-				return g_SelectPlayers[i]
+		for i := G_CurSelectIndex; i < nTotal; i++ {
+			if true == selectfunc(G_SelectPlayers[i], selectvalue) {
+				G_CurSelectIndex = i + 1
+				return G_SelectPlayers[i]
 			}
 		}
 
-		for i := 0; i < g_CurSelectIndex; i++ {
-			if true == selectfunc(g_SelectPlayers[i], selectvalue) {
-				g_CurSelectIndex = i + 1
-				return g_SelectPlayers[i]
+		for i := 0; i < G_CurSelectIndex; i++ {
+			if true == selectfunc(G_SelectPlayers[i], selectvalue) {
+				G_CurSelectIndex = i + 1
+				return G_SelectPlayers[i]
 			}
 		}
 	}

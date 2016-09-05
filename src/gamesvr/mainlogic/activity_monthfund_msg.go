@@ -29,7 +29,6 @@ func Hand_GetMonthFundStatus(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -55,7 +54,7 @@ func Hand_GetMonthFundStatus(w http.ResponseWriter, r *http.Request) {
 	response.CountDown = countDown
 	response.MoneyID, response.MoneyNum = gamedata.MonthFundCostMoneyID, gamedata.MonthFundCostMoneyNum
 	response.Day = player.ActivityModule.MonthFund.Day
-	response.IsReceived = player.ActivityModule.MonthFund.AwardMark.Get(uint(awardCount - response.Day + 1))
+	response.IsReceived = player.ActivityModule.MonthFund.AwardMark.Get(uint32(awardCount - response.Day + 1))
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -80,7 +79,6 @@ func Hand_ReceiveMonthFund(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -104,13 +102,13 @@ func Hand_ReceiveMonthFund(w http.ResponseWriter, r *http.Request) {
 	day := player.ActivityModule.MonthFund.Day
 	award := gamedata.GetMonthFundAward(awardType, awardCount-day+1)
 
-	if player.ActivityModule.MonthFund.AwardMark.Get(uint(awardCount-day+1)) == true {
+	if player.ActivityModule.MonthFund.AwardMark.Get(uint32(awardCount-day+1)) == true {
 		gamelog.Error("Hand_ReceiveMonthFund Error: Aleady receive award")
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
 	}
 
-	player.ActivityModule.MonthFund.AwardMark.Set(uint(awardCount - day + 1))
+	player.ActivityModule.MonthFund.AwardMark.Set(uint32(awardCount - day + 1))
 	go player.ActivityModule.MonthFund.DB_UpdateAwardMark()
 
 	player.BagMoudle.AddAwardItem(award.ItemID, award.ItemNum)

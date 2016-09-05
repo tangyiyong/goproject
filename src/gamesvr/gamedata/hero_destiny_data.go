@@ -5,12 +5,13 @@ import (
 )
 
 type ST_DestinyItem struct {
-	Level        int //等级
-	CostItemID   int //消耗物品ID
-	OneTimeCost  int //单次消耗量
-	PropertyInc  int //当前等级的属性增加值
-	UpgradeRatio int //天命成功概率
-	Return       int //分解返还道具数目
+	Level            int //等级
+	CostItemID       int //消耗物品ID
+	OneTimeCost      int //单次消耗量
+	SumPropertyInc   int //当前等级的属性增加值
+	LightPropertyInc int //当前等级的属性增加值
+	UpgradeRatio     int //天命成功概率
+	Return           int //分解返还道具数目
 }
 
 var (
@@ -27,7 +28,8 @@ func ParseHeroDestinyRecord(rs *RecordSet) {
 	GT_HeroDestinyItem_List[Level].Level = Level
 	GT_HeroDestinyItem_List[Level].CostItemID = rs.GetFieldInt("item_id")
 	GT_HeroDestinyItem_List[Level].OneTimeCost = rs.GetFieldInt("one_time_cost")
-	GT_HeroDestinyItem_List[Level].PropertyInc = rs.GetFieldInt("inc_percent")
+	GT_HeroDestinyItem_List[Level].SumPropertyInc = rs.GetFieldInt("sum_inc_percent")
+	GT_HeroDestinyItem_List[Level].LightPropertyInc = rs.GetFieldInt("light_inc_percent")
 	GT_HeroDestinyItem_List[Level].UpgradeRatio = rs.GetFieldInt("upgrade_ratio")
 	GT_HeroDestinyItem_List[Level].Return = rs.GetFieldInt("return")
 	return

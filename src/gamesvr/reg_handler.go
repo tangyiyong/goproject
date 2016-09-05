@@ -19,7 +19,6 @@ func RegHttpMsgHandler() {
 		{"/get_tasks", mainlogic.Hand_GetAllTask, false},                //! 玩家请求全部的任务信息
 		{"/receive_task", mainlogic.Hand_GetTaskAward, false},           //! 玩家请求领取完成任务奖励
 		{"/receive_taskscore", mainlogic.Hand_GetTaskScoreAward, false}, //! 玩家请求领取任务积分宝箱奖励
-		{"/get_taskscore", mainlogic.Hand_GetTaskScoreInfo, false},      //! 玩家请求全部任务积分信息
 
 		//玩家登录离开创建角色处理
 		{"/user_login_game", mainlogic.Hand_PlayerLoginGame, false},   //玩家登录游戏服
@@ -30,7 +29,6 @@ func RegHttpMsgHandler() {
 		{"/get_login_data", mainlogic.Hand_GetLoginData, false},       //玩家加载登录信息
 
 		//! 成就的消息处理
-		{"/get_achievement", mainlogic.Hand_GetAllAchievement, false},       //! 玩家请求全部成就信息
 		{"/receive_achievement", mainlogic.Hand_GetAchievementAward, false}, //! 玩家请求领取成就奖励
 
 		//! 签到的消息处理
@@ -174,12 +172,11 @@ func RegHttpMsgHandler() {
 		{"/rotating_wheel", mainlogic.Hand_RotatingWheel, false},                                  //! 申请转动轮盘
 		{"/get_group_purchase_info", mainlogic.Hand_GetGroupPurchaseInfo, false},                  //! 获取团购信息
 		{"/buy_group_purchase", mainlogic.Hand_BuyGroupPurchaseItem, false},                       //! 玩家请求购买团购
-		{"/get_group_purchase_score", mainlogic.Hand_QueryGroupPurchaseScoreAward, false},         //! 玩家请求查询积分奖励
 		{"/get_group_score_award", mainlogic.Hand_GetGroupPurchaseScoreAward, false},              //! 玩家请求积分奖励
 		{"/get_festival_task", mainlogic.Hand_GetFestivalTask, false},                             //! 获取欢庆佳节任务
-		{"/get_festival_exchange", mainlogic.Hand_GetFestivalExchangeInfo, false},                 //! 获取欢庆佳节兑换信息
 		{"/get_festival_task_award", mainlogic.Hand_GetFestivalTaskAward, false},                  //! 玩家请求领取欢庆佳节任务奖励
 		{"/exchange_festival_award", mainlogic.Hand_ExchangeFestivalAward, false},                 //! 玩家兑换奖励
+		{"/festival_discount_sale", mainlogic.Hand_BuyFestivalSaleItem, false},                    //! 玩家请求购买欢庆佳节半价限购
 		{"/clean_hunt_store", mainlogic.Hand_CleanHuntStore, false},                               //! 清除巡回商店数据
 		{"/get_activity_rank", mainlogic.Hand_GetActivityRank, false},                             //! 获取活动排行榜
 		{"/get_activity_rank_award", mainlogic.Hand_GetActivityRankAward, false},                  //! 获取活动排行榜奖励
@@ -230,6 +227,7 @@ func RegHttpMsgHandler() {
 		//! 领奖中心
 		{"/query_award_center", mainlogic.Hand_GetAwardCenterInfo, false},
 		{"/get_award_center", mainlogic.Hand_RecvAwardCenter, false},
+		{"/onekey_award_center", mainlogic.Hand_RecvAwardCenterAwardOneyKey, false},
 
 		//! 公会协议
 		{"/create_guild", mainlogic.Hand_CreateGuild, false},
@@ -523,7 +521,7 @@ func RegHttpMsgHandler() {
 		{"/add_svr_award", mainlogic.Hand_AddSvrAward, false},
 		{"/del_svr_award", mainlogic.Hand_DelSvrAward, false},
 		{"/send_award_to_player", mainlogic.Hand_SendAwardToPlayer, false},
-		{"/server_state_info", mainlogic.Hand_ServerStateInfo, false},
+		{"/get_server_info", mainlogic.Hand_GetServerInfo, false},
 		//★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
 		// SDK

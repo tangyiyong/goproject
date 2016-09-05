@@ -7,7 +7,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func (simple *TSimpleInfoMgr) DB_SetFightValue(playerid int32, fightvalue int, level int) {
+func (simple *TSimpleInfoMgr) DB_SetFightValue(playerid int32, fightvalue int32, level int) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerSimple", bson.M{"_id": playerid}, bson.M{"$set": bson.M{"fightvalue": fightvalue, "level": level}})
 	return
 }

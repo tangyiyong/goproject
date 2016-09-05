@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"msg"
 	"net/http"
-	"runtime"
 	"strings"
 	"utility"
 )
@@ -143,25 +142,21 @@ func Hand_UpdateGameData(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func Hand_ServerStateInfo(w http.ResponseWriter, r *http.Request) {
+func Hand_GetServerInfo(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
-	var response msg.MSG_ServerStateInfo_Ack
-	response.SvrName = appconfig.DomainName
+	var response msg.MSG_GetServerInfo_Ack
+	response.SvrID = int32(appconfig.GameSvrID)
+	response.SvrName = appconfig.GameSvrName
+	response.OnlineCnt = G_OnlineCnt
+	response.MaxOnlineCnt = G_MaxOnlineCnt
+	response.RegisterCnt = G_RegisterCnt
 
-	for _, v := range G_SimpleMgr.SimpleList {
-		if v.isOnline == true {
-			response.OnlineCount = response.OnlineCount + 1
-		}
-		response.TotalCount = response.TotalCount + 1
-	}
-
-	var ms runtime.MemStats
-	runtime.ReadMemStats(&ms)
-
-	response.MemAlloc = ms.HeapAlloc / 1024 / 1024
-	response.MemInuse = ms.HeapSys / 1024 / 1024
-	response.MenObjNum = ms.HeapObjects
+	//	var ms runtime.MemStats
+	//	runtime.ReadMemStats(&ms)
+	//	response.MemAlloc = ms.HeapAlloc / 1024 / 1024
+	//	response.MemInuse = ms.HeapSys / 1024 / 1024
+	//	response.MenObjNum = ms.HeapObjects
 
 	ret, _ := json.Marshal(&response)
 	w.Write(ret)

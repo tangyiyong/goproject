@@ -41,7 +41,7 @@ type MSG_EnterGameSvr_Ack struct {
 	SvrTime     int64  //服务器时间
 	ChatSvrAddr string //聊天服的地址
 	PlayerName  string //玩家角色名
-	FightValue  int    //战力
+	FightValue  int32  //战力
 }
 
 //玩家获取角色数据
@@ -95,8 +95,8 @@ type MSG_ChangeEquip_Req struct {
 }
 
 type MSG_ChangeEquip_Ack struct {
-	RetCode    int //返回码
-	FightValue int //战力
+	RetCode    int   //返回码
+	FightValue int32 //战力
 }
 
 //玩家强化装备
@@ -111,11 +111,11 @@ type MSG_EquipStrengthen_Req struct {
 }
 
 type MSG_EquipStrengthen_Ack struct {
-	RetCode    int //返回码
-	BaoJi      int //1 : 暴击
-	NewLevel   int //新的强化等级
-	FightValue int //新的战力
-	CostMoney  int //花掉的钱
+	RetCode    int   //返回码
+	BaoJi      int   //1 : 暴击
+	NewLevel   int   //新的强化等级
+	FightValue int32 //新的战力
+	CostMoney  int   //花掉的钱
 }
 
 //玩家精炼装备
@@ -131,10 +131,10 @@ type MSG_EquipRefine_Req struct {
 }
 
 type MSG_EquipRefine_Ack struct {
-	RetCode    int //返回码
-	Exp        int //新的经验
-	Level      int //新的精炼等级
-	FightValue int //新的战力
+	RetCode    int   //返回码
+	Exp        int   //新的经验
+	Level      int   //新的精炼等级
+	FightValue int32 //新的战力
 }
 
 //玩家升星装备
@@ -149,11 +149,11 @@ type MSG_EquipRiseStar_Req struct {
 }
 
 type MSG_EquipRiseStar_Ack struct {
-	RetCode    int //返回码
-	Exp        int //新的经验
-	Luck       int //幸运值
-	Level      int //新的升星等级
-	FightValue int //新的战力
+	RetCode    int   //返回码
+	Exp        int   //新的经验
+	Luck       int   //幸运值
+	Level      int   //新的升星等级
+	FightValue int32 //新的战力
 }
 
 //玩家合成装备
@@ -216,8 +216,8 @@ type MSG_ChangeGem_Req struct {
 }
 
 type MSG_ChangeGem_Ack struct {
-	RetCode    int //返回码
-	FightValue int //战力
+	RetCode    int   //返回码
+	FightValue int32 //战力
 }
 
 type Cost_Gem struct {
@@ -237,13 +237,13 @@ type MSG_GemStrengthen_Req struct {
 }
 
 type MSG_GemStrengthen_Ack struct {
-	RetCode      int //返回码
-	Level        int //新的强化等级
-	Exp          int //经验
-	NewPos       int //新位置
-	FightValue   int //战力
-	CostMoneyID  int //消耗货币ID
-	CostMoneyNum int //消耗货币数
+	RetCode      int   //返回码
+	Level        int   //新的强化等级
+	Exp          int   //经验
+	NewPos       int   //新位置
+	FightValue   int32 //战力
+	CostMoneyID  int   //消耗货币ID
+	CostMoneyNum int   //消耗货币数
 }
 
 //玩家精炼宝物
@@ -258,11 +258,11 @@ type MSG_GemRefine_Req struct {
 }
 
 type MSG_GemRefine_Ack struct {
-	RetCode      int //返回码
-	Level        int //新的精炼等级
-	FightValue   int //战力
-	CostMoneyID  int //消耗货币ID
-	CostMoneyNum int //消耗货币数
+	RetCode      int   //返回码
+	Level        int   //新的精炼等级
+	FightValue   int32 //战力
+	CostMoneyID  int   //消耗货币ID
+	CostMoneyNum int   //消耗货币数
 }
 
 //玩家更改职业
@@ -554,7 +554,7 @@ type MSG_PlayerInfo struct {
 	Name       string //名字
 	GuildName  string //工会名
 	Level      int
-	FightValue int
+	FightValue int32
 	Quality    int8
 	Value      int
 	Camp       int8
@@ -597,7 +597,7 @@ type MSG_SanguowsInfo struct {
 	Name       string //角色名字
 	HeroID     int    //英雄ID
 	Star       int    //星数
-	FightValue int    //战力
+	FightValue int32  //战力
 	Quality    int8
 }
 
@@ -612,7 +612,7 @@ type MSG_ArenaInfo struct {
 	PlayerID   int32
 	Name       string //角色名字
 	HeroID     int    //英雄ID
-	FightValue int    //战力
+	FightValue int32  //战力
 	Quality    int8
 	Level      int //等级
 }
@@ -634,7 +634,7 @@ type MSG_RebelRankInfo struct {
 	PlayerID   int32  //! 角色ID
 	HeroID     int    //! 英雄ID
 	Name       string //! 角色名字
-	FightValue int    //! 战力值
+	FightValue int32  //! 战力值
 	Level      int    //! 角色等级
 	Value      int    //! 伤害值/功勋值
 	Quality    int8
@@ -663,7 +663,7 @@ type MSG_GuildRankInfo struct {
 	CurNum      int
 	MaxNum      int
 	Name        string //团长名
-	CopyChapter int    //副本章节
+	CopyChapter int32  //副本章节
 }
 
 //! 玩家请求公会等级排行榜
@@ -847,7 +847,7 @@ type MSG_FashionSet_Req struct {
 
 type MSG_FashionSet_Ack struct {
 	RetCode    int
-	FightValue int //战力
+	FightValue int32 //战力
 }
 
 //! 玩家请求强化时装

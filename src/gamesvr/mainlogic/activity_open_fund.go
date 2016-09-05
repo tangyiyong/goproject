@@ -99,7 +99,7 @@ func (self *TActivityOpenFund) RedTip() bool {
 	}
 
 	for _, v := range tempLst {
-		if self.FundLevelMark.Get(uint(v)) == false {
+		if self.FundLevelMark.Get(uint32(v)) == false {
 			return true
 		}
 	}
@@ -112,7 +112,7 @@ func (self *TActivityOpenFund) RedTip() bool {
 	}
 
 	for _, v := range tempLst {
-		if self.FundCountMark.Get(uint(v)) == false {
+		if self.FundCountMark.Get(uint32(v)) == false {
 			return true
 		}
 	}

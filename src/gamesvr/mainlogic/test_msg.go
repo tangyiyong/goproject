@@ -33,7 +33,7 @@ func Hand_TestGetAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i := 1; i <= len(player.RoleMoudle.Actions); i++ {
-		player.RoleMoudle.AddAction(i, 10)
+		player.RoleMoudle.AddAction(i, 100)
 	}
 
 	response.RetCode = msg.RE_SUCCESS

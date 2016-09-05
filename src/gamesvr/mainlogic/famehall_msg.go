@@ -28,7 +28,6 @@ func Hand_SendFlower(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -127,7 +126,6 @@ func Hand_GetCharmValue(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil

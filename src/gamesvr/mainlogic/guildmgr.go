@@ -71,7 +71,7 @@ func (self *GuildCopyTreasureLst) GetNum(ID int) int {
 
 //! 通关章节记录
 type PassAwardChapter struct {
-	PassChapter int
+	PassChapter int32
 	CopyID      int
 	PassTime    int64
 	PlayerName  string
@@ -121,7 +121,7 @@ type TGuild struct {
 	Level       int       //! 军团等级
 	CurExp      int       //! 军团经验
 	MemberList  MemberLst //! 军团成员列表
-	fightVaule  int       //! 公会战力值
+	fightVaule  int64     //! 公会战力值
 
 	ApplyList []int32 //! 申请列表
 
@@ -132,8 +132,8 @@ type TGuild struct {
 
 	SkillLst [9]int //! 工会技能信息
 
-	HistoryPassChapter int                   //! 公会副本历史通关
-	PassChapter        int                   //! 当天公会挑战章节
+	HistoryPassChapter int32                 //! 公会副本历史通关
+	PassChapter        int32                 //! 当天公会挑战章节
 	CampLife           [4]TGuildCopyLifeInfo //! 副本四大势力对应血量
 	IsBack             bool                  //! 是否回退
 	CopyTreasure       GuildCopyTreasureLst  //! 副本奖励
@@ -277,8 +277,8 @@ func CreateNewGuild(playerid int32, name string, icon int) *TGuild {
 	G_Guild_Key_List = append(G_Guild_Key_List, newGuild.GuildID)
 	G_CurGuildID += 1
 
-	G_GuildCopyRanker.SetRankItem(int32(newGuild.GuildID), newGuild.HistoryPassChapter)
-	G_GuildLevelRanker.SetRankItem(int32(newGuild.GuildID), newGuild.Level)
+	G_GuildCopyRanker.SetRankItem(newGuild.GuildID, int(newGuild.HistoryPassChapter))
+	G_GuildLevelRanker.SetRankItem(newGuild.GuildID, newGuild.Level)
 
 	//! 插入数据库
 	DB_CreateGuild(&newGuild)
@@ -318,7 +318,7 @@ func SortGuild() {
 	for i, _ := range G_Guild_List {
 		G_Guild_List[i].fightVaule = 0
 		for _, v := range G_Guild_List[i].MemberList {
-			G_Guild_List[i].fightVaule += G_SimpleMgr.Get_FightValue(v.PlayerID)
+			G_Guild_List[i].fightVaule += int64(G_SimpleMgr.Get_FightValue(v.PlayerID))
 		}
 	}
 
@@ -429,7 +429,7 @@ func (self *TGuild) CheckReset() {
 }
 
 //! 获取公会可领取奖励ID
-func (self *TGuild) GetAleadyRecvAwardIDLst(chapter int, camp int) map[int]int {
+func (self *TGuild) GetAleadyRecvAwardIDLst(chapter int32, camp int) map[int]int {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
@@ -514,7 +514,7 @@ func (self *TGuild) LevelUp() {
 	self.CurExp -= guildData.NeedExp
 	self.Level += 1
 	go self.DB_UpdateGuildLevel()
-	G_GuildLevelRanker.SetRankItem(int32(self.GuildID), self.Level)
+	G_GuildLevelRanker.SetRankItem(self.GuildID, self.Level)
 }
 
 //! 增加军团祭天进度
@@ -738,7 +738,7 @@ func (self *TGuild) NextChapter() {
 		self.CampLife[i].Life = guildCopy.Life
 	}
 
-	G_GuildCopyRanker.SetRankItem(int32(self.GuildID), self.PassChapter)
+	G_GuildCopyRanker.SetRankItem(self.GuildID, int(self.PassChapter))
 
 	go self.DB_UpdateChapter()
 }
@@ -759,7 +759,7 @@ func (self *TGuild) PlayerRecvAward(playerid int32, playerName string, copyID in
 }
 
 //! 判断玩家是否领取该奖励
-func (self *TGuild) IsRecvCampAward(playerid int32, copyID int, chapter int) bool {
+func (self *TGuild) IsRecvCampAward(playerid int32, copyID int, chapter int32) bool {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 

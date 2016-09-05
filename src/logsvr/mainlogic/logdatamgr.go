@@ -14,6 +14,7 @@ type TLog interface {
 	WriteLog(pdata []byte)
 	Flush()
 	Close()
+	SetFlushCnt(cnt int)
 }
 
 var (
@@ -37,6 +38,8 @@ func NewOneFile(svrid int32) (file TLog) {
 		gamelog.Error("NewOneFile Error, Start Log Failed!!!")
 		return
 	}
+
+	file.SetFlushCnt(appconfig.LogSvrFlushCnt)
 
 	G_SvrLogMgr[svrid] = file
 	return

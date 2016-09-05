@@ -27,7 +27,7 @@ func ConnectToChatSvr(addr string) {
 func SendCheckInMsg(pTcpConn *tcpclient.TCPConn) bool {
 	var req msg.MSG_CheckIn_Req
 	req.GuildID = -1
-	req.PlayerID = int32(appconfig.DomainID)
+	req.PlayerID = int32(appconfig.GameSvrID)
 	req.PlayerName = "gamesvr"
 	buffer, _ := json.Marshal(&req)
 	return pTcpConn.WriteMsg(msg.MSG_CHECK_IN_REQ, 0, buffer)

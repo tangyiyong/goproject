@@ -115,26 +115,20 @@ func (player *TPlayer) DB_SaveHeroWakeItem(posType int, nIndex int) bool {
 
 func (player *TPlayer) DB_SaveHeroCulture(posType int, nIndex int) bool {
 	if posType == POSTYPE_BATTLE {
-		FieldName := fmt.Sprintf("curheros.%d.cultures", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{FieldName: player.HeroMoudle.CurHeros[nIndex].Cultures}})
-
-		FieldName = fmt.Sprintf("curheros.%d.culturescost", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{FieldName: player.HeroMoudle.CurHeros[nIndex].CulturesCost}})
-
+		cul := fmt.Sprintf("curheros.%d.cultures", nIndex)
+		culcost := fmt.Sprintf("curheros.%d.culturescost", nIndex)
+		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{cul: player.HeroMoudle.CurHeros[nIndex].Cultures,
+			culcost: player.HeroMoudle.CurHeros[nIndex].CulturesCost}})
 	} else if posType == POSTYPE_BACK {
-		FieldName := fmt.Sprintf("backheros.%d.cultures", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{FieldName: player.HeroMoudle.BackHeros[nIndex].Cultures}})
-
-		FieldName = fmt.Sprintf("backheros.%d.culturescost", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{FieldName: player.HeroMoudle.BackHeros[nIndex].CulturesCost}})
-
+		cul := fmt.Sprintf("backheros.%d.cultures", nIndex)
+		culcost := fmt.Sprintf("backheros.%d.culturescost", nIndex)
+		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{cul: player.HeroMoudle.BackHeros[nIndex].Cultures,
+			culcost: player.HeroMoudle.BackHeros[nIndex].CulturesCost}})
 	} else if posType == POSTYPE_BAG {
-		FieldName := fmt.Sprintf("herobag.heros.%d.cultures", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBag", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{FieldName: player.BagMoudle.HeroBag.Heros[nIndex].Cultures}})
-
-		FieldName = fmt.Sprintf("herobag.heros.%d.culturescost", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{FieldName: player.BagMoudle.HeroBag.Heros[nIndex].CulturesCost}})
-
+		cul := fmt.Sprintf("herobag.heros.%d.cultures", nIndex)
+		culcost := fmt.Sprintf("herobag.heros.%d.culturescost", nIndex)
+		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBag", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{cul: player.BagMoudle.HeroBag.Heros[nIndex].Cultures,
+			culcost: player.BagMoudle.HeroBag.Heros[nIndex].CulturesCost}})
 	}
 	return true
 }
@@ -159,36 +153,31 @@ func (player *TPlayer) DB_SaveHeroDestiny(posType int, nIndex int) bool {
 	return true
 }
 
-func (player *TPlayer) DB_SaveHeroDiaoWenQuality(posType int, nIndex int) bool {
-	if posType == POSTYPE_BATTLE {
-		FieldName := fmt.Sprintf("curheros.%d.diaowenquality", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{FieldName: player.HeroMoudle.CurHeros[nIndex].DiaoWenQuality}})
-	} else if posType == POSTYPE_BACK {
-		FieldName := fmt.Sprintf("backheros.%d.diaowenquality", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{FieldName: player.HeroMoudle.BackHeros[nIndex].DiaoWenQuality}})
-	} else if posType == POSTYPE_BAG {
-		FieldName := fmt.Sprintf("herobag.heros.%d.diaowenquality", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBag", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{FieldName: player.BagMoudle.HeroBag.Heros[nIndex].DiaoWenQuality}})
-	}
-	return true
-}
-
 func (player *TPlayer) DB_SaveHeroXiLian(posType int, nIndex int) bool {
 	if posType == POSTYPE_BATTLE {
+		diaoquality := fmt.Sprintf("curheros.%d.diaowenquality", nIndex)
 		ptys := fmt.Sprintf("curheros.%d.diaowenptys", nIndex)
 		backs := fmt.Sprintf("curheros.%d.diaowenback", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{ptys: player.HeroMoudle.CurHeros[nIndex].DiaoWenPtys,
-			backs: player.HeroMoudle.CurHeros[nIndex].DiaoWenBack}})
+		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{
+			ptys:        player.HeroMoudle.CurHeros[nIndex].DiaoWenPtys,
+			diaoquality: player.HeroMoudle.CurHeros[nIndex].DiaoWenQuality,
+			backs:       player.HeroMoudle.CurHeros[nIndex].DiaoWenBack}})
 	} else if posType == POSTYPE_BACK {
+		diaoquality := fmt.Sprintf("backheros.%d.diaowenquality", nIndex)
 		ptys := fmt.Sprintf("backheros.%d.diaowenptys", nIndex)
 		backs := fmt.Sprintf("backheros.%d.diaowenback", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{ptys: player.HeroMoudle.BackHeros[nIndex].DiaoWenPtys,
-			backs: player.HeroMoudle.CurHeros[nIndex].DiaoWenBack}})
+		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerHero", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{
+			ptys:        player.HeroMoudle.BackHeros[nIndex].DiaoWenPtys,
+			diaoquality: player.HeroMoudle.BackHeros[nIndex].DiaoWenQuality,
+			backs:       player.HeroMoudle.BackHeros[nIndex].DiaoWenBack}})
 	} else if posType == POSTYPE_BAG {
+		diaoquality := fmt.Sprintf("herobag.heros.%d.diaowenquality", nIndex)
 		ptys := fmt.Sprintf("herobag.heros.%d.diaowenptys", nIndex)
 		backs := fmt.Sprintf("herobag.heros.%d.diaowenback", nIndex)
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBag", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{ptys: player.BagMoudle.HeroBag.Heros[nIndex].DiaoWenPtys,
-			backs: player.HeroMoudle.CurHeros[nIndex].DiaoWenBack}})
+		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBag", bson.M{"_id": player.playerid}, bson.M{"$set": bson.M{
+			ptys:        player.BagMoudle.HeroBag.Heros[nIndex].DiaoWenPtys,
+			diaoquality: player.BagMoudle.HeroBag.Heros[nIndex].DiaoWenQuality,
+			backs:       player.BagMoudle.HeroBag.Heros[nIndex].DiaoWenBack}})
 	}
 	return true
 }

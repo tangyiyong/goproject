@@ -3,11 +3,13 @@
 * @ brief
 	1、前端Append()接口，用以输入数据，buf被写满时触发后台writeLoop
 
-	2、后台writeLoop平时阻塞在"<-self.awakeChan"处，等待chan写操作的唤醒
+	2、后台writeLoop平时阻塞在"self.cond.Wait()"处，等待chan写操作的唤醒
 
 	3、timeOutWrite为了及时记log
 
 	4、若强杀Log进程，可能buf中的数据还没被写
+
+	5、NewAsyncLog()后立即调Appen()，可能"go _writeLoop"还没来得及启动
 
 * @ race condition
 	1、"go chan"内部也是锁实现的，chan操作不要放在临界区
@@ -28,26 +30,26 @@ import (
 	"time"
 )
 
-type WriteFunc func(data1, data2 [][]byte)
-
 const (
 	Flush_Interval = 15 //间隔几秒写一次log
 )
 
+type Writer interface {
+	Write(data1, data2 [][]byte)
+}
 type AsyncLog struct {
-	sync.Mutex
-	curBuf       [][]byte
-	spareBuf     [][]byte
-	blockWrite   chan bool //chan要make初始化才能用~o(╯□╰)o
-	writeLogFunc WriteFunc
+	cond     *sync.Cond
+	curBuf   [][]byte
+	spareBuf [][]byte
+	wr       Writer
 }
 
-func NewAsyncLog(bufSize int, fun WriteFunc) *AsyncLog {
+func NewAsyncLog(bufSize int, wr Writer) *AsyncLog {
 	log := new(AsyncLog)
+	log.cond = sync.NewCond(new(sync.Mutex))
 	log.curBuf = make([][]byte, 0, bufSize)
 	log.spareBuf = make([][]byte, 0, bufSize)
-	log.blockWrite = make(chan bool)
-	log.writeLogFunc = fun
+	log.wr = wr
 	go log._writeLoop(bufSize)
 	go log._timeOutWrite()
 	return log
@@ -56,41 +58,36 @@ func NewAsyncLog(bufSize int, fun WriteFunc) *AsyncLog {
 //如果写得非常快，瞬间把两片buf都写满了，会阻塞在blockWrite处，等writeLoop写完log即恢复
 //两片buf的好处：在当前线程即可交换，不用等到后台writeLoop唤醒
 func (self *AsyncLog) Append(pdata []byte) {
-	isAwakenWriteLoop := false
-	self.Lock()
+	self.cond.L.Lock()
 	{
 		self.curBuf = append(self.curBuf, pdata)
 		if len(self.curBuf) == cap(self.curBuf) {
 			_swapBuf(&self.curBuf, &self.spareBuf)
-			isAwakenWriteLoop = true
+			self.cond.Signal()
 		}
 	}
-	self.Unlock()
-
-	if isAwakenWriteLoop {
-		self.blockWrite <- false //Notice：不能放在临界区
-	}
+	self.cond.L.Unlock()
 }
 func (self *AsyncLog) Flush() { //立即触发后台writeLoop写log
-	self.blockWrite <- false
+	self.cond.Signal()
 }
 
 func (self *AsyncLog) _writeLoop(bufSize int) {
 	bufToWrite1 := make([][]byte, 0, bufSize)
 	bufToWrite2 := make([][]byte, 0, bufSize)
 	for {
-		<-self.blockWrite //没人写数据即阻塞：超时/buf写满，唤起【这句不能放在临界区，否则死锁】
-
-		self.Lock()
+		self.cond.L.Lock()
 		{
+			self.cond.Wait() //Notice：必须在临近区内
+
 			//此时bufToWrite为空，交换
 			_swapBuf(&bufToWrite1, &self.spareBuf)
 			_swapBuf(&bufToWrite2, &self.curBuf)
 		}
-		self.Unlock()
+		self.cond.L.Unlock()
 
 		//将bufToWrite中的数据全写进log，并清空
-		self.writeLogFunc(bufToWrite1, bufToWrite2)
+		self.wr.Write(bufToWrite1, bufToWrite2)
 		_clearBuf(&bufToWrite1)
 		_clearBuf(&bufToWrite2)
 	}
@@ -98,7 +95,7 @@ func (self *AsyncLog) _writeLoop(bufSize int) {
 func (self *AsyncLog) _timeOutWrite() {
 	for {
 		time.Sleep(Flush_Interval * time.Second)
-		self.blockWrite <- false
+		self.cond.Signal()
 	}
 }
 func _swapBuf(rhs, lhs *[][]byte) {

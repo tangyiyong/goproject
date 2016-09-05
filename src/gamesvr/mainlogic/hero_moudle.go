@@ -736,7 +736,7 @@ func (self *THeroMoudle) CalcTitle(HeroResults []THeroResult) bool {
 }
 
 //计算角色的战力
-func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int {
+func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int32 {
 	if HeroResults == nil {
 		HeroResults = make([]THeroResult, BATTLE_NUM)
 	}
@@ -783,7 +783,7 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int {
 		pBreakInfo := gamedata.GetHeroBreakInfo(pCurHeroData.BreakLevel)
 		if pBreakInfo != nil {
 			for pid := 0; pid < 5; pid++ {
-				HeroResults[heroIndex].PropertyPercents[pid] += int32(pBreakInfo.IncPercent) //突破加的都是百分比
+				HeroResults[heroIndex].PropertyValues[pid] = HeroResults[heroIndex].PropertyValues[pid] * int32((pBreakInfo.IncPercent+1000)/1000) //突破加的都是百分比
 			}
 		}
 
@@ -800,27 +800,14 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int {
 		//计算天命影响 (天命都是影响百分比)
 		DestinyLevel := pCurHeroData.DestinyState >> 24 & 0x000F
 		DestinyIndex := pCurHeroData.DestinyState >> 16 & 0x000F
-		var pLastInfo *gamedata.ST_DestinyItem = nil
-		if DestinyLevel > 1 {
-			pLastInfo = gamedata.GetHeroDestinyInfo(int(DestinyLevel - 1))
-			if pLastInfo == nil {
-				gamelog.Error("CalcFightValue Error : pLastInfo is nil , cur destiny level:%d", DestinyLevel, DestinyLevel)
-			}
-		}
-
 		pDestinyInfo := gamedata.GetHeroDestinyInfo(int(DestinyLevel))
 		if pDestinyInfo == nil {
 			gamelog.Error("CalcFightValue Error : Invalid DestinyLevel :%d, State:%d", DestinyLevel, pCurHeroData.DestinyState)
 			return 0
 		}
 
-		var lastProInc int32 = 0
-		if pLastInfo != nil {
-			lastProInc = int32(pLastInfo.PropertyInc)
-		}
-
-		var curProInc int32 = int32(pDestinyInfo.PropertyInc)
-
+		var lastProInc int32 = int32(pDestinyInfo.SumPropertyInc)
+		var curProInc int32 = int32(pDestinyInfo.LightPropertyInc) + lastProInc
 		if DestinyIndex >= 4 {
 			HeroResults[heroIndex].PropertyPercents[0] += curProInc
 			HeroResults[heroIndex].PropertyPercents[1] += curProInc
@@ -863,7 +850,7 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int {
 			}
 		}
 
-		if pCurHeroData.WakeLevel > 1 {
+		if pCurHeroData.WakeLevel >= 1 {
 			pWakeLevelInfo := gamedata.GetWakeLevelItem(pCurHeroData.WakeLevel - 1)
 			for pid := 0; pid < 11; pid++ {
 				HeroResults[heroIndex].PropertyValues[pid] += int32(pWakeLevelInfo.PropertyValues[pid])
@@ -966,7 +953,7 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int {
 		}
 	}
 
-	var fightvalue int = 0
+	var fightvalue int32 = 0
 	for k := 0; k < BATTLE_NUM; k++ {
 		if HeroResults[k].HeroID != 0 {
 			pHeroInfo := gamedata.GetHeroInfo(HeroResults[k].HeroID)
@@ -977,27 +964,27 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int {
 			}
 
 			//生命
-			fightvalue += int(float32(HeroResults[k].PropertyValues[0]) * gamedata.GetPropertyInfo(1).FightFactor)
+			fightvalue += HeroResults[k].PropertyValues[0] * gamedata.GetPropertyInfo(1).FightFactor / 100
 			//物理攻击
-			fightvalue += int(float32(HeroResults[k].PropertyValues[1]) * gamedata.GetPropertyInfo(2).FightFactor)
+			fightvalue += HeroResults[k].PropertyValues[1] * gamedata.GetPropertyInfo(2).FightFactor / 100
 			//物理防御
-			fightvalue += int(float32(HeroResults[k].PropertyValues[2]) * gamedata.GetPropertyInfo(3).FightFactor)
+			fightvalue += HeroResults[k].PropertyValues[2] * gamedata.GetPropertyInfo(3).FightFactor / 100
 			//魔法攻击
-			fightvalue += int(float32(HeroResults[k].PropertyValues[3]) * gamedata.GetPropertyInfo(4).FightFactor)
+			fightvalue += HeroResults[k].PropertyValues[3] * gamedata.GetPropertyInfo(4).FightFactor / 100
 			//魔法防御
-			fightvalue += int(float32(HeroResults[k].PropertyValues[4]) * gamedata.GetPropertyInfo(5).FightFactor)
+			fightvalue += HeroResults[k].PropertyValues[4] * gamedata.GetPropertyInfo(5).FightFactor / 100
 			//伤害减免
-			fightvalue += int(float32(HeroResults[k].PropertyValues[2]/2+HeroResults[k].PropertyValues[4]/2) / gamedata.GetPropertyInfo(6).FightFactor / 10 * float32(HeroResults[k].PropertyValues[5]))
+			fightvalue += (HeroResults[k].PropertyValues[2] + HeroResults[k].PropertyValues[4]) * 10 * HeroResults[k].PropertyValues[5] / gamedata.GetPropertyInfo(6).FightFactor / 2
 			//伤害加成
-			fightvalue += int(float32(HeroResults[k].PropertyValues[1]+HeroResults[k].PropertyValues[3]) / gamedata.GetPropertyInfo(7).FightFactor / 10 * float32(HeroResults[k].PropertyValues[6]))
+			fightvalue += (HeroResults[k].PropertyValues[1] + HeroResults[k].PropertyValues[3]) * 10 * HeroResults[k].PropertyValues[6] / gamedata.GetPropertyInfo(7).FightFactor
 			//闪避率
-			fightvalue += int(float32(HeroResults[k].PropertyValues[4]) / gamedata.GetPropertyInfo(8).FightFactor / 10 * float32(HeroResults[k].PropertyValues[7]))
+			fightvalue += HeroResults[k].PropertyValues[4] * 10 * HeroResults[k].PropertyValues[7] / gamedata.GetPropertyInfo(8).FightFactor
 			//命中率
-			fightvalue += int(float32(HeroResults[k].PropertyValues[0]) / gamedata.GetPropertyInfo(9).FightFactor / 10 * float32(HeroResults[k].PropertyValues[8]))
+			fightvalue += HeroResults[k].PropertyValues[0] * 10 * HeroResults[k].PropertyValues[8] / gamedata.GetPropertyInfo(9).FightFactor
 			//暴击率
-			fightvalue += int(float32(HeroResults[k].PropertyValues[1]+HeroResults[k].PropertyValues[3]) / gamedata.GetPropertyInfo(10).FightFactor / 10 * float32(HeroResults[k].PropertyValues[9]))
+			fightvalue += (HeroResults[k].PropertyValues[1] + HeroResults[k].PropertyValues[3]) * 10 * HeroResults[k].PropertyValues[9] / gamedata.GetPropertyInfo(10).FightFactor
 			//抗暴率
-			fightvalue += int(float32(HeroResults[k].PropertyValues[2]) / gamedata.GetPropertyInfo(11).FightFactor / 10 * float32(HeroResults[k].PropertyValues[10]))
+			fightvalue += HeroResults[k].PropertyValues[2] * 10 * HeroResults[k].PropertyValues[10] / gamedata.GetPropertyInfo(11).FightFactor
 		}
 	}
 
@@ -1167,8 +1154,8 @@ func (self *THeroMoudle) GetPlayerGuildSKillLevel(id int) int {
 //! 增加玩家公会技能等级
 func (self *THeroMoudle) AddPlayerGuildSkillLevel(id int) {
 	self.GuildSkiLvl[id-1] += 1
-	go self.DB_UpdateGuildSkillLevel(id - 1)
-
 	moneyID, moneyNum := gamedata.GetGuildSkillNeedMoney(int(self.GuildSkiLvl[id-1]), id)
 	self.ownplayer.RoleMoudle.CostMoney(moneyID, moneyNum)
+
+	go self.DB_SaveGuildSkillLevel()
 }

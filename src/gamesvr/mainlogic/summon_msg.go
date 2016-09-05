@@ -130,7 +130,6 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 	//! 根据召唤种类分别判断
 	if req.SummonType == gamedata.Summon_Normal { //! 普通召唤
 		if req.NumberType == 0 { //! 单抽逻辑处理
-			player.BagMoudle.IsHeroBagFull()
 
 			//! 检测免费次数
 			hasFree := false
@@ -201,7 +200,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 
 			return
 
-		} else if req.NumberType == 1 { //! 十连抽逻辑处理
+		} else if req.NumberType == 1 { //! 十连抽逻辑处理`1
 			//! 检测道具数量是否足够
 			bEnough := player.BagMoudle.IsItemEnough(summonConfig.CostItemID, summonConfig.CostItemNum*10)
 			if !bEnough {

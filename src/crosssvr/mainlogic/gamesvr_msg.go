@@ -20,7 +20,7 @@ func Handle_RegisterGameSvr(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	UpdateGameSvrInfo(req.ServerDomainID, req.ServerDomainName, req.ServerOuterAddr, req.ServerInnerAddr)
+	UpdateGameSvrInfo(req.SvrID, req.SvrName, req.SvrOuterAddr, req.SvrInnerAddr)
 
 	var response msg.MSG_RegToCrossSvr_Ack
 	response.RetCode = msg.RE_SUCCESS

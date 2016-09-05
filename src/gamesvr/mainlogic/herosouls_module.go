@@ -256,9 +256,9 @@ func (self *THeroSoulsModule) CheckStoreRefresh() int {
 	}
 
 	for i := 0; i < index; i++ {
-		if self.RefreshStoreTimeMark.Get(uint(i+1)) == false {
+		if self.RefreshStoreTimeMark.Get(uint32(i+1)) == false {
 			self.RefreshHeroSoulsStore(true)
-			self.RefreshStoreTimeMark.Set(uint(i + 1))
+			self.RefreshStoreTimeMark.Set(uint32(i + 1))
 			go self.DB_SaveHeroSoulsRefreshMark()
 		}
 	}
@@ -306,7 +306,7 @@ func (self *THeroSoulsModule) RedTip() bool {
 	}
 
 	for i := 0; i < index; i++ {
-		if self.RefreshStoreTimeMark.Get(uint(i+1)) == false {
+		if self.RefreshStoreTimeMark.Get(uint32(i+1)) == false {
 			self.CheckStoreRefresh()
 			return true
 		}

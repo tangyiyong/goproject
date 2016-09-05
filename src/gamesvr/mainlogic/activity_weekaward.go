@@ -77,13 +77,13 @@ func (self *TActivityWeekAward) RedTip() bool {
 
 	awardType := G_GlobalVariables.GetActivityAwardType(self.ActivityID)
 	awardLst := gamedata.GetWeekAwardInfoLst(awardType)
-	if self.LoginDay == 1 && self.AwardMark.Get(uint(1)) == false {
+	if self.LoginDay == 1 && self.AwardMark.Get(uint32(1)) == false {
 		return true //! 免费奖励未领取
 	}
 
 	for i := 1; i <= 7; i++ {
 		awardInfo := awardLst[i]
-		if self.AwardMark.Get(uint(i+1)) == false &&
+		if self.AwardMark.Get(uint32(i+1)) == false &&
 			self.LoginDay >= i &&
 			self.RechargeNum >= awardInfo.RechargeNum {
 			return true

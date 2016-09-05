@@ -92,22 +92,22 @@ func (self *TRobModule) RefreshFreeWarTime() {
 func (self *TRobModule) GetRobList(itemID int, exclude Int32Lst) (robPlayerLst []RobPlayerInfo) {
 	//! 玩家取2个
 	count := 0
-	if G_GemPlayersIndex >= len(g_SelectPlayers) {
+	if G_GemPlayersIndex >= len(G_SelectPlayers) {
 		G_GemPlayersIndex = 0
 	}
 
-	for i := G_GemPlayersIndex; i < len(g_SelectPlayers); i++ {
+	for i := G_GemPlayersIndex; i < len(G_SelectPlayers); i++ {
 		//! 检查是否处于免战时间
-		if time.Now().Unix() < g_SelectPlayers[i].RobModule.FreeWarTime {
+		if time.Now().Unix() < G_SelectPlayers[i].RobModule.FreeWarTime {
 			continue
 		}
-		if g_SelectPlayers[i].BagMoudle.GetGemPieceCount(itemID) > 0 {
+		if G_SelectPlayers[i].BagMoudle.GetGemPieceCount(itemID) > 0 {
 			var info RobPlayerInfo
-			info.Name = g_SelectPlayers[i].RoleMoudle.Name
-			info.Level = g_SelectPlayers[i].GetLevel()
-			info.PlayerID = g_SelectPlayers[i].playerid
+			info.Name = G_SelectPlayers[i].RoleMoudle.Name
+			info.Level = G_SelectPlayers[i].GetLevel()
+			info.PlayerID = G_SelectPlayers[i].playerid
 			info.IsRobot = 0
-			for i, b := range g_SelectPlayers[i].HeroMoudle.CurHeros {
+			for i, b := range G_SelectPlayers[i].HeroMoudle.CurHeros {
 				info.HeroID[i] = b.ID
 			}
 

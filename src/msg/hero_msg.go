@@ -21,12 +21,12 @@ type MSG_UpgradeHero_Req struct {
 }
 
 type MSG_UpgradeHero_Ack struct {
-	RetCode    int //返回码
-	HeroID     int //英雄ID
-	NewLevel   int //英雄等级
-	NewExp     int //英雄经验
-	CostMoney  int //花费货币值
-	FightValue int //战力
+	RetCode    int   //返回码
+	HeroID     int   //英雄ID
+	NewLevel   int   //英雄等级
+	NewExp     int   //英雄经验
+	CostMoney  int   //花费货币值
+	FightValue int32 //战力
 }
 
 //玩家更换英雄
@@ -41,8 +41,8 @@ type MSG_ChangeHero_Req struct {
 }
 
 type MSG_ChangeHero_Ack struct {
-	RetCode    int //返回码
-	FightValue int //战力
+	RetCode    int   //返回码
+	FightValue int32 //战力
 }
 
 //玩家更换援军英雄
@@ -57,8 +57,8 @@ type MSG_ChangeBackHero_Req struct {
 }
 
 type MSG_ChangeBackHero_Ack struct {
-	RetCode    int //返回码
-	FightValue int //战力
+	RetCode    int   //返回码
+	FightValue int32 //战力
 }
 
 //玩家英雄突破
@@ -71,11 +71,11 @@ type MSG_BreakOut_Req struct {
 }
 
 type MSG_BreakOut_Ack struct {
-	RetCode    int  //返回码
-	FightValue int  //战力值
-	NewLevel   int8 //新的突破等级
-	CostItems  int  //消耗的材料数
-	CostMoney  int  //消耗的货币数
+	RetCode    int   //返回码
+	FightValue int32 //战力值
+	NewLevel   int8  //新的突破等级
+	CostItems  int   //消耗的材料数
+	CostMoney  int   //消耗的货币数
 }
 
 //玩家培养英雄
@@ -90,7 +90,7 @@ type MSG_CultureHero_Req struct {
 type MSG_CultureHero_Ack struct {
 	RetCode    int    //返回码
 	Cultures   [5]int //培养新值
-	FightValue int    //战力
+	FightValue int32  //战力
 	CostItems  int    //消耗道具
 }
 
@@ -105,7 +105,7 @@ type MSG_DestinyHero_Req struct {
 type MSG_DestinyHero_Ack struct {
 	RetCode         int    //返回码
 	NewDestinyState uint32 //新的天命状态
-	FightValue      int    //新的战力
+	FightValue      int32  //新的战力
 	CostItemNum     int    //消耗数量
 }
 
@@ -120,7 +120,7 @@ type MSG_QueryDestinyState_Req struct {
 type MSG_QueryDestinyState_Ack struct {
 	RetCode         int    //返回码
 	NewDestinyState uint32 //新的天命状态
-	FightValue      int    //新的战力
+	FightValue      int32  //新的战力
 }
 
 //玩家合成英雄
@@ -148,7 +148,7 @@ type MSG_LevelUpNotify_Ack struct {
 	Level      int   //新的等级
 	CurSvrTime int64 //当前的服务器时间
 	CurExp     int   //当前的经验值
-	FightValue int   //战力
+	FightValue int32 //战力
 }
 
 //玩家设置觉醒道具
@@ -163,8 +163,8 @@ type MSG_SetWakeItem_Req struct {
 }
 
 type MSG_SetWakeItem_Ack struct {
-	RetCode    int //返回码
-	FightValue int //战力
+	RetCode    int   //返回码
+	FightValue int32 //战力
 }
 
 //玩家觉醒等级
@@ -177,9 +177,9 @@ type MSG_UpWakeLevel_Req struct {
 }
 
 type MSG_UpWakeLevel_Ack struct {
-	RetCode    int //返回码
-	WakeLevel  int //新的觉醒等级
-	FightValue int //新的战力
+	RetCode    int   //返回码
+	WakeLevel  int   //新的觉醒等级
+	FightValue int32 //新的战力
 }
 
 //玩家合成觉醒道具
@@ -208,7 +208,7 @@ type MSG_UpgradeDiaoWen_Ack struct {
 	RetCode        int   //返回码
 	DiaoWenID      int   //雕文ID
 	DiaoWenQuality int32 //雕文品质
-	FightValue     int   //新的战力
+	FightValue     int32 //新的战力
 }
 
 //玩家洗炼雕文
@@ -241,7 +241,7 @@ type MSG_XiLianTiHuan_Req struct {
 type MSG_XiLianTiHuan_Ack struct {
 	RetCode       int      //返回码
 	DiaoWenID     int      //雕文ID
-	FightValue    int      //新的战力
+	FightValue    int32    //新的战力
 	PropertyValue [5]int32 //五个属性值
 }
 
@@ -258,11 +258,11 @@ type MSG_UpgradePet_Req struct {
 }
 
 type MSG_UpgradePet_Ack struct {
-	RetCode    int //返回码
-	NewLevel   int //新等级
-	NewExp     int //新的经验
-	CostMoney  int //消耗的货币
-	FightValue int //战力
+	RetCode    int   //返回码
+	NewLevel   int   //新等级
+	NewExp     int   //新的经验
+	CostMoney  int   //消耗的货币
+	FightValue int32 //战力
 }
 
 //玩家升星宠物
@@ -276,10 +276,10 @@ type MSG_UpstarPet_Req struct {
 }
 
 type MSG_UpstarPet_Ack struct {
-	RetCode    int //返回码
-	NewStar    int //新的星级
-	CostMoney  int //消耗的货币
-	FightValue int //战力
+	RetCode    int   //返回码
+	NewStar    int   //新的星级
+	CostMoney  int   //消耗的货币
+	FightValue int32 //战力
 }
 
 //玩家神炼宠物
@@ -294,10 +294,10 @@ type MSG_UpgodPet_Req struct {
 }
 
 type MSG_UpgodPet_Ack struct {
-	RetCode    int //返回码
-	Exp        int //神炼经验
-	Level      int //神炼等级
-	FightValue int //战力
+	RetCode    int   //返回码
+	Exp        int   //神炼经验
+	Level      int   //神炼等级
+	FightValue int32 //战力
 }
 
 //玩家更换宠物
@@ -312,8 +312,8 @@ type MSG_ChangePet_Req struct {
 }
 
 type MSG_ChangePet_Ack struct {
-	RetCode    int //返回码
-	FightValue int //战力
+	RetCode    int   //返回码
+	FightValue int32 //战力
 }
 
 //玩家下阵宠物
@@ -326,8 +326,8 @@ type MSG_UnsetPet_Req struct {
 }
 
 type MSG_UnsetPet_Ack struct {
-	RetCode    int //返回码
-	FightValue int //战力
+	RetCode    int   //返回码
+	FightValue int32 //战力
 }
 
 //玩家合成宠物
@@ -354,8 +354,8 @@ type MSG_UpgodHero_Req struct {
 }
 
 type MSG_UpgodHero_Ack struct {
-	RetCode    int  //返回码
-	GodLevel   int  //化神等级
-	Quality    int8 //品质
-	FightValue int  //战力
+	RetCode    int   //返回码
+	GodLevel   int   //化神等级
+	Quality    int8  //品质
+	FightValue int32 //战力
 }

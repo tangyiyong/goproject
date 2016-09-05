@@ -148,7 +148,8 @@ func (self *TBlackMarketModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup)
 }
 
 func (self *TBlackMarketModule) GetBlackMarketItemInfo(index int) *TBlackMarketGoods {
-	if index >= len(self.GoodsLst) {
+	if index >= len(self.GoodsLst) || index < 0 {
+		gamelog.Error("GetBlackMarketItemInfo Error: Invalid index: %d", index)
 		return nil
 	}
 

@@ -252,13 +252,12 @@ var (
 	EliteHuntRankNeedScore int //! 巡回探宝精英榜需求分数
 
 	//! 幸运转盘
-	LuckyWheelCostItemID  int //! 幸运转盘需求花费道具ID
-	NormalWheelFreeTimes  int //! 普通转盘每日免费次数
-	ExcitedWheelFreeTimes int //! 高级转盘每日免费次数
-	NormalWheelMoneyID    int //! 普通转盘花费货币ID
-	NormalWheelMoneyNum   int //! 普通转盘花费货币Num
-	ExcitedWheelMoneyID   int //! 高级转盘花费货币ID
-	ExcitedWheelMoneyNum  int //! 高级转盘花费货币Num
+	LuckyWheelCostItemID int //! 幸运转盘需求花费道具ID
+	NormalWheelFreeTimes int //! 普通转盘每日免费次数
+	NormalWheelMoneyID   int //! 普通转盘花费货币ID
+	NormalWheelMoneyNum  int //! 普通转盘花费货币Num
+	ExcitedWheelMoneyID  int //! 高级转盘花费货币ID
+	ExcitedWheelMoneyNum int //! 高级转盘花费货币Num
 
 	//! 团购
 	GroupPurchaseCostItemID  int //! 团购券ID
@@ -1001,10 +1000,6 @@ func ParseOptionRecord(rs *RecordSet) {
 	case "normal_wheel_free_times":
 		{
 			NormalWheelFreeTimes = CheckAtoiName(rs.Values[2], "normal_wheel_free_times")
-		}
-	case "excited_wheel_free_times":
-		{
-			ExcitedWheelFreeTimes = CheckAtoiName(rs.Values[2], "excited_wheel_free_times")
 		}
 	case "normal_wheel_money_id":
 		{

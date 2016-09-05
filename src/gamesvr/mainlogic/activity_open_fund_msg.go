@@ -29,7 +29,6 @@ func Hand_GetOpenFundStatus(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -48,7 +47,7 @@ func Hand_GetOpenFundStatus(w http.ResponseWriter, r *http.Request) {
 	response.CostMoneyNum = gamedata.OpenFundPriceNum
 
 	for _, v := range gamedata.GT_OpenFundLst[gamedata.OpenFund_Level] {
-		if player.ActivityModule.OpenFund.FundLevelMark.Get(uint(v.ID)) != true {
+		if player.ActivityModule.OpenFund.FundLevelMark.Get(uint32(v.ID)) != true {
 			awardLst := gamedata.GetItemsFromAwardID(v.Award)
 			for _, m := range awardLst {
 				response.ReceiveMoney += m.ItemNum
@@ -80,7 +79,6 @@ func Hand_BuyOpenFund(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -117,7 +115,7 @@ func Hand_BuyOpenFund(w http.ResponseWriter, r *http.Request) {
 	response.FundLevelMark = int(player.ActivityModule.OpenFund.FundLevelMark)
 
 	for _, v := range gamedata.GT_OpenFundLst[gamedata.OpenFund_Level] {
-		if player.ActivityModule.OpenFund.FundLevelMark.Get(uint(v.ID)) != true {
+		if player.ActivityModule.OpenFund.FundLevelMark.Get(uint32(v.ID)) != true {
 			awardLst := gamedata.GetItemsFromAwardID(v.Award)
 			for _, m := range awardLst {
 				response.ReceiveMoney += m.ItemNum
@@ -150,7 +148,6 @@ func Hand_GetOpenFundAllAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -181,7 +178,7 @@ func Hand_GetOpenFundAllAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断是否已经领取
-	if player.ActivityModule.OpenFund.FundCountMark.Get(uint(req.ID)) == true {
+	if player.ActivityModule.OpenFund.FundCountMark.Get(uint32(req.ID)) == true {
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
 	}
@@ -196,7 +193,7 @@ func Hand_GetOpenFundAllAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 改变标记
-	player.ActivityModule.OpenFund.FundCountMark.Set(uint(req.ID))
+	player.ActivityModule.OpenFund.FundCountMark.Set(uint32(req.ID))
 	go player.ActivityModule.OpenFund.UpdateFundCountMark()
 
 	//! 返回成功
@@ -226,7 +223,6 @@ func Hand_GetOpenFundLevelAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -257,7 +253,7 @@ func Hand_GetOpenFundLevelAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断是否已经领取
-	if player.ActivityModule.OpenFund.FundLevelMark.Get(uint(req.ID)) == true {
+	if player.ActivityModule.OpenFund.FundLevelMark.Get(uint32(req.ID)) == true {
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
 	}
@@ -272,7 +268,7 @@ func Hand_GetOpenFundLevelAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 改变标记
-	player.ActivityModule.OpenFund.FundLevelMark.Set(uint(req.ID))
+	player.ActivityModule.OpenFund.FundLevelMark.Set(uint32(req.ID))
 	go player.ActivityModule.OpenFund.UpdateFundLevelMark()
 
 	//! 返回成功

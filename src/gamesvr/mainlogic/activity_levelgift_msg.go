@@ -29,7 +29,6 @@ func Hand_GetLevelGiftInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -86,7 +85,6 @@ func Hand_BuyLevelGift(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -121,7 +119,7 @@ func Hand_BuyLevelGift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	levelGiftInfo := gamedata.GetLevelGiftInfo(awardType, player.ActivityModule.LevelGift.ActivityID)
+	levelGiftInfo := gamedata.GetLevelGiftInfo(awardType, req.GiftID)
 	if levelGiftInfo == nil {
 		gamelog.Error("Hand_BuyLevelGift Error: GetLevelGiftInfo nil")
 		response.RetCode = msg.RE_UNKNOWN_ERR
@@ -130,7 +128,6 @@ func Hand_BuyLevelGift(w http.ResponseWriter, r *http.Request) {
 
 	if levelGiftInfo.MoneyID != 0 {
 		//! 收费领取
-
 		//! 检测货币是否足够
 		if player.RoleMoudle.CheckMoneyEnough(levelGiftInfo.MoneyID, levelGiftInfo.MoneyNum) == false {
 			gamelog.Error("Hand_BuyLevelGift Error: Not enough money ID: %d", req.GiftID)

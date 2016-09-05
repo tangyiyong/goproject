@@ -37,6 +37,7 @@ func Hand_GetChargeInfo(w http.ResponseWriter, r *http.Request) {
 
 	response.ChargeTimes = player.ChargeModule.ChargeTimes[1:] //0位是空的，不发给client了
 	response.CardDays = player.ActivityModule.MonthCard.CardDays
+	response.ActivityChargeID = player.ActivityModule.LimitSale.GetDiscountCharge()
 	response.RetCode = msg.RE_SUCCESS
 }
 

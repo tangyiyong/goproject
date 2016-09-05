@@ -16,8 +16,8 @@ type MSG_GetGuildStatus_Ack struct {
 	CampLife           []MSG_CampLife          //! 当前攻打副本四个阵营血量
 	IsBack             bool                    //! 是否回退章节
 	CopyTreasure       []MSG_GuildCopyTreasure //! 章节宝藏领取情况
-	PassChapter        int                     //! 当前攻打章节
-	HistoryPassChapter int                     //! 历史通关最高章节
+	PassChapter        int32                   //! 当前攻打章节
+	HistoryPassChapter int32                   //! 历史通关最高章节
 	AwardChapter       []MSG_PassAwardChapter  //! 已通关可领取奖励章节
 	IsRecvCopyAward    []MSG_RecvCopyMark      //! 已领取的奖励信息
 
@@ -150,7 +150,7 @@ type MSG_MemberInfo struct {
 	Quality      int8
 	Level        int
 	Role         int
-	FightValue   int
+	FightValue   int32
 	Contribution int
 	OfflineTime  int64
 	IsOnline     bool
@@ -287,7 +287,7 @@ type MSG_BuyGuildStoreItem_Ack struct {
 type MSG_AttackGuildCopy_Req struct {
 	PlayerID   int32
 	SessionKey string
-	Chapter    int
+	Chapter    int32
 	CopyID     int   //! 攻击某个阵营 0 1 2 3
 	Damage     int64 //! 造成伤害
 }
@@ -320,7 +320,7 @@ type MSG_GuildCopyTreasure struct {
 type MSG_QueryGuildCopyTreasure_Req struct {
 	PlayerID   int32
 	SessionKey string
-	Chapter    int
+	Chapter    int32
 }
 
 type MSG_QueryGuildCopyTreasure_Ack struct {
@@ -330,7 +330,7 @@ type MSG_QueryGuildCopyTreasure_Ack struct {
 
 //! 通关阵营记录
 type MSG_PassAwardChapter struct {
-	PassChapter int
+	PassChapter int32
 	CopyID      int
 	PassTime    int64
 	PlayerName  string //! 击杀者姓名
@@ -342,7 +342,7 @@ type MSG_CampLife struct {
 }
 
 type MSG_RecvCopyMark struct {
-	Chapter int
+	Chapter int32
 	CopyID  int
 }
 
@@ -353,8 +353,8 @@ type MSG_GetGuildCopyStatus_Ack struct {
 	CampLife           []MSG_CampLife          //! 当前攻打副本四个阵营血量
 	IsBack             bool                    //! 是否回退章节
 	CopyTreasure       []MSG_GuildCopyTreasure //! 章节宝藏领取情况
-	PassChapter        int                     //! 当前攻打章节
-	HistoryPassChapter int                     //! 历史通关最高章节
+	PassChapter        int32                   //! 当前攻打章节
+	HistoryPassChapter int32                   //! 历史通关最高章节
 	AwardChapter       []MSG_PassAwardChapter  //! 已通关可领取奖励章节
 	IsRecvCopyAward    []MSG_RecvCopyMark      //! 已领取的奖励信息
 }
@@ -364,9 +364,9 @@ type MSG_GetGuildCopyStatus_Ack struct {
 type MSG_GetGuildCopyAward_Req struct {
 	PlayerID   int32
 	SessionKey string
-	Chapter    int //! 章节
-	CopyID     int //! 领取某个阵营的奖励
-	ID         int //! 领取多少号箱子
+	Chapter    int32 //! 章节
+	CopyID     int   //! 领取某个阵营的奖励
+	ID         int   //! 领取多少号箱子
 }
 
 type MSG_GetGuildCopyAward_Ack struct {
@@ -381,7 +381,7 @@ type MSG_GetGuildCopyAward_Ack struct {
 type MSG_GetGuildChapterAward_Req struct {
 	PlayerID   int32
 	SessionKey string
-	Chapter    int
+	Chapter    int32
 }
 
 type MSG_GetGuildChapterAward_Ack struct {
@@ -398,7 +398,7 @@ type MSG_GetGuildChapterAwardAll_Req struct {
 type MSG_GetGuildChapterAwardAll_Ack struct {
 	RetCode     int
 	Award       []MSG_ItemData
-	RecvChapter []int
+	RecvChapter []int32
 }
 
 //! 玩家请求查询章节通关领取状态
@@ -410,7 +410,7 @@ type MSG_GetGuildChapterAwardStatus_Req struct {
 
 type MSG_GetGuildChapterAwardStatus_Ack struct {
 	RetCode int
-	RecvLst []int
+	RecvLst []int32
 }
 
 //! 玩家请求修改帮派信息

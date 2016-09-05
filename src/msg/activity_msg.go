@@ -801,9 +801,10 @@ type MSG_BuyLimitSaleItem_Req struct {
 }
 
 type MSG_BuyLimitSaleItem_Ack struct {
-	RetCode  int
-	AwardLst []MSG_ItemData
-	Score    int //! 玩家积分
+	RetCode          int
+	AwardLst         []MSG_ItemData
+	Score            int //! 玩家积分
+	DiscountChargeID int //! 优惠充值ID
 }
 
 //! 玩家请求领取全民奖励

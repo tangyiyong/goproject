@@ -74,13 +74,13 @@ func (self *TGuildModule) DB_UpdateSacrifice() {
 //! 清空玩家申请列表
 func (self *TGuildModule) DB_CleanApplyList() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
-		"applyguildlist":    []int{},
+		"applyguildlist":    []int32{},
 		"actionrecovertime": self.ActionRecoverTime}})
 }
 
 func (self *TGuildModule) DB_ResetApplyList() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
-		"applyguildlist": []int{}}})
+		"applyguildlist": []int32{}}})
 }
 
 //! 退出帮派
@@ -207,7 +207,7 @@ func (self *TGuild) DB_AddRecvRecord(treasure GuildCopyTreasure) {
 }
 
 //! 增加章节奖励领取记录
-func (self *TGuildModule) DB_AddChapterAwardRecord(chapter int) {
+func (self *TGuildModule) DB_AddChapterAwardRecord(chapter int32) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerGuild", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"copyawardmark": chapter}})
 }
 

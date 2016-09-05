@@ -18,7 +18,7 @@ type TSimpleInfo struct {
 	Name          string //玩家名字
 	Level         int    //玩家等级
 	VipLevel      int    //玩家的VIP等级
-	FightValue    int    //玩家的战力
+	FightValue    int32  //玩家的战力
 	LogoffTime    int64  //离线时间
 	AwardCenterID int    //奖励中心ID
 	BatCamp       int8   //阵营战阵营
@@ -130,7 +130,7 @@ func (mgr *TSimpleInfoMgr) RemoveSimpleInfo(playerid int32) bool {
 	return true
 }
 
-func (mgr *TSimpleInfoMgr) Get_FightValue(playerid int32) int {
+func (mgr *TSimpleInfoMgr) Get_FightValue(playerid int32) int32 {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()
@@ -140,7 +140,7 @@ func (mgr *TSimpleInfoMgr) Get_FightValue(playerid int32) int {
 	return 0
 }
 
-func (mgr *TSimpleInfoMgr) Set_FightValue(playerid int32, fightvalue int, level int) bool {
+func (mgr *TSimpleInfoMgr) Set_FightValue(playerid int32, fightvalue int32, level int) bool {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()

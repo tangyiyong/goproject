@@ -23,12 +23,18 @@ type TFestivalExchangeRecord struct {
 	Times int //! 兑换次数
 }
 
+type TFestivalSale struct {
+	ID       int
+	BuyTimes int
+}
+
 //! 节日欢庆
 type TActivityFestival struct {
 	ActivityID int //! 活动ID
 
 	TaskLst     []TFestivalTask           //! 任务链
 	ExchangeLst []TFestivalExchangeRecord //! 兑换记录
+	BuyLst      []TFestivalSale           //! 购买记录
 
 	VersionCode    int32            //! 更新号
 	ResetCode      int32            //! 迭代号
@@ -152,6 +158,23 @@ func (self *TActivityFestival) RefreshTask(isSaveDB bool) {
 	}
 }
 
+func (self *TActivityFestival) GetFestivalSaleInfo(id int) *TFestivalSale {
+	length := len(self.BuyLst)
+	for i := 0; i < length; i++ {
+		if self.BuyLst[i].ID == id {
+			return &self.BuyLst[i]
+		}
+	}
+
+	//! 若不存在则创建信息
+	var saleInfo TFestivalSale
+	saleInfo.ID = id
+	saleInfo.BuyTimes = 0
+	self.BuyLst = append(self.BuyLst, saleInfo)
+	go self.DB_AddBuyLst(saleInfo)
+	return &self.BuyLst[length]
+}
+
 func (self *TActivityFestival) DB_Reset() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"festival.activityid":  self.ActivityID,
@@ -194,4 +217,14 @@ func (self *TActivityFestival) DB_UpdateExchangeTimes(index int, times int) {
 	filedName := fmt.Sprintf("festival.exchangelst.%d.times", index)
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		filedName: times}})
+}
+
+func (self *TActivityFestival) DB_AddBuyLst(saleInfo TFestivalSale) {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{
+		"festival.buylst": saleInfo}})
+}
+
+func (self *TActivityFestival) DB_UpdateBuyTimes(saleInfo *TFestivalSale) {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID, "festival.buylst.id": saleInfo.ID}, bson.M{"$set": bson.M{
+		"festival.buylst.$.buytimes": saleInfo.BuyTimes}})
 }

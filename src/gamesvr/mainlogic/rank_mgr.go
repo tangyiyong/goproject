@@ -117,7 +117,7 @@ func InitGuildCopyRanker() bool {
 	}
 
 	for i := 0; i < len(guilds); i++ {
-		G_GuildCopyRanker.SetRankItem(int32(guilds[i].GuildID), guilds[i].HistoryPassChapter)
+		G_GuildCopyRanker.SetRankItem(guilds[i].GuildID, int(guilds[i].HistoryPassChapter))
 	}
 
 	return true
@@ -138,7 +138,7 @@ func InitGuildLevelRanker() bool {
 	}
 
 	for i := 0; i < len(guilds); i++ {
-		G_GuildLevelRanker.SetRankItem(int32(guilds[i].GuildID), guilds[i].Level)
+		G_GuildLevelRanker.SetRankItem(guilds[i].GuildID, guilds[i].Level)
 	}
 
 	return true
@@ -180,7 +180,7 @@ func InitFightRanker() bool {
 	}
 
 	for i := 0; i < len(simplevec); i++ {
-		G_FightRanker.SetRankItem(simplevec[i].PlayerID, simplevec[i].FightValue)
+		G_FightRanker.SetRankItem(simplevec[i].PlayerID, int(simplevec[i].FightValue))
 	}
 
 	return true

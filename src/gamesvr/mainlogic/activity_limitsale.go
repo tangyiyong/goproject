@@ -163,11 +163,13 @@ func (self *TActivityLimitSale) RandDiscountCharge() {
 
 func (self *TActivityLimitSale) DiscountChargeClear() {
 	self.DiscountChargeID = 0
+	self.Score = 0
 	go self.DB_UpdateDiscountCharge()
 }
 
 func (self *TActivityLimitSale) DB_UpdateDiscountCharge() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+		"limitsale.score":            self.Score,
 		"limitsale.discountchargeid": self.DiscountChargeID}})
 }
 

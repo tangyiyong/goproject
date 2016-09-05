@@ -10,16 +10,6 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-type Mark int
-
-func (self *Mark) Set(index uint) {
-	(*self) |= (1 << (index - 1))
-}
-
-func (self *Mark) Get(index uint) bool {
-	return (*self & (1 << (index - 1))) > 0
-}
-
 type TActivity interface {
 	//! 创建初始化
 	Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32)

@@ -111,6 +111,7 @@ var G_DataParserMap = map[string]TDataParser{
 	"type_activity_group_score":       {InitGroupPurchaseScoreParser, ParseGroupPurchaseScoreRecord, nil},
 	"type_activity_festival_task":     {InitFestivalTaskParser, ParseFestivalTaskRecord, nil},
 	"type_activity_festival_exchange": {InitFestivalExchangeParser, ParseFestivalExchangeRecord, nil},
+	"type_activity_festival_sale":     {InitFestivalSaleParser, ParseFestivalSaleRecord, nil},
 	"type_activity_week_award":        {InitActivityWeekAwardParser, ParseActivityWeekAwardRecord, nil},
 	"type_activity_level_gift":        {InitActivityLevelGiftParser, ParseActivityLevelGiftRecord, nil},
 	"type_activity_month_fund":        {InitActivityMonthFundParser, ParseActivityMonthFundRecord, nil},
@@ -204,8 +205,7 @@ var G_DataParserMap = map[string]TDataParser{
 	"type_robot": {InitRobotParser, ParseRobotRecord, nil},
 
 	//充值表
-	"type_monthcard": {InitMonthCardParser, ParseMonthCardRecord, nil},
-	"type_charge":    {InitChargeItemParser, ParseChargeItemRecord, nil},
+	"type_charge": {InitChargeItemParser, ParseChargeItemRecord, nil},
 
 	//觉醒表
 	"type_hero_wake":         {InitWakeLevelParser, ParseWakeLevelRecord, nil},

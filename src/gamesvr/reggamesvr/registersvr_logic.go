@@ -26,10 +26,10 @@ func RegisterToSvr() {
 //注册到账号服务器
 func RegisterToAccountRoutine() {
 	var registerReq msg.MSG_RegToAccountSvr_Req
-	registerReq.ServerDomainID = int32(appconfig.DomainID)
-	registerReq.ServerDomainName = appconfig.DomainName
-	registerReq.ServerOuterAddr = appconfig.GameSvrOuterIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
-	registerReq.ServerInnerAddr = appconfig.GameSvrInnerIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
+	registerReq.SvrID = int32(appconfig.GameSvrID)
+	registerReq.SvrName = appconfig.GameSvrName
+	registerReq.SvrOuterAddr = appconfig.GameSvrOuterIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
+	registerReq.SvrInnerAddr = appconfig.GameSvrInnerIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
 	b, _ := json.Marshal(registerReq)
 
 	for {
@@ -50,10 +50,10 @@ func RegisterToAccountRoutine() {
 //注册到跨服服务器
 func RegisterToCrossRoutine() {
 	var registerReq msg.MSG_RegToCrossSvr_Req
-	registerReq.ServerDomainID = int32(appconfig.DomainID)
-	registerReq.ServerDomainName = appconfig.DomainName
-	registerReq.ServerOuterAddr = appconfig.GameSvrOuterIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
-	registerReq.ServerInnerAddr = appconfig.GameSvrInnerIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
+	registerReq.SvrID = int32(appconfig.GameSvrID)
+	registerReq.SvrName = appconfig.GameSvrName
+	registerReq.SvrOuterAddr = appconfig.GameSvrOuterIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
+	registerReq.SvrInnerAddr = appconfig.GameSvrInnerIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
 	b, _ := json.Marshal(registerReq)
 
 	for {
@@ -73,7 +73,7 @@ func RegisterToCrossRoutine() {
 func RegisterToSdkSvr() {
 	PorstUrl := fmt.Sprintf("http://%s:%d/reg_gamesvr_addr", appconfig.SdkSvrInnerIp, appconfig.SdkSvrPort)
 	var req msg.SDKMsg_GamesvrAddr_Req
-	req.GamesvrID = appconfig.DomainID
+	req.GamesvrID = appconfig.GameSvrID
 	req.Url = fmt.Sprintf("http://%s:%d/", appconfig.GameSvrInnerIp, appconfig.GameSvrPort)
 	b, _ := json.Marshal(req)
 	for {

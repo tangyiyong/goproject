@@ -25,7 +25,7 @@ type MSG_ArenaPlayerInfo struct {
 	Name       string
 	HeroID     int
 	Quality    int8
-	FightValue int
+	FightValue int32
 }
 
 //! 玩家竞技场挑战次数

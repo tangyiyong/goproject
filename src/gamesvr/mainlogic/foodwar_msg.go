@@ -55,7 +55,7 @@ func Hand_FoodWar_GetChallenger(w http.ResponseWriter, r *http.Request) {
 
 	player.FoodWarModule.CheckTime()
 	player.FoodWarModule.CheckReset()
-	if len(g_SelectPlayers) < 5 {
+	if len(G_SelectPlayers) < 5 {
 		response.ChallengerLst = []msg.MSG_FoodWar_Challenger{}
 	} else {
 		for i := 0; i < 4; i++ {
@@ -229,7 +229,7 @@ func Hand_RobFood(w http.ResponseWriter, r *http.Request) {
 	response.RetCode = msg.RE_SUCCESS
 	response.RobFood = (player.FoodWarModule.TotalFood - player.FoodWarModule.FixedFood) * gamedata.FoodWarRobBili / 1000
 
-	if len(g_SelectPlayers) < 5 {
+	if len(G_SelectPlayers) < 5 {
 		response.ChallengerLst = []msg.MSG_FoodWar_Challenger{}
 	} else {
 		for i := 0; i < 4; i++ {
@@ -396,7 +396,7 @@ func Hand_FoodWar_GetStatus(w http.ResponseWriter, r *http.Request) {
 	player.FoodWarModule.CheckTime()
 	player.FoodWarModule.CheckReset()
 
-	if len(g_SelectPlayers) < 5 {
+	if len(G_SelectPlayers) < 5 {
 		response.ChallengerLst = []msg.MSG_FoodWar_Challenger{}
 	} else {
 		for i := 0; i < 4; i++ {

@@ -445,7 +445,7 @@ func Hand_GetHuntTurnsAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断该奖励是否已经领取
-	if player.ActivityModule.HuntTreasure.HuntAward.Get(uint(req.ID)) == true {
+	if player.ActivityModule.HuntTreasure.HuntAward.Get(uint32(req.ID)) == true {
 		gamelog.Error("Hand_GetHuntTurnsAward Error: %v Repeat get award %d", player.playerid, req.ID)
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
@@ -467,7 +467,7 @@ func Hand_GetHuntTurnsAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 改变标记
-	player.ActivityModule.HuntTreasure.HuntAward.Set(uint(req.ID))
+	player.ActivityModule.HuntTreasure.HuntAward.Set(uint32(req.ID))
 	go player.ActivityModule.HuntTreasure.DB_SaveHuntTurnsAwardMark()
 
 	response.RetCode = msg.RE_SUCCESS

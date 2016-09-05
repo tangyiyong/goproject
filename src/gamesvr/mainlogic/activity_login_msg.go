@@ -29,7 +29,6 @@ func Hand_QueryActivityLoginInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -121,7 +120,7 @@ func Hand_GetActivityLoginAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测是否已经领取
-	if activity.LoginAward.Get(uint(req.Index)) == true {
+	if activity.LoginAward.Get(uint32(req.Index)) == true {
 		gamelog.Error("Hand_GetActivityLoginInfo Error: Aleady recvice award %d", req.Index)
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
@@ -154,7 +153,7 @@ func Hand_GetActivityLoginAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 改变玩家标记
-	activity.LoginAward.Set(uint(req.Index))
+	activity.LoginAward.Set(uint32(req.Index))
 	go activity.DB_UpdateLoginAward(activityIndex)
 
 	//! 返回成功

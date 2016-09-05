@@ -85,7 +85,7 @@ func (self *TActivityMonthFund) RedTip() bool {
 	awardType := G_GlobalVariables.GetActivityAwardType(self.ActivityID)
 	awardCount := gamedata.GetMonthFundAwardCount(awardType)
 
-	if self.AwardMark.Get(uint(awardCount-self.Day+1)) == false { //! 今日奖励未领取
+	if self.AwardMark.Get(uint32(awardCount-self.Day+1)) == false { //! 今日奖励未领取
 		return true
 	}
 
@@ -128,7 +128,7 @@ func (self *TActivityMonthFund) AwardRetroactive() {
 
 	awardLst := []gamedata.ST_ItemData{}
 	for i := 1; i <= awardCount; i++ {
-		if self.AwardMark.Get(uint(i)) == false {
+		if self.AwardMark.Get(uint32(i)) == false {
 			//! 加入补发奖励名单
 			fundInfo := gamedata.GetMonthFundAward(awardType, i)
 			awardLst = append(awardLst, gamedata.ST_ItemData{fundInfo.ItemID, fundInfo.ItemNum})

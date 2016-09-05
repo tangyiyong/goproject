@@ -30,7 +30,6 @@ func Hand_QueryLuckyWheel(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -114,7 +113,6 @@ func Hand_QueryLuckyWheel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.NormalFreeTimes = player.ActivityModule.LuckyWheel.NormalFreeTimes
-	response.ExcitedFreeTimes = player.ActivityModule.LuckyWheel.ExcitedFreeTimes
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -140,7 +138,6 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -163,6 +160,8 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 	if utility.GetCurDayMod() == 1 {
 		indexToday = 1
 	}
+
+	moneyNum := player.RoleMoudle.GetMoney(gamedata.ExcitedWheelMoneyID)
 
 	//! 判断是否为豪华转盘
 	if req.IsExcited == 1 {
@@ -192,7 +191,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 			} else {
 				//! 直接扣除免费次数
 				player.ActivityModule.LuckyWheel.NormalFreeTimes -= 1
-				player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelFreeTimes(1)
+				player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelFreeTimes()
 				response.CostFreeTimes = 1
 			}
 			//! 奖金池变化
@@ -218,7 +217,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 				//! 扣除免费次数
 				response.CostFreeTimes = player.ActivityModule.LuckyWheel.NormalFreeTimes
 				player.ActivityModule.LuckyWheel.NormalFreeTimes = 0
-				player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelFreeTimes(1)
+				player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelFreeTimes()
 
 				//! 扣除道具
 				player.BagMoudle.RemoveNormalItem(gamedata.LuckyWheelCostItemID, needItemNum)
@@ -244,31 +243,15 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 	} else if req.IsExcited == 2 {
 		//! 豪华转盘
 		if req.IsStartTenTimes == 0 {
-			//! 判断是否有免费次数
-			if player.ActivityModule.LuckyWheel.ExcitedFreeTimes < 1 {
-				//! 没有免费次数,判断道具
-				if player.BagMoudle.IsItemEnough(gamedata.LuckyWheelCostItemID, 10) == false {
-					//! 花费货币
-					if player.RoleMoudle.CheckMoneyEnough(gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum) == false {
-						gamelog.Error("Hand_RotatingWheel Error: Money not enough  Need: %d %d", gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum)
-						response.RetCode = msg.RE_NOT_ENOUGH_MONEY
-						return
-					} else {
-						//! 扣除金币
-						player.RoleMoudle.CostMoney(gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum)
-						response.CostItem = msg.MSG_ItemData{gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum}
-					}
-				} else {
-					//! 扣除道具
-					player.BagMoudle.RemoveNormalItem(gamedata.LuckyWheelCostItemID, 10)
-					response.CostItem = msg.MSG_ItemData{gamedata.LuckyWheelCostItemID, 10}
-				}
-
+			//! 只允许使用钻石
+			if player.RoleMoudle.CheckMoneyEnough(gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum) == false {
+				gamelog.Error("Hand_RotatingWheel Error: Money not enough  Need: %d %d", gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum)
+				response.RetCode = msg.RE_NOT_ENOUGH_MONEY
+				return
 			} else {
-				//! 直接扣除免费次数
-				player.ActivityModule.LuckyWheel.ExcitedFreeTimes -= 1
-				player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelFreeTimes(2)
-				response.CostFreeTimes = 1
+				//! 扣除金币
+				player.RoleMoudle.CostMoney(gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum)
+				response.CostItem = msg.MSG_ItemData{gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum}
 			}
 
 			//! 奖金池变化
@@ -279,27 +262,16 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 			player.ActivityModule.LuckyWheel.TodayScore[indexToday] += 100
 			player.ActivityModule.LuckyWheel.TotalScore += 100
 		} else {
-			needItemNum := 100 - player.ActivityModule.LuckyWheel.ExcitedFreeTimes
-			if player.BagMoudle.IsItemEnough(gamedata.LuckyWheelCostItemID, needItemNum) == false {
-				//! 道具+免费次数不足十次, 则直接扣去钻石
-				if player.RoleMoudle.CheckMoneyEnough(gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum*10) == false {
-					gamelog.Error("Hand_RotatingWheel Error: Money not enough Need: %d %d ", gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum)
-					response.RetCode = msg.RE_NOT_ENOUGH_MONEY
-					return
-				} else {
-					//! 扣除金币
-					response.CostItem = msg.MSG_ItemData{gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum * 10}
-					player.RoleMoudle.CostMoney(gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum*10)
-				}
+			//! 十连抽只允许使用钻石
+			if player.RoleMoudle.CheckMoneyEnough(gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum*10) == false {
+				gamelog.Error("Hand_RotatingWheel Error: Money not enough Need: %d %d ", gamedata.ExcitedWheelMoneyNum*10, gamedata.ExcitedWheelMoneyNum)
+				response.RetCode = msg.RE_NOT_ENOUGH_MONEY
+				return
 			} else {
-				//! 扣除免费次数
-				response.CostFreeTimes = player.ActivityModule.LuckyWheel.ExcitedFreeTimes
-				player.ActivityModule.LuckyWheel.ExcitedFreeTimes = 0
-				player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelFreeTimes(2)
+				//! 扣除金币
+				response.CostItem = msg.MSG_ItemData{gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum * 10}
 
-				//! 扣除道具
-				player.BagMoudle.RemoveNormalItem(gamedata.LuckyWheelCostItemID, needItemNum)
-				response.CostItem = msg.MSG_ItemData{gamedata.LuckyWheelCostItemID, needItemNum}
+				player.RoleMoudle.CostMoney(gamedata.ExcitedWheelMoneyID, gamedata.ExcitedWheelMoneyNum*10)
 			}
 
 			//! 奖金池变化
@@ -337,7 +309,6 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 						G_GlobalVariables.NormalMoneyPoor = 0
 					}
 					player.RoleMoudle.AddMoney(itemID, awardMoney)
-					go G_GlobalVariables.DB_SaveMoneyPoor()
 					response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{itemID, awardMoney})
 
 				} else {
@@ -346,8 +317,8 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 					if G_GlobalVariables.ExcitedMoneyPoor < 0 {
 						G_GlobalVariables.ExcitedMoneyPoor = 0
 					}
+
 					player.RoleMoudle.AddMoney(itemID, awardMoney)
-					go G_GlobalVariables.DB_SaveMoneyPoor()
 					response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{itemID, awardMoney})
 				}
 
@@ -362,6 +333,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 
 		}
 
+		go G_GlobalVariables.DB_SaveMoneyPoor()
 	} else {
 		itemID, itemNum, isSpecial, index := player.ActivityModule.LuckyWheel.RandWheelAward(req.IsExcited)
 		if isSpecial == 1 {
@@ -395,6 +367,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 		response.AwardIndex = index + 1
 	}
 
+	response.MoneyNum = moneyNum - player.RoleMoudle.GetMoney(gamedata.ExcitedWheelMoneyID)
 	response.NormalMoneyPoor = G_GlobalVariables.NormalMoneyPoor
 	response.ExcitedMoneyPoor = G_GlobalVariables.ExcitedMoneyPoor
 	response.Score = player.ActivityModule.LuckyWheel.TodayScore[indexToday]

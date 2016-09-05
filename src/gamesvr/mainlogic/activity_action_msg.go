@@ -31,7 +31,6 @@ func Hand_QueryActivityActionInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -109,7 +108,7 @@ func Hand_ReceiveActivityAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断玩家是否已经领取
-	if player.ActivityModule.ReceiveAction.RecvAction.Get(uint(index)) == true {
+	if player.ActivityModule.ReceiveAction.RecvAction.Get(uint32(index)) == true {
 		gamelog.Error("Hand_ReceiveActivityAction Error: Aleady recv action")
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
@@ -123,7 +122,7 @@ func Hand_ReceiveActivityAction(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 修改领取标记
-	player.ActivityModule.ReceiveAction.RecvAction.Set(uint(index))
+	player.ActivityModule.ReceiveAction.RecvAction.Set(uint32(index))
 	go player.ActivityModule.ReceiveAction.DB_Refresh()
 
 	response.Index = index
@@ -208,7 +207,7 @@ func Hand_ActionRetroactive(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测是否已领取该时间段奖励
-	if player.ActivityModule.ReceiveAction.RecvAction.Get(uint(req.Index)) == true {
+	if player.ActivityModule.ReceiveAction.RecvAction.Get(uint32(req.Index)) == true {
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		gamelog.Error("Hand_ActionRetroactive Error: Aleady received")
 		return
@@ -228,7 +227,7 @@ func Hand_ActionRetroactive(w http.ResponseWriter, r *http.Request) {
 	response.CostItem = append(response.CostItem, msg.MSG_ItemData{gamedata.ActionActivityRetroactiveMoneyID, gamedata.ActionActivityRetroactiveMoneyNum})
 
 	//! 修改领取标记
-	player.ActivityModule.ReceiveAction.RecvAction.Set(uint(req.Index))
+	player.ActivityModule.ReceiveAction.RecvAction.Set(uint32(req.Index))
 	go player.ActivityModule.ReceiveAction.DB_Refresh()
 
 	//! 增加玩家体力

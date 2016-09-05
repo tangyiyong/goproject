@@ -249,7 +249,7 @@ func (self *TBagMoudle) AddAwardItem(itemid int, num int) bool {
 //获取指定位置索取引的英雄
 func (self *TBagMoudle) GetBagHeroByPos(pos int) *THeroData {
 	if (pos < 0) || (pos >= len(self.HeroBag.Heros)) {
-		gamelog.Error("GetHeroByPos Error Invalid Pos :%d", pos)
+		gamelog.Error("GetBagHeroByPos Error Invalid Pos :%d", pos)
 		return nil
 	}
 
@@ -258,7 +258,7 @@ func (self *TBagMoudle) GetBagHeroByPos(pos int) *THeroData {
 
 func (self *TBagMoudle) SetBagHeroByPos(pos int, pHero *THeroData) bool {
 	if (pos < 0) || (pos >= len(self.HeroBag.Heros)) {
-		gamelog.Error("SetHeroByPos Error Invalid Pos :%d", pos)
+		gamelog.Error("SetBagHeroByPos Error Invalid Pos :%d", pos)
 		return false
 	}
 
@@ -270,7 +270,7 @@ func (self *TBagMoudle) SetBagHeroByPos(pos int, pHero *THeroData) bool {
 //获取背包英雄的总数
 func (self *TBagMoudle) GetBagHeroCount() int {
 	if self.HeroBag.Heros == nil {
-		gamelog.Error("GetHeroCount nil pointer")
+		gamelog.Error("GetBagHeroCount nil pointer")
 		return 0
 	}
 

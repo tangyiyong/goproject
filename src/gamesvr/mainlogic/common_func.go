@@ -46,12 +46,12 @@ func GetOpenServerDay() int {
 
 //获取当前服务器ID
 func GetCurServerID() int32 {
-	return int32(appconfig.DomainID)
+	return int32(appconfig.GameSvrID)
 }
 
 //获取当前服务器名称
 func GetCurServerName() string {
-	return appconfig.DomainName
+	return appconfig.GameSvrName
 }
 
 //! 自定义类型
@@ -123,4 +123,14 @@ func (self Int32Lst) Swap(i int32, j int32) {
 	temp := (self)[i]
 	(self)[i] = (self)[j]
 	(self)[j] = temp
+}
+
+type Mark uint32
+
+func (self *Mark) Set(index uint32) {
+	(*self) |= (1 << (index - 1))
+}
+
+func (self *Mark) Get(index uint32) bool {
+	return (*self & (1 << (index - 1))) > 0
 }

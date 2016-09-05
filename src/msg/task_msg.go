@@ -14,9 +14,28 @@ type TTaskInfo struct {
 	TaskCount  int //! 任务次数
 }
 
+type MSG_ScoreAward struct {
+	ScoreAwardID int
+	Status       bool
+}
+
+//! 角色成就表结构
+type TAchievementInfo struct {
+	ID         int //! 成就ID
+	TaskStatus int //! 成就达成状态 0-> 未完成 1-> 已完成  2-> 已领取
+	TaskCount  int //! 成就达成次数
+}
+
 type MSG_GetTasks_Ack struct {
 	RetCode int
 	Tasks   []TTaskInfo
+
+	//! 日常任务积分信息
+	TaskScore     int              //! 当前任务积分
+	ScoreAwardLst []MSG_ScoreAward //! 积分宝箱ID
+
+	//! 成就信息
+	List []TAchievementInfo
 }
 
 //! 玩家请求日常任务完成奖励
@@ -45,43 +64,6 @@ type MSG_GetTaskScoreAward_Ack struct {
 	RetCode       int
 	ScoreAwardLst []MSG_ScoreAward //! 现在积分宝箱领取状态
 	ItemLst       []MSG_ItemData
-}
-
-//! 玩家请求任务积分信息
-//! 消息: /get_taskscore
-type MSG_GetTaskScores_Req struct {
-	PlayerID   int32
-	SessionKey string
-}
-
-type MSG_ScoreAward struct {
-	ScoreAwardID int
-	Status       bool
-}
-
-type MSG_GetTaskScores_Ack struct {
-	RetCode       int
-	TaskScore     int              //! 当前任务积分
-	ScoreAwardLst []MSG_ScoreAward //! 积分宝箱ID
-}
-
-//! 获取当前成就任务
-//! 消息: /get_achievement
-type MSG_GetAchievementAll_Req struct {
-	PlayerID   int32
-	SessionKey string
-}
-
-//! 角色成就表结构
-type TAchievementInfo struct {
-	ID         int //! 成就ID
-	TaskStatus int //! 成就达成状态 0-> 未完成 1-> 已完成  2-> 已领取
-	TaskCount  int //! 成就达成次数
-}
-
-type MSG_GetAchievementAll_Ack struct {
-	RetCode int
-	List    []TAchievementInfo
 }
 
 //! 请求成就奖励

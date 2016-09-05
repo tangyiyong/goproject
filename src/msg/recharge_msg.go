@@ -11,9 +11,10 @@ type MSG_GetChargeInfo_Req struct {
 }
 
 type MSG_GetChargeInfo_Ack struct {
-	RetCode     int
-	ChargeTimes []int //首充状态
-	CardDays    []int //月卡剩余天数
+	RetCode          int
+	ChargeTimes      []int //首充状态
+	CardDays         []int //月卡剩余天数
+	ActivityChargeID int   //优惠充值ID（0无）
 }
 
 //! 玩家请求充值结果

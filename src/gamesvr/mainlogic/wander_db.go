@@ -13,7 +13,7 @@ func (self *TWanderModule) DB_Reset() {
 		"canbattle":  self.CanBattle,
 		"maxcopyid":  self.MaxCopyID,
 		"singlefree": self.SingleFree,
-		"leftTime":   self.LeftTime}})
+		"lefttime":   self.LeftTime}})
 }
 
 func (self *TWanderModule) DB_ResetSingleFreeDay() {

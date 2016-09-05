@@ -94,7 +94,7 @@ func (hang *THangUpMoudle) OnNewDay(newday uint32) {
 	hang.DB_SaveQuickFightTime()
 }
 
-func (hang *THangUpMoudle) CalcHangUpRatio(roleFight int, bossFight int) int {
+func (hang *THangUpMoudle) CalcHangUpRatio(roleFight int32, bossFight int) int {
 	var r = float64(roleFight)
 	var b = float64(bossFight)
 	ratio := r / b

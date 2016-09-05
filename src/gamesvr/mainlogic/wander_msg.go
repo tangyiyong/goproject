@@ -315,13 +315,21 @@ func Hand_WanderResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.WanderMoudle.MaxCopyID == 0 {
+	if req.TargetCopyID <= player.WanderMoudle.CurCopyID {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_WanderResult Error: Invalid target copyid :%d, maxid:%d", req.TargetCopyID, player.WanderMoudle.CurCopyID)
+		return
+	}
+
+	if player.WanderMoudle.CurCopyID == 0 {
 		if req.TargetCopyID != gamedata.WanderBeginID {
-			gamelog.Error("Hand_WanderResult Error: Invalid target copyid :%d", req.TargetCopyID)
+			response.RetCode = msg.RE_INVALID_PARAM
+			gamelog.Error("Hand_WanderResult Error: Invalid target copyid :%d, beginid:%d, curid:%d", req.TargetCopyID, gamedata.WanderBeginID, player.WanderMoudle.CurCopyID)
 			return
 		}
-	} else if req.TargetCopyID != player.WanderMoudle.MaxCopyID+1 {
-		gamelog.Error("Hand_WanderResult Error: Invalid target copyid :%d", req.TargetCopyID)
+	} else if req.TargetCopyID != player.WanderMoudle.CurCopyID+1 {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_WanderResult Error: Invalid target copyid :%d, beginid:%d, curid:%d", req.TargetCopyID, gamedata.WanderBeginID, player.WanderMoudle.CurCopyID)
 		return
 	}
 

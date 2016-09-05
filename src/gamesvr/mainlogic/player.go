@@ -33,7 +33,6 @@ type TPlayer struct {
 	RoleMoudle  TRoleMoudle   //基本角色模块
 	HeroMoudle  THeroMoudle   //战斗英雄模块
 	TaskMoudle  TTaskMoudle   //任务模块
-	VipMoudle   TVipMoudle    //VIP数据模块
 	MailMoudle  TMailMoudle   //邮件模块
 	CopyMoudle  TCopyMoudle   //副本模块
 	BagMoudle   TBagMoudle    //背包模块
@@ -80,7 +79,6 @@ func (player *TPlayer) InitModules(playerid int32) {
 	player.RoleMoudle.SetPlayerPtr(playerid, player)
 	player.HeroMoudle.SetPlayerPtr(playerid, player)
 	player.TaskMoudle.SetPlayerPtr(playerid, player)
-	player.VipMoudle.SetPlayerPtr(playerid, player)
 	player.MailMoudle.SetPlayerPtr(playerid, player)
 	player.CopyMoudle.SetPlayerPtr(playerid, player)
 	player.BagMoudle.SetPlayerPtr(playerid, player)
@@ -118,7 +116,6 @@ func (player *TPlayer) OnCreate(playerid int32) {
 	player.RoleMoudle.OnCreate(playerid)
 	player.HeroMoudle.OnCreate(playerid)
 	player.TaskMoudle.OnCreate(playerid)
-	player.VipMoudle.OnCreate(playerid)
 	player.MailMoudle.OnCreate(playerid)
 	player.CopyMoudle.OnCreate(playerid)
 	player.BagMoudle.OnCreate(playerid)
@@ -153,7 +150,6 @@ func (player *TPlayer) OnDestroy(playerid int32) {
 	player.RoleMoudle.OnDestroy(playerid)
 	player.HeroMoudle.OnDestroy(playerid)
 	player.TaskMoudle.OnDestroy(playerid)
-	player.VipMoudle.OnDestroy(playerid)
 	player.MailMoudle.OnDestroy(playerid)
 	player.CopyMoudle.OnDestroy(playerid)
 	player.BagMoudle.OnDestroy(playerid)
@@ -190,7 +186,6 @@ func (player *TPlayer) OnPlayerOnline(playerid int32) {
 	player.RoleMoudle.OnPlayerOnline(playerid)
 	player.HeroMoudle.OnPlayerOnline(playerid)
 	player.TaskMoudle.OnPlayerOnline(playerid)
-	player.VipMoudle.OnPlayerOnline(playerid)
 	player.MailMoudle.OnPlayerOnline(playerid)
 	player.CopyMoudle.OnPlayerOnline(playerid)
 	player.BagMoudle.OnPlayerOnline(playerid)
@@ -225,7 +220,6 @@ func (player *TPlayer) OnPlayerOffline(playerid int32) {
 	player.RoleMoudle.OnPlayerOffline(playerid)
 	player.HeroMoudle.OnPlayerOffline(playerid)
 	player.TaskMoudle.OnPlayerOffline(playerid)
-	player.VipMoudle.OnPlayerOffline(playerid)
 	player.MailMoudle.OnPlayerOffline(playerid)
 	player.CopyMoudle.OnPlayerOffline(playerid)
 	player.BagMoudle.OnPlayerOffline(playerid)
@@ -266,8 +260,6 @@ func (player *TPlayer) OnPlayerLoad(playerid int32) {
 	go player.HeroMoudle.OnPlayerLoad(playerid, &wg)
 	wg.Add(1)
 	go player.TaskMoudle.OnPlayerLoad(playerid, &wg)
-	wg.Add(1)
-	go player.VipMoudle.OnPlayerLoad(playerid, &wg)
 	wg.Add(1)
 	go player.MailMoudle.OnPlayerLoad(playerid, &wg)
 	wg.Add(1)
@@ -332,7 +324,6 @@ func (player *TPlayer) OnPlayerLoadSync(playerid int32) {
 	player.RoleMoudle.OnPlayerLoad(playerid, nil)
 	player.HeroMoudle.OnPlayerLoad(playerid, nil)
 	player.TaskMoudle.OnPlayerLoad(playerid, nil)
-	player.VipMoudle.OnPlayerLoad(playerid, nil)
 	player.MailMoudle.OnPlayerLoad(playerid, nil)
 	player.CopyMoudle.OnPlayerLoad(playerid, nil)
 	player.BagMoudle.OnPlayerLoad(playerid, nil)
@@ -379,18 +370,18 @@ func (player *TPlayer) Unlock() {
 }
 
 //计算战力
-func (player *TPlayer) CalcFightValue() int {
+func (player *TPlayer) CalcFightValue() int32 {
 	oldValue := player.pSimpleInfo.FightValue
 	value := player.HeroMoudle.CalcFightValue(nil)
 	if true == G_SimpleMgr.Set_FightValue(player.playerid, value, player.GetLevel()) {
-		G_FightRanker.SetRankItemEx(player.playerid, oldValue, value)
-		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FIGHT_VALUE, value)
+		G_FightRanker.SetRankItemEx(player.playerid, int(oldValue), int(value))
+		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FIGHT_VALUE, int(value))
 	}
 	return value
 }
 
 //计算战力
-func (player *TPlayer) GetFightValue() int {
+func (player *TPlayer) GetFightValue() int32 {
 	if player.pSimpleInfo == nil {
 		gamelog.Error("GetFightValue Error pSimpleInfo is nil :%d", player.playerid)
 		return G_SimpleMgr.Get_FightValue(player.playerid)
@@ -488,10 +479,7 @@ func (player *TPlayer) GetHeroByPos(postype int, pos int) *THeroData {
 
 //响应充值人民币
 func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
-	var (
-		Diamond = 0
-	)
-
+	var getDiamond = 0
 	pChargeInfo := gamedata.GetChargeItem(chargeid)
 	if pChargeInfo == nil {
 		gamelog.Error("OnChargeMoney Error : Invalid chargeid :%d", chargeid)
@@ -499,7 +487,7 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 	}
 
 	//普通充值
-	if pChargeInfo.Type == 1 || pChargeInfo.Type == 3 { //! 普通充值或优惠充值
+	if pChargeInfo.Type == 2 || pChargeInfo.Type == 3 { //! 普通充值或优惠充值
 		if RenMinBi < pChargeInfo.RenMinBi {
 			gamelog.Error("OnChargeMoney RMB not enough: Chargeid(%d), RMB(%d)", chargeid, RenMinBi)
 			return false
@@ -511,36 +499,29 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 				gamelog.Error("OnChargeMoney Error : Not have permission. Discount chargeID: %d", chargeid)
 				return false
 			}
-		}
-
-		player.ChargeModule.AddChargeTimes(pChargeInfo.ID)
-		Diamond = pChargeInfo.Diamond
-		player.RoleMoudle.AddMoney(gamedata.ChargeMoneyID, Diamond)
-
-		// 给充值奖励
-		var awardID int
-		if player.ChargeModule.IsFirstCharge(pChargeInfo.ID) {
-			awardID = pChargeInfo.FirstAwardID
-		} else {
-			awardID = pChargeInfo.AwardID
-		}
-
-		if pChargeInfo.Type == 3 {
-			//! 通知充值优惠模块,清空充值优惠字段
-			awardID = pChargeInfo.AwardID
-
-			player.RoleMoudle.AddMoney(1, pChargeInfo.ExtraAward)
-
 			player.ActivityModule.LimitSale.DiscountChargeClear()
 		}
 
-		items := gamedata.GetItemsFromAwardID(awardID)
-		player.BagMoudle.AddAwardItems(items)
+		// 首充奖励
+		if pChargeInfo.FirstAwardID > 0 && player.ChargeModule.IsFirstCharge(pChargeInfo.ID) {
+			items := gamedata.GetItemsFromAwardID(pChargeInfo.FirstAwardID)
+			player.BagMoudle.AddAwardItems(items)
+		}
+
+		player.ChargeModule.AddChargeTimes(pChargeInfo.ID)
+		player.RoleMoudle.AddMoney(gamedata.ChargeMoneyID, pChargeInfo.Diamond)
+		getDiamond += pChargeInfo.Diamond
+
+		// 额外钻石奖励
+		if pChargeInfo.ExtraAward > 0 {
+			player.RoleMoudle.AddMoney(gamedata.ChargeMoneyID, pChargeInfo.ExtraAward)
+			getDiamond += pChargeInfo.ExtraAward
+		}
 
 		//! 发放通知邮件
 		SendRechargeMail(player.playerid, RenMinBi)
 
-	} else if pChargeInfo.Type == 2 { //! 月卡
+	} else if pChargeInfo.Type == 1 { //! 月卡
 		player.ActivityModule.CheckReset()
 
 		if RenMinBi < pChargeInfo.RenMinBi {
@@ -552,15 +533,16 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 			gamelog.Error("OnChargeMoney Error : Repeat purchase")
 			return false
 		}
-		player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID] += 30
-		player.RoleMoudle.AddMoney(1, pChargeInfo.ExtraAward)
+		player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID] += pChargeInfo.DayNum
+		player.RoleMoudle.AddMoney(gamedata.ChargeMoneyID, pChargeInfo.Diamond)
+		getDiamond += pChargeInfo.Diamond
 
 		go player.ActivityModule.MonthCard.DB_UpdateCardDays(pChargeInfo.ID, player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID])
 	}
 
-	player.RoleMoudle.AddVipExp(Diamond)
+	player.RoleMoudle.AddVipExp(getDiamond)
 
-	player.OnChargeMoney(RenMinBi, Diamond)
+	player.OnChargeMoney(RenMinBi, getDiamond)
 
 	return true
 }

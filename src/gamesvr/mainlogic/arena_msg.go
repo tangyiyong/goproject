@@ -234,7 +234,6 @@ func Hand_ArenaBattle(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -345,7 +344,6 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -614,7 +612,6 @@ func Hand_GetArenaStoreAleadyBuyAwardLst(w http.ResponseWriter, r *http.Request)
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测
@@ -659,7 +656,6 @@ func Hand_BuyArenaStoreItem(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检测

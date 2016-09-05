@@ -77,6 +77,8 @@ func Hand_GetGroupPurchaseInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	response.ScoreAwardMark = []int{}
+	response.ScoreAwardMark = player.ActivityModule.GroupPurchase.ScoreAwardMark
 	response.AwardType = awardType
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -100,7 +102,6 @@ func Hand_BuyGroupPurchaseItem(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -172,39 +173,6 @@ func Hand_BuyGroupPurchaseItem(w http.ResponseWriter, r *http.Request) {
 	response.RetCode = msg.RE_SUCCESS
 }
 
-//! 玩家请求查询积分奖励
-func Hand_QueryGroupPurchaseScoreAward(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message:%s", r.URL.String())
-
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-
-	var req msg.MSG_GetGroupPurchaseScore_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_GetGroupPurchaseScoreAward Error: Unmarshal fail")
-		return
-	}
-
-	var response msg.MSG_GetGroupPurchaseScore_Ack
-	response.RetCode = msg.RE_UNKNOWN_ERR
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-	}()
-
-	var player *TPlayer = nil
-	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if player == nil {
-		return
-	}
-
-	player.ActivityModule.CheckReset()
-
-	response.ScoreAwardMark = player.ActivityModule.GroupPurchase.ScoreAwardMark
-	response.RetCode = msg.RE_SUCCESS
-}
-
 //! 玩家请求积分奖励
 func Hand_GetGroupPurchaseScoreAward(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message:%s", r.URL.String())
@@ -261,4 +229,5 @@ func Hand_GetGroupPurchaseScoreAward(w http.ResponseWriter, r *http.Request) {
 	//! 增加记录
 	player.ActivityModule.GroupPurchase.ScoreAwardMark.Add(req.ID)
 	player.ActivityModule.GroupPurchase.DB_AddScoreAward(req.ID)
+	response.RetCode = msg.RE_SUCCESS
 }

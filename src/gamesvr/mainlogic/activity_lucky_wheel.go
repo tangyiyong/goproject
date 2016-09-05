@@ -18,7 +18,6 @@ type TActivityWheel struct {
 	NormalAwardLst       []int            //! 奖品ID列表
 	ExcitedAwardLst      []int            //! 豪华ID列表
 	NormalFreeTimes      int              //! 普通轮盘免费次数
-	ExcitedFreeTimes     int              //! 豪华轮盘免费次数
 	TodayScore           [2]int           //! 奇偶分数交换使用
 	TotalScore           int              //! 总分数
 	IsRecvTodayRankAward bool             //! 今日排行奖励领取标记
@@ -47,7 +46,6 @@ func (self *TActivityWheel) Init(activityID int, mPtr *TActivityModule, vercode 
 	self.ExcitedAwardLst = gamedata.GetLuckyWheelItemFromDay(activityInfo.AwardType, 2)
 
 	self.NormalFreeTimes = gamedata.NormalWheelFreeTimes
-	self.ExcitedFreeTimes = gamedata.ExcitedWheelFreeTimes
 	self.IsRecvTodayRankAward = false
 	self.IsRecvTotalRankAward = false
 	self.TotalScore = 0
@@ -62,7 +60,6 @@ func (self *TActivityWheel) Refresh(versionCode int32) {
 	//! 数据变更
 	self.IsRecvTodayRankAward = false
 	self.NormalFreeTimes = gamedata.NormalWheelFreeTimes
-	self.ExcitedFreeTimes = gamedata.ExcitedWheelFreeTimes
 	self.VersionCode = versionCode
 	go self.DB_Refresh()
 }
@@ -72,7 +69,6 @@ func (self *TActivityWheel) End(versionCode int32, resetCode int32) {
 	self.NormalAwardLst = []int{}
 	self.ExcitedAwardLst = []int{}
 	self.NormalFreeTimes = 0
-	self.ExcitedFreeTimes = 0
 	self.IsRecvTodayRankAward = false
 	self.IsRecvTotalRankAward = false
 	self.TotalScore = 0
@@ -121,7 +117,7 @@ func (self *TActivityWheel) RedTip() bool {
 	//! 检查排行榜是否有名次
 	isEnd, _ := G_GlobalVariables.IsActivityTime(self.ActivityID)
 	if isEnd == true {
-		if self.NormalFreeTimes != 0 || self.ExcitedFreeTimes != 0 {
+		if self.NormalFreeTimes != 0 {
 			return true //! 拥有免费次数则返回红点
 		}
 
@@ -211,7 +207,6 @@ func (self *TActivityWheel) DB_Refresh() {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
 		"luckywheel.isrecvtodayrankaward": self.IsRecvTodayRankAward,
 		"luckywheel.normalfreetimes":      self.NormalFreeTimes,
-		"luckywheel.excitedfreetimes":     self.ExcitedFreeTimes,
 		"luckywheel.versioncode":          self.VersionCode}})
 }
 
@@ -221,7 +216,6 @@ func (self *TActivityWheel) DB_Reset() {
 		"luckywheel.normalawardlst":       self.NormalAwardLst,
 		"luckywheel.excitedawardlst":      self.ExcitedAwardLst,
 		"luckywheel.normalfreetimes":      self.NormalFreeTimes,
-		"luckywheel.excitedfreetimes":     self.ExcitedFreeTimes,
 		"luckywheel.versioncode":          self.VersionCode,
 		"luckywheel.isrecvtotalrankaward": self.IsRecvTotalRankAward,
 		"luckywheel.isrecvtodayrankaward": self.IsRecvTodayRankAward,
@@ -236,14 +230,10 @@ func (self *TActivityWheel) DB_SaveLuckyWheelScore() {
 		"luckywheel.totalscore": self.TotalScore}})
 }
 
-func (self *TActivityWheel) DB_SaveLuckyWheelFreeTimes(wheelType int) {
-	if wheelType == 1 {
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
-			"luckywheel.normalfreetimes": self.NormalFreeTimes}})
-	} else if wheelType == 2 {
-		mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
-			"luckywheel.excitedfreetimes": self.ExcitedFreeTimes}})
-	}
+func (self *TActivityWheel) DB_SaveLuckyWheelFreeTimes() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+		"luckywheel.normalfreetimes": self.NormalFreeTimes}})
+
 }
 
 func (self *TActivityWheel) DB_UpdateWheelTodayRankAward() {

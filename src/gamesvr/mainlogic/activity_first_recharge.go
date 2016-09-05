@@ -72,7 +72,7 @@ func (self *TActivityFirstRecharge) RedTip() bool {
 func (self *TActivityFirstRecharge) CheckRecharge(rmb int) {
 	if self.FirstRechargeAward == 0 { //! 首充
 		self.FirstRechargeAward = 1
-	} else if rmb >= gamedata.NextAwardNeedRecharge { //! 次充
+	} else if rmb >= gamedata.NextAwardNeedRecharge && self.NextRechargeAward == 0 { //! 次充
 		self.NextRechargeAward = 1
 	}
 

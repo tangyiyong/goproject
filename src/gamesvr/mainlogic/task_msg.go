@@ -46,6 +46,27 @@ func Hand_GetAllTask(w http.ResponseWriter, r *http.Request) {
 		response.Tasks = append(response.Tasks, task)
 	}
 	response.RetCode = msg.RE_SUCCESS
+
+	response.TaskScore = player.TaskMoudle.TaskScore
+
+	for _, v := range player.TaskMoudle.ScoreAwardID {
+		var scoreaward msg.MSG_ScoreAward
+		scoreaward.ScoreAwardID = v
+		if player.TaskMoudle.ScoreAwardStatus.IsExist(v) >= 0 {
+			scoreaward.Status = true
+		} else {
+			scoreaward.Status = false
+		}
+		response.ScoreAwardLst = append(response.ScoreAwardLst, scoreaward)
+	}
+
+	for _, v := range player.TaskMoudle.AchievementList {
+		node := msg.TAchievementInfo{}
+		node.ID = v.ID
+		node.TaskCount = v.TaskCount
+		node.TaskStatus = v.TaskStatus
+		response.List = append(response.List, node)
+	}
 }
 
 //! 领取任务奖励
@@ -202,94 +223,6 @@ func Hand_GetTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//! 请求日常任务积分信息
-func Hand_GetTaskScoreInfo(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message: %s", r.URL.String())
-
-	//! 接收消息
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-
-	//! 解析消息
-	var req msg.MSG_GetTaskScores_Req
-	if json.Unmarshal(buffer, &req) != nil {
-		gamelog.Error("Hand_GetTaskScoreAward : Unmarshal error!!!!")
-		return
-	}
-
-	var response msg.MSG_GetTaskScores_Ack
-	response.RetCode = msg.RE_UNKNOWN_ERR
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-	}()
-
-	//! 获取玩家信息
-	var player *TPlayer = nil
-	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if player == nil {
-		return
-	}
-
-	player.TaskMoudle.CheckReset()
-
-	response.RetCode = msg.RE_SUCCESS
-	response.TaskScore = player.TaskMoudle.TaskScore
-
-	for _, v := range player.TaskMoudle.ScoreAwardID {
-		var scoreaward msg.MSG_ScoreAward
-		scoreaward.ScoreAwardID = v
-		if player.TaskMoudle.ScoreAwardStatus.IsExist(v) >= 0 {
-			scoreaward.Status = true
-		} else {
-			scoreaward.Status = false
-		}
-		response.ScoreAwardLst = append(response.ScoreAwardLst, scoreaward)
-	}
-}
-
-//! 请求所有成就
-func Hand_GetAllAchievement(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message: %s", r.URL.String())
-
-	//! 接收消息
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-
-	//! 解析消息
-	var req msg.MSG_GetAchievementAll_Req
-	if json.Unmarshal(buffer, &req) != nil {
-		gamelog.Error("Hand_GetAllAchievement : Unmarshal error!!!!")
-		return
-	}
-
-	var response msg.MSG_GetAchievementAll_Ack
-	response.RetCode = msg.RE_UNKNOWN_ERR
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-	}()
-
-	//! 常规检查
-	var player *TPlayer = nil
-	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if player == nil {
-		return
-	}
-
-	player.TaskMoudle.CheckReset()
-
-	for _, v := range player.TaskMoudle.AchievementList {
-		node := msg.TAchievementInfo{}
-		node.ID = v.ID
-		node.TaskCount = v.TaskCount
-		node.TaskStatus = v.TaskStatus
-		response.List = append(response.List, node)
-	}
-
-	response.RetCode = msg.RE_SUCCESS
-}
-
 //! 请求领取成就奖励
 func Hand_GetAchievementAward(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
@@ -311,7 +244,6 @@ func Hand_GetAchievementAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -389,7 +321,6 @@ func Hand_GetServerOpenDay(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查

@@ -52,18 +52,53 @@ type MSG_Send_Award_Player_Ack struct {
 }
 
 //! 查看当前服务器状态
-//! 消息: /server_state_info
-type MSG_ServerStateInfo_Req struct {
+//! 消息: /get_server_info
+type MSG_GetServerInfo_Req struct {
 	SessionID  string //GM SessionID
 	SessionKey string //GM SessionKey
 
 }
 
-type MSG_ServerStateInfo_Ack struct {
-	SvrName     string //当前服务器名字
-	OnlineCount int    //在线人数
-	TotalCount  int    //总人数
-	MemAlloc    uint64
-	MemInuse    uint64
-	MenObjNum   uint64
+type MSG_GetServerInfo_Ack struct {
+	SvrID        int32  //当前的服务器ID
+	SvrName      string //当前服务器名字
+	OnlineCnt    int    //在线人数
+	MaxOnlineCnt int    //总人数
+	RegisterCnt  int    //总注册人数
+}
+
+//验证玩家登录请求
+//消息:/set_gamesvr_flag
+type MSG_SetGameSvrFlag_Req struct {
+	SessionID  string //GM SessionID
+	SessionKey string //GM SessionKey
+	SvrID      int32  //服务器ID
+	Flag       uint32 //服务器标记
+}
+
+type MSG_SetGameSvrFlag_Ack struct {
+	RetCode int //返回码 0:成功 1: 失
+}
+
+//请求服务器列表
+//消息:/get_server_list
+type MSG_GetServerList_Req struct {
+	SessionID  string //GM SessionID
+	SessionKey string //GM SessionKey
+}
+
+type MSG_GetServerList_Ack struct {
+	RetCode int
+	SvrList []ServerNode //服务器结点表
+}
+
+//gm用户登录
+//消息:/gm_login
+type MSG_GmLogin_Req struct {
+	SessionID  string //GM SessionID
+	SessionKey string //GM SessionKey
+}
+
+type MSG_GmLogin_Ack struct {
+	RetCode int
 }

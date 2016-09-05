@@ -62,7 +62,7 @@ func Handle_Login(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if pGameInfo != nil {
-			response.LastSvrName = pGameInfo.SvrDomainName
+			response.LastSvrName = pGameInfo.SvrName
 			response.LastSvrAddr = pGameInfo.svrOutAddr
 		}
 		G_AccountMgr.AddLoginKey(response.AccountID, response.LoginKey)
@@ -182,43 +182,6 @@ func Handle_BindTourist(w http.ResponseWriter, r *http.Request) {
 	response.Password = req.NewPassword
 }
 
-//处理登录请求
-func Handle_ServerList(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message: %s", r.URL.String())
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-
-	var req msg.MSG_ServerList_Req
-	if json.Unmarshal(buffer, &req) != nil {
-		gamelog.Error("Handle_ServerList : Unmarshal error!!!!")
-		return
-	}
-
-	var response msg.MSG_ServerList_Ack
-	response.RetCode = msg.RE_SUCCESS
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-	}()
-
-	nCount := len(G_ServerList)
-	if nCount <= 0 {
-		response.RetCode = msg.RE_NO_AVALIBLE_SVR
-		gamelog.Error("Handle_ServerList : NO Avalible Game Server!!!!")
-		return
-	}
-
-	response.SvrList = make([]msg.ServerNode, nCount)
-	var i int = 0
-	for _, v := range G_ServerList {
-		response.SvrList[i].SvrDomainID = v.SvrDomainID
-		response.SvrList[i].SvrDomainName = v.SvrDomainName
-		response.SvrList[i].SvrFlag = v.SvrFlag
-		response.SvrList[i].SvrOutAddr = v.svrOutAddr
-		i = i + 1
-	}
-}
-
 func Handle_VerifyUserLogin(w http.ResponseWriter, r *http.Request) {
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
@@ -242,4 +205,35 @@ func Handle_VerifyUserLogin(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 
 	go ChangeLoginCountAndLast(req.AccountID, req.DomainID)
+}
+
+//处理登录请求
+func Handle_ServerList(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	var req msg.MSG_ServerList_Req
+	if json.Unmarshal(buffer, &req) != nil {
+		gamelog.Error("Handle_ServerList : Unmarshal error!!!!")
+		return
+	}
+
+	var response msg.MSG_ServerList_Ack
+	response.RetCode = msg.RE_SUCCESS
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	nCount := len(G_ServerList)
+	response.SvrList = make([]msg.ServerNode, 0, 10)
+	for i := 0; i < nCount; i++ {
+		if G_ServerList[i].SvrID != 0 && (G_ServerList[G_RecommendID].SvrFlag&SFG_VISIBLE > 0) {
+			response.SvrList = append(response.SvrList, msg.ServerNode{G_ServerList[i].SvrID,
+				G_ServerList[i].SvrName,
+				G_ServerList[i].SvrFlag,
+				G_ServerList[i].svrOutAddr})
+		}
+	}
 }

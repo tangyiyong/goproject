@@ -8,8 +8,8 @@ import (
 )
 
 type ST_PropertyInfo struct {
-	ID          int     //属性ID
-	FightFactor float32 //战力因子
+	ID          int   //属性ID
+	FightFactor int32 //战力因子
 }
 
 var GT_Property_List []ST_PropertyInfo = nil
@@ -26,7 +26,7 @@ func ParsePropertyRecord(rs *RecordSet) {
 	}
 
 	GT_Property_List[propertyid].ID = propertyid
-	GT_Property_List[propertyid].FightFactor = rs.GetFieldFloat("fight_factor")
+	GT_Property_List[propertyid].FightFactor = int32(rs.GetFieldInt("fight_factor"))
 }
 
 func GetPropertyCount() int {

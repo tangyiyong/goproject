@@ -252,6 +252,8 @@ type MSG_RotatingWheel_Ack struct {
 
 	CostItem      MSG_ItemData
 	CostFreeTimes int
+
+	MoneyNum int //! 货币数量
 }
 
 //! 玩家查询排行榜
@@ -302,12 +304,13 @@ type MSG_GroupPurchase struct {
 }
 
 type MSG_GetGroupPurchaseInfo_Ack struct {
-	RetCode   int
-	AwardType int
-	ItemInfo  []MSG_GroupPurchase
-	Score     int   //! 总积分
-	EndTime   int64 //! 结束
-	AwardTime int64 //! 领奖
+	RetCode        int
+	AwardType      int
+	ItemInfo       []MSG_GroupPurchase
+	Score          int   //! 总积分
+	EndTime        int64 //! 结束
+	AwardTime      int64 //! 领奖
+	ScoreAwardMark []int
 }
 
 //! 玩家请求团购
@@ -338,8 +341,7 @@ type MSG_GetGroupPurchaseScore_Req struct {
 }
 
 type MSG_GetGroupPurchaseScore_Ack struct {
-	RetCode        int
-	ScoreAwardMark []int
+	RetCode int
 }
 
 //! 玩家请求获取积分奖励
@@ -363,41 +365,27 @@ type MSG_GetFestivalTask_Req struct {
 
 type MSG_FestivalTask struct {
 	ID       int
-	Page     int    //! 第几页
-	PageName string //! 页签名称
-	TaskType int    //! 任务类型
-	Award    int    //! 任务奖励
-	Goto     int    //! 前往界面ID
-	Desc     string //! 任务描述
-	CurCount int    //! 当前完成次数
-	Need     int    //! 需求次数
-	Status   int    //! 当前任务状态: 0->未完成 1->已完成 2->已领取
+	CurCount int //! 当前完成次数
+	Status   int //! 当前任务状态: 0->未完成 1->已完成 2->已领取
 }
 
-type MSG_GetFestivalTask_Ack struct {
-	RetCode int
-	TaskLst []MSG_FestivalTask
-}
-
-//! 查询欢庆佳节兑换信息
-//! 消息: /get_festival_exchange
-type MSG_GetFestivalExchange_Req struct {
-	PlayerID   int32
-	SessionKey string
+type MSG_FestivalSale struct {
+	ID    int
+	Times int
 }
 
 type MSG_FestivalExchange struct {
-	ID           int //! ID
-	NeedItemID1  int
-	NeedItemNum1 int
-	NeedItemID2  int
-	NeedItemNum2 int //! 需求物品
-	Award        int //! 兑换物品
-	Times        int //! 剩余兑换次数
+	ID          int //! ID
+	NeedItemID  int //! 所需物品
+	NeedItemNum int //!
+	Award       int //! 兑换物品
+	Times       int //! 剩余兑换次数
 }
 
-type MSG_GetFestivalExchange_Ack struct {
+type MSG_GetFestivalTask_Ack struct {
 	RetCode           int
+	TaskLst           []MSG_FestivalTask
+	BuyLst            []MSG_FestivalSale
 	ExchangeRecordLst []MSG_FestivalExchange
 }
 
@@ -425,4 +413,20 @@ type MSG_ExchangeFestivalAward_Req struct {
 type MSG_ExchangeFestivalAward_Ack struct {
 	RetCode  int
 	AwardLst []MSG_ItemData
+}
+
+//! 欢庆佳节半折贩售
+//! 消息: /festival_discount_sale
+type MSG_BuyFestivalSale_Req struct {
+	PlayerID   int32
+	SessionKey string
+	ID         int
+}
+
+type MSG_BuyFestivalSale_Ack struct {
+	RetCode      int
+	ItemID       int
+	ItemNum      int
+	CostMoneyID  int
+	CostMoneyNum int
 }

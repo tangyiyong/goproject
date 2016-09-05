@@ -236,7 +236,7 @@ func Hand_RefreshHeroStore(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
+
 	}()
 
 	//! 常规检测
@@ -352,7 +352,7 @@ func Hand_HeroStore_Buy(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
+
 	}()
 
 	//! 常规检测

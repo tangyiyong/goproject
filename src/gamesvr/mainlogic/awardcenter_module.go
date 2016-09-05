@@ -140,7 +140,7 @@ func (self *TAwardCenterModule) RemoveAward(id int) {
 		self.AwardLst = append(self.AwardLst[:pos], self.AwardLst[pos+1:]...)
 	}
 
-	self.RemoveDatabaseLst(id)
+	self.DB_RemoveDatabaseLst(id)
 }
 
 //! 获取奖励内容
@@ -157,7 +157,7 @@ func (self *TAwardCenterModule) GetAwardData(id int) *TAwardData {
 
 ////! DB相关
 //! 增加奖励项到数据库
-func (self *TAwardCenterModule) AddToDatabaseLst(award TAwardData) {
+func (self *TAwardCenterModule) DB_AddToDatabaseLst(award TAwardData) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerAwardCenter", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"awardlst": award}})
 }
 
@@ -170,8 +170,13 @@ func DB_SaveAwardToPlayer(playerid int32, award TAwardData) {
 }
 
 //! 删除奖励项到数据库
-func (self *TAwardCenterModule) RemoveDatabaseLst(id int) {
+func (self *TAwardCenterModule) DB_RemoveDatabaseLst(id int) {
 	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerAwardCenter", bson.M{"_id": self.PlayerID}, bson.M{"$pull": bson.M{"awardlst": bson.M{"id": id}}})
+}
+
+//! 更新奖励项到数据库
+func (self *TAwardCenterModule) DB_UpdateDatabaseLst() {
+	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerAwardCenter", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{"awardlst": self.AwardLst}})
 }
 
 func SendSvrAwardToPlayer(playerid int32) {

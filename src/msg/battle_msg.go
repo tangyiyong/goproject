@@ -867,17 +867,17 @@ func (self *MSG_PlayerData) Write(writer *PacketWriter) {
 }
 
 type MSG_SvrLogData struct {
+	SvrID int32
+	PlayerID int32
 	EventID int32
-	SrcID int32
-	TargetID int32
 	Time int32
 	Param[4] int32
 }
 
 func (self *MSG_SvrLogData) Read(reader *PacketReader) bool {
+	self.SvrID = reader.ReadInt32()
+	self.PlayerID = reader.ReadInt32()
 	self.EventID = reader.ReadInt32()
-	self.SrcID = reader.ReadInt32()
-	self.TargetID = reader.ReadInt32()
 	self.Time = reader.ReadInt32()
 	for i := 0; i < int(4); i++ {
 		self.Param[i] = reader.ReadInt32()
@@ -886,9 +886,9 @@ func (self *MSG_SvrLogData) Read(reader *PacketReader) bool {
 }
 
 func (self *MSG_SvrLogData) Write(writer *PacketWriter) {
+	writer.WriteInt32(self.SvrID)
+	writer.WriteInt32(self.PlayerID)
 	writer.WriteInt32(self.EventID)
-	writer.WriteInt32(self.SrcID)
-	writer.WriteInt32(self.TargetID)
 	writer.WriteInt32(self.Time)
 	for i := 0; i < int(4); i++ {
 		writer.WriteInt32(self.Param[i]);

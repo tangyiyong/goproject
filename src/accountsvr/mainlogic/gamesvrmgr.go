@@ -9,19 +9,33 @@ import (
 	"time"
 )
 
+const (
+	SFG_RECOMMAND = 0x00000001 //推荐服务器
+	SFG_CREATE    = 0x00000002 //允许创建角色
+	SFG_LOGIN     = 0x00000004 //允许登录角色
+	SFG_VISIBLE   = 0x00000008 //服务器可见
+
+	////组合标记
+	SFG_ALL    = 0x0000000F
+	SFG_NORMAL = 0x0000000E //可注册，可登录，可见，
+)
+
 type TGameServerInfo struct {
-	SvrDomainID   int32 `bson:"_id"` //账号ID
-	SvrDomainName string
-	SvrFlag       int32
-	svrOutAddr    string
-	svrInnerAddr  string //内部地址
-	isSvrOK       bool   //服务器是否正常
-	updateTime    int64
+	SvrID   int32 `bson:"_id"` //账号ID
+	SvrName string
+	SvrFlag uint32 //游戏服标记
+
+	//以下的变量不是存数据库
+	svrOutAddr   string
+	svrInnerAddr string //内部地址
+	isSvrOK      bool   //服务器是否正常
+	updateTime   int64  //更新时间
 }
 
 var (
-	G_ServerList [10000]TGameServerInfo
-	ListLock     sync.Mutex
+	G_ServerList  [10000]TGameServerInfo
+	G_RecommendID int32 //推荐的服务器ID
+	ListLock      sync.Mutex
 )
 
 func InitGameSvrMgr() {
@@ -36,9 +50,9 @@ func InitGameSvrMgr() {
 	}
 
 	for i := 0; i < len(tempList); i++ {
-		G_ServerList[tempList[i].SvrDomainID].SvrDomainID = tempList[i].SvrDomainID
-		G_ServerList[tempList[i].SvrDomainID].SvrDomainName = tempList[i].SvrDomainName
-		G_ServerList[tempList[i].SvrDomainID].SvrFlag = tempList[i].SvrFlag
+		G_ServerList[tempList[i].SvrID].SvrID = tempList[i].SvrID
+		G_ServerList[tempList[i].SvrID].SvrName = tempList[i].SvrName
+		G_ServerList[tempList[i].SvrID].SvrFlag = tempList[i].SvrFlag
 	}
 
 	go CheckGameStateRoutine()
@@ -52,7 +66,7 @@ func CheckGameStateRoutine() {
 		ListLock.Lock()
 		curtime := time.Now().Unix()
 		for i := 0; i < 10000; i++ {
-			if G_ServerList[i].SvrDomainID <= 0 {
+			if G_ServerList[i].SvrID <= 0 {
 				continue
 			}
 
@@ -65,86 +79,87 @@ func CheckGameStateRoutine() {
 	}
 }
 
-func UpdateGameSvrInfo(domainid int32, svrname string, outaddr string, inaddr string) {
-	if domainid <= 0 || domainid >= 10000 {
-		gamelog.Error("UpdateGameSvrInfo Error : Invalid DomainID:%d", domainid)
+func UpdateGameSvrInfo(svrid int32, svrname string, outaddr string, inaddr string) {
+	if svrid <= 0 || svrid >= 10000 {
+		gamelog.Error("UpdateGameSvrInfo Error : Invalid svrid:%d", svrid)
 		return
 	}
 
 	ListLock.Lock()
 	defer ListLock.Unlock()
 
-	if G_ServerList[domainid].SvrDomainID == 0 {
-		G_ServerList[domainid].SvrDomainID = domainid
-		G_ServerList[domainid].SvrDomainName = svrname
-		G_ServerList[domainid].svrInnerAddr = inaddr
-		G_ServerList[domainid].svrOutAddr = outaddr
-		G_ServerList[domainid].isSvrOK = true
-		G_ServerList[domainid].SvrFlag = 1
-		G_ServerList[domainid].updateTime = time.Now().Unix()
-		mongodb.InsertToDB(appconfig.AccountDbName, "GameSvrList", &G_ServerList[domainid])
+	if G_ServerList[svrid].SvrID == 0 {
+		G_ServerList[svrid].SvrID = svrid
+		G_ServerList[svrid].SvrName = svrname
+		G_ServerList[svrid].svrInnerAddr = inaddr
+		G_ServerList[svrid].svrOutAddr = outaddr
+		G_ServerList[svrid].isSvrOK = true
+		G_ServerList[svrid].SvrFlag = SFG_ALL
+		G_ServerList[svrid].updateTime = time.Now().Unix()
+		mongodb.InsertToDB(appconfig.AccountDbName, "GameSvrList", &G_ServerList[svrid])
 	} else {
-		if G_ServerList[domainid].SvrDomainName != svrname {
-			gamelog.Error("UpdateGameSvrInfo Error : %d has two domainname:%s, %s", domainid, svrname, G_ServerList[domainid].SvrDomainName)
+		if G_ServerList[svrid].SvrName != svrname {
+			gamelog.Error("UpdateGameSvrInfo Error : %d has two domainname:%s, %s", svrid, svrname, G_ServerList[svrid].SvrName)
 		}
-		G_ServerList[domainid].svrInnerAddr = inaddr
-		G_ServerList[domainid].svrOutAddr = outaddr
-		G_ServerList[domainid].isSvrOK = true
-		G_ServerList[domainid].updateTime = time.Now().Unix()
+		G_ServerList[svrid].SvrName = svrname
+		G_ServerList[svrid].svrInnerAddr = inaddr
+		G_ServerList[svrid].svrOutAddr = outaddr
+		G_ServerList[svrid].isSvrOK = true
+		G_ServerList[svrid].updateTime = time.Now().Unix()
 	}
 
 }
 
-func GetGameSvrName(domainid int32) string {
+func GetGameSvrName(svrid int32) string {
 	ListLock.Lock()
 	defer ListLock.Unlock()
 
-	if G_ServerList[domainid].SvrDomainID == 0 {
-		gamelog.Error("GetGameSvrName Error Invalid domainid :%d", domainid)
+	if G_ServerList[svrid].SvrID == 0 {
+		gamelog.Error("GetGameSvrName Error Invalid svrid :%d", svrid)
 		return ""
 	}
 
-	return G_ServerList[domainid].SvrDomainName
+	return G_ServerList[svrid].SvrName
 }
 
-func GetGameSvrOutAddr(domainid int32) string {
+func GetGameSvrOutAddr(svrid int32) string {
 	ListLock.Lock()
 	defer ListLock.Unlock()
 
-	if G_ServerList[domainid].SvrDomainID == 0 {
-		gamelog.Error("GetGameSvrAddr Error Invalid domainid :%d", domainid)
+	if G_ServerList[svrid].SvrID == 0 {
+		gamelog.Error("GetGameSvrAddr Error Invalid svrid :%d", svrid)
 		return ""
 	}
 
-	return G_ServerList[domainid].svrOutAddr
+	return G_ServerList[svrid].svrOutAddr
 }
 
-func GetGameSvrInAddr(domainid int32) string {
+func GetGameSvrInAddr(svrid int32) string {
 	ListLock.Lock()
 	defer ListLock.Unlock()
-	if G_ServerList[domainid].SvrDomainID == 0 {
+	if G_ServerList[svrid].SvrID == 0 {
 		return ""
 	}
 
-	return G_ServerList[domainid].svrInnerAddr
+	return G_ServerList[svrid].svrInnerAddr
 }
 
-func GetGameSvrInfo(domainid int32) (pInfo *TGameServerInfo) {
+func GetGameSvrInfo(svrid int32) (pInfo *TGameServerInfo) {
 	ListLock.Lock()
 	defer ListLock.Unlock()
 
-	if G_ServerList[domainid].SvrDomainID == 0 {
-		gamelog.Error("GetGameSvrInfo Error Invalid domainid :%d", domainid)
+	if G_ServerList[svrid].SvrID == 0 {
+		gamelog.Error("GetGameSvrInfo Error Invalid svrid :%d", svrid)
 		return nil
 	}
 
-	return &G_ServerList[domainid]
+	return &G_ServerList[svrid]
 }
 
-func RemoveGameSvrInfo(domainid int32) bool {
+func RemoveGameSvrInfo(svrid int32) bool {
 	ListLock.Lock()
 	defer ListLock.Unlock()
-	G_ServerList[domainid].SvrDomainID = 0
+	G_ServerList[svrid].SvrID = 0
 	return true
 }
 
@@ -152,13 +167,12 @@ func GetRecommendSvrID() *TGameServerInfo {
 	ListLock.Lock()
 	defer ListLock.Unlock()
 
-	if len(G_ServerList) <= 0 {
-		gamelog.Error("GetRecommendSvrID Error Has No Server!!")
-		return nil
+	if G_RecommendID > 0 && G_ServerList[G_RecommendID].SvrID != 0 && G_ServerList[G_RecommendID].isSvrOK == true && (G_ServerList[G_RecommendID].SvrFlag&SFG_VISIBLE > 0) {
+		return &G_ServerList[G_RecommendID]
 	}
 
-	for i := 0; i < 10000; i++ {
-		if G_ServerList[i].SvrDomainID != 0 && G_ServerList[i].isSvrOK == true {
+	for i := 9999; i > 0; i-- {
+		if G_ServerList[i].SvrID != 0 && G_ServerList[i].isSvrOK == true && (G_ServerList[i].SvrFlag&SFG_VISIBLE) > 0 {
 			return &G_ServerList[i]
 		}
 	}

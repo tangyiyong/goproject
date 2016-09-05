@@ -6,6 +6,6 @@ import (
 	"mongodb"
 )
 
-func DB_UpdateSvrState(svrid int, svrflag int) {
+func DB_UpdateSvrState(svrid int32, svrflag uint32) {
 	mongodb.UpdateToDB(appconfig.AccountDbName, "GameSvrList", bson.M{"_id": svrid}, bson.M{"$set": bson.M{"svrflag": svrflag}})
 }

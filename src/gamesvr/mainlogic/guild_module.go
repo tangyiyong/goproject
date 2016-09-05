@@ -55,14 +55,11 @@ type TGuildModule struct {
 
 	ShoppingLst TGuildShopInfoLst //! 商店购买信息
 
-	ActionTimes       int   //! 军团副本行动力
-	ActionRecoverTime int64 //! 行动力恢复
-
-	CopyAwardMark IntLst //! 章节通关奖励
-
-	ExitGuildTime int64 //! 退出公会时间
-
-	ResetDay uint32 //! 重置天数
+	ActionTimes       int      //! 军团副本行动力
+	ActionRecoverTime int64    //! 行动力恢复
+	CopyAwardMark     Int32Lst //! 章节通关奖励
+	ExitGuildTime     int64    //! 退出公会时间
+	ResetDay          uint32   //! 重置天数
 
 	ownplayer *TPlayer
 }

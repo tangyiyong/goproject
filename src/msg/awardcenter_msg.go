@@ -20,6 +20,18 @@ type MSG_AwardCenter_Query_Ack struct {
 	AwardLst []MSG_AwardCenter_Data
 }
 
+//! 玩家请求一键领取奖励中心奖励
+//! 消息: /onekey_award_center
+type MSG_OneKey_AwardCenter_Get_Req struct {
+	PlayerID   int32
+	SessionKey string
+}
+
+type MSG_OneKey_AwardCenter_Get_Ack struct {
+	RetCode  int
+	AwardLst []MSG_ItemData
+}
+
 //! 玩家请求领取奖励中心奖励
 //! 消息: /get_award_center
 type MSG_AwardCenter_Get_Req struct {

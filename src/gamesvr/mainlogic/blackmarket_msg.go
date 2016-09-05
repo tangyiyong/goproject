@@ -58,6 +58,7 @@ func Hand_GetBlackMarketInfo(w http.ResponseWriter, r *http.Request) {
 		goods.CostMoneyNum = goodsData.CostMoneyNum
 		goods.Recommend = goodsData.Recommend
 		response.GoodsLst = append(response.GoodsLst, goods)
+
 	}
 
 	response.OpenEndTime = player.BlackMarketModule.OpenEndTime
@@ -114,9 +115,11 @@ func Hand_BuyBlackMarketGoods(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测商品金钱是否足够
-	goodsData := gamedata.GetBlackMarketGoodsInfo(req.ID)
+	goodsData := gamedata.GetBlackMarketGoodsInfo(itemInfo.ID)
 	if player.RoleMoudle.CheckMoneyEnough(goodsData.CostMoneyID, goodsData.CostMoneyNum) == false {
 		gamelog.Error("Hand_BuyBlackMarketGoods Error: Not enough money Index: %d", req.ID-1)
+		gamelog.Error("CostMoneyID: %d  CostMoneyNum: %d", goodsData.CostMoneyID, goodsData.CostMoneyNum)
+		gamelog.Error("goodsData: %v", goodsData)
 		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
 		return
 	}

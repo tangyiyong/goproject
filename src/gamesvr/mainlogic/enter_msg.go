@@ -221,7 +221,7 @@ func Hand_CreateNewPlayer(w http.ResponseWriter, r *http.Request) {
 	response.PlayerID = pSimpleInfo.PlayerID
 	response.RetCode = msg.RE_SUCCESS
 	G_LevelRanker.SetRankItem(pSimpleInfo.PlayerID, pSimpleInfo.Level)
-	G_FightRanker.SetRankItemEx(pSimpleInfo.PlayerID, 0, pSimpleInfo.FightValue)
+	G_FightRanker.SetRankItemEx(pSimpleInfo.PlayerID, 0, int(pSimpleInfo.FightValue))
 
 	if false == mongodb.InsertToDB(appconfig.GameDbName, "PlayerSimple", pSimpleInfo) {
 		gamelog.Error("Hand_CreateNewPlayer Error: Insert to PlayserSimple Failed!!!")

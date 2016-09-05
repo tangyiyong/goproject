@@ -247,7 +247,6 @@ func Hand_GetGuild(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	var player *TPlayer = nil
@@ -885,6 +884,8 @@ func Hand_ApplicationThrough(w http.ResponseWriter, r *http.Request) {
 	//! 移除目标玩家申请列表
 	targetPlayer.GuildModule.ApplyGuildList = []int32{}
 
+	G_SimpleMgr.Set_GuildID(targetPlayer.playerid, guildInfo.GuildID)
+
 	hour := gamedata.GuildCopyBattleTimeBegin / 60 * 60
 	min := (gamedata.GuildCopyBattleTimeBegin - hour*3600) / 60
 	sec := gamedata.GuildCopyBattleTimeBegin - hour*3600 - min*60
@@ -911,18 +912,6 @@ func Hand_ApplicationThrough(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
-
-	//! 增加玩家公会技能加成
-	// for i := 0; i < 9; i++ {
-	// 	propertyID := gamedata.GetGuildSkillPropertyID(i + 1)
-	// 	for j := 0; j < int(player.HeroMoudle.GuildSkiLvl[i]); j++ {
-	// 		if propertyID == 15 {
-	// 			player.RoleMoudle.AddGuildSkillExpIncLevel()
-	// 		} else {
-	// 			player.HeroMoudle.AddGuildSkillProLevel(propertyID)
-	// 		}
-	// 	}
-	// }
 
 	//! 计入公会时间
 	guildInfo.AddGuildEvent(targetPlayer.playerid, GuildEvent_AddMember, 0, 0)
@@ -985,10 +974,6 @@ func Hand_ExitGuild(w http.ResponseWriter, r *http.Request) {
 	} else {
 		guild.RemoveGuildMember(player.playerid)
 	}
-
-	//! 清空公会技能加成
-	//	player.RoleMoudle.ClearGuildSkillExpIncLevel()
-	//	player.HeroMoudle.ClearGuildSkillProLevel()
 
 	G_SimpleMgr.Set_GuildID(player.playerid, 0)
 	player.GuildModule.ActionRecoverTime = 0
@@ -1718,7 +1703,7 @@ func Hand_GetGuildChapterRecvLst(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if player.pSimpleInfo.GuildID == 0 {
-		response.RecvLst = []int{}
+		response.RecvLst = []int32{}
 		response.RetCode = msg.RE_SUCCESS
 		return
 	}
@@ -1762,7 +1747,7 @@ func Hand_GetAllGuildChapterAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	guild := GetGuildByID(player.pSimpleInfo.GuildID)
-	for i := 1; i < guild.PassChapter; i++ {
+	for i := int32(1); i < guild.PassChapter; i++ {
 		if player.GuildModule.CopyAwardMark.IsExist(i) >= 0 {
 			continue
 		}

@@ -77,7 +77,7 @@ func (self *TActivityRecharge) RedTip() bool {
 	}
 
 	for _, v := range recvLst {
-		if self.AwardMark.Get(uint(v)) == false {
+		if self.AwardMark.Get(uint32(v)) == false {
 			return true
 		}
 	}

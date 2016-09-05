@@ -37,7 +37,7 @@ func Hand_ReceiveMonthCard(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
-	pMonthCard := gamedata.GetMonthCardInfo(req.CardID)
+	pMonthCard := gamedata.GetChargeItem(req.CardID)
 	if pMonthCard == nil {
 		response.RetCode = msg.RE_INVALID_PARAM
 		gamelog.Error("Hand_ReceiveMonthCard Error : Invalid Cardid :%d", req.CardID)
@@ -59,13 +59,13 @@ func Hand_ReceiveMonthCard(w http.ResponseWriter, r *http.Request) {
 	player.ActivityModule.MonthCard.CardStatus[pMonthCard.ID] = true
 	go player.ActivityModule.MonthCard.DB_UpdateCardStatus()
 
-	player.RoleMoudle.AddMoney(pMonthCard.MoneyID, pMonthCard.MoneyNum)
+	player.RoleMoudle.AddMoney(gamedata.ChargeMoneyID, pMonthCard.ExtraAward)
 
 	//! 返回领取状态
 	response.RetCode = msg.RE_SUCCESS
 	response.CardID = req.CardID
 
-	response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{pMonthCard.MoneyID, pMonthCard.MoneyNum})
+	response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{gamedata.ChargeMoneyID, pMonthCard.ExtraAward})
 }
 
 //! 查询月卡天数

@@ -29,7 +29,6 @@ func Hand_GetFestivalTask(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -47,82 +46,27 @@ func Hand_GetFestivalTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	activityInfo := gamedata.GetActivityInfo(player.ActivityModule.Festival.ActivityID)
-
 	taskLst := player.ActivityModule.Festival.TaskLst
 	length := len(taskLst)
 	for i := 0; i < length; i++ {
 		var task msg.MSG_FestivalTask
 		task.ID = taskLst[i].ID
-
-		taskInfo := gamedata.GetFestivalTaskInfo(activityInfo.AwardType, task.ID)
-		task.Need = taskInfo.Need
 		task.CurCount = taskLst[i].Count
-		task.Page = taskInfo.Page
-		task.PageName = taskInfo.PageName
-		task.TaskType = taskLst[i].TaskType
-		task.Goto = taskInfo.Goto
-		task.Award = taskInfo.Award
-		task.Desc = taskInfo.Desc
 		task.Status = taskLst[i].Status
 
 		response.TaskLst = append(response.TaskLst, task)
 	}
 
-	response.RetCode = msg.RE_SUCCESS
-}
-
-//! 玩家获取欢庆佳节活动兑换信息
-func Hand_GetFestivalExchangeInfo(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message: %s", r.URL.String())
-
-	//! 接收消息
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-
-	//! 解析消息
-	var req msg.MSG_GetFestivalExchange_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_GetFestivalExchangeInfo Error: Unmarshal fail, Error: %s", err.Error())
-		return
-	}
-
-	var response msg.MSG_GetFestivalExchange_Ack
-	response.RetCode = msg.RE_UNKNOWN_ERR
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-		gamelog.Info("Return: %s", b)
-	}()
-
-	//! 常规检查
-	var player *TPlayer = nil
-	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if player == nil {
-		return
-	}
-
-	player.ActivityModule.CheckReset()
-
-	if G_GlobalVariables.IsActivityOpen(player.ActivityModule.Festival.ActivityID) == false {
-		gamelog.Error("Hand_GetFestivalExchangeInfo Error: Activity not open")
-		response.RetCode = msg.RE_ACTIVITY_NOT_OPEN
-		return
-	}
-
 	activityInfo := gamedata.GetActivityInfo(player.ActivityModule.Festival.ActivityID)
 	exchangeLst := gamedata.GetExchangeInfoLst(activityInfo.AwardType)
 
-	length := len(exchangeLst)
+	length = len(exchangeLst)
 	for i := 0; i < length; i++ {
 		var exchange msg.MSG_FestivalExchange
 		exchange.ID = exchangeLst[i].ID
 		exchange.Award = exchangeLst[i].Award
-		exchange.NeedItemID1 = exchangeLst[i].NeedItemID1
-		exchange.NeedItemID2 = exchangeLst[i].NeedItemID2
-		exchange.NeedItemNum1 = exchangeLst[i].NeedItemNum1
-		exchange.NeedItemNum2 = exchangeLst[i].NeedItemNum2
+		exchange.NeedItemID = exchangeLst[i].NeedItemID
+		exchange.NeedItemNum = exchangeLst[i].NeedItemNum
 		exchange.Times = exchangeLst[i].ExchangeTimes
 		response.ExchangeRecordLst = append(response.ExchangeRecordLst, exchange)
 	}
@@ -135,6 +79,14 @@ func Hand_GetFestivalExchangeInfo(w http.ResponseWriter, r *http.Request) {
 				response.ExchangeRecordLst[i].Times -= v.Times
 			}
 		}
+	}
+
+	//! 购买记录
+	for _, v := range player.ActivityModule.Festival.BuyLst {
+		var saleInfo msg.MSG_FestivalSale
+		saleInfo.ID = v.ID
+		saleInfo.Times = v.BuyTimes
+		response.BuyLst = append(response.BuyLst, saleInfo)
 	}
 
 	response.RetCode = msg.RE_SUCCESS
@@ -161,7 +113,6 @@ func Hand_GetFestivalTaskAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -231,7 +182,6 @@ func Hand_ExchangeFestivalAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 常规检查
@@ -258,24 +208,13 @@ func Hand_ExchangeFestivalAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if exchangeInfo.NeedItemID1 != 0 {
-		if player.BagMoudle.IsItemEnough(exchangeInfo.NeedItemID1, exchangeInfo.NeedItemNum1) == false {
-			gamelog.Error("Hand_ExchangeFestivalAward Error: Item not enough %d", exchangeInfo.NeedItemID1)
-			response.RetCode = msg.RE_NOT_ENOUGH_ITEM
-			return
-		}
-
-		if exchangeInfo.NeedItemID2 != 0 {
-			if player.BagMoudle.IsItemEnough(exchangeInfo.NeedItemID2, exchangeInfo.NeedItemNum2) == false {
-				gamelog.Error("Hand_ExchangeFestivalAward Error: Item not enough %d", exchangeInfo.NeedItemID1)
-				response.RetCode = msg.RE_NOT_ENOUGH_ITEM
-				return
-			}
-			player.BagMoudle.RemoveNormalItem(exchangeInfo.NeedItemID2, exchangeInfo.NeedItemNum2)
-		}
+	if player.BagMoudle.IsItemEnough(exchangeInfo.NeedItemID, exchangeInfo.NeedItemNum) == false {
+		gamelog.Error("Hand_ExchangeFestivalAward Error: Item not enough %d", exchangeInfo.NeedItemID)
+		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
+		return
 	}
 
-	player.BagMoudle.RemoveNormalItem(exchangeInfo.NeedItemID1, exchangeInfo.NeedItemNum1)
+	player.BagMoudle.RemoveNormalItem(exchangeInfo.NeedItemID, exchangeInfo.NeedItemNum)
 
 	//! 增加兑换次数
 	exchange.Times += 1
@@ -291,5 +230,83 @@ func Hand_ExchangeFestivalAward(w http.ResponseWriter, r *http.Request) {
 		response.AwardLst = append(response.AwardLst, item)
 	}
 
+	response.RetCode = msg.RE_SUCCESS
+}
+
+//! 玩家请求领取欢庆佳节任务奖励
+func Hand_BuyFestivalSaleItem(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接收消息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.MSG_BuyFestivalSale_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_BuyFestivalSaleItem Error: Unmarshal fail, Error: %s", err.Error())
+		return
+	}
+
+	var response msg.MSG_BuyFestivalSale_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	//! 常规检查
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	player.ActivityModule.CheckReset()
+
+	if G_GlobalVariables.IsActivityOpen(player.ActivityModule.Festival.ActivityID) == false {
+		gamelog.Error("Hand_BuyFestivalSaleItem Error: Activity not open")
+		response.RetCode = msg.RE_ACTIVITY_NOT_OPEN
+		return
+	}
+
+	//! 获取商品信息
+	itemInfo := gamedata.GetFestivalItemInfo(req.ID)
+	awardType := G_GlobalVariables.GetActivityAwardType(player.ActivityModule.Festival.ActivityID)
+	if itemInfo == nil || awardType != itemInfo.AwardType {
+		gamelog.Error("Hand_BuyFestivalSaleItem Error: Invalid Param  ID %d", req.ID)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
+	//! 检测货币是否足够
+	if player.RoleMoudle.CheckMoneyEnough(itemInfo.MoneyID, itemInfo.MoneyNum) == false {
+		gamelog.Error("Hand_BuyFestivalSaleItem Error: Money not enough")
+		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
+		return
+	}
+
+	//! 检测次数是否足够
+	saleInfo := player.ActivityModule.Festival.GetFestivalSaleInfo(req.ID)
+	if saleInfo.BuyTimes >= itemInfo.BuyTimes {
+		gamelog.Error("Hand_BuyFestivalSaleItem Error: Buy times not enough")
+		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
+		return
+	}
+
+	//! 扣除货币
+	player.RoleMoudle.CostMoney(itemInfo.MoneyID, itemInfo.MoneyNum)
+	response.CostMoneyID, response.CostMoneyNum = itemInfo.MoneyID, itemInfo.MoneyNum
+
+	//! 发放商品
+	player.BagMoudle.AddAwardItem(itemInfo.ItemID, itemInfo.ItemNum)
+	response.ItemID, response.ItemNum = itemInfo.ItemID, itemInfo.ItemNum
+
+	//! 增加次数
+	saleInfo.BuyTimes++
+	go player.ActivityModule.Festival.DB_UpdateBuyTimes(saleInfo)
+
+	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
 }

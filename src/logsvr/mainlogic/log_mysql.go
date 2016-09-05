@@ -9,15 +9,12 @@ import (
 	"time"
 )
 
-const (
-	g_defaultLogCount = 1024
-)
-
 type TMysqlLog struct {
 	db       *sql.DB
 	tx       *sql.Tx
-	writeCnt int
 	query    string
+	writeCnt int
+	flushCnt int
 }
 
 func (self *TMysqlLog) Start() bool {
@@ -33,11 +30,11 @@ func (self *TMysqlLog) WriteLog(pdata []byte) {
 		return
 	}
 	timeStr := time.Now().Format("2006-01-02 15:04:05")
-	stmt.Exec(req.EventID, req.SrcID, req.TargetID, timeStr, req.Param[0], req.Param[1], req.Param[2], req.Param[3])
+	stmt.Exec(req.EventID, req.PlayerID, req.SvrID, timeStr, req.Param[0], req.Param[1], req.Param[2], req.Param[3])
 	stmt.Close()
 
 	self.writeCnt++
-	if self.writeCnt >= g_defaultLogCount {
+	if self.writeCnt >= self.flushCnt {
 		self.Flush()
 	}
 }
@@ -51,6 +48,13 @@ func (self *TMysqlLog) Close() {
 func (self *TMysqlLog) Flush() {
 	self.tx.Commit()
 	self.tx, _ = self.db.Begin()
+}
+
+func (self *TMysqlLog) SetFlushCnt(cnt int) {
+	self.flushCnt = cnt
+	if cnt <= 0 {
+		self.flushCnt = 100
+	}
 }
 
 func CreateMysqlFile(filename string, svrid int32) *TMysqlLog {

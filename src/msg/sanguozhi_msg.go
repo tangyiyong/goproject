@@ -23,7 +23,7 @@ type MSG_SetSanGuoZhi_Ack struct {
 	RetCode    int
 	Quality    int8         //! 主角品质
 	AwardItem  MSG_ItemData //! 物品
-	FightValue int
+	FightValue int32
 }
 
 //! 查询星宿增加属性

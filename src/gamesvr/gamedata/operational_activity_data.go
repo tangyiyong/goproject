@@ -362,17 +362,51 @@ func GetGroupPurchaseScoreAwardCount() int {
 	return len(GT_GroupPurchaseScoreLst) - 1
 }
 
+//! 欢庆佳节商店表
+type ST_FestivalSale struct {
+	ID        int //! 唯一标识
+	AwardType int //! 活动奖励模板
+	ItemID    int //! 商品ID
+	ItemNum   int //! 商品数量
+	MoneyID   int //! 货币ID
+	MoneyNum  int //! 货币数量
+	BuyTimes  int //! 货币
+}
+
+var GT_FestivalBuyLst []ST_FestivalSale
+
+func InitFestivalSaleParser(total int) bool {
+	GT_FestivalBuyLst = make([]ST_FestivalSale, total+1)
+	return true
+}
+
+func ParseFestivalSaleRecord(rs *RecordSet) {
+	id := CheckAtoi(rs.Values[0], 0)
+	GT_FestivalBuyLst[id].ID = rs.GetFieldInt("id")
+	GT_FestivalBuyLst[id].ItemID = rs.GetFieldInt("item_id")
+	GT_FestivalBuyLst[id].ItemNum = rs.GetFieldInt("item_num")
+	GT_FestivalBuyLst[id].AwardType = rs.GetFieldInt("award_type")
+	GT_FestivalBuyLst[id].MoneyID = rs.GetFieldInt("money_id")
+	GT_FestivalBuyLst[id].MoneyNum = rs.GetFieldInt("money_num")
+	GT_FestivalBuyLst[id].BuyTimes = rs.GetFieldInt("buy_times")
+}
+
+func GetFestivalItemInfo(id int) *ST_FestivalSale {
+	if id < 0 || id > len(GT_FestivalBuyLst)-1 {
+		gamelog.Error("GetFestivalItemInfo Error: Invalid id %d", id)
+		return nil
+	}
+
+	return &GT_FestivalBuyLst[id]
+}
+
 //! 欢庆佳节任务库
 type ST_FestivalTask struct {
-	ID        int    //! 唯一标识
-	AwardType int    //! 活动奖励模板
-	Page      int    //! 页签
-	PageName  string //! 页签名称
-	TaskType  int    //! 任务类型
-	Need      int    //! 达标数额
-	Award     int    //! 奖励
-	Goto      int    //! 前往界面
-	Desc      string //! 任务描述
+	ID        int //! 唯一标识
+	AwardType int //! 活动奖励模板
+	TaskType  int //! 任务类型
+	Need      int //! 达标数额
+	Award     int //! 奖励
 }
 
 var GT_FestivalTaskLst map[int][]ST_FestivalTask
@@ -387,13 +421,9 @@ func ParseFestivalTaskRecord(rs *RecordSet) {
 	var task ST_FestivalTask
 	task.ID = rs.GetFieldInt("id")
 	task.AwardType = rs.GetFieldInt("award_type")
-	task.Page = rs.GetFieldInt("page")
-	task.PageName = rs.GetFieldString("page_name")
 	task.TaskType = rs.GetFieldInt("task_type")
 	task.Need = rs.GetFieldInt("need")
 	task.Award = rs.GetFieldInt("award")
-	task.Goto = rs.GetFieldInt("goto")
-	task.Desc = rs.GetFieldString("desc")
 	GT_FestivalTaskLst[task.AwardType] = append(GT_FestivalTaskLst[task.AwardType], task)
 }
 
@@ -421,10 +451,8 @@ func GetFestivalTaskInfo(awardType int, taskID int) *ST_FestivalTask {
 type ST_FestivalExchange struct {
 	ID            int //! 唯一标识
 	AwardType     int //! 活动奖励模板
-	NeedItemID1   int //! 需求道具1
-	NeedItemNum1  int //! 需求道具数量1
-	NeedItemID2   int //! 需求道具2
-	NeedItemNum2  int //! 需求道具数量2
+	NeedItemID    int //! 需求道具
+	NeedItemNum   int //! 需求道具数量
 	Award         int //! 兑换奖励
 	ExchangeTimes int //! 兑换次数
 }
@@ -440,10 +468,8 @@ func ParseFestivalExchangeRecord(rs *RecordSet) {
 	id := CheckAtoi(rs.Values[0], 0)
 	GT_FestivalExchangeLst[id].ID = rs.GetFieldInt("id")
 	GT_FestivalExchangeLst[id].AwardType = rs.GetFieldInt("award_type")
-	GT_FestivalExchangeLst[id].NeedItemID1 = rs.GetFieldInt("need_item_id1")
-	GT_FestivalExchangeLst[id].NeedItemNum1 = rs.GetFieldInt("need_item_num1")
-	GT_FestivalExchangeLst[id].NeedItemID2 = rs.GetFieldInt("need_item_id2")
-	GT_FestivalExchangeLst[id].NeedItemNum2 = rs.GetFieldInt("need_item_num2")
+	GT_FestivalExchangeLst[id].NeedItemID = rs.GetFieldInt("need_item_id")
+	GT_FestivalExchangeLst[id].NeedItemNum = rs.GetFieldInt("need_item_num")
 	GT_FestivalExchangeLst[id].Award = rs.GetFieldInt("award")
 	GT_FestivalExchangeLst[id].ExchangeTimes = rs.GetFieldInt("exchange_times")
 }

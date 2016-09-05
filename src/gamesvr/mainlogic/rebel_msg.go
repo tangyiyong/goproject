@@ -32,7 +32,7 @@ func Hand_GetRebelInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
+
 	}()
 
 	//! 通用检测
@@ -301,7 +301,7 @@ func Hand_ShareRebel(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
+
 	}()
 
 	//! 通用检测
@@ -342,7 +342,6 @@ func Hand_GetExploitAward(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 通用检测
@@ -418,7 +417,6 @@ func Hand_GetExploitAwardStatus(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 通用检测
@@ -462,7 +460,6 @@ func Hand_BuyRebelStore(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Return: %s", b)
 	}()
 
 	//! 通用检测

@@ -293,8 +293,8 @@ func ParseGuildCopyRecord(rs *RecordSet) {
 	GT_GuildCopyLst[chapter].Award = rs.GetFieldInt("award")
 }
 
-func GetGuildChapterInfo(chapter int) *ST_GuildCopy {
-	if chapter > len(GT_GuildCopyLst)-1 {
+func GetGuildChapterInfo(chapter int32) *ST_GuildCopy {
+	if int(chapter) > len(GT_GuildCopyLst)-1 {
 		gamelog.Error("GetGuildChapterInfo Error: invalid chapter %v", chapter)
 		return nil
 	}
@@ -302,13 +302,13 @@ func GetGuildChapterInfo(chapter int) *ST_GuildCopy {
 	return &GT_GuildCopyLst[chapter]
 }
 
-func GetGuildChapterCount() int {
-	return len(GT_GuildCopyLst) - 1
+func GetGuildChapterCount() int32 {
+	return int32(len(GT_GuildCopyLst) - 1)
 }
 
 type ST_GuildCopy_Award struct {
 	ID      int
-	Chapter int
+	Chapter int32
 	CopyID  int
 	ItemID  int
 	ItemNum int
@@ -327,7 +327,7 @@ func ParseGuildCopyAwardRecord(rs *RecordSet) {
 	chapter := CheckAtoi(rs.Values[1], 1)
 	var award ST_GuildCopy_Award
 	award.ID = id
-	award.Chapter = chapter
+	award.Chapter = int32(chapter)
 	award.CopyID = rs.GetFieldInt("copyid")
 	award.ItemID = rs.GetFieldInt("itemid")
 	award.ItemNum = rs.GetFieldInt("itemnum")
@@ -336,7 +336,7 @@ func ParseGuildCopyAwardRecord(rs *RecordSet) {
 }
 
 //! 获取章节总奖励
-func GetGuildChapterCampAwardInfo(chapter int, copyID int) []int {
+func GetGuildChapterCampAwardInfo(chapter int32, copyID int) []int {
 	idLst := []int{}
 	for _, v := range GT_GuildCopyAward[chapter] {
 		if copyID == v.CopyID {
@@ -360,7 +360,7 @@ func GetGuildCampAwardInfo(id int) *ST_GuildCopy_Award {
 }
 
 //! 获取随机阵营奖励
-func RandGuildCampAward(chapter int, copyID int, recvLst map[int]int) *ST_GuildCopy_Award {
+func RandGuildCampAward(chapter int32, copyID int, recvLst map[int]int) *ST_GuildCopy_Award {
 
 	awardLst := []int{}
 

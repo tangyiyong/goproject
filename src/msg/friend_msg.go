@@ -6,7 +6,7 @@ type MSG_FriendInfo struct {
 	HeroID     int    //英雄ID
 	Quality    int8   //英雄品质
 	GuildName  string //军团名字
-	FightValue int    //战力
+	FightValue int32  //战力
 	Level      int    //等级
 	OffTime    int64  //离线时间 >0表示离线，==0表示在线
 	IsGive     int    //0:表示未赠送, 1:表示己赠送
@@ -139,7 +139,7 @@ type MSG_OnlineInfo struct {
 	HeroID     int    //英雄ID
 	Quality    int8   //英雄品质
 	GuildName  string //军团名字
-	FightValue int    //战力
+	FightValue int32  //战力
 	Level      int    //等级
 }
 
