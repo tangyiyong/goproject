@@ -30,6 +30,6 @@ func main() {
 	msgprocess.Init()
 
 	//启动TCP服务器
-	gamelog.Warn("----Chat Server Start-----")
+	gamelog.Error("----Chat Server Start-----")
 	tcpserver.ServerRun(":"+strconv.Itoa(appconfig.ChatSvrPort), 5000)
 }

@@ -147,7 +147,7 @@ func Hand_WelcomeMoneyGold(w http.ResponseWriter, r *http.Request) {
 		response.NextTime = 0
 	}
 
-	go player.ActivityModule.MoneyGod.DB_Refresh()
+	player.ActivityModule.MoneyGod.DB_Refresh()
 
 	//! 给予玩家银币
 	player.RoleMoudle.AddMoney(response.MoneyID, response.MoneyNum)
@@ -226,7 +226,7 @@ func Hand_MoneyGoldAward(w http.ResponseWriter, r *http.Request) {
 	//! 清空次数
 	player.ActivityModule.MoneyGod.CumulativeTimes = 0
 	player.ActivityModule.MoneyGod.TotalMoney = 0
-	go player.ActivityModule.MoneyGod.DB_UpdateCumulativeTimes()
+	player.ActivityModule.MoneyGod.DB_UpdateCumulativeTimes()
 
 	response.RetCode = msg.RE_SUCCESS
 }

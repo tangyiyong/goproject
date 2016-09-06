@@ -57,7 +57,7 @@ func (self *TFriendMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerFriend").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerFriend").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerFriend Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}

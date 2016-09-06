@@ -57,7 +57,7 @@ func Hand_GetRankGiftInfo(w http.ResponseWriter, r *http.Request) {
 
 	//! 因为查看了购买列表, 将新商品标记置位false
 	player.ActivityModule.RankGift.IsHaveNewItem = false
-	go player.ActivityModule.RankGift.DB_UpdateNewItemMark()
+	player.ActivityModule.RankGift.DB_UpdateNewItemMark()
 
 	response.Rank = player.ArenaModule.HistoryRank
 	response.RetCode = msg.RE_SUCCESS
@@ -139,7 +139,7 @@ func Hand_BuyRankGift(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rankGift.BuyTimes -= 1
-	go player.ActivityModule.RankGift.DB_UpdateBuyTimes(rankGift.GiftID, rankGift.BuyTimes)
+	player.ActivityModule.RankGift.DB_UpdateBuyTimes(rankGift.GiftID, rankGift.BuyTimes)
 	response.BuyTimes = rankGift.BuyTimes
 
 	//! 给予商品

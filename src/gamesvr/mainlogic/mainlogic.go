@@ -4,6 +4,9 @@ func Init() bool {
 	G_Players = make(map[int32]*TPlayer, 1)
 	G_SelectPlayers = make([]*TPlayer, 0, 10000)
 
+	//初始化数据库处理器
+	InitDbProcesser()
+
 	G_SimpleMgr.Init()
 
 	//! 初始化竞技场排行榜数据

@@ -97,7 +97,7 @@ func (playermail *TMailMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) 
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerMail").Find(bson.M{"_id": playerid}).One(playermail)
+	err := s.DB(appconfig.GameDbName).C("PlayerMail").Find(&bson.M{"_id": playerid}).One(playermail)
 	if err != nil {
 		gamelog.Error("PlayerMail Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -137,22 +137,22 @@ func SendMailToPlayer(playerid int32, pMailInfo *TMailInfo) {
 
 //! 保存邮件到数据库
 func DB_SaveMailToPlayer(playerid int32, pMailInfo *TMailInfo) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": playerid}, bson.M{"$push": bson.M{"maillist": *pMailInfo}})
+	GameSvrUpdateToDB("PlayerMail", &bson.M{"_id": playerid}, &bson.M{"$push": bson.M{"maillist": *pMailInfo}})
 }
 
 //! 保存战报到数据库
 func DB_SaveScoreResultToPlayer(playerid int32, pResult *TScoreReport) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": playerid}, bson.M{"$push": bson.M{"reports": *pResult}})
+	GameSvrUpdateToDB("PlayerMail", &bson.M{"_id": playerid}, &bson.M{"$push": bson.M{"reports": *pResult}})
 }
 
 //! 清空邮件到数据库
 func (self *TMailMoudle) DB_ClearAllMails() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{"maillist": self.MailList}})
+	GameSvrUpdateToDB("PlayerMail", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"maillist": self.MailList}})
 }
 
 //! 清空邮件到数据库
 func (self *TMailMoudle) DB_ClearAllReports() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMail", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{"reports": self.Reports}})
+	GameSvrUpdateToDB("PlayerMail", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"reports": self.Reports}})
 }
 
 //以下为各功能的发邮件方法

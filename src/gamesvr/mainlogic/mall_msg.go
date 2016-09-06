@@ -162,10 +162,12 @@ func Hand_BuyVipGift(w http.ResponseWriter, r *http.Request) {
 	shoppingInfo.BuyTimes = 1
 	player.MallModule.ShoppingInfo = append(player.MallModule.ShoppingInfo, shoppingInfo)
 
-	go player.MallModule.UpdateShoppingInfo()
+	player.MallModule.UpdateShoppingInfo()
 
 	//! 发送礼包
 	player.BagMoudle.AddAwardItem(itemData.ItemID, 1)
+
+	response.ItemID, response.ItemNum = itemData.ItemID, 1
 
 	//! 获取已购买的VIP礼包ID
 	vipGiftIDLst := player.MallModule.GetUserAleadyShoppingGift(gamedata.Mall_VipGift)

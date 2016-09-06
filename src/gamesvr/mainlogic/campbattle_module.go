@@ -23,19 +23,19 @@ var (
 
 //! 活动模块
 type TCampBattleModule struct {
-	PlayerID        int32             `bson:"_id"`
-	BattleCamp      int8              //阵营战阵营
-	Kill            int               //今日杀
-	Destroy         int               //今日团
-	KillSum         int               //总击杀
-	DestroySum      int               //总团灭
-	KillHonor       int               //今日击杀荣誉
-	LeftTimes       int               //搬运水晶次数
-	CrystalID       int               //搬运水晶的ID
-	EndTime         int               //搬运结束时间,  超时就是搬运失败
-	BuyRecord       []msg.MSG_BuyData //购买商店的次数
-	AwardStoreIndex IntLst            //奖励商店的购买ID
-	ResetDay        uint32            //重置天
+	PlayerID   int32             `bson:"_id"`
+	BattleCamp int8              //阵营战阵营
+	Kill       int               //今日杀
+	Destroy    int               //今日团
+	KillSum    int               //总击杀
+	DestroySum int               //总团灭
+	KillHonor  int               //今日击杀荣誉
+	LeftTimes  int               //搬运水晶次数
+	CrystalID  int               //搬运水晶的ID
+	EndTime    int               //搬运结束时间,  超时就是搬运失败
+	BuyRecord  []msg.MSG_BuyData //购买商店的次数
+	StoreAward IntLst            //奖励商店的购买ID
+	ResetDay   uint32            //重置天
 
 	///////////////以下为临时数据
 	enterCode int32    //阵营战的连接进入码
@@ -74,7 +74,7 @@ func (self *TCampBattleModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) 
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerCampBat Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -100,5 +100,6 @@ func (self *TCampBattleModule) OnNewDay(newday uint32) {
 	self.KillHonor = 0
 	self.LeftTimes = gamedata.CampBat_MoveTimes
 	self.EndTime = 0
+	self.BuyRecord = []msg.MSG_BuyData{}
 	self.DB_Reset()
 }

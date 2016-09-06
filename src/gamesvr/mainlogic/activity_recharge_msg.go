@@ -143,7 +143,7 @@ func Hand_GetRechargeAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 修改标记
 	totalRechargeInfo.AwardMark.Set(uint32(req.Index))
-	go totalRechargeInfo.DB_UpdateRechargeMark(activityIndex, int(totalRechargeInfo.AwardMark))
+	totalRechargeInfo.DB_UpdateRechargeMark(activityIndex, int(totalRechargeInfo.AwardMark))
 
 	response.RetCode = msg.RE_SUCCESS
 

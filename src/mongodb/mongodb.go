@@ -67,7 +67,7 @@ func GetDBSession() *mgo.Session {
 }
 
 //更新多条记录
-func UpdateToDBAll(dbname string, collection string, search bson.M, stuff bson.M) bool {
+func UpdateToDBAll(dbname string, collection string, search *bson.M, stuff *bson.M) bool {
 	s := GetDBSession()
 	defer s.Close()
 	coll := s.DB(dbname).C(collection)
@@ -84,7 +84,7 @@ func UpdateToDBAll(dbname string, collection string, search bson.M, stuff bson.M
 //var InsertLock sync.Mutex
 
 //更新一条记录
-func UpdateToDB(dbname string, collection string, search bson.M, stuff bson.M) bool {
+func UpdateToDB(dbname string, collection string, search *bson.M, stuff *bson.M) bool {
 	s := GetDBSession()
 	defer s.Close()
 	coll := s.DB(dbname).C(collection)
@@ -107,12 +107,7 @@ func InsertToDB(dbname string, collection string, data interface{}) bool {
 	s := GetDBSession()
 	defer s.Close()
 	coll := s.DB(dbname).C(collection)
-	//InsertLock.Lock()
-	//t1 := time.Now().UnixNano()
 	err := coll.Insert(&data)
-	//t2 := time.Now().UnixNano()
-	//InsertLock.Unlock()
-	//gamelog.Error("InsertToDB time:%d", t2-t1)
 	if err != nil {
 		if !mgo.IsDup(err) {
 			gamelog.Error("InsertToDB Failed: DB:[%s] Collection:[%s] Error:[%s]", dbname, collection, err.Error())
@@ -126,32 +121,13 @@ func InsertToDB(dbname string, collection string, data interface{}) bool {
 }
 
 //删掉指定的一条记录
-func RemoveFromDB(dbname string, collection string, search bson.M) error {
+func RemoveFromDB(dbname string, collection string, search *bson.M) error {
 	s := GetDBSession()
 	defer s.Close()
 
 	coll := s.DB(dbname).C(collection)
 
 	return coll.Remove(search)
-}
-
-//查询指定的记录是否存在
-func IsRecordExist(dbname string, collection string, search bson.M) bool {
-	s := GetDBSession()
-	defer s.Close()
-	coll := s.DB(dbname).C(collection)
-	nCount, err := coll.Find(search).Count()
-	if err == mgo.ErrNotFound {
-		return false
-	}
-
-	if err == nil {
-		return nCount > 0
-	}
-
-	panic(err.Error())
-
-	return false
 }
 
 //! 查询一条数据

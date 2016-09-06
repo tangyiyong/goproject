@@ -1,10 +1,8 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
 	"gamelog"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -43,7 +41,7 @@ func (self *TActivityLogin) Refresh(versionCode int32) {
 	//! 累计登陆
 	self.VersionCode = versionCode
 
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
@@ -53,7 +51,7 @@ func (self *TActivityLogin) End(versionCode int32, resetCode int32) {
 
 	self.VersionCode = versionCode
 
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityLogin) GetRefreshV() int32 {
@@ -75,7 +73,7 @@ func (self *TActivityLogin) RedTip() bool {
 
 func (self *TActivityLogin) AddLoginDay(index int) {
 	self.LoginDay++
-	go self.DB_AddLoginDay(index)
+	self.DB_AddLoginDay(index)
 }
 
 func (self *TActivityLogin) DB_Reset() {
@@ -96,7 +94,7 @@ func (self *TActivityLogin) DB_Reset() {
 	filedName2 := fmt.Sprintf("login.%d.loginaward", index)
 	filedName4 := fmt.Sprintf("login.%d.versioncode", index)
 	filedName5 := fmt.Sprintf("login.%d.resetcode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName1: self.LoginDay,
 		filedName2: self.LoginAward,
 		filedName4: self.VersionCode,
@@ -107,7 +105,7 @@ func (self *TActivityLogin) DB_AddLoginDay(index int) {
 
 	filedName := fmt.Sprintf("login.%d.loginday", index)
 	filedName3 := fmt.Sprintf("login.%d.versioncode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.LoginDay,
 		filedName3: self.VersionCode}})
 
@@ -129,13 +127,13 @@ func (self *TActivityLogin) DB_Refresh() {
 
 	filedName := fmt.Sprintf("login.%d.loginday", index)
 	filedName3 := fmt.Sprintf("login.%d.versioncode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.LoginDay,
 		filedName3: self.VersionCode}})
 }
 
 func (self *TActivityLogin) DB_UpdateLoginAward(activityIndex int) {
 	filedName := fmt.Sprintf("login.%d.loginaward", activityIndex)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.LoginAward}})
 }

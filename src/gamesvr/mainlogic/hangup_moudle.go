@@ -66,7 +66,7 @@ func (hang *THangUpMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) bool
 	s := mongodb.GetDBSession()
 	defer s.Close()
 	var bRet = true
-	err := s.DB(appconfig.GameDbName).C("PlayerHang").Find(bson.M{"_id": playerid}).One(hang)
+	err := s.DB(appconfig.GameDbName).C("PlayerHang").Find(&bson.M{"_id": playerid}).One(hang)
 	if err != nil {
 		gamelog.Error("PlayerHang Load Error :%s， PlayerID: %d", err.Error(), playerid)
 		bRet = false

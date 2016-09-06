@@ -225,7 +225,7 @@ func Hand_BuyDiscountSaleItem(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	go activity.DB_UpdateShoppingTimes(activityIndex, index, shoppingInfo)
+	activity.DB_UpdateShoppingTimes(activityIndex, index, shoppingInfo)
 
 	response.ActivityID = req.ActivityID
 	response.BuyNum = req.Count

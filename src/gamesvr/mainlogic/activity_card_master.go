@@ -1,10 +1,8 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
-	"mongodb"
 	"utility"
 
 	"gopkg.in/mgo.v2/bson"
@@ -200,29 +198,29 @@ func (self *TCardMasterInfo) GetTotalScore() int {
 
 //! DB相关
 func (self *TCardMasterInfo) DB_SaveCardList() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{"cardmaster.cardlist": self.CardList}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{"cardmaster.cardlist": self.CardList}})
 }
 func (self *TCardMasterInfo) DB_SavePoint() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{"cardmaster.point": self.Point}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{"cardmaster.point": self.Point}})
 }
 func (self *TCardMasterInfo) DB_SaveFreeTimes() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{"cardmaster.freenormaldrawtimes": self.FreeNormalDrawTimes}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{"cardmaster.freenormaldrawtimes": self.FreeNormalDrawTimes}})
 }
 func (self *TCardMasterInfo) DB_SaveJiFen() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"cardmaster.jifen":      self.JiFen,
 		"cardmaster.totaljifen": self.TotalJiFen}})
 }
 func (self *TCardMasterInfo) DB_SaveRankAwardFlag() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"cardmaster.isgettodayrankaward": self.IsGetTodayRankAward,
 		"cardmaster.isgettotalrankaward": self.IsGetTotalRankAward}})
 }
 func (self *TCardMasterInfo) DB_SaveExchangeTimes() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{"cardmaster.exchangetimes": self.ExchangeTimes}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{"cardmaster.exchangetimes": self.ExchangeTimes}})
 }
 func (self *TCardMasterInfo) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"cardmaster.exchangetimes":       self.ExchangeTimes,
 		"cardmaster.freenormaldrawtimes": self.FreeNormalDrawTimes,
 		"cardmaster.jifen":               self.JiFen,
@@ -235,7 +233,7 @@ func (self *TCardMasterInfo) DB_Refresh() {
 }
 
 func (self *TCardMasterInfo) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"cardmaster.exchangetimes":       self.ExchangeTimes,
 		"cardmaster.freenormaldrawtimes": self.FreeNormalDrawTimes,
 		"cardmaster.jifen":               self.JiFen,

@@ -122,7 +122,7 @@ func Hand_GetFirstRechargeAward(w http.ResponseWriter, r *http.Request) {
 		player.ActivityModule.FirstRecharge.NextRechargeAward = 2
 	}
 
-	go player.ActivityModule.FirstRecharge.DB_SetFirstRechargeMark()
+	player.ActivityModule.FirstRecharge.DB_SetFirstRechargeMark()
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

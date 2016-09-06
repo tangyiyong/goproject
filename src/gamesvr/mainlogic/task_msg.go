@@ -206,7 +206,7 @@ func Hand_GetTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 	player.TaskMoudle.ScoreAwardStatus.Add(req.ScoreAwardID)
 
 	//! 当前领取状态更新到数据库
-	go player.TaskMoudle.DB_UpdatePlayerTaskScoreAwardStatus()
+	player.TaskMoudle.DB_UpdatePlayerTaskScoreAwardStatus()
 
 	response.RetCode = msg.RE_SUCCESS
 

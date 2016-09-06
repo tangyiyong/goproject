@@ -1,10 +1,8 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -82,7 +80,7 @@ func (self *TActivitySign) Refresh(versionCode int32) {
 	//! 设置豪华签到状态
 	self.SignPlusStatus = SignPlus_Can_Not_Receive
 
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
@@ -94,7 +92,7 @@ func (self *TActivitySign) End(versionCode int32, resetCode int32) {
 	self.SignPlusStatus = 0
 	self.VersionCode = versionCode
 
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivitySign) GetRefreshV() int32 {
@@ -152,7 +150,7 @@ func (self *TActivitySign) Sign() (bool, int, int) {
 	self.IsSign = true
 
 	//! 更新到数据库
-	go self.DB_UpdateSignInfoToDatabase()
+	self.DB_UpdateSignInfoToDatabase()
 
 	//! 发放奖励
 	awardData := gamedata.GetSignData(self.SignDay)
@@ -189,7 +187,7 @@ func (self *TActivitySign) SignPlus() []gamedata.ST_ItemData {
 	self.IsSignPlus = true
 
 	//! 更新奖励标记到数据库
-	go self.DB_UpdateSignPlusInfoToDatabase()
+	self.DB_UpdateSignPlusInfoToDatabase()
 
 	//! 发放奖励
 	self.activityModule.ownplayer.BagMoudle.AddAwardItems(self.SignPlusAward)
@@ -204,16 +202,16 @@ func (self *TActivitySign) SetSignPlusStatus() {
 		return
 	}
 	self.SignPlusStatus = SignPlus_Can_Receive
-	go self.DB_UpdateSignPlusStatus()
+	self.DB_UpdateSignPlusStatus()
 }
 
 func (self *TActivitySign) DB_UpdateSignPlusStatus() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"sign.signplusstatus": self.SignPlusStatus}})
 }
 
 func (self *TActivitySign) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"sign.activityid":     self.ActivityID,
 		"sign.issign":         self.IsSign,
 		"sign.issignplus":     self.IsSignPlus,
@@ -226,7 +224,7 @@ func (self *TActivitySign) DB_Reset() {
 
 //! 更新豪华签到信息到数据库
 func (self *TActivitySign) DB_UpdateSignPlusInfoToDatabase() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"sign.signplusaward":  self.SignPlusAward,
 		"sign.issignplus":     self.IsSignPlus,
 		"sign.signplusstatus": self.SignPlusStatus}})
@@ -234,14 +232,14 @@ func (self *TActivitySign) DB_UpdateSignPlusInfoToDatabase() {
 
 //! 更新普通签到信息到数据库
 func (self *TActivitySign) DB_UpdateSignInfoToDatabase() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"sign.signday":     self.SignDay,
 		"sign.issign":      self.IsSign,
 		"sign.versioncode": self.VersionCode}})
 }
 
 func (self *TActivitySign) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"sign.signplusaward":  self.SignPlusAward,
 		"sign.issignplus":     self.IsSignPlus,
 		"sign.signday":        self.SignDay,

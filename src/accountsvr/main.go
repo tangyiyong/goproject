@@ -39,7 +39,7 @@ func main() {
 	RegHttpMsgHandler()
 
 	//启动http监听服务器
-	gamelog.Warn("----Account Server Start-----")
+	gamelog.Error("----Account Server Start-----")
 	utility.HttpLimitListenTimeOut(":"+strconv.Itoa(appconfig.AccountSvrPort), appconfig.AccountMaxCon)
 
 	//http.ListenAndServe( /*appconfig.AccountSvr+*/ ":"+strconv.Itoa(appconfig.AccountSvrPort), nil)

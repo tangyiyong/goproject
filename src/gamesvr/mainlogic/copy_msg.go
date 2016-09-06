@@ -1303,7 +1303,7 @@ func Hand_ResetMainBattleTimes(w http.ResponseWriter, r *http.Request) {
 
 	response.RetCode = msg.RE_SUCCESS
 
-	go player.CopyMoudle.DB_UpdateMainCopyAt(copyIndex)
+	player.CopyMoudle.DB_UpdateMainCopyAt(copyIndex)
 }
 
 //! 玩家请求精英副本重置挑战
@@ -1390,7 +1390,7 @@ func Hand_ResetEliteBattleTimes(w http.ResponseWriter, r *http.Request) {
 
 	response.RetCode = msg.RE_SUCCESS
 
-	go player.CopyMoudle.DB_UpdateEliteCopyAt(copyIndex)
+	player.CopyMoudle.DB_UpdateEliteCopyAt(copyIndex)
 }
 
 //! 玩家请求获取日常副本信息
@@ -1612,12 +1612,12 @@ func Hand_AttackInvade(w http.ResponseWriter, r *http.Request) {
 
 	player.HeroMoudle.AddMainHeroExp(response.Exp)
 
-	response.DropItems = []msg.MSG_ItemData{}
+	response.DropItem = []msg.MSG_ItemData{}
 	for _, v := range awardItems {
 		var item msg.MSG_ItemData
 		item.ID = v.ItemID
 		item.Num = v.ItemNum
-		response.DropItems = append(response.DropItems, item)
+		response.DropItem = append(response.DropItem, item)
 	}
 
 	response.RetCode = msg.RE_SUCCESS
@@ -1678,7 +1678,7 @@ func Hand_GetFamousCopyAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 记录状态
 	player.CopyMoudle.Famous.Chapter[req.Chapter].ChapterAward = true
-	go player.CopyMoudle.DB_UpdateFamousAward(req.Chapter)
+	player.CopyMoudle.DB_UpdateFamousAward(req.Chapter)
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

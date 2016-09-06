@@ -111,7 +111,7 @@ func Hand_ActivateHeroSouls(w http.ResponseWriter, r *http.Request) {
 
 			//! 升级将灵
 			player.HeroSoulsModule.HeroSoulsLink[i].Level += 1
-			go player.HeroSoulsModule.DB_UpdateHeroSoulsLinkLevel(i, player.HeroSoulsModule.HeroSoulsLink[i].Level)
+			player.HeroSoulsModule.DB_UpdateHeroSoulsLinkLevel(i, player.HeroSoulsModule.HeroSoulsLink[i].Level)
 
 			for _, n := range heroSouls.Property {
 				if n.PropertyID != 0 {
@@ -128,11 +128,11 @@ func Hand_ActivateHeroSouls(w http.ResponseWriter, r *http.Request) {
 	if isExist == false {
 		//! 奖励阵魂值
 		player.HeroSoulsModule.SoulMapValue += awardsouls
-		go player.HeroSoulsModule.DB_UpdateSoulMapValue()
+		player.HeroSoulsModule.DB_UpdateSoulMapValue()
 
 		//! 激活将灵
 		player.HeroSoulsModule.HeroSoulsLink = append(player.HeroSoulsModule.HeroSoulsLink, THeroSoulsLink{req.ID, 1})
-		go player.HeroSoulsModule.DB_AddHeroSoulsLink(THeroSoulsLink{req.ID, 1})
+		player.HeroSoulsModule.DB_AddHeroSoulsLink(THeroSoulsLink{req.ID, 1})
 
 		for _, n := range heroSouls.Property {
 			if n.PropertyID != 0 {
@@ -169,7 +169,7 @@ func Hand_ActivateHeroSouls(w http.ResponseWriter, r *http.Request) {
 	if count >= nextChapterInfo.UnlockCount {
 		//! 解锁下一章节
 		player.HeroSoulsModule.UnLockChapter = nextChapter
-		go player.HeroSoulsModule.DB_UnLockChapter()
+		player.HeroSoulsModule.DB_UnLockChapter()
 
 		//! 返回解锁章节
 		response.UnLockChapter = player.HeroSoulsModule.UnLockChapter
@@ -333,7 +333,7 @@ func Hand_RefreshHeroSoulsLst(w http.ResponseWriter, r *http.Request) {
 	//! 获取目标将灵品质
 	random := rand.New(rand.NewSource(time.Now().UnixNano()))
 	player.HeroSoulsModule.TargetIndex = randArray[random.Intn(len(randArray))]
-	go player.HeroSoulsModule.DB_UpdateTargetIndex()
+	player.HeroSoulsModule.DB_UpdateTargetIndex()
 
 	itemInfo := gamedata.GetItemInfo(player.HeroSoulsModule.HeroSoulsLst[player.HeroSoulsModule.TargetIndex].HeroID)
 
@@ -399,11 +399,11 @@ func Hand_ChallengeHeroSouls(w http.ResponseWriter, r *http.Request) {
 
 	//! 扣除挑战次数
 	player.HeroSoulsModule.ChallengeTimes -= 1
-	go player.HeroSoulsModule.DB_UpdateChallengeHeroSoulsTimes()
+	player.HeroSoulsModule.DB_UpdateChallengeHeroSoulsTimes()
 
 	//! 设置将灵状态
 	player.HeroSoulsModule.HeroSoulsLst[player.HeroSoulsModule.TargetIndex].IsExist = false
-	go player.HeroSoulsModule.DB_UpdateHeroSoulsMark(player.HeroSoulsModule.TargetIndex)
+	player.HeroSoulsModule.DB_UpdateHeroSoulsMark(player.HeroSoulsModule.TargetIndex)
 
 	//! 获取英灵
 	player.BagMoudle.AddHeroSoul(heroSouls.HeroID, 1)
@@ -473,7 +473,7 @@ func Hand_BuyChallengeHeroSoulsTimes(w http.ResponseWriter, r *http.Request) {
 	//! 增加次数
 	player.HeroSoulsModule.BuyChallengeTimes += req.Times
 	player.HeroSoulsModule.ChallengeTimes += req.Times
-	go player.HeroSoulsModule.DB_BuyChallengeHeroSoulsTimes()
+	player.HeroSoulsModule.DB_BuyChallengeHeroSoulsTimes()
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
@@ -707,7 +707,7 @@ func Hand_BuyHeroSoulsStoreItem(w http.ResponseWriter, r *http.Request) {
 
 	//! 修改商品购买标记
 	goodsInfo.IsBuy = true
-	go player.HeroSoulsModule.DB_UpdateStoreGoodsStatus(index, true)
+	player.HeroSoulsModule.DB_UpdateStoreGoodsStatus(index, true)
 
 	//! 给予物品
 	player.BagMoudle.AddHeroSoul(goodsInfo.ItemID, 1)
@@ -800,7 +800,7 @@ func Hand_ActivateheroSoulsAchievement(w http.ResponseWriter, r *http.Request) {
 
 	//! 增加阵图成就
 	player.HeroSoulsModule.Achievement += 1
-	go player.HeroSoulsModule.DB_UpdateSoulMapAchievement()
+	player.HeroSoulsModule.DB_UpdateSoulMapAchievement()
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

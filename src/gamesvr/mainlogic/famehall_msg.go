@@ -53,23 +53,15 @@ func Hand_SendFlower(w http.ResponseWriter, r *http.Request) {
 
 	//! 检测是否为已送目标
 	if req.SendType == 0 {
-		if player.FameHallModule.SendFightID.IsExist(playerID) >= 0 {
-			gamelog.Error("Hand_SendFlower Error: Aleady send flower index: %d", req.SendIndex)
-			response.RetCode = msg.RE_AlEADY_SEND
-			return
-		}
+	
 
 		player.FameHallModule.SendFightID = append(player.FameHallModule.SendFightID, req.SendIndex)
-		go player.FameHallModule.DB_AddSendFightID(playerID)
+		player.FameHallModule.DB_AddSendFightID(playerID)
 	} else {
-		if player.FameHallModule.SendLevelID.IsExist(playerID) >= 0 {
-			gamelog.Error("Hand_SendFlower Error: Aleady send flower index: %d", req.SendIndex)
-			response.RetCode = msg.RE_AlEADY_SEND
-			return
-		}
+	
 
 		player.FameHallModule.SendLevelID = append(player.FameHallModule.SendLevelID, req.SendIndex)
-		go player.FameHallModule.DB_AddSendLevelID(playerID)
+		player.FameHallModule.DB_AddSendLevelID(playerID)
 	}
 
 	targetPlayer := GetPlayerByID(playerID)
@@ -83,7 +75,7 @@ func Hand_SendFlower(w http.ResponseWriter, r *http.Request) {
 	}
 
 	targetPlayer.FameHallModule.CharmValue += 1
-	go targetPlayer.FameHallModule.DB_UpdateCharm()
+	targetPlayer.FameHallModule.DB_UpdateCharm()
 
 	for i, j := range G_FameHallLst {
 		for n, m := range j {
@@ -95,7 +87,7 @@ func Hand_SendFlower(w http.ResponseWriter, r *http.Request) {
 
 	//! 减去自己送花次数
 	player.FameHallModule.FreeTimes -= 1
-	go targetPlayer.FameHallModule.DB_UpdateFreeTimes()
+	targetPlayer.FameHallModule.DB_UpdateFreeTimes()
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
@@ -171,11 +163,6 @@ func Hand_GetCharmValue(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.Times = player.FameHallModule.FreeTimes
-
-	response.FightSendID = []int32{}
-	response.LevelSendID = []int32{}
-	response.FightSendID = append(response.FightSendID, player.FameHallModule.SendFightID...)
-	response.LevelSendID = append(response.LevelSendID, player.FameHallModule.SendLevelID...)
 
 	response.RetCode = msg.RE_SUCCESS
 }

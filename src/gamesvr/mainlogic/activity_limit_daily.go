@@ -1,11 +1,9 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -71,7 +69,7 @@ func (self *TActivityLimitDaily) Refresh(versionCode int32) {
 	}
 
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
@@ -83,7 +81,7 @@ func (self *TActivityLimitDaily) End(versionCode int32, resetCode int32) {
 
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityLimitDaily) IsAllComplete() bool {
@@ -139,7 +137,7 @@ func (self *TActivityLimitDaily) DB_Refresh() {
 	filedName := fmt.Sprintf("limitdaily.%d.tasklst", index)
 	filedName2 := fmt.Sprintf("limitdaily.%d.versioncode", index)
 	filedName3 := fmt.Sprintf("limitdaily.%d.resetcode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.TaskLst,
 		filedName2: self.VersionCode,
 		filedName3: self.ResetCode}})
@@ -162,7 +160,7 @@ func (self *TActivityLimitDaily) DB_Reset() {
 	filedName := fmt.Sprintf("limitdaily.%d.tasklst", index)
 	filedName2 := fmt.Sprintf("limitdaily.%d.versioncode", index)
 	filedName3 := fmt.Sprintf("limitdaily.%d.resetcode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.TaskLst,
 		filedName2: self.VersionCode,
 		filedName3: self.ResetCode}})
@@ -185,7 +183,7 @@ func (self *TActivityLimitDaily) DB_SaveTask() {
 	filedName := fmt.Sprintf("limitdaily.%d.tasklst", index)
 	filedName2 := fmt.Sprintf("limitdaily.%d.versioncode", index)
 	filedName3 := fmt.Sprintf("limitdaily.%d.resetcode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.TaskLst,
 		filedName2: self.VersionCode,
 		filedName3: self.ResetCode}})
@@ -193,6 +191,6 @@ func (self *TActivityLimitDaily) DB_SaveTask() {
 
 func (self *TActivityLimitDaily) DB_UpdateTaskStatus(activityIndex int, taskIndex int) {
 	filedName := fmt.Sprintf("limitdaily.%d.tasklst.%d.status", activityIndex, taskIndex)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.TaskLst[taskIndex].Status}})
 }

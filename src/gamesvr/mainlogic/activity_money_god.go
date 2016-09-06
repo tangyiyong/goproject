@@ -1,9 +1,7 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"gamesvr/gamedata"
-	"mongodb"
 	"time"
 
 	"gopkg.in/mgo.v2/bson"
@@ -49,14 +47,14 @@ func (self *TActivityMoneyGod) Refresh(versionCode int32) {
 	self.CurrentTimes = 3
 	self.NextTime = 0
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
 func (self *TActivityMoneyGod) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityMoneyGod) GetRefreshV() int32 {
@@ -98,16 +96,16 @@ func (self *TActivityMoneyGod) CheckMoneyGod() {
 	}
 
 	self.NextTime = 0
-	go self.DB_UpdateNextTime()
+	self.DB_UpdateNextTime()
 }
 
 func (self *TActivityMoneyGod) DB_UpdateNextTime() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moneygod.nexttime": self.NextTime}})
 }
 
 func (self *TActivityMoneyGod) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moneygod.currenttimes":    self.CurrentTimes,
 		"moneygod.nexttime":        self.NextTime,
 		"moneygod.totalmoney":      self.TotalMoney,
@@ -116,13 +114,13 @@ func (self *TActivityMoneyGod) DB_Refresh() {
 }
 
 func (self *TActivityMoneyGod) DB_UpdateCumulativeTimes() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moneygod.totalmoney":      self.TotalMoney,
 		"moneygod.cumulativetimes": self.CumulativeTimes}})
 }
 
 func (self *TActivityMoneyGod) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moneygod.activityid":  self.ActivityID,
 		"moneygod.versioncode": self.VersionCode,
 		"moneygod.resetcode":   self.ResetCode}})

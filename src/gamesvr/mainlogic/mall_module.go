@@ -60,7 +60,7 @@ func (self *TMallModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerMall").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerMall").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerMall Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -88,7 +88,7 @@ func (self *TMallModule) OnNewDay(newday uint32) {
 		}
 	}
 
-	go self.UpdateResetShoppingInfo()
+	self.UpdateResetShoppingInfo()
 }
 
 //! 获取用户已购买的VIP礼包
@@ -118,7 +118,7 @@ func (self *TMallModule) AddItemShoppingTimes(id int, times int) {
 	for i := 0; i < len(self.ShoppingInfo); i++ {
 		if self.ShoppingInfo[i].ItemID == id {
 			self.ShoppingInfo[i].BuyTimes = self.ShoppingInfo[i].BuyTimes + times
-			go self.UpdateShoppingInfo()
+			self.UpdateShoppingInfo()
 		}
 	}
 
@@ -126,13 +126,13 @@ func (self *TMallModule) AddItemShoppingTimes(id int, times int) {
 
 //! 数据库重置购买次数
 func (self *TMallModule) UpdateResetShoppingInfo() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMall", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerMall", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"shoppinginfo": self.ShoppingInfo,
 		"resetday":     self.ResetDay}})
 }
 
 //! 存储购买物品信息
 func (self *TMallModule) UpdateShoppingInfo() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerMall", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerMall", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"shoppinginfo": self.ShoppingInfo}})
 }

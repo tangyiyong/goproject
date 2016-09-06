@@ -1,13 +1,12 @@
 package main
 
 import (
-	"mongodb"
-	//"net/http"
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
 	"gamesvr/mainlogic"
 	"gamesvr/reggamesvr"
+	"mongodb"
 	"strconv"
 	"utility"
 )
@@ -51,7 +50,7 @@ func main() {
 	mainlogic.ConnectToChatSvr(appconfig.ChatSvrInnerIp + ":" + strconv.Itoa(appconfig.ChatSvrPort))
 
 	//启动http监听服务
-	gamelog.Warn("----Game Server Start-----")
+	gamelog.Error("----Game Server Start-----")
 	//http.ListenAndServe(/*appconfig.GameSvr+*/ ":"+strconvt.Itoa(appconfig.GameSvrPort), nil)
 	err := utility.HttpLimitListen(":"+strconv.Itoa(appconfig.GameSvrPort), appconfig.GameMaxCon)
 	if err != nil {

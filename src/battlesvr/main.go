@@ -44,7 +44,7 @@ func main() {
 	//注册到游戏服
 	mainlogic.RegisterToGameSvr()
 	//启动TCP服务器
-	gamelog.Warn("----Battle Server Start--Port:%d---", appconfig.BattleSvrPort)
+	gamelog.Error("----Battle Server Start--Port:%d---", appconfig.BattleSvrPort)
 	tcpserver.MsgDispatcher = mainlogic.BatSvrMsgDispatcher
 	tcpserver.ServerRun(":"+strconv.Itoa(appconfig.BattleSvrPort), 5000)
 }

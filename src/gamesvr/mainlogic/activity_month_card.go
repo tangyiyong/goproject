@@ -1,10 +1,8 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
 	"gamesvr/gamedata"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -56,14 +54,14 @@ func (self *TActivityMonthCard) Refresh(versionCode int32) {
 	}
 
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
 func (self *TActivityMonthCard) End(versionCode int32, resetCode int32) {
 	self.ResetCode = resetCode
 	self.VersionCode = versionCode
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityMonthCard) GetRefreshV() int32 {
@@ -90,7 +88,7 @@ func (self *TActivityMonthCard) RedTip() bool {
 
 //! 重置
 func (self *TActivityMonthCard) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthcard.activityid":  self.ActivityID,
 		"monthcard.resetcode":   self.ResetCode,
 		"monthcard.versioncode": self.VersionCode}})
@@ -98,14 +96,14 @@ func (self *TActivityMonthCard) DB_Reset() {
 
 //! 更新月卡状态与时间
 func (self *TActivityMonthCard) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthcard.carddays":    self.CardDays,
 		"monthcard.versioncode": self.VersionCode,
 		"monthcard.cardstatus":  self.CardStatus}})
 }
 
 func (self *TActivityMonthCard) DB_UpdateCardStatus() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthcard.carddays":   self.CardDays,
 		"monthcard.cardstatus": self.CardStatus}})
 }
@@ -113,6 +111,6 @@ func (self *TActivityMonthCard) DB_UpdateCardStatus() {
 //! 更新月卡天数
 func (self *TActivityMonthCard) DB_UpdateCardDays(index int, days int) {
 	filedName := fmt.Sprintf("monthcard.carddays.%d", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: days}})
 }

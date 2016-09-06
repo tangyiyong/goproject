@@ -71,9 +71,19 @@ func Hand_GetActivity(w http.ResponseWriter, r *http.Request) {
 			activity.RedTip = pActivity.RedTip()
 		}
 
-		if player.ActivityModule.FirstRecharge.FirstRechargeAward == 4 && activity.Type == gamedata.Activity_First_Recharge {
-			//! 已领取首充则不放入列表
+		if (player.ActivityModule.FirstRecharge.FirstRechargeAward == 2 &&
+			activity.Type == gamedata.Activity_First_Recharge && activity.ID == 1) ||
+			(player.ActivityModule.FirstRecharge.NextRechargeAward == 2 &&
+				activity.Type == gamedata.Activity_First_Recharge && activity.ID != 1) {
+			//! 已领取首充/次充则不放入列表
 			continue
+		}
+
+		//! 次充必须在首充结束后出现
+		if player.ActivityModule.FirstRecharge.NextRechargeAward != 2 && activity.Type == gamedata.Activity_First_Recharge && activity.ID != 1 {
+			if player.ActivityModule.FirstRecharge.FirstRechargeAward != 2 {
+				continue
+			}
 		}
 
 		if activityInfo.Inside == 3 && openday > activityInfo.Days {
@@ -117,7 +127,7 @@ func HuntTreasureRankAward(awardType int, player *TPlayer, indexToday int) (awar
 		}
 
 		player.ActivityModule.HuntTreasure.IsRecvTodayRankAward = true
-		go player.ActivityModule.HuntTreasure.DB_UpdateHuntTodayRankAward()
+		player.ActivityModule.HuntTreasure.DB_UpdateHuntTodayRankAward()
 
 	} else if awardType == 2 { //! 总榜
 		//! 判断时间
@@ -152,7 +162,7 @@ func HuntTreasureRankAward(awardType int, player *TPlayer, indexToday int) (awar
 		}
 
 		player.ActivityModule.HuntTreasure.IsRecvTotalRankAward = true
-		go player.ActivityModule.HuntTreasure.DB_UpdateHuntTotalRankAward()
+		player.ActivityModule.HuntTreasure.DB_UpdateHuntTotalRankAward()
 	} else {
 		gamelog.Error("Hand_GetActivityRankAward Error: Invalid Param AwardType: %d", awardType)
 		retCode = msg.RE_INVALID_PARAM
@@ -193,7 +203,7 @@ func LuckyWheelRankAward(awardType int, player *TPlayer, indexToday int) (awardI
 		}
 
 		player.ActivityModule.LuckyWheel.IsRecvTodayRankAward = true
-		go player.ActivityModule.LuckyWheel.DB_UpdateWheelTodayRankAward()
+		player.ActivityModule.LuckyWheel.DB_UpdateWheelTodayRankAward()
 
 	} else if awardType == 2 { //! 总榜
 		//! 判断时间
@@ -227,7 +237,7 @@ func LuckyWheelRankAward(awardType int, player *TPlayer, indexToday int) (awardI
 		}
 
 		player.ActivityModule.LuckyWheel.IsRecvTotalRankAward = true
-		go player.ActivityModule.LuckyWheel.DB_UpdateWheelTotalRankAward()
+		player.ActivityModule.LuckyWheel.DB_UpdateWheelTotalRankAward()
 	} else {
 		gamelog.Error("Hand_GetActivityRankAward Error: Invalid Param AwardType: %d", awardType)
 		retCode = msg.RE_INVALID_PARAM

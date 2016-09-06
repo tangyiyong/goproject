@@ -123,7 +123,7 @@ func Hand_ReceiveActivityAction(w http.ResponseWriter, r *http.Request) {
 
 	//! 修改领取标记
 	player.ActivityModule.ReceiveAction.RecvAction.Set(uint32(index))
-	go player.ActivityModule.ReceiveAction.DB_Refresh()
+	player.ActivityModule.ReceiveAction.DB_Refresh()
 
 	response.Index = index
 
@@ -228,7 +228,7 @@ func Hand_ActionRetroactive(w http.ResponseWriter, r *http.Request) {
 
 	//! 修改领取标记
 	player.ActivityModule.ReceiveAction.RecvAction.Set(uint32(req.Index))
-	go player.ActivityModule.ReceiveAction.DB_Refresh()
+	player.ActivityModule.ReceiveAction.DB_Refresh()
 
 	//! 增加玩家体力
 	player.RoleMoudle.AddAction(actionAwardInfo.ActionID, actionAwardInfo.ActionNum)

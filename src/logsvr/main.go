@@ -30,6 +30,6 @@ func main() {
 	mainlogic.Init()
 
 	//启动TCP服务器
-	gamelog.Warn("----Log Server Start-----")
+	gamelog.Error("----Log Server Start-----")
 	tcpserver.ServerRun(":"+strconv.Itoa(appconfig.LogSvrPort), 5000)
 }

@@ -1,10 +1,8 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
 	"gamesvr/gamedata"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -71,7 +69,7 @@ func (self *TActivityFestival) Refresh(versionCode int32) {
 	}
 
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
@@ -80,7 +78,7 @@ func (self *TActivityFestival) End(versionCode int32, resetCode int32) {
 	self.ResetCode = resetCode
 	self.ExchangeLst = []TFestivalExchangeRecord{}
 	self.TaskLst = []TFestivalTask{}
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityFestival) GetRefreshV() int32 {
@@ -129,7 +127,7 @@ func (self *TActivityFestival) GetExchangeInfo(id int) (*TFestivalExchangeRecord
 	record.ID = id
 	record.Times = 0
 	self.ExchangeLst = append(self.ExchangeLst, record)
-	go self.DB_AddNewExchangeRecord(record)
+	self.DB_AddNewExchangeRecord(record)
 	return &self.ExchangeLst[length], length
 }
 
@@ -154,7 +152,7 @@ func (self *TActivityFestival) RefreshTask(isSaveDB bool) {
 	}
 
 	if isSaveDB {
-		go self.DB_RefreshTask()
+		self.DB_RefreshTask()
 	}
 }
 
@@ -171,12 +169,12 @@ func (self *TActivityFestival) GetFestivalSaleInfo(id int) *TFestivalSale {
 	saleInfo.ID = id
 	saleInfo.BuyTimes = 0
 	self.BuyLst = append(self.BuyLst, saleInfo)
-	go self.DB_AddBuyLst(saleInfo)
+	self.DB_AddBuyLst(saleInfo)
 	return &self.BuyLst[length]
 }
 
 func (self *TActivityFestival) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"festival.activityid":  self.ActivityID,
 		"festival.tasklst":     self.TaskLst,
 		"festival.exchangelst": self.ExchangeLst,
@@ -185,17 +183,17 @@ func (self *TActivityFestival) DB_Reset() {
 }
 
 func (self *TActivityFestival) DB_RefreshTask() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"festival.tasklst": self.TaskLst}})
 }
 
 func (self *TActivityFestival) DB_RefreshExchangeReocrd() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"festival.exchangelst": self.ExchangeLst}})
 }
 
 func (self *TActivityFestival) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"festival.exchangelst": self.ExchangeLst,
 		"festival.versioncode": self.VersionCode}})
 }
@@ -204,27 +202,27 @@ func (self *TActivityFestival) DB_UpdateTaskStatus(index int) {
 
 	filedName := fmt.Sprintf("festival.tasklst.%d.status", index)
 	filedName2 := fmt.Sprintf("festival.tasklst.%d.count", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.TaskLst[index].Status,
 		filedName2: self.TaskLst[index].Count}})
 }
 
 func (self *TActivityFestival) DB_AddNewExchangeRecord(record TFestivalExchangeRecord) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{"festival.exchangelst": record}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{"festival.exchangelst": record}})
 }
 
 func (self *TActivityFestival) DB_UpdateExchangeTimes(index int, times int) {
 	filedName := fmt.Sprintf("festival.exchangelst.%d.times", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: times}})
 }
 
 func (self *TActivityFestival) DB_AddBuyLst(saleInfo TFestivalSale) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{
 		"festival.buylst": saleInfo}})
 }
 
 func (self *TActivityFestival) DB_UpdateBuyTimes(saleInfo *TFestivalSale) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID, "festival.buylst.id": saleInfo.ID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID, "festival.buylst.id": saleInfo.ID}, &bson.M{"$set": bson.M{
 		"festival.buylst.$.buytimes": saleInfo.BuyTimes}})
 }

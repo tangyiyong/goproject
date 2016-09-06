@@ -90,7 +90,7 @@ func (self *TFoodWarModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerFoodWar").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerFoodWar").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerFoodWar Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -157,7 +157,7 @@ func (self *TFoodWarModule) OnNewDay(newday uint32) {
 
 	//! 加入粮草排行榜
 	G_FoodWarRanker.SetRankItem(self.PlayerID, self.TotalFood)
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 //! 获取复仇信息
@@ -207,7 +207,7 @@ func (self *TFoodWarModule) CheckTime() {
 	nextTime += 3600
 	self.NextTime = nextTime
 
-	go self.DB_CheckTime()
+	self.DB_CheckTime()
 }
 
 //! 获取玩家粮草信息
@@ -217,7 +217,7 @@ func (self *TFoodWarModule) GetPlayerFoodInfo(playerid int32) *TFoodWarModule {
 
 	var food TFoodWarModule
 
-	err := s.DB(appconfig.GameDbName).C("PlayerFoodWar").Find(bson.M{"_id": playerid}).One(&food)
+	err := s.DB(appconfig.GameDbName).C("PlayerFoodWar").Find(&bson.M{"_id": playerid}).One(&food)
 	if err != nil {
 		gamelog.Error("PlayerFoodWar Load Error :%s， PlayerID: %d", err.Error(), playerid)
 		return nil

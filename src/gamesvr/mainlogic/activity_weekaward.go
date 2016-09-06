@@ -1,9 +1,7 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"gamesvr/gamedata"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -48,7 +46,7 @@ func (self *TActivityWeekAward) Refresh(versionCode int32) {
 	//! 刷新签到标记
 	self.LoginDay += int(versionCode - self.VersionCode)
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 结束
@@ -58,7 +56,7 @@ func (self *TActivityWeekAward) End(versionCode int32, resetCode int32) {
 	self.LoginDay = 0
 	self.RechargeNum = 0
 	self.AwardMark = 0
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityWeekAward) GetRefreshV() int32 {
@@ -100,17 +98,17 @@ func (self *TActivityWeekAward) AddRechargeNum(rechargeNum int) {
 	}
 
 	self.RechargeNum += rechargeNum
-	go self.DB_UpdateRechargeNum()
+	self.DB_UpdateRechargeNum()
 }
 
 func (self *TActivityWeekAward) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"weekaward.loginday":    self.LoginDay,
 		"weekaward.versioncode": self.VersionCode}})
 }
 
 func (self *TActivityWeekAward) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"weekaward.activityid":  self.ActivityID,
 		"weekaward.loginday":    self.LoginDay,
 		"weekaward.AwardMark":   self.AwardMark,
@@ -120,11 +118,11 @@ func (self *TActivityWeekAward) DB_Reset() {
 }
 
 func (self *TActivityWeekAward) DB_UpdateRechargeNum() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"weekaward.rechargenum": self.RechargeNum}})
 }
 
 func (self *TActivityWeekAward) DB_UpdateAwardMark() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"weekaward.awardmark": self.AwardMark}})
 }

@@ -205,13 +205,13 @@ func Hand_CreateGuild(w http.ResponseWriter, r *http.Request) {
 	for i, v := range G_Guild_List {
 		for _, n := range v.ApplyList {
 			if n == player.playerid {
-				go G_Guild_List[i].RemoveApplyList(player.playerid)
+				G_Guild_List[i].RemoveApplyList(player.playerid)
 			}
 		}
 	}
 
 	player.GuildModule.ApplyGuildList = Int32Lst{}
-	go player.GuildModule.DB_ResetApplyList()
+	player.GuildModule.DB_ResetApplyList()
 
 	response.RetCode = msg.RE_SUCCESS
 	response.NewGuild.BossName = player.RoleMoudle.Name
@@ -426,8 +426,8 @@ func Hand_EnterGuild(w http.ResponseWriter, r *http.Request) {
 	player.GuildModule.ApplyGuildList.Add(req.GuildID)
 	guildInfo.ApplyList = append(guildInfo.ApplyList, player.playerid)
 
-	go player.GuildModule.DB_AddApplyGuildList(req.GuildID)
-	go DB_AddApplyList(req.GuildID, player.playerid)
+	player.GuildModule.DB_AddApplyGuildList(req.GuildID)
+	DB_AddApplyList(req.GuildID, player.playerid)
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -536,7 +536,7 @@ func Hand_CancellationGuildApply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go player.GuildModule.DB_RemoveApplyGuildList(req.GuildID)
+	player.GuildModule.DB_RemoveApplyGuildList(req.GuildID)
 	if index == 0 {
 		player.GuildModule.ApplyGuildList = player.GuildModule.ApplyGuildList[1:]
 	} else if (index + 1) == len(player.GuildModule.ApplyGuildList) {
@@ -562,7 +562,7 @@ func Hand_CancellationGuildApply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	go DB_RemoveApplyList(req.GuildID, player.playerid)
+	DB_RemoveApplyList(req.GuildID, player.playerid)
 	if index == 0 {
 		guild.ApplyList = guild.ApplyList[1:]
 	} else if (index + 1) == len(guild.ApplyList) {
@@ -969,7 +969,7 @@ func Hand_ExitGuild(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			//! 解散公会
-			go RemoveGuild(guild.GuildID)
+			RemoveGuild(guild.GuildID)
 		}
 	} else {
 		guild.RemoveGuildMember(player.playerid)
@@ -978,7 +978,7 @@ func Hand_ExitGuild(w http.ResponseWriter, r *http.Request) {
 	G_SimpleMgr.Set_GuildID(player.playerid, 0)
 	player.GuildModule.ActionRecoverTime = 0
 	player.GuildModule.ExitGuildTime = time.Now().Unix()
-	go player.GuildModule.DB_ExitGuild()
+	player.GuildModule.DB_ExitGuild()
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -1152,7 +1152,7 @@ func Hand_GuildSacrifice(w http.ResponseWriter, r *http.Request) {
 	response.RetCode = msg.RE_SUCCESS
 
 	player.GuildModule.SacrificeStatus = req.SacrificeID
-	go player.GuildModule.DB_UpdateSacrifice()
+	player.GuildModule.DB_UpdateSacrifice()
 
 }
 
@@ -1224,7 +1224,7 @@ func Hand_GetSacrificeAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 记录领取
 	player.GuildModule.SacrificeAwardLst.Add(req.ID)
-	go player.GuildModule.DB_AddSacrificeMark(req.ID)
+	player.GuildModule.DB_AddSacrificeMark(req.ID)
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -1361,7 +1361,7 @@ func Hand_BuyGuildItem(w http.ResponseWriter, r *http.Request) {
 	//! 记录购买次数
 	if goodsInfo == nil {
 		index := player.GuildModule.ShoppingLst.Add(req.ID, itemData.Type, req.Num)
-		go player.GuildModule.DB_AddShoppingInfo(player.GuildModule.ShoppingLst[index])
+		player.GuildModule.DB_AddShoppingInfo(player.GuildModule.ShoppingLst[index])
 	} else {
 		goodsInfo.BuyTimes += req.Num
 		player.GuildModule.DB_AddShoppingTimes(req.ID, goodsInfo.BuyTimes)
@@ -1522,7 +1522,7 @@ func Hand_AttackGuildCopy(w http.ResponseWriter, r *http.Request) {
 
 	//! 扣除行动力
 	player.GuildModule.ActionTimes -= 1
-	go player.GuildModule.DB_UpdateCopyAction()
+	player.GuildModule.DB_UpdateCopyAction()
 
 	//! 记录伤害与攻打次数
 	memberInfo := guild.GetGuildMember(player.playerid)
@@ -1531,7 +1531,7 @@ func Hand_AttackGuildCopy(w http.ResponseWriter, r *http.Request) {
 		memberInfo.BattleDamage = req.Damage
 	}
 
-	go guild.DB_UpdateDamageAndTimes(memberInfo.PlayerID, memberInfo.BattleTimes, memberInfo.BattleDamage)
+	guild.DB_UpdateDamageAndTimes(memberInfo.PlayerID, memberInfo.BattleTimes, memberInfo.BattleDamage)
 
 	//! 扣除阵营血量
 	isVictory, isKilled := guild.SubCampLife(req.CopyID, req.Damage, player.RoleMoudle.Name)
@@ -1762,7 +1762,7 @@ func Hand_GetAllGuildChapterAward(w http.ResponseWriter, r *http.Request) {
 
 		player.GuildModule.CopyAwardMark.Add(i)
 		response.RecvChapter = append(response.RecvChapter, i)
-		go player.GuildModule.DB_AddChapterAwardRecord(i)
+		player.GuildModule.DB_AddChapterAwardRecord(i)
 	}
 
 	response.RetCode = msg.RE_SUCCESS
@@ -1819,7 +1819,7 @@ func Hand_GetGuildChapterAward(w http.ResponseWriter, r *http.Request) {
 	player.BagMoudle.AddAwardItems(awardLst)
 
 	player.GuildModule.CopyAwardMark.Add(req.Chapter)
-	go player.GuildModule.DB_AddChapterAwardRecord(req.Chapter)
+	player.GuildModule.DB_AddChapterAwardRecord(req.Chapter)
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -1870,7 +1870,7 @@ func Hand_UpdateGuildInfo(w http.ResponseWriter, r *http.Request) {
 	guild.Notice = req.Notice
 	guild.Declaration = req.Declaration
 	guild.Icon = req.Icon
-	go guild.DB_UpdateGuildInfo()
+	guild.DB_UpdateGuildInfo()
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -1924,7 +1924,7 @@ func Hand_UpdateGuildChapterBackStatus(w http.ResponseWriter, r *http.Request) {
 		guild.IsBack = true
 	}
 
-	go guild.DB_UpdateGuildBackStatus()
+	guild.DB_UpdateGuildBackStatus()
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -1983,7 +1983,7 @@ func Hand_UpdateGuildName(w http.ResponseWriter, r *http.Request) {
 
 	//! 修改公会名
 	guild.Name = req.Name
-	go guild.DB_UpdateGuildName()
+	guild.DB_UpdateGuildName()
 
 	response.RetCode = msg.RE_SUCCESS
 }

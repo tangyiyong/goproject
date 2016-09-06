@@ -112,7 +112,7 @@ func (self *TBagMoudle) OnPlayerOffline(playerid int32) {
 func (self *TBagMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
-	err := s.DB(appconfig.GameDbName).C("PlayerBag").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerBag").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerBag Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}

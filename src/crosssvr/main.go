@@ -33,6 +33,6 @@ func main() {
 	mainlogic.Init()
 
 	//启动TCP服务器
-	gamelog.Warn("----Cross Server Start-----")
+	gamelog.Error("----Cross Server Start-----")
 	http.ListenAndServe(":"+strconv.Itoa(appconfig.CrossSvrHttpPort), nil)
 }

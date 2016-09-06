@@ -78,7 +78,7 @@ type MSG_GetRebelFindInfo_Ack struct {
 //玩家挑战挂机BOSS
 //消息:/challenge_guaji_boss
 type MSG_ChallenGuaJi_Req struct {
-	PlayerID   int32    //玩家ID
+	PlayerID   int32  //玩家ID
 	SessionKey string //Sessionkey
 	Chapter    int    //章节
 	CopyID     int    //副本ID
@@ -96,7 +96,7 @@ type MSG_ChallenGuaJi_Ack struct {
 //! 玩家请求查询主线副本信息
 //! 消息: /get_main_chapter_info
 type MSG_GetMainChapterInfo_Req struct {
-	PlayerID   int32    //! 玩家ID
+	PlayerID   int32  //! 玩家ID
 	SessionKey string //! Session Key
 }
 
@@ -289,9 +289,9 @@ type MSG_AttackEliteInvade_Req struct {
 }
 
 type MSG_AttackEliteInvade_Ack struct {
-	RetCode   int
-	Exp       int
-	DropItems []MSG_ItemData
+	RetCode  int
+	Exp      int
+	DropItem []MSG_ItemData
 }
 
 //! 玩家请求获取日常副本信息

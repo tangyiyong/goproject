@@ -1,11 +1,9 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -40,7 +38,7 @@ func (self *TActivityRecharge) Init(activityID int, mPtr *TActivityModule, verco
 func (self *TActivityRecharge) Refresh(versionCode int32) {
 	//! 累积充值不会刷新
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
@@ -49,7 +47,7 @@ func (self *TActivityRecharge) End(versionCode int32, resetCode int32) {
 	self.AwardMark = 0
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityRecharge) GetRefreshV() int32 {
@@ -100,7 +98,7 @@ func (self *TActivityRecharge) DB_Refresh() {
 	}
 
 	filedName := fmt.Sprintf("recharge.%d.versioncode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
 }
 
@@ -122,7 +120,7 @@ func (self *TActivityRecharge) DB_Reset() {
 	filedName2 := fmt.Sprintf("recharge.%d.AwardMark", index)
 	filedName3 := fmt.Sprintf("recharge.%d.versioncode", index)
 	filedName4 := fmt.Sprintf("recharge.%d.resetcode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName1: self.RechargeValue,
 		filedName2: self.AwardMark,
 		filedName3: self.VersionCode,
@@ -131,6 +129,6 @@ func (self *TActivityRecharge) DB_Reset() {
 
 func (self *TActivityRecharge) DB_UpdateRechargeMark(index int, mark int) {
 	filedName := fmt.Sprintf("recharge.%d.AwardMark", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: mark}})
 }

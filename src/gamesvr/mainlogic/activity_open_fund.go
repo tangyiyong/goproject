@@ -60,7 +60,7 @@ func (self *TActivityOpenFund) Init(activityID int, mPtr *TActivityModule, verco
 func (self *TActivityOpenFund) Refresh(versionCode int32) {
 	//! 此活动没有刷新
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
@@ -70,7 +70,7 @@ func (self *TActivityOpenFund) End(versionCode int32, resetCode int32) {
 	self.IsBuyFund = false
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityOpenFund) GetRefreshV() int32 {
@@ -121,7 +121,7 @@ func (self *TActivityOpenFund) RedTip() bool {
 }
 
 func (self *TActivityOpenFund) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"openfund.activityid":    self.ActivityID,
 		"openfund.fundlevelmark": self.FundLevelMark,
 		"openfund.fundcountmark": self.FundCountMark,
@@ -131,24 +131,24 @@ func (self *TActivityOpenFund) DB_Reset() {
 }
 
 func (self *TActivityOpenFund) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"openfund.versioncode": self.VersionCode}})
 }
 
 //! 更改购买标记
 func (self *TActivityOpenFund) UpdateBuyFundMark() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"openfund.isbuyfund": self.IsBuyFund}})
 }
 
 //! 更改基金全民奖励领取标记
 func (self *TActivityOpenFund) UpdateFundCountMark() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"openfund.fundcountmark": self.FundCountMark}})
 }
 
 //! 更改基金等级奖励领取标记
 func (self *TActivityOpenFund) UpdateFundLevelMark() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"openfund.fundlevelmark": self.FundLevelMark}})
 }

@@ -1,11 +1,9 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"mongodb"
 	"time"
 	"utility"
 
@@ -106,30 +104,30 @@ func (self *TMoonlightShopData) GetShopDtad() *TMoonlightShopData {
 //! DB相关
 func (self *TMoonlightShop) DB_SaveExchangeTimes(nIndex int) {
 	FieldName := fmt.Sprintf("moonlightshop.exchangetimes.%d", nIndex)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{FieldName: self.ExchangeTimes[nIndex]}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.ExchangeTimes[nIndex]}})
 }
 func (self *TMoonlightShop) DB_SaveAllExchangeTimes() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{"moonlightshop.exchangetimes": self.ExchangeTimes}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{"moonlightshop.exchangetimes": self.ExchangeTimes}})
 }
 func (self *TMoonlightShop) DB_SaveGoods(nIndex int) {
 	FieldName := fmt.Sprintf("moonlightshop.goods.%d", nIndex)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{FieldName: self.Goods[nIndex]}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.Goods[nIndex]}})
 }
 func (self *TMoonlightShop) DB_SaveAllGoods() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moonlightshop.goods":           self.Goods,
 		"moonlightshop.autorefreshtime": self.AutoRefreshTime}})
 }
 func (self *TMoonlightShop) DB_Save_Score_Buytimes() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moonlightshop.score":    self.Score,
 		"moonlightshop.buytimes": self.BuyTimes}})
 }
 func (self *TMoonlightShop) DB_SaveScoreAwardFlag() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{"moonlightshop.scoreawardflag": self.ScoreAwardFlag}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{"moonlightshop.scoreawardflag": self.ScoreAwardFlag}})
 }
 func (self *TMoonlightShop) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moonlightshop.score":         self.Score,
 		"moonlightshop.buytimes":      self.BuyTimes,
 		"moonlightshop.exchangetimes": self.ExchangeTimes,
@@ -138,7 +136,7 @@ func (self *TMoonlightShop) DB_Refresh() {
 		"moonlightshop.resetcode":     self.ResetCode}})
 }
 func (self *TMoonlightShop) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moonlightshop.goods":           self.Goods,
 		"moonlightshop.autorefreshtime": self.AutoRefreshTime,
 		"moonlightshop.scoreawardflag":  self.ScoreAwardFlag,

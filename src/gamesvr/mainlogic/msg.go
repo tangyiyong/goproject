@@ -20,13 +20,23 @@ type MSG_GetBattleData_Req struct {
 
 //玩家请求上阵英雄数据回复
 type MSG_GetBattleData_Ack struct {
-	RetCode   int            //返回码
-	CurHeros  [6]THeroData   //六个上阵英雄
-	BackHeros [6]THeroData   //六个援军英雄
-	Equips    [24]TEquipData //上阵装备信息
-	Gems      [12]TGemData   //上阵宝物信息
-	Pets      [6]TPetData    //上阵宠物
-	Title     int            //称号ID
+	RetCode     int            //返回码
+	CurHeros    [6]THeroData   //六个上阵英雄
+	BackHeros   [6]THeroData   //六个援军英雄
+	Equips      [24]TEquipData //上阵装备信息
+	Gems        [12]TGemData   //上阵宝物信息
+	Pets        [6]TPetData    //上阵宠物
+	Title       int            //称号ID
+	GuildSkiLvl [9]int8        //公会技能等级
+	FashionID   int            //时装ID
+	FashionLvl  int            //时装等级
+	CurStarID   int            //三国志ID
+	//其它系统添加的固定增加属性
+	//宠物图鉴,  时装图鉴， 将灵， 阵图
+	ExtraProValue   [11]int32 //增加的数值属性
+	ExtraProPercent [11]int32 //增加的百分比属性
+	ExtraCampDef    [5]int32  //抗阵营属性  6:号属性
+	ExtraCampKill   [5]int32  //灭阵营属性  7:号属性
 }
 
 ///////////////////////////////////////////////

@@ -89,7 +89,7 @@ func PreLoadPlayers() {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	query := s.DB(appconfig.GameDbName).C("PlayerRole").Find(nil).Select(bson.M{"_id": 1}).Sort("-Level").Limit(10000)
+	query := s.DB(appconfig.GameDbName).C("PlayerRole").Find(nil).Select(&bson.M{"_id": 1}).Sort("-Level").Limit(10000)
 	iter := query.Iter()
 
 	//fmt.Printf("PreLoadPlayers:%10d", 1)

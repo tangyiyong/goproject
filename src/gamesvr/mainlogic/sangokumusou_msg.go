@@ -272,7 +272,7 @@ func Hand_PassSangokuMusou_Copy(w http.ResponseWriter, r *http.Request) {
 	if nextCopyID == 0 {
 		//! 全部通关, 将状态置为结束
 		player.SangokuMusouModule.IsEnd = true
-		go player.SangokuMusouModule.DB_UpdateIsEndMark()
+		player.SangokuMusouModule.DB_UpdateIsEndMark()
 	}
 
 	response.RetCode = msg.RE_SUCCESS
@@ -461,7 +461,7 @@ func Hand_GetSangokuMusou_ChapterAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 增加奖励领取记录
 	player.SangokuMusouModule.ChapterAwardMark.Add(chapter)
-	go player.SangokuMusouModule.DB_UpdateChapterAwardMark()
+	player.SangokuMusouModule.DB_UpdateChapterAwardMark()
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -594,7 +594,7 @@ func Hand_SetSangokuMusou_ChapterAttr(w http.ResponseWriter, r *http.Request) {
 
 			//! 扣除星数
 			player.SangokuMusouModule.CanUseStar -= v.CostStar
-			go player.SangokuMusouModule.DB_UpdateCanUseStar()
+			player.SangokuMusouModule.DB_UpdateCanUseStar()
 
 			//! 添加属性
 			isFind := false
@@ -602,14 +602,14 @@ func Hand_SetSangokuMusou_ChapterAttr(w http.ResponseWriter, r *http.Request) {
 				if player.SangokuMusouModule.AttrMarkupLst[i].AttrID == v.AttrID {
 					player.SangokuMusouModule.AttrMarkupLst[i].Value += v.Value
 					isFind = true
-					go player.SangokuMusouModule.DB_UpdateAttr(i, player.SangokuMusouModule.AttrMarkupLst[i].Value)
+					player.SangokuMusouModule.DB_UpdateAttr(i, player.SangokuMusouModule.AttrMarkupLst[i].Value)
 					break
 				}
 			}
 
 			if isFind == false {
 				player.SangokuMusouModule.AttrMarkupLst = append(player.SangokuMusouModule.AttrMarkupLst, TSangokuMusouAttrData2{v.AttrID, v.Value})
-				go player.SangokuMusouModule.DB_AddAttr(TSangokuMusouAttrData2{v.AttrID, v.Value})
+				player.SangokuMusouModule.DB_AddAttr(TSangokuMusouAttrData2{v.AttrID, v.Value})
 			}
 		}
 	}
@@ -620,7 +620,7 @@ func Hand_SetSangokuMusou_ChapterAttr(w http.ResponseWriter, r *http.Request) {
 	} else {
 		//! 记录玩家领奖
 		player.SangokuMusouModule.ChapterBuffMark.Add(chapter)
-		go player.SangokuMusouModule.DB_UpdateChapterBuffMark()
+		player.SangokuMusouModule.DB_UpdateChapterBuffMark()
 	}
 
 	//! 清空之前的属性加成选项緩存
@@ -805,7 +805,7 @@ func Hand_BuySangokuMusou_Treasure(w http.ResponseWriter, r *http.Request) {
 
 	player.SangokuMusouModule.IsBuyTreasure = true
 	player.SangokuMusouModule.TreasureID = 0
-	go player.SangokuMusouModule.DB_UpdateTreasure()
+	player.SangokuMusouModule.DB_UpdateTreasure()
 }
 
 //! 玩家请求重置关卡挑战
@@ -992,7 +992,7 @@ func Hand_SangokuMusou_AddEliteCopy(w http.ResponseWriter, r *http.Request) {
 	player.SangokuMusouModule.AddEliteBattleTimes += 1
 
 	response.RetCode = msg.RE_SUCCESS
-	go player.SangokuMusouModule.DB_UpdateEliteBattleTimes()
+	player.SangokuMusouModule.DB_UpdateEliteBattleTimes()
 }
 
 //! 玩家请求获取已购买的商品列表
@@ -1148,7 +1148,7 @@ func Hand_GetSangokuMusou_StoreItem(w http.ResponseWriter, r *http.Request) {
 					player.BagMoudle.AddAwardItem(itemInfo.ItemID, itemInfo.ItemNum*req.Num)
 					player.SangokuMusouModule.BuyRecord[i].Times += req.Num
 					response.Times = player.SangokuMusouModule.BuyRecord[i].Times
-					go player.SangokuMusouModule.DB_UpdateStoreItemBuyTimes(i, player.SangokuMusouModule.BuyRecord[i].Times)
+					player.SangokuMusouModule.DB_UpdateStoreItemBuyTimes(i, player.SangokuMusouModule.BuyRecord[i].Times)
 				}
 			}
 		}

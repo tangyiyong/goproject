@@ -184,7 +184,7 @@ func (self *TMiningModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerMining").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerMining").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerMining Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -243,7 +243,7 @@ func (self *TMiningModule) ResetMiningMap() {
 	//! 设置重置购买次数时间
 	self.ResetDay = utility.GetCurDay()
 
-	go self.DB_ResetMapInfo()
+	self.DB_ResetMapInfo()
 }
 
 //! 删除元素
@@ -266,7 +266,7 @@ func (self *TMiningModule) DeleteElement(index int) {
 		self.Element = append(self.Element[:pos], self.Element[pos+1:]...)
 	}
 
-	go self.DB_RemoveElement(value)
+	self.DB_RemoveElement(value)
 }
 
 //! 删除怪物
@@ -289,7 +289,7 @@ func (self *TMiningModule) DeleteMonster(index int) {
 		self.MonsterLst = append(self.MonsterLst[:pos], self.MonsterLst[pos+1:]...)
 	}
 
-	go self.DB_RemoveMonster(monster)
+	self.DB_RemoveMonster(monster)
 }
 
 //! 生成新可视区域部分坐标
@@ -372,7 +372,7 @@ func (self *TMiningModule) CreateNewMap(isSave bool) {
 
 	//! 存储地图
 	if isSave == true {
-		go self.DB_SaveMiningMap()
+		self.DB_SaveMiningMap()
 	}
 }
 
@@ -408,7 +408,7 @@ func (self *TMiningModule) OnNewDay(newday uint32) {
 	//! 重置购买行动力次数
 	self.ActionBuyTimes = 0
 	self.ResetDay = newday
-	go self.DB_SaveActionBuyTimes()
+	self.DB_SaveActionBuyTimes()
 }
 
 //! 当前是否刷新Boss
@@ -458,8 +458,8 @@ func (self *TMiningModule) randElement(index int, savedb bool) (element int) {
 			}
 
 			if savedb == true {
-				go self.DB_AddMonster(info)
-				go self.DB_SaveBossAward()
+				self.DB_AddMonster(info)
+				self.DB_SaveBossAward()
 			}
 
 		}
@@ -471,7 +471,7 @@ func (self *TMiningModule) randElement(index int, savedb bool) (element int) {
 	}
 
 	if savedb == true {
-		go self.DB_AddElement(index<<16 + element)
+		self.DB_AddElement(index<<16 + element)
 	}
 	return element
 }
@@ -482,13 +482,13 @@ func (self *TMiningModule) AddMapStatusCode() {
 	miningCode := self.StatusCode & 0x0000FFFF
 	self.StatusCode = (mapCode << 16) + miningCode
 
-	go self.DB_UpdateMiningStatusCode()
+	self.DB_UpdateMiningStatusCode()
 }
 
 //! 矿洞版本号加一
 func (self *TMiningModule) AddMiningStatusCode() {
 	self.StatusCode += 1
-	go self.DB_UpdateMiningStatusCode()
+	self.DB_UpdateMiningStatusCode()
 }
 
 //! 获取坐标信息
@@ -540,7 +540,7 @@ func (self *TMiningModule) AddBuff(buffType int, times int, value int) {
 	self.Buff.BuffType = buffType
 	self.Buff.Times = times
 	self.Buff.Value = value
-	go self.DB_SavePlayerBuff()
+	self.DB_SavePlayerBuff()
 }
 
 //! 随机Boss奖励
@@ -571,7 +571,7 @@ func (self *TMiningModule) GetBossAward(id int) *TMiningBossAward {
 func (self *TMiningModule) SetGuaji(guajiType int, hour int) {
 	self.GuaJiType = guajiType
 	self.GuajiCalcTime = time.Now().Unix() + int64(hour*60*60)
-	go self.DB_SaveGuajiInfo()
+	self.DB_SaveGuajiInfo()
 }
 
 //! 获取挂机奖励
@@ -588,7 +588,7 @@ func (self *TMiningModule) GetGuajiAward() []gamedata.ST_ItemData {
 	//! 重置挂机时间信息
 	self.GuaJiType = 0
 	self.GuajiCalcTime = 0
-	go self.DB_SaveGuajiInfo()
+	self.DB_SaveGuajiInfo()
 
 	return awardItems
 }
@@ -614,7 +614,7 @@ func (self *TMiningModule) CheckActionAddTime() int {
 	// }
 
 	// self.ownplayer.RoleMoudle.AddAction(gamedata.MiningCostActionID, int(addAction))
-	// go self.DB_SaveActionAddTime()
+	// self.DB_SaveActionAddTime()
 
 	// //! 返回倒计时
 	// nextTime := self.ActionAddTime + int64(gamedata.MiningActionRecoverTime) - time.Now().Unix()

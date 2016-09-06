@@ -65,7 +65,7 @@ func (self *TFameHallModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerFameHall").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerFameHall").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerFameHall Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -138,7 +138,7 @@ func (self *TFameHallModule) RefreshFameHallLstFunc() bool {
 				s := mongodb.GetDBSession()
 				defer s.Close()
 				var fameHall TFameHallModule
-				err := s.DB(appconfig.GameDbName).C("PlayerFameHall").Find(bson.M{"_id": m.PlayerID}).One(&fameHall)
+				err := s.DB(appconfig.GameDbName).C("PlayerFameHall").Find(&bson.M{"_id": m.PlayerID}).One(&fameHall)
 				if err != nil {
 					gamelog.Error("FameHallRefresh Load Error :%s， PlayerID: %d", err.Error(), m.PlayerID)
 					continue
@@ -146,7 +146,7 @@ func (self *TFameHallModule) RefreshFameHallLstFunc() bool {
 				G_FameHallLst[i][n].CharmValue = fameHall.CharmValue
 
 				var heroModule THeroMoudle
-				err = s.DB(appconfig.GameDbName).C("PlayerHero").Find(bson.M{"_id": m.PlayerID}).One(&heroModule)
+				err = s.DB(appconfig.GameDbName).C("PlayerHero").Find(&bson.M{"_id": m.PlayerID}).One(&heroModule)
 				if err != nil {
 					gamelog.Error("FameHallRefresh Load Error :%s， PlayerID: %d", err.Error(), m.PlayerID)
 					continue
@@ -181,7 +181,7 @@ func (self *TFameHallModule) OnNewDay(newday uint32) {
 	self.ResetDay = newday
 	self.FreeTimes = gamedata.FameHallFreeTimes
 
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TFameHallModule) RedTip() bool {

@@ -142,7 +142,7 @@ func Hand_GetWeekAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	player.ActivityModule.WeekAward.AwardMark.Set(uint32(req.Index))
-	go player.ActivityModule.WeekAward.DB_UpdateAwardMark()
+	player.ActivityModule.WeekAward.DB_UpdateAwardMark()
 
 	response.RetCode = msg.RE_SUCCESS
 	response.AwardMark = int(player.ActivityModule.WeekAward.AwardMark)

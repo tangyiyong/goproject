@@ -26,65 +26,66 @@ type TRoleMoudle struct {
 	NewWizard   string    //新手向导
 	TodayCharge int32     //今天的充值额度
 	TotalCharge int32     //总的充值额度
+	CurStarID   int       //三国志ID
 	ownplayer   *TPlayer  //父player指针
 }
 
-func (role *TRoleMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
-	role.PlayerID = playerid
-	role.ownplayer = player
+func (self *TRoleMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
+	self.PlayerID = playerid
+	self.ownplayer = player
 }
 
-func (role *TRoleMoudle) OnCreate(playerid int32) {
+func (self *TRoleMoudle) OnCreate(playerid int32) {
 	//初始化各个成员数值
-	role.PlayerID = playerid
+	self.PlayerID = playerid
 
-	role.Actions = make([]TAction, gamedata.GetActionCount())
-	for i := 0; i < len(role.Actions); i++ {
+	self.Actions = make([]TAction, gamedata.GetActionCount())
+	for i := 0; i < len(self.Actions); i++ {
 		pActionInfo := gamedata.GetActionInfo(i + 1)
 		if pActionInfo == nil {
 			gamelog.Error("TRoleMoudle:OnCreate Error: invalid actionid %d", i)
 			return
 		}
 
-		role.Actions[i].Value = pActionInfo.Max
-		role.Actions[i].StartTime = 0
+		self.Actions[i].Value = pActionInfo.Max
+		self.Actions[i].StartTime = 0
 	}
 
-	role.Moneys = make([]int, gamedata.GetMoneyCount())
+	self.Moneys = make([]int, gamedata.GetMoneyCount())
 
 	//创建数据库记录
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerRole", role)
+	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerRole", self)
 }
 
 //玩家对象销毁
-func (role *TRoleMoudle) OnDestroy(playerid int32) {
-	role = nil
+func (self *TRoleMoudle) OnDestroy(playerid int32) {
+	self = nil
 }
 
 //玩家进入游戏
-func (role *TRoleMoudle) OnPlayerOnline(playerid int32) {
+func (self *TRoleMoudle) OnPlayerOnline(playerid int32) {
 }
 
 //OnPlayerOffline 玩家离开游戏
-func (role *TRoleMoudle) OnPlayerOffline(playerid int32) {
+func (self *TRoleMoudle) OnPlayerOffline(playerid int32) {
 }
 
 //玩家离开游戏
-func (role *TRoleMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) bool {
+func (self *TRoleMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) bool {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 	var bRet = true
-	err := s.DB(appconfig.GameDbName).C("PlayerRole").Find(bson.M{"_id": playerid}).One(role)
+	err := s.DB(appconfig.GameDbName).C("PlayerRole").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerRole Load Error :%s， PlayerID: %d", err.Error(), playerid)
 		bRet = false
 	}
 
-	for i := 0; i < len(role.Actions); i++ {
+	for i := 0; i < len(self.Actions); i++ {
 		pActionInfo := gamedata.GetActionInfo(i + 1)
 		if pActionInfo != nil {
-			if role.Actions[i].Value >= pActionInfo.Max {
-				role.Actions[i].StartTime = 0
+			if self.Actions[i].Value >= pActionInfo.Max {
+				self.Actions[i].StartTime = 0
 			}
 		}
 	}
@@ -92,13 +93,13 @@ func (role *TRoleMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) bool {
 	if wg != nil {
 		wg.Done()
 	}
-	role.PlayerID = playerid
+	self.PlayerID = playerid
 	return bRet
 }
 
 //扣除货币， 如果返回成功，就是扣除成功， 如果返回失败，就是货币不足
-func (role *TRoleMoudle) CostMoney(moneyID int, moneyNum int) bool {
-	if (moneyID <= 0) || (moneyID > len(role.Moneys)) {
+func (self *TRoleMoudle) CostMoney(moneyID int, moneyNum int) bool {
+	if (moneyID <= 0) || (moneyID > len(self.Moneys)) {
 		gamelog.Error("CostMoney Error: Inavlid moneyID :%d", moneyID)
 		return false
 	}
@@ -108,24 +109,24 @@ func (role *TRoleMoudle) CostMoney(moneyID int, moneyNum int) bool {
 		return false
 	}
 
-	if role.Moneys[moneyID-1] < moneyNum {
+	if self.Moneys[moneyID-1] < moneyNum {
 		gamelog.Error("CostMoney Error : Not Enough Money :%d", moneyNum)
 		return false
 	}
 
-	role.Moneys[moneyID-1] -= moneyNum
-	role.DB_SaveMoneysAt(moneyID)
+	self.Moneys[moneyID-1] -= moneyNum
+	self.DB_SaveMoneysAt(moneyID)
 
 	//! 增加任务进度
 	if moneyID == 1 {
-		role.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_SPENT_MONEY, moneyNum)
+		self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_SPENT_MONEY, moneyNum)
 	}
 
 	return true
 }
 
-func (role *TRoleMoudle) CheckMoneyEnough(moneyID int, moneyNum int) bool {
-	if (moneyID <= 0) || (moneyID > len(role.Moneys)) {
+func (self *TRoleMoudle) CheckMoneyEnough(moneyID int, moneyNum int) bool {
+	if (moneyID <= 0) || (moneyID > len(self.Moneys)) {
 		gamelog.Error("CheckMoneyEnough Error: Inavlid moneyID :%d", moneyID)
 		return false
 	}
@@ -135,45 +136,45 @@ func (role *TRoleMoudle) CheckMoneyEnough(moneyID int, moneyNum int) bool {
 		return false
 	}
 
-	if role.Moneys[moneyID-1] >= moneyNum {
+	if self.Moneys[moneyID-1] >= moneyNum {
 		return true
 	}
 
 	return false
 }
 
-func (role *TRoleMoudle) GetMoney(moneyID int) int {
-	if (moneyID <= 0) || (moneyID > len(role.Moneys)) {
+func (self *TRoleMoudle) GetMoney(moneyID int) int {
+	if (moneyID <= 0) || (moneyID > len(self.Moneys)) {
 		gamelog.Error("GetMoney Error: Inavlid moneyID :%d", moneyID)
 		return 0
 	}
 
-	return role.Moneys[moneyID-1]
+	return self.Moneys[moneyID-1]
 }
 
-func (role *TRoleMoudle) AddMoney(moneyID int, moneyNum int) int {
+func (self *TRoleMoudle) AddMoney(moneyID int, moneyNum int) int {
 	if moneyNum <= 0 {
 		gamelog.Error("AddMoney Error: Inavlid moneyNum :%d", moneyNum)
-		return role.Moneys[moneyID-1]
+		return self.Moneys[moneyID-1]
 	}
 
-	if (moneyID <= 0) || (moneyID > len(role.Moneys)) {
+	if (moneyID <= 0) || (moneyID > len(self.Moneys)) {
 		gamelog.Error("AddMoney Error: Inavlid moneyID :%d", moneyID)
 		return 0
 	}
 
-	role.Moneys[moneyID-1] += moneyNum
-	if role.Moneys[moneyID-1] > gamedata.GetMoneyMaxValue(moneyID) {
-		role.Moneys[moneyID-1] = gamedata.GetMoneyMaxValue(moneyID)
+	self.Moneys[moneyID-1] += moneyNum
+	if self.Moneys[moneyID-1] > gamedata.GetMoneyMaxValue(moneyID) {
+		self.Moneys[moneyID-1] = gamedata.GetMoneyMaxValue(moneyID)
 	}
 
-	role.DB_SaveMoneysAt(moneyID)
-	return role.Moneys[moneyID-1]
+	self.DB_SaveMoneysAt(moneyID)
+	return self.Moneys[moneyID-1]
 }
 
 //扣除行动力， 如果返回成功，就是扣除成功， 如果返回失败，就是行动力不足
-func (role *TRoleMoudle) CostAction(actionID int, actionNum int) bool {
-	if (actionID <= 0) || (actionID >= len(role.Actions)) {
+func (self *TRoleMoudle) CostAction(actionID int, actionNum int) bool {
+	if (actionID <= 0) || (actionID >= len(self.Actions)) {
 		gamelog.Error("CostAction Error: Inavlid actionID :%d", actionID)
 		return false
 	}
@@ -183,7 +184,7 @@ func (role *TRoleMoudle) CostAction(actionID int, actionNum int) bool {
 		return false
 	}
 
-	if role.Actions[actionID-1].Value < actionNum {
+	if self.Actions[actionID-1].Value < actionNum {
 		return false
 	}
 
@@ -193,23 +194,23 @@ func (role *TRoleMoudle) CostAction(actionID int, actionNum int) bool {
 		return false
 	}
 
-	role.Actions[actionID-1].Value -= actionNum
+	self.Actions[actionID-1].Value -= actionNum
 
-	if role.Actions[actionID-1].Value < pActionInfo.Max {
-		if role.Actions[actionID-1].StartTime <= 0 {
-			role.Actions[actionID-1].StartTime = time.Now().Unix()
+	if self.Actions[actionID-1].Value < pActionInfo.Max {
+		if self.Actions[actionID-1].StartTime <= 0 {
+			self.Actions[actionID-1].StartTime = time.Now().Unix()
 		}
 	} else {
-		role.Actions[actionID-1].StartTime = 0
+		self.Actions[actionID-1].StartTime = 0
 	}
 
-	role.DB_SaveActionsAt(actionID)
+	self.DB_SaveActionsAt(actionID)
 
 	return true
 }
 
-func (role *TRoleMoudle) CheckActionEnough(actionID int, actionNum int) bool {
-	if (actionID <= 0) || (actionID > len(role.Actions)) {
+func (self *TRoleMoudle) CheckActionEnough(actionID int, actionNum int) bool {
+	if (actionID <= 0) || (actionID > len(self.Actions)) {
 		gamelog.Error("CheckActionEnough Error: Inavlid actionID :%d", actionID)
 		return false
 	}
@@ -219,52 +220,52 @@ func (role *TRoleMoudle) CheckActionEnough(actionID int, actionNum int) bool {
 		return false
 	}
 
-	if role.Actions[actionID-1].Value >= actionNum {
+	if self.Actions[actionID-1].Value >= actionNum {
 		return true
 	}
 
-	if role.UpdateAction(actionID) {
-		role.DB_SaveActionsAt(actionID)
+	if self.UpdateAction(actionID) {
+		self.DB_SaveActionsAt(actionID)
 	}
 
-	if role.Actions[actionID-1].Value < actionNum {
+	if self.Actions[actionID-1].Value < actionNum {
 		return false
 	}
 
 	return true
 }
 
-func (role *TRoleMoudle) GetActionData(actionID int) (int, int64) {
-	if (actionID <= 0) || (actionID > len(role.Actions)) {
+func (self *TRoleMoudle) GetActionData(actionID int) (int, int64) {
+	if (actionID <= 0) || (actionID > len(self.Actions)) {
 		gamelog.Error("GetAction Error: Inavlid actionID :%d", actionID)
 		return 0, 0
 	}
 
-	return role.Actions[actionID-1].Value, role.Actions[actionID-1].StartTime
+	return self.Actions[actionID-1].Value, self.Actions[actionID-1].StartTime
 }
 
-func (role *TRoleMoudle) GetAction(actionID int) int {
-	if (actionID <= 0) || (actionID > len(role.Actions)) {
+func (self *TRoleMoudle) GetAction(actionID int) int {
+	if (actionID <= 0) || (actionID > len(self.Actions)) {
 		gamelog.Error("GetAction Error: Inavlid actionID :%d", actionID)
 		return 0
 	}
 
-	if role.UpdateAction(actionID) {
-		role.DB_SaveActionsAt(actionID)
+	if self.UpdateAction(actionID) {
+		self.DB_SaveActionsAt(actionID)
 	}
 
-	return role.Actions[actionID-1].Value
+	return self.Actions[actionID-1].Value
 }
 
-func (role *TRoleMoudle) AddAction(actionID int, actionNum int) int {
-	if (actionID <= 0) || (actionID > len(role.Actions)) {
+func (self *TRoleMoudle) AddAction(actionID int, actionNum int) int {
+	if (actionID <= 0) || (actionID > len(self.Actions)) {
 		gamelog.Error("AddAction Error: Inavlid actionID :%d", actionID)
 		return 0
 	}
 
-	role.UpdateAction(actionID)
+	self.UpdateAction(actionID)
 
-	role.Actions[actionID-1].Value += actionNum
+	self.Actions[actionID-1].Value += actionNum
 
 	pActionInfo := gamedata.GetActionInfo(actionID)
 	if pActionInfo == nil {
@@ -272,88 +273,86 @@ func (role *TRoleMoudle) AddAction(actionID int, actionNum int) int {
 		return 0
 	}
 
-	if role.Actions[actionID-1].Value >= pActionInfo.Max {
-		role.Actions[actionID-1].StartTime = 0
+	if self.Actions[actionID-1].Value >= pActionInfo.Max {
+		self.Actions[actionID-1].StartTime = 0
 	}
 
-	role.DB_SaveActionsAt(actionID)
+	self.DB_SaveActionsAt(actionID)
 
-	return role.Actions[actionID-1].Value
+	return self.Actions[actionID-1].Value
 }
 
-func (role *TRoleMoudle) UpdateAction(actionID int) bool {
+func (self *TRoleMoudle) UpdateAction(actionID int) bool {
 	pActionInfo := gamedata.GetActionInfo(actionID)
 	if pActionInfo == nil {
 		gamelog.Error("UpdateAction Invalid Action id :%d", actionID)
 		return false
 	}
 
-	if role.Actions[actionID-1].Value >= pActionInfo.Max {
-		if role.Actions[actionID-1].StartTime > 0 {
+	if self.Actions[actionID-1].Value >= pActionInfo.Max {
+		if self.Actions[actionID-1].StartTime > 0 {
 			gamelog.Error("UpdateAction error  StartTime is not 0")
 		}
-		role.Actions[actionID-1].StartTime = 0
+		self.Actions[actionID-1].StartTime = 0
 		return false
 	}
 
-	if role.Actions[actionID-1].StartTime <= 0 {
+	if self.Actions[actionID-1].StartTime <= 0 {
 		gamelog.Error("UpdateAction error  action not max, but starttime is 0")
 	}
 
-	timeElapse := time.Now().Unix() - role.Actions[actionID-1].StartTime
+	timeElapse := time.Now().Unix() - self.Actions[actionID-1].StartTime
 
 	if timeElapse < int64(pActionInfo.UnitTime) {
 		return false
 	}
 
 	ActionNum := int(timeElapse) / pActionInfo.UnitTime
-	role.Actions[actionID-1].Value += ActionNum
+	self.Actions[actionID-1].Value += ActionNum
 
-	if role.Actions[actionID-1].Value >= pActionInfo.Max {
-		role.Actions[actionID-1].Value = pActionInfo.Max
-		role.Actions[actionID-1].StartTime = 0
+	if self.Actions[actionID-1].Value >= pActionInfo.Max {
+		self.Actions[actionID-1].Value = pActionInfo.Max
+		self.Actions[actionID-1].StartTime = 0
 	} else {
-		role.Actions[actionID-1].StartTime = role.Actions[actionID-1].StartTime + int64(ActionNum*pActionInfo.UnitTime)
+		self.Actions[actionID-1].StartTime = self.Actions[actionID-1].StartTime + int64(ActionNum*pActionInfo.UnitTime)
 	}
 
 	return true
 }
 
-func (role *TRoleMoudle) UpdateAllAction() {
+func (self *TRoleMoudle) UpdateAllAction() {
 	var bUpdate = false
-	for i := 0; i < len(role.Actions); i++ {
-		if role.UpdateAction(i + 1) {
+	for i := 0; i < len(self.Actions); i++ {
+		if self.UpdateAction(i + 1) {
 			bUpdate = true
 		}
 	}
 
 	if bUpdate {
-		role.DB_SaveActions()
+		self.DB_SaveActions()
 	}
 
 	return
 }
 
-// //增加公会经验技能等级
-// func (role *TRoleMoudle) AddGuildSkillExpIncLevel() bool {
-// 	role.ExpIncLvl += 1
-// 	role.DB_SaveExpIncLevel()
-// 	return true
-// }
-
-// //清空公会经验技能等级
-// func (role *TRoleMoudle) ClearGuildSkillExpIncLevel() {
-// 	role.ExpIncLvl = 0
-// 	role.DB_SaveExpIncLevel()
-// }
-
 //! 增加VIP经验
-func (role *TRoleMoudle) AddVipExp(exp int) {
-	role.AddMoney(gamedata.VipExpMoneyID, exp)
-	newLevel := gamedata.CalcVipLevelByExp(role.GetMoney(gamedata.VipExpMoneyID), role.VipLevel)
-	if newLevel != role.VipLevel {
-		role.VipLevel = newLevel
-		role.ownplayer.ActivityModule.VipGift.IsRecvWelfare = false
-		role.DB_SaveVipLevel()
+func (self *TRoleMoudle) AddVipExp(exp int) {
+	self.AddMoney(gamedata.VipExpMoneyID, exp)
+	newLevel := gamedata.CalcVipLevelByExp(self.GetMoney(gamedata.VipExpMoneyID), self.VipLevel)
+	if newLevel != self.VipLevel {
+		self.VipLevel = newLevel
+		self.ownplayer.ActivityModule.VipGift.IsRecvWelfare = false
+		self.DB_SaveVipLevel()
 	}
+}
+
+func (self *TRoleMoudle) RedTip() bool {
+	//! 判断升星材料是否足够
+	info := gamedata.GetSanGuoZhiInfo(self.CurStarID)
+	if info == nil {
+		return false
+	}
+
+	bEnough := self.ownplayer.BagMoudle.IsItemEnough(info.CostType, info.CostNum)
+	return bEnough
 }

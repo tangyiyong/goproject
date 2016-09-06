@@ -184,7 +184,7 @@ func Hand_RobFood(w http.ResponseWriter, r *http.Request) {
 
 	//! 扣除掠夺次数
 	player.FoodWarModule.AttackTimes -= 1
-	go player.FoodWarModule.DB_SaveAttackTimes()
+	player.FoodWarModule.DB_SaveAttackTimes()
 
 	//! 获取目标玩家粮草信息
 	targetFood := player.FoodWarModule.GetPlayerFoodInfo(req.TargetPlayerID)
@@ -197,11 +197,11 @@ func Hand_RobFood(w http.ResponseWriter, r *http.Request) {
 		player.FoodWarModule.TotalFood = player.FoodWarModule.TotalFood + response.RobFood/3 + response.RobFood
 		response.TotalFood = player.FoodWarModule.TotalFood
 
-		go player.FoodWarModule.DB_SaveFood()
+		player.FoodWarModule.DB_SaveFood()
 
 		//! 扣除目标流动粮草
 		targetFood.TotalFood -= response.RobFood
-		go targetFood.DB_SaveFood()
+		targetFood.DB_SaveFood()
 
 		//! 排行榜变动
 		G_FoodWarRanker.SetRankItem(req.TargetPlayerID, targetFood.TotalFood)
@@ -216,7 +216,7 @@ func Hand_RobFood(w http.ResponseWriter, r *http.Request) {
 
 		//! 复仇名单增加
 		targetFood.RevengeLst = append(targetFood.RevengeLst, TRevengeInfo{player.playerid, response.RobFood})
-		go targetFood.DB_AddRevengeLst(TRevengeInfo{player.playerid, response.RobFood})
+		targetFood.DB_AddRevengeLst(TRevengeInfo{player.playerid, response.RobFood})
 
 	} else {
 		//! 给予失败货币奖励
@@ -307,7 +307,7 @@ func Hand_FoodWar_Revenge(w http.ResponseWriter, r *http.Request) {
 
 	//! 扣除复仇次数
 	player.FoodWarModule.RevengeTimes -= 1
-	go player.FoodWarModule.DB_SaveRevengeTimes()
+	player.FoodWarModule.DB_SaveRevengeTimes()
 
 	revengeInfo := player.FoodWarModule.GetRevengeInfo(req.TargetPlayerID)
 	if revengeInfo == nil {
@@ -319,7 +319,7 @@ func Hand_FoodWar_Revenge(w http.ResponseWriter, r *http.Request) {
 		response.RobFood = revengeInfo.RobFood
 		player.FoodWarModule.TotalFood += response.RobFood
 		response.FixFood = player.FoodWarModule.FixedFood
-		go player.FoodWarModule.DB_SaveFood()
+		player.FoodWarModule.DB_SaveFood()
 
 		//! 排行榜变动
 		response.Rank = G_FoodWarRanker.SetRankItem(player.playerid, player.FoodWarModule.TotalFood) + 1
@@ -333,7 +333,7 @@ func Hand_FoodWar_Revenge(w http.ResponseWriter, r *http.Request) {
 		for i, v := range player.FoodWarModule.RevengeLst {
 			if v.PlayerID == req.TargetPlayerID {
 				pos = i
-				go player.FoodWarModule.DB_RemoveRevengeLst(v)
+				player.FoodWarModule.DB_RemoveRevengeLst(v)
 				break
 			}
 		}
@@ -640,7 +640,7 @@ func Hand_FoodWar_BuyTimes(w http.ResponseWriter, r *http.Request) {
 		//! 增加次数
 		player.FoodWarModule.BuyAttackTimes += req.Times
 		player.FoodWarModule.AttackTimes += req.Times
-		go player.FoodWarModule.DB_SaveBuyAttackTimes()
+		player.FoodWarModule.DB_SaveBuyAttackTimes()
 
 		response.RetCode = msg.RE_SUCCESS
 	} else {
@@ -671,7 +671,7 @@ func Hand_FoodWar_BuyTimes(w http.ResponseWriter, r *http.Request) {
 		//! 增加次数
 		player.FoodWarModule.BuyRevengeTimes += req.Times
 		player.FoodWarModule.RevengeTimes += req.Times
-		go player.FoodWarModule.DB_SaveBuyRevengeTimes()
+		player.FoodWarModule.DB_SaveBuyRevengeTimes()
 
 		response.RetCode = msg.RE_SUCCESS
 	}
@@ -740,7 +740,7 @@ func Hand_FoodWar_RecvAward(w http.ResponseWriter, r *http.Request) {
 	player.BagMoudle.AddAwardItems(awardItems)
 
 	player.FoodWarModule.AwardRecvLst.Add(req.ID)
-	go player.FoodWarModule.DB_AddAwardRecvRecord(req.ID)
+	player.FoodWarModule.DB_AddAwardRecvRecord(req.ID)
 	response.Award = foodAward.Award
 	response.RetCode = msg.RE_SUCCESS
 }

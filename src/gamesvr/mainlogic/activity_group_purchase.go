@@ -1,10 +1,8 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
 	"gamesvr/gamedata"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -50,7 +48,7 @@ func (self *TActivityGroupPurchase) Init(activityID int, mPtr *TActivityModule, 
 //! 刷新数据
 func (self *TActivityGroupPurchase) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
@@ -62,7 +60,7 @@ func (self *TActivityGroupPurchase) End(versionCode int32, resetCode int32) {
 	self.ResetCode = resetCode
 
 	//! 存储数据库
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityGroupPurchase) GetRefreshV() int32 {
@@ -103,32 +101,32 @@ func (self *TActivityGroupPurchase) GetGroupItemInfo(itemID int) (*TActivityPurc
 	newRecord.Times = 0
 	newRecord.MoneyNum = 0
 	self.PurchaseCostLst = append(self.PurchaseCostLst, newRecord)
-	go self.DB_AddNewPurchaseCostInfo(&newRecord)
+	self.DB_AddNewPurchaseCostInfo(&newRecord)
 
 	return &self.PurchaseCostLst[length], length
 }
 
 func (self *TActivityGroupPurchase) DB_AddNewPurchaseCostInfo(newRecord *TActivityPurchaseCost) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID},
-		bson.M{"$push": bson.M{"grouppurchase.purchasecostlst": *newRecord}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
+		&bson.M{"$push": bson.M{"grouppurchase.purchasecostlst": *newRecord}})
 }
 
 func (self *TActivityGroupPurchase) DB_UpdatePurchaseCostInfo(index int) {
 	filedName := fmt.Sprintf("grouppurchase.%d.purchasecostlst.times", index)
 	filedName2 := fmt.Sprintf("grouppurchase.%d.purchasecostlst.moneynum", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.PurchaseCostLst[index].Times,
 		filedName2: self.PurchaseCostLst[index].MoneyNum}})
 }
 
 func (self *TActivityGroupPurchase) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"grouppurchase.versioncode": self.VersionCode}})
 }
 
 //! 存储数据库
 func (self *TActivityGroupPurchase) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"grouppurchase.activityid":      self.ActivityID,
 		"grouppurchase.purchasecostlst": self.PurchaseCostLst,
 		"grouppurchase.score":           self.Score,
@@ -138,10 +136,10 @@ func (self *TActivityGroupPurchase) DB_Reset() {
 }
 
 func (self *TActivityGroupPurchase) DB_SaveScore() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"grouppurchase.score": self.Score}})
 }
 
 func (self *TActivityGroupPurchase) DB_AddScoreAward(id int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{"grouppurchase.scoreawardmark": id}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{"grouppurchase.scoreawardmark": id}})
 }

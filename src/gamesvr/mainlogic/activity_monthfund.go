@@ -1,9 +1,7 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"gamesvr/gamedata"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -47,7 +45,7 @@ func (self *TActivityMonthFund) Refresh(versionCode int32) {
 	}
 
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 func (self *TActivityMonthFund) End(versionCode int32, resetCode int32) {
@@ -60,7 +58,7 @@ func (self *TActivityMonthFund) End(versionCode int32, resetCode int32) {
 	self.AwardMark = 0
 	self.Day = 0
 
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityMonthFund) GetRefreshV() int32 {
@@ -112,13 +110,13 @@ func (self *TActivityMonthFund) SetMonthFund(rmb int) {
 		return
 	}
 
-	chargeInfo := gamedata.GetChargeItem(gamedata.MonthFundCostMoneyNum)
+	chargeInfo := gamedata.GetChargeItem(gamedata.MonthFundChargeID)
 	if rmb == chargeInfo.RenMinBi {
 		awardType := G_GlobalVariables.GetActivityAwardType(self.ActivityID)
 		awardCount := gamedata.GetMonthFundAwardCount(awardType)
 		self.Day += awardCount
 		self.AwardMark = 0
-		go self.DB_MonthFund()
+		self.DB_MonthFund()
 	}
 }
 
@@ -140,7 +138,7 @@ func (self *TActivityMonthFund) AwardRetroactive() {
 }
 
 func (self *TActivityMonthFund) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthfund.activityid":  self.ActivityID,
 		"monthfund.day":         self.Day,
 		"monthfund.awardmark":   self.AwardMark,
@@ -149,18 +147,18 @@ func (self *TActivityMonthFund) DB_Reset() {
 }
 
 func (self *TActivityMonthFund) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthfund.day":         self.Day,
 		"monthfund.versioncode": self.VersionCode}})
 }
 
 func (self *TActivityMonthFund) DB_MonthFund() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthfund.day":       self.Day,
 		"monthfund.awardmark": self.AwardMark}})
 }
 
 func (self *TActivityMonthFund) DB_UpdateAwardMark() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthfund.awardmark": self.AwardMark}})
 }

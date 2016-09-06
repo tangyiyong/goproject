@@ -44,7 +44,7 @@ func (self *TChargeMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerCharge").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerCharge").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerCharge Load Error: %s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -69,8 +69,8 @@ func (self *TChargeMoudle) AddChargeTimes(id int) int {
 //! DB相关
 func (self *TChargeMoudle) DB_SaveChargeTimes(nIndex int) {
 	FieldName := fmt.Sprintf("chargetimes.%d", nIndex)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCharge", bson.M{"_id": self.PlayerID},
-		bson.M{"$set": bson.M{FieldName: self.ChargeTimes[nIndex]}})
+	GameSvrUpdateToDB("PlayerCharge", &bson.M{"_id": self.PlayerID},
+		&bson.M{"$set": bson.M{FieldName: self.ChargeTimes[nIndex]}})
 }
 
 //! 逻辑代码

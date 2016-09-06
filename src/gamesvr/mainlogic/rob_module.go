@@ -57,7 +57,7 @@ func (self *TRobModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerRob").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerRob").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerRob Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -77,7 +77,7 @@ func (self *TRobModule) AddFreeWarTime(freeTime int) {
 		self.FreeWarTime = self.FreeWarTime + int64(freeTime)
 	}
 
-	go self.UpdateFreeWarTime()
+	self.UpdateFreeWarTime()
 }
 
 //! 刷新免战时间
@@ -85,7 +85,7 @@ func (self *TRobModule) RefreshFreeWarTime() {
 	now := time.Now().Unix()
 	if now >= self.FreeWarTime { //! 免战时间结束
 		self.FreeWarTime = 0
-		go self.UpdateFreeWarTime()
+		self.UpdateFreeWarTime()
 	}
 }
 
@@ -230,6 +230,6 @@ func (self *TRobModule) RobPlayer(targetLevel int) bool {
 }
 
 func (self *TRobModule) UpdateFreeWarTime() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerRob", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerRob", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"freewartime": self.FreeWarTime}})
 }

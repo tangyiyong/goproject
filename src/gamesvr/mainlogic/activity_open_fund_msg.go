@@ -106,7 +106,7 @@ func Hand_BuyOpenFund(w http.ResponseWriter, r *http.Request) {
 	player.RoleMoudle.CostMoney(gamedata.OpenFundPriceID, gamedata.OpenFundPriceNum)
 
 	player.ActivityModule.OpenFund.IsBuyFund = true
-	go player.ActivityModule.OpenFund.UpdateBuyFundMark()
+	player.ActivityModule.OpenFund.UpdateBuyFundMark()
 
 	//! 购买基金人数+1
 	G_BuyFundNum += 1
@@ -194,7 +194,7 @@ func Hand_GetOpenFundAllAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 改变标记
 	player.ActivityModule.OpenFund.FundCountMark.Set(uint32(req.ID))
-	go player.ActivityModule.OpenFund.UpdateFundCountMark()
+	player.ActivityModule.OpenFund.UpdateFundCountMark()
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
@@ -269,7 +269,7 @@ func Hand_GetOpenFundLevelAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 改变标记
 	player.ActivityModule.OpenFund.FundLevelMark.Set(uint32(req.ID))
-	go player.ActivityModule.OpenFund.UpdateFundLevelMark()
+	player.ActivityModule.OpenFund.UpdateFundLevelMark()
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

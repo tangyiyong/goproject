@@ -1,11 +1,9 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"mongodb"
 	"strconv"
 	"strings"
 
@@ -53,7 +51,7 @@ func (self *TActivityRankGift) Init(activityID int, mPtr *TActivityModule, verco
 //! 刷新数据
 func (self *TActivityRankGift) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 func (self *TActivityRankGift) End(versionCode int32, resetCode int32) {
@@ -62,7 +60,7 @@ func (self *TActivityRankGift) End(versionCode int32, resetCode int32) {
 
 	self.GiftLst = []TRankGiftInfo{}
 	self.IsHaveNewItem = false
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityRankGift) GetRefreshV() int32 {
@@ -139,18 +137,18 @@ func (self *TActivityRankGift) CheckRankUp(rank int) {
 			gift.BuyTimes = giftLst[i].BuyTimes
 			self.GiftLst = append(self.GiftLst, gift)
 			self.IsHaveNewItem = true
-			go self.DB_AddGift(&gift)
+			self.DB_AddGift(&gift)
 		}
 	}
 }
 
 func (self *TActivityRankGift) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"rankgift.versioncode": self.VersionCode}})
 }
 
 func (self *TActivityRankGift) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"rankgift.activityid":    self.ActivityID,
 		"rankgift.resetcode":     self.ResetCode,
 		"rankgift.ishavenewitem": self.IsHaveNewItem,
@@ -159,9 +157,9 @@ func (self *TActivityRankGift) DB_Reset() {
 }
 
 func (self *TActivityRankGift) DB_AddGift(gift *TRankGiftInfo) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{"rankgift.giftlst": *gift}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{"rankgift.giftlst": *gift}})
 
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"rankgift.ishavenewitem": self.IsHaveNewItem}})
 }
 
@@ -179,11 +177,11 @@ func (self *TActivityRankGift) DB_UpdateBuyTimes(id int, times int) {
 	}
 
 	filedName := fmt.Sprintf("rankgift.giftlst.%d.buytimes", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID},
-		bson.M{"$set": bson.M{filedName: times}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
+		&bson.M{"$set": bson.M{filedName: times}})
 }
 
 func (self *TActivityRankGift) DB_UpdateNewItemMark() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"rankgift.ishavenewitem": self.IsHaveNewItem}})
 }

@@ -59,7 +59,7 @@ func Hand_GetLevelGiftInfo(w http.ResponseWriter, r *http.Request) {
 
 	//! 因为查看了购买列表, 将新商品标记置位false
 	player.ActivityModule.LevelGift.IsHaveNewItem = false
-	go player.ActivityModule.LevelGift.DB_UpdateNewItemMark()
+	player.ActivityModule.LevelGift.DB_UpdateNewItemMark()
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -142,7 +142,7 @@ func Hand_BuyLevelGift(w http.ResponseWriter, r *http.Request) {
 	}
 
 	levelGift.BuyTimes -= 1
-	go player.ActivityModule.LevelGift.DB_UpdateBuyTimes(levelGift.GiftID, levelGift.BuyTimes)
+	player.ActivityModule.LevelGift.DB_UpdateBuyTimes(levelGift.GiftID, levelGift.BuyTimes)
 	response.BuyTimes = levelGift.BuyTimes
 
 	//! 给予商品

@@ -36,6 +36,7 @@ func main() {
 	//注册所有http消息处理方法
 	RegSdkHttpMsgHandler()
 
+	gamelog.Error("----SDK Server Start-----")
 	err := utility.HttpLimitListen(":"+strconv.Itoa(appconfig.SdkSvrPort), 0)
 	if err != nil {
 		gamelog.Error("----Http Listen Error :%s-----", err.Error())

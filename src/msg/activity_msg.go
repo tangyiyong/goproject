@@ -721,8 +721,6 @@ type MSG_GetMonthFundStatus_Ack struct {
 	Day        int  //! 还剩领取天数
 	IsReceived bool //! 今天是否已领取
 	CountDown  int  //! 截止购买时间
-	MoneyID    int  //! 购买花费货币ID
-	MoneyNum   int  //! 购买需花费货币数量
 }
 
 //! 玩家请求领取月基金奖励

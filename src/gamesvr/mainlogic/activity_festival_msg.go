@@ -145,7 +145,7 @@ func Hand_GetFestivalTaskAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	taskInfo.Status = 2
-	go player.ActivityModule.Festival.DB_UpdateTaskStatus(index)
+	player.ActivityModule.Festival.DB_UpdateTaskStatus(index)
 
 	//! 发放奖励
 	awardLst := gamedata.GetItemsFromAwardID(taskInfo.Award)
@@ -218,7 +218,7 @@ func Hand_ExchangeFestivalAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 增加兑换次数
 	exchange.Times += 1
-	go player.ActivityModule.Festival.DB_UpdateExchangeTimes(index, exchange.Times)
+	player.ActivityModule.Festival.DB_UpdateExchangeTimes(index, exchange.Times)
 
 	//! 给予兑换奖励
 	awardLst := gamedata.GetItemsFromAwardID(exchangeInfo.Award)
@@ -305,7 +305,7 @@ func Hand_BuyFestivalSaleItem(w http.ResponseWriter, r *http.Request) {
 
 	//! 增加次数
 	saleInfo.BuyTimes++
-	go player.ActivityModule.Festival.DB_UpdateBuyTimes(saleInfo)
+	player.ActivityModule.Festival.DB_UpdateBuyTimes(saleInfo)
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

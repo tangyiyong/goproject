@@ -1,15 +1,11 @@
 package mainlogic
 
 import (
-	//"fmt"
-	"appconfig"
-	"mongodb"
-
 	"gopkg.in/mgo.v2/bson"
 )
 
 func (self *TFoodWarModule) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"resetday":        self.ResetDay,
 		"attacktimes":     self.AttackTimes,
 		"revengetimes":    self.RevengeTimes,
@@ -23,11 +19,11 @@ func (self *TFoodWarModule) DB_Reset() {
 }
 
 func (self *TFoodWarModule) DB_AddAwardRecvRecord(id int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"awardrecvlst": id}})
+	GameSvrUpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"awardrecvlst": id}})
 }
 
 func (self *TFoodWarModule) DB_CheckTime() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"attacktimes": self.AttackTimes,
 		"totalfood":   self.TotalFood,
 		"fixedfood":   self.FixedFood,
@@ -35,37 +31,37 @@ func (self *TFoodWarModule) DB_CheckTime() {
 }
 
 func (self *TFoodWarModule) DB_SaveFood() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"totalfood": self.TotalFood,
 		"fixedfood": self.FixedFood}})
 }
 
 func (self *TFoodWarModule) DB_SaveAttackTimes() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"attacktimes": self.AttackTimes}})
 }
 
 func (self *TFoodWarModule) DB_SaveRevengeTimes() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"revengetimes": self.RevengeTimes}})
 }
 
 func (self *TFoodWarModule) DB_AddRevengeLst(player TRevengeInfo) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"revengelst": player}})
+	GameSvrUpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"revengelst": player}})
 }
 
 func (self *TFoodWarModule) DB_RemoveRevengeLst(player TRevengeInfo) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$pull": bson.M{"revengelst": player}})
+	GameSvrUpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$pull": bson.M{"revengelst": player}})
 }
 
 func (self *TFoodWarModule) DB_SaveBuyAttackTimes() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"buyattacktimes": self.BuyAttackTimes,
 		"attacktimes":    self.AttackTimes}})
 }
 
 func (self *TFoodWarModule) DB_SaveBuyRevengeTimes() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerFoodWar", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"revengetimes":    self.RevengeTimes,
 		"buyrevengetimes": self.BuyRevengeTimes}})
 }

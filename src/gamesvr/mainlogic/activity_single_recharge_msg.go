@@ -75,7 +75,7 @@ func Hand_QueryActivitySingleRechargeInfo(w http.ResponseWriter, r *http.Request
 		if activityTimes == nil {
 			activityTimes = &TActivityRechargeInfo{info.Index, 0}
 			singleRecharge.SingleAwardLst = append(singleRecharge.SingleAwardLst, *activityTimes)
-			go singleRecharge.DB_AddSingleRecharge(activityIndex, *activityTimes)
+			singleRecharge.DB_AddSingleRecharge(activityIndex, *activityTimes)
 		}
 
 		info.Times = v.Times - activityTimes.Times
@@ -178,11 +178,11 @@ func Hand_GetSingleRechargeAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 修改充值记录状态
 	singleRecharge.RechargeRecord[index].Status = 1
-	go player.ActivityModule.DB_UpdateRechargeRecord(activityIndex, index, 1)
+	player.ActivityModule.DB_UpdateRechargeRecord(activityIndex, index, 1)
 
 	//! 修改领取次数
 	activityTimes.Times += 1
-	go player.ActivityModule.DB_UpdateSingelAward(activityIndex, infoIndex, activityTimes.Times)
+	player.ActivityModule.DB_UpdateSingelAward(activityIndex, infoIndex, activityTimes.Times)
 
 	//! 给予奖励
 	awardLst := gamedata.GetItemsFromAwardID(award.Award)

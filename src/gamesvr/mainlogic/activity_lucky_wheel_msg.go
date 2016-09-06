@@ -196,7 +196,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 			}
 			//! 奖金池变化
 			G_GlobalVariables.NormalMoneyPoor += 1
-			go G_GlobalVariables.DB_SaveMoneyPoor()
+			G_GlobalVariables.DB_SaveMoneyPoor()
 
 			player.ActivityModule.LuckyWheel.TodayScore[indexToday] += 10
 			player.ActivityModule.LuckyWheel.TotalScore += 10
@@ -226,7 +226,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 
 			//! 奖金池变化
 			G_GlobalVariables.NormalMoneyPoor += 10
-			go G_GlobalVariables.DB_SaveMoneyPoor()
+			G_GlobalVariables.DB_SaveMoneyPoor()
 
 			player.ActivityModule.LuckyWheel.TodayScore[indexToday] += 100
 			player.ActivityModule.LuckyWheel.TotalScore += 100
@@ -238,7 +238,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 
 		response.TotalRank = G_LuckyWheelTotalRanker.SetRankItem(player.playerid, player.ActivityModule.LuckyWheel.TotalScore)
 
-		go player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelScore()
+		player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelScore()
 
 	} else if req.IsExcited == 2 {
 		//! 豪华转盘
@@ -256,7 +256,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 
 			//! 奖金池变化
 			G_GlobalVariables.ExcitedMoneyPoor += 10
-			go G_GlobalVariables.DB_SaveMoneyPoor()
+			G_GlobalVariables.DB_SaveMoneyPoor()
 
 			//! 积分变化
 			player.ActivityModule.LuckyWheel.TodayScore[indexToday] += 100
@@ -276,7 +276,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 
 			//! 奖金池变化
 			G_GlobalVariables.ExcitedMoneyPoor += 100
-			go G_GlobalVariables.DB_SaveMoneyPoor()
+			G_GlobalVariables.DB_SaveMoneyPoor()
 
 			player.ActivityModule.LuckyWheel.TodayScore[indexToday] += 1000
 			player.ActivityModule.LuckyWheel.TotalScore += 1000
@@ -288,7 +288,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 
 		response.TotalRank = G_LuckyWheelTotalRanker.SetRankItem(player.playerid, player.ActivityModule.LuckyWheel.TotalScore)
 
-		go player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelScore()
+		player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelScore()
 
 	} else {
 		gamelog.Error("Hand_RotatingWheel Error: Invalid param %d", req.IsExcited)
@@ -333,7 +333,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 
 		}
 
-		go G_GlobalVariables.DB_SaveMoneyPoor()
+		G_GlobalVariables.DB_SaveMoneyPoor()
 	} else {
 		itemID, itemNum, isSpecial, index := player.ActivityModule.LuckyWheel.RandWheelAward(req.IsExcited)
 		if isSpecial == 1 {
@@ -345,7 +345,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 					G_GlobalVariables.NormalMoneyPoor = 0
 				}
 				player.RoleMoudle.AddMoney(itemID, awardMoney)
-				go G_GlobalVariables.DB_SaveMoneyPoor()
+				G_GlobalVariables.DB_SaveMoneyPoor()
 				response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{itemID, awardMoney})
 
 			} else {
@@ -355,7 +355,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 					G_GlobalVariables.ExcitedMoneyPoor = 0
 				}
 				player.RoleMoudle.AddMoney(itemID, awardMoney)
-				go G_GlobalVariables.DB_SaveMoneyPoor()
+				G_GlobalVariables.DB_SaveMoneyPoor()
 				response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{itemID, itemNum})
 			}
 

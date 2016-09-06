@@ -42,6 +42,14 @@ func Hand_GetBattleData(w http.ResponseWriter, r *http.Request) {
 	response.Gems = player.HeroMoudle.CurGems
 	response.Pets = player.HeroMoudle.CurPets
 	response.Title = player.HeroMoudle.TitleID
+	response.GuildSkiLvl = player.HeroMoudle.GuildSkiLvl
+	response.FashionID = player.HeroMoudle.FashionID
+	response.FashionLvl = player.HeroMoudle.FashionLvl
+	response.ExtraProValue = player.HeroMoudle.ExtraProValue
+	response.ExtraProPercent = player.HeroMoudle.ExtraProPercent
+	response.ExtraCampDef = player.HeroMoudle.ExtraCampDef
+	response.ExtraCampKill = player.HeroMoudle.ExtraCampKill
+	response.CurStarID = player.RoleMoudle.CurStarID
 	response.RetCode = msg.RE_SUCCESS
 	return
 }
@@ -150,7 +158,7 @@ func Hand_UpgradeHero(w http.ResponseWriter, r *http.Request) {
 		player.BagMoudle.RemoveHeroAt(req.CostHeros[t].HeroPos)
 	}
 
-	go player.BagMoudle.DB_SaveHeroBag()
+	player.BagMoudle.DB_SaveHeroBag()
 	response.RetCode = msg.RE_SUCCESS
 	response.CostMoney = ExpSum * pHeroLevelInfo.MoneyNum
 
@@ -3213,7 +3221,7 @@ func Hand_DecomposeEquip(w http.ResponseWriter, r *http.Request) {
 		pos = item.EquipPos
 		player.BagMoudle.RemoveEquipAt(item.EquipPos)
 	}
-	go player.BagMoudle.DB_SaveBagEquips()
+	player.BagMoudle.DB_SaveBagEquips()
 
 	//! 奖励物品
 	for i, v := range resmap {

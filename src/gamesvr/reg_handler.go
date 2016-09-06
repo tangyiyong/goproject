@@ -77,9 +77,8 @@ func RegHttpMsgHandler() {
 		{"/get_copy_data", mainlogic.Hand_GetCopyData, false},                      //! 获取副本数据
 
 		//! 三国志消息
-		{"/get_sanguozhi_info", mainlogic.Hand_SanGuoZhiInfo, false},             //! 玩家请求获取三国志信息
-		{"/set_sanguozhi", mainlogic.Hand_SetSanGuoZhi, false},                   //! 玩家请求三国志命星
-		{"/get_sanguozhi_attr", mainlogic.Hand_GetSanGuoStarAddAttribute, false}, //! 玩家请求获取三国志加属性信息
+		{"/get_sanguozhi_info", mainlogic.Hand_SanGuoZhiInfo, false}, //! 玩家请求获取三国志信息
+		{"/set_sanguozhi", mainlogic.Hand_SetSanGuoZhi, false},       //! 玩家请求三国志命星
 
 		//! 竞技场消息处理
 		{"/arena_result", mainlogic.Hand_ChallengeArenaResult, false},                      //! 玩家反馈挑战竞技场结果
@@ -522,6 +521,7 @@ func RegHttpMsgHandler() {
 		{"/del_svr_award", mainlogic.Hand_DelSvrAward, false},
 		{"/send_award_to_player", mainlogic.Hand_SendAwardToPlayer, false},
 		{"/get_server_info", mainlogic.Hand_GetServerInfo, false},
+		{"/save_client_info", mainlogic.Hand_SaveClientInfo, false},
 		//★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
 		// SDK

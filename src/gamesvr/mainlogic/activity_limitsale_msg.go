@@ -128,7 +128,7 @@ func Hand_BuyLimitSaleItem(w http.ResponseWriter, r *http.Request) {
 
 		player.ActivityModule.LimitSale.Score = 100
 	}
-	go player.ActivityModule.LimitSale.DB_UpdateScore()
+	player.ActivityModule.LimitSale.DB_UpdateScore()
 
 	//! 奖励物品
 	player.BagMoudle.AddAwardItem(itemInfo.ItemID, itemInfo.ItemNum)
@@ -208,7 +208,7 @@ func Hand_GetLimitSaleAllAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	player.ActivityModule.LimitSale.AwardMark.Set(uint32(req.ID))
-	go player.ActivityModule.LimitSale.DB_UpdateAwardMark()
+	player.ActivityModule.LimitSale.DB_UpdateAwardMark()
 
 	response.AwardMark = int(player.ActivityModule.LimitSale.AwardMark)
 	response.RetCode = msg.RE_SUCCESS

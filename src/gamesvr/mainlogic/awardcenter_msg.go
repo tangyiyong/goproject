@@ -105,7 +105,7 @@ func Hand_RecvAwardCenterAwardOneyKey(w http.ResponseWriter, r *http.Request) {
 
 	//! 清空奖励列表
 	player.AwardCenterModule.AwardLst = []TAwardData{}
-	go player.AwardCenterModule.DB_UpdateDatabaseLst()
+	player.AwardCenterModule.DB_UpdateDatabaseLst()
 	response.RetCode = msg.RE_SUCCESS
 }
 

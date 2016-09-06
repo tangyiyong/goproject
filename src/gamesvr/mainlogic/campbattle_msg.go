@@ -238,7 +238,7 @@ func Hand_GetCampbatStoreState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.AwardIndex = append(response.AwardIndex, player.CamBattleModule.AwardStoreIndex...)
+	response.AwardIndex = append(response.AwardIndex, player.CamBattleModule.StoreAward...)
 	response.ItemLst = player.CamBattleModule.BuyRecord
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -252,7 +252,7 @@ func Hand_BuyCampbatStoreItem(w http.ResponseWriter, r *http.Request) {
 	var req msg.MSG_BuyCampbatStoreItem_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
-		gamelog.Error("Hand_BuyScoreStoreItem Unmarshal fail, Error: %s", err.Error())
+		gamelog.Error("Hand_BuyCampbatStoreItem Unmarshal fail, Error: %s", err.Error())
 		return
 	}
 
@@ -271,66 +271,88 @@ func Hand_BuyCampbatStoreItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//! 检测功能是否开启
+	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_CAMPBAT, player.GetLevel(), player.GetVipLevel())
+	if isFuncOpen == false {
+		gamelog.Error("Hand_BuyCampbatStoreItem Error : Function not open")
+		response.RetCode = msg.RE_FUNC_NOT_OPEN
+		return
+	}
+
+	//! 检测参数
+	if req.Num <= 0 {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_BuyCampbatStoreItem invalid num. Num: %v  PlayerID: %v", req.Num, player.playerid)
+		return
+	}
+
 	//! 获取购买物品信息
-	itemInfo := gamedata.GetScoreStoreItem(req.StoreItemID)
+	itemInfo := gamedata.GetCampBatStoreItem(req.StoreID)
 	if itemInfo == nil {
-		gamelog.Error("Hand_BuyScoreStoreItem Error: GetScoreStoreItem nil ID: %d ", req.StoreItemID)
+		gamelog.Error("Hand_BuyCampbatStoreItem Error: GetCampBatStoreItem nil ID: %d ", req.StoreID)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
 
-	//! 判断货币是否足够
-	if player.RoleMoudle.CheckMoneyEnough(itemInfo.CostMoneyID, itemInfo.CostMoneyNum*req.BuyNum) == false {
-		gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough money")
-		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
+	//! 判断玩家等级是否足够
+	if player.GetLevel() < itemInfo.NeedLevel {
+		response.RetCode = msg.RE_FUNC_NOT_OPEN
+		gamelog.Error("Hand_BuyCampbatStoreItem Error : Not enough level")
 		return
 	}
 
-	//! 判断道具是否足够
-	if itemInfo.CostItemID != 0 {
-		if player.BagMoudle.IsItemEnough(itemInfo.CostItemID, itemInfo.CostItemNum*req.BuyNum) == false {
-			gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough Item")
-			response.RetCode = msg.RE_NOT_ENOUGH_ITEM
+	//! 如果购买物品属于奖励,则判断排名
+	if itemInfo.Type == 2 {
+		if player.CamBattleModule.KillHonor > itemInfo.NeedScore {
+			response.RetCode = msg.RE_NOT_ENOUGH_RANK
+			return
+		}
+
+		//! 判断是否已经购买
+		if player.CamBattleModule.StoreAward.IsExist(itemInfo.ID) >= 0 {
+			response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 			return
 		}
 	}
 
+	//! 判断货币是否足够
+	if player.RoleMoudle.CheckMoneyEnough(itemInfo.CostMoneyID, itemInfo.CostMoneyNum*req.Num) == false {
+		gamelog.Error("Hand_BuyCampbatStoreItem Error: Not enough money")
+		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
+		return
+	}
+
 	isExist := false
 	for i, v := range player.CamBattleModule.BuyRecord {
-		if v.ID == req.StoreItemID {
+		if v.ID == req.StoreID {
 			isExist = true
-			if v.Times+req.BuyNum > itemInfo.MaxBuyTime {
-				gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough buy times")
+			if v.Times+req.Num > itemInfo.MaxBuyTime {
+				gamelog.Error("Hand_BuyCampbatStoreItem Error: Not enough buy times")
 				response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 				return
 			}
 
-			player.CamBattleModule.BuyRecord[i].Times += req.BuyNum
-			go player.CamBattleModule.DB_UpdateStoreItemBuyTimes(i, player.CamBattleModule.BuyRecord[i].Times)
+			player.CamBattleModule.BuyRecord[i].Times += req.Num
+			player.CamBattleModule.DB_UpdateStoreItemBuyTimes(i, player.CamBattleModule.BuyRecord[i].Times)
 		}
 	}
 
 	if isExist == false {
 		//! 首次购买
-		if req.BuyNum > itemInfo.MaxBuyTime {
-			gamelog.Error("Hand_BuyScoreStoreItem Error: Not enough buy times")
+		if req.Num > itemInfo.MaxBuyTime {
+			gamelog.Error("Hand_BuyCampbatStoreItem Error: Not enough buy times")
 			response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 			return
 		}
 
-		player.ScoreMoudle.BuyRecord = append(player.CamBattleModule.BuyRecord, msg.MSG_BuyData{req.StoreItemID, req.BuyNum})
-		go player.CamBattleModule.DB_AddStoreItemBuyInfo(msg.MSG_BuyData{req.StoreItemID, req.BuyNum})
+		player.ScoreMoudle.BuyRecord = append(player.CamBattleModule.BuyRecord, msg.MSG_BuyData{req.StoreID, req.Num})
+		player.CamBattleModule.DB_AddStoreItemBuyInfo(msg.MSG_BuyData{req.StoreID, req.Num})
 	}
 
 	//! 扣除货币
-	player.RoleMoudle.CostMoney(itemInfo.CostMoneyID, itemInfo.CostMoneyNum*req.BuyNum)
-
-	if itemInfo.CostItemID != 0 {
-		player.BagMoudle.RemoveNormalItem(itemInfo.CostItemID, itemInfo.CostItemNum*req.BuyNum)
-	}
-
+	player.RoleMoudle.CostMoney(itemInfo.CostMoneyID, itemInfo.CostMoneyNum*req.Num)
 	//! 发放物品
-	player.BagMoudle.AddAwardItem(itemInfo.ItemID, itemInfo.ItemNum*req.BuyNum)
+	player.BagMoudle.AddAwardItem(itemInfo.ItemID, itemInfo.ItemNum*req.Num)
 
 	response.RetCode = msg.RE_SUCCESS
 }

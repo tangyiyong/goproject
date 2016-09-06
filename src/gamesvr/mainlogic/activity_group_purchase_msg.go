@@ -160,12 +160,12 @@ func Hand_BuyGroupPurchaseItem(w http.ResponseWriter, r *http.Request) {
 	response.Score = curItemNum + needMoney*10
 	player.ActivityModule.GroupPurchase.Score += response.Score
 	response.Score = player.ActivityModule.GroupPurchase.Score
-	go player.ActivityModule.GroupPurchase.DB_SaveScore()
+	player.ActivityModule.GroupPurchase.DB_SaveScore()
 
 	//! 增加购买记录
 	costInfo.MoneyNum += needMoney
 	costInfo.Times += 1
-	go player.ActivityModule.GroupPurchase.DB_UpdatePurchaseCostInfo(costIndex)
+	player.ActivityModule.GroupPurchase.DB_UpdatePurchaseCostInfo(costIndex)
 
 	//! 增加总购买记录
 	response.SaleNum = G_GlobalVariables.AddGroupPurchaseRecord(req.ItemID, 1)

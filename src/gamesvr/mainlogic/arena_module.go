@@ -81,7 +81,7 @@ func (self *TArenaModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerArena").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerArena").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerArena Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -190,6 +190,10 @@ func (self *TArenaModule) RefreshChallangeLst() []TArenaRankData {
 		//! 获取显示可挑战玩家
 		challanger := self.GetRankPlayerInfo()
 		challangeLst = append(challangeLst, challanger...)
+	}
+
+	if self.CurrentRank <= 10 {
+		return challangeLst //! 玩家已到前十, 固定显示, 不需要插入
 	}
 
 	sortLst := []TArenaRankData{}

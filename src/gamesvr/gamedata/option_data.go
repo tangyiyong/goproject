@@ -298,8 +298,7 @@ var (
 	Campbat_KillHonorOne int //击杀一个玩家获得的荣誉
 
 	//月基金
-	MonthFundCostMoneyID  int //! 月基金购买货币ID
-	MonthFundCostMoneyNum int //! 月基金购买货币数量
+	MonthFundChargeID int //! 月基金需求ChargeID
 
 	//时装
 	FashionMeltingSum     int //!时装的熔炼总值
@@ -1207,13 +1206,9 @@ func ParseOptionRecord(rs *RecordSet) {
 		{
 			Campbat_KillHonorOne = CheckAtoiName(rs.Values[2], "campbat_kill_honor_one")
 		}
-	case "month_fund_money_id":
+	case "month_fund_charge_id":
 		{
-			MonthFundCostMoneyID = CheckAtoiName(rs.Values[2], "month_fund_money_id")
-		}
-	case "month_fund_money_num":
-		{
-			MonthFundCostMoneyNum = CheckAtoiName(rs.Values[2], "month_fund_money_num")
+			MonthFundChargeID = CheckAtoiName(rs.Values[2], "month_fund_charge_id")
 		}
 	case "next_recharge_need":
 		{

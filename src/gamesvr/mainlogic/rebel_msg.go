@@ -272,7 +272,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 		SendAwardToPlayer(player.playerid, &award)
 	}
 
-	go rebelModulePtr.DB_UpdateRebelInfo()
+	rebelModulePtr.DB_UpdateRebelInfo()
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
@@ -387,7 +387,7 @@ func Hand_GetExploitAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 设置标记
 	player.RebelModule.ExploitAwardLst.Add(req.ExploitAwardID)
-	go player.RebelModule.DB_UpdateExploitAward(req.ExploitAwardID)
+	player.RebelModule.DB_UpdateExploitAward(req.ExploitAwardID)
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

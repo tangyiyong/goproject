@@ -142,13 +142,13 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 				player.ActivityModule.HuntTreasure.FreeTimes = 0
 				player.BagMoudle.RemoveNormalItem(gamedata.HuntTicketItemID, needItemNum)
 				response.CostItem = msg.MSG_ItemData{gamedata.HuntTicketItemID, needItemNum}
-				go player.ActivityModule.HuntTreasure.DB_SaveFreeTiems()
+				player.ActivityModule.HuntTreasure.DB_SaveFreeTiems()
 			}
 		} else {
 			if player.ActivityModule.HuntTreasure.FreeTimes >= 1 {
 				player.ActivityModule.HuntTreasure.FreeTimes -= 1
 				response.CostFreeTimes = 1
-				go player.ActivityModule.HuntTreasure.DB_SaveFreeTiems()
+				player.ActivityModule.HuntTreasure.DB_SaveFreeTiems()
 			} else if player.BagMoudle.IsItemEnough(gamedata.HuntTicketItemID, 1) == true {
 				player.BagMoudle.RemoveNormalItem(gamedata.HuntTicketItemID, 1)
 				response.CostItem = msg.MSG_ItemData{gamedata.HuntTicketItemID, 1}
@@ -272,14 +272,14 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 				player.ActivityModule.HuntTreasure.StoreItemLst = []THuntStoreItem{}
 
 				player.ActivityModule.HuntTreasure.IsHaveStore = true
-				go player.ActivityModule.HuntTreasure.DB_SaveStoreMark()
+				player.ActivityModule.HuntTreasure.DB_SaveStoreMark()
 
 				for _, v := range itemLst {
 					player.ActivityModule.HuntTreasure.StoreItemLst = append(player.ActivityModule.HuntTreasure.StoreItemLst,
 						THuntStoreItem{v, false})
 				}
 
-				go player.ActivityModule.HuntTreasure.DB_UpdateHuntStore()
+				player.ActivityModule.HuntTreasure.DB_UpdateHuntStore()
 				break
 			} else {
 				if mapInfo.Award != 0 {
@@ -317,7 +317,7 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 					itemLst := gamedata.RandHuntTreasureStoreItem(5, activityInfo.AwardType)
 
 					player.ActivityModule.HuntTreasure.IsHaveStore = true
-					go player.ActivityModule.HuntTreasure.DB_SaveStoreMark()
+					player.ActivityModule.HuntTreasure.DB_SaveStoreMark()
 
 					player.ActivityModule.HuntTreasure.StoreItemLst = []THuntStoreItem{}
 					for _, v := range itemLst {
@@ -325,7 +325,7 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 							THuntStoreItem{v, false})
 					}
 
-					go player.ActivityModule.HuntTreasure.DB_UpdateHuntStore()
+					player.ActivityModule.HuntTreasure.DB_UpdateHuntStore()
 					break
 				} else {
 					if mapInfo.Award != 0 {
@@ -344,7 +344,7 @@ func Hand_StartHuntTreasure(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	go player.ActivityModule.HuntTreasure.DB_SaveHuntStatus()
+	player.ActivityModule.HuntTreasure.DB_SaveHuntStatus()
 
 	response.TodayRank = -1
 	response.TotalRank = -1
@@ -468,7 +468,7 @@ func Hand_GetHuntTurnsAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 改变标记
 	player.ActivityModule.HuntTreasure.HuntAward.Set(uint32(req.ID))
-	go player.ActivityModule.HuntTreasure.DB_SaveHuntTurnsAwardMark()
+	player.ActivityModule.HuntTreasure.DB_SaveHuntTurnsAwardMark()
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -619,7 +619,7 @@ func Hand_BuyHuntTreasureStroreItem(w http.ResponseWriter, r *http.Request) {
 
 	//! 改变标记
 	player.ActivityModule.HuntTreasure.StoreItemLst[itemPos].IsBuy = true
-	go player.ActivityModule.HuntTreasure.DB_ChangeHuntStoreItemMark(itemPos)
+	player.ActivityModule.HuntTreasure.DB_ChangeHuntStoreItemMark(itemPos)
 
 	//! 增加积分
 	indexToday := 0
@@ -629,11 +629,11 @@ func Hand_BuyHuntTreasureStroreItem(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.HuntTreasure.Score += itemInfo.Score
 	player.ActivityModule.HuntTreasure.TodayScore[indexToday] += itemInfo.Score
-	go player.ActivityModule.HuntTreasure.DB_SaveHuntScore()
+	player.ActivityModule.HuntTreasure.DB_SaveHuntScore()
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_GET_HUNT_SCORE, itemInfo.Score)
 
 	player.ActivityModule.HuntTreasure.IsHaveStore = false
-	go player.ActivityModule.HuntTreasure.DB_SaveStoreMark()
+	player.ActivityModule.HuntTreasure.DB_SaveStoreMark()
 
 	G_HuntTreasureTodayRanker.SetRankItem(player.playerid, player.ActivityModule.HuntTreasure.TodayScore[indexToday])
 
@@ -673,7 +673,7 @@ func Hand_CleanHuntStore(w http.ResponseWriter, r *http.Request) {
 	}
 
 	player.ActivityModule.HuntTreasure.StoreItemLst = []THuntStoreItem{}
-	go player.ActivityModule.HuntTreasure.DB_UpdateHuntStore()
+	player.ActivityModule.HuntTreasure.DB_UpdateHuntStore()
 
 	response.RetCode = msg.RE_SUCCESS
 }

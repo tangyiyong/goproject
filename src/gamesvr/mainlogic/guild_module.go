@@ -123,7 +123,7 @@ func (self *TGuildModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerGuild").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerGuild").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerGuild Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -155,7 +155,7 @@ func (self *TGuildModule) OnNewDay(newday uint32) {
 		}
 	}
 
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 //! 检测会长是否弃坑
@@ -190,7 +190,7 @@ func (self *TGuildModule) CheckGuildLeader() {
 		RemoveGuild(self.ownplayer.pSimpleInfo.GuildID)
 		self.ActionRecoverTime = 0
 		self.ExitGuildTime = time.Now().Unix()
-		go self.DB_ExitGuild()
+		self.DB_ExitGuild()
 		return
 	}
 
@@ -213,11 +213,11 @@ func (self *TGuildModule) CheckGuildLeader() {
 
 	member := guild.GetGuildMember(playerId)
 	member.Pose = Pose_Boss
-	go guild.UpdateGuildMemeber(playerId, Pose_Boss, member.Contribute)
+	guild.UpdateGuildMemeber(playerId, Pose_Boss, member.Contribute)
 
 	//! 解除现会长身份
 	boss.Pose = Pose_Member
-	go guild.UpdateGuildMemeber(boss.PlayerID, Pose_Member, boss.Contribute)
+	guild.UpdateGuildMemeber(boss.PlayerID, Pose_Member, boss.Contribute)
 
 }
 
@@ -225,7 +225,7 @@ func (self *TGuildModule) CheckGuildLeader() {
 func (self *TGuildModule) AddContribution(contribution int) {
 	self.HistoryContribution += contribution
 	self.TodayContribution += contribution
-	go self.DB_AddGuildContribution()
+	self.DB_AddGuildContribution()
 }
 
 //! 刷新限时抢购商品信息
@@ -236,7 +236,7 @@ func (self *TGuildModule) RefreshFalshSale() {
 		}
 	}
 
-	go self.DB_ResetBuyLst()
+	self.DB_ResetBuyLst()
 }
 
 //! 行动力恢复
@@ -264,7 +264,7 @@ func (self *TGuildModule) RecoverAction() {
 
 		self.ActionTimes = 10
 		self.ActionRecoverTime = beginTime.Unix() + int64(gamedata.GuildActionRecoverTime)
-		go self.DB_UpdateCopyAction()
+		self.DB_UpdateCopyAction()
 		return
 	}
 
@@ -283,7 +283,7 @@ func (self *TGuildModule) RecoverAction() {
 
 	self.ActionRecoverTime = self.ActionRecoverTime + int64(action*gamedata.GuildActionRecoverTime)
 	self.ActionTimes += action
-	go self.DB_UpdateCopyAction()
+	self.DB_UpdateCopyAction()
 }
 
 //! 红点提示

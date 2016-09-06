@@ -101,7 +101,7 @@ func Hand_UseBaGuaJing(w http.ResponseWriter, r *http.Request) {
 
 	//! 改变英雄
 	hero.ID = targetHeroInfo.HeroID
-	go player.BagMoudle.DB_UpdateHeroID(req.BagPos, hero.ID)
+	player.BagMoudle.DB_UpdateHeroID(req.BagPos, hero.ID)
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

@@ -76,7 +76,7 @@ func (self *TSummonModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerSummon").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerSummon").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerSummon Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -121,6 +121,6 @@ func (self *TSummonModule) UpdateSummonStatus() {
 		self.Normal.SummonCounts = 0
 		self.Normal.SummonTime = now
 		self.Normal.ResetTime = GetTodayTime() + 24*60*60
-		go self.DB_UpdateNormalSummon()
+		self.DB_UpdateNormalSummon()
 	}
 }

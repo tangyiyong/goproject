@@ -66,7 +66,7 @@ func (self *TBlackMarketModule) RefreshGoods(isSave bool) {
 	self.IsOpen = true
 
 	if isSave == true {
-		go self.DB_SaveGoods()
+		self.DB_SaveGoods()
 	}
 }
 
@@ -86,7 +86,7 @@ func (self *TBlackMarketModule) OnNewDay(newday uint32) {
 	self.IsOpen = false
 	self.OpenEndTime = 0
 	self.ResetDay = newday
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TBlackMarketModule) GetNextRefreshTime() int64 {
@@ -137,7 +137,7 @@ func (self *TBlackMarketModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup)
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerBlackMarket").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerBlackMarket").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerBlackMarket Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -157,7 +157,7 @@ func (self *TBlackMarketModule) GetBlackMarketItemInfo(index int) *TBlackMarketG
 }
 
 func (self *TBlackMarketModule) DB_SaveGoods() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBlackMarket", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"goodslst":    self.GoodsLst,
 		"refreshtime": self.RefreshTime,
 		"openendtime": self.OpenEndTime,
@@ -166,12 +166,12 @@ func (self *TBlackMarketModule) DB_SaveGoods() {
 
 func (self *TBlackMarketModule) DB_UpdateBuyMark(id int) {
 	filedName := fmt.Sprintf("goodslst.%d.isbuy", id)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBlackMarket", bson.M{"_id": self.PlayerID},
-		bson.M{"$set": bson.M{filedName: true}})
+	GameSvrUpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID},
+		&bson.M{"$set": bson.M{filedName: true}})
 }
 
 func (self *TBlackMarketModule) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerBlackMarket", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"openendtime": self.OpenEndTime,
 		"isopen":      self.IsOpen}})
 }

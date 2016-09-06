@@ -477,7 +477,7 @@ func Hand_BuyScoreStoreItem(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			player.ScoreMoudle.BuyRecord[i].Times += req.BuyNum
-			go player.ScoreMoudle.DB_UpdateStoreItemBuyTimes(i, player.ScoreMoudle.BuyRecord[i].Times)
+			player.ScoreMoudle.DB_UpdateStoreItemBuyTimes(i, player.ScoreMoudle.BuyRecord[i].Times)
 		}
 	}
 
@@ -493,7 +493,7 @@ func Hand_BuyScoreStoreItem(w http.ResponseWriter, r *http.Request) {
 		itemData.ID = int(req.StoreItemID)
 		itemData.Times = req.BuyNum
 		player.ScoreMoudle.BuyRecord = append(player.ScoreMoudle.BuyRecord, itemData)
-		go player.ScoreMoudle.DB_AddStoreItemBuyInfo(itemData)
+		player.ScoreMoudle.DB_AddStoreItemBuyInfo(itemData)
 	}
 
 	//! 扣除货币

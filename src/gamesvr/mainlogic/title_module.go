@@ -57,7 +57,7 @@ func (self *TTitleModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerTitle").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerTitle").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("Title Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -84,16 +84,16 @@ func (self *TTitleModule) AddTitle(titleID int) {
 	}
 
 	self.TitleLst = append(self.TitleLst, title)
-	go self.DB_AddTitleInfo(title)
+	self.DB_AddTitleInfo(title)
 }
 
 func (self *TTitleModule) RemoveTitle(index int) {
-	go self.DB_RemoveTitleInfo(&self.TitleLst[index])
+	self.DB_RemoveTitleInfo(&self.TitleLst[index])
 
 	//! 若为佩戴状态则先替换下称号
 	if self.ownplayer.HeroMoudle.TitleID == self.TitleLst[index].TitleID {
 		self.ownplayer.HeroMoudle.TitleID = 0
-		go self.ownplayer.HeroMoudle.DB_SaveTitleInfo()
+		self.ownplayer.HeroMoudle.DB_SaveTitleInfo()
 	}
 
 	if index == 0 {
@@ -124,7 +124,7 @@ func (self *TTitleModule) EquiTitle(titleID int) bool {
 	for i, v := range self.TitleLst {
 		if v.Status == 2 {
 			v.Status = 1
-			go self.DB_UpdateTitleStatus(i, 1)
+			self.DB_UpdateTitleStatus(i, 1)
 		}
 	}
 
@@ -134,7 +134,7 @@ func (self *TTitleModule) EquiTitle(titleID int) bool {
 		if v.TitleID == titleID {
 			isExist = true
 			self.TitleLst[i].Status = 2
-			go self.DB_UpdateTitleStatus(i, 2)
+			self.DB_UpdateTitleStatus(i, 2)
 		}
 	}
 
@@ -143,7 +143,7 @@ func (self *TTitleModule) EquiTitle(titleID int) bool {
 	}
 
 	self.ownplayer.HeroMoudle.TitleID = titleID
-	go self.ownplayer.HeroMoudle.DB_SaveTitleInfo()
+	self.ownplayer.HeroMoudle.DB_SaveTitleInfo()
 
 	return true
 }

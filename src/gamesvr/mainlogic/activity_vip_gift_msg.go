@@ -112,7 +112,7 @@ func Hand_DailyVipWelfare(w http.ResponseWriter, r *http.Request) {
 	player.BagMoudle.AddAwardItems(awardLst)
 
 	//! 更新至数据库
-	go player.ActivityModule.VipGift.DB_SaveDailyResetTime()
+	player.ActivityModule.VipGift.DB_SaveDailyResetTime()
 
 	for _, v := range awardLst {
 		award := msg.MSG_ItemData{v.ItemID, v.ItemNum}
@@ -191,7 +191,7 @@ func Hand_BuyVipWeekGift(w http.ResponseWriter, r *http.Request) {
 
 			player.BagMoudle.AddAwardItems(itemLst)
 
-			go player.ActivityModule.VipGift.DB_UpdateBuyTimes(player.ActivityModule.VipGift.WeekGift[i].ID, player.ActivityModule.VipGift.WeekGift[i].BuyTimes)
+			player.ActivityModule.VipGift.DB_UpdateBuyTimes(player.ActivityModule.VipGift.WeekGift[i].ID, player.ActivityModule.VipGift.WeekGift[i].BuyTimes)
 			break
 		}
 	}

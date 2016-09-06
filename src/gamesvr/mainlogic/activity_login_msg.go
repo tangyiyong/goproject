@@ -154,7 +154,7 @@ func Hand_GetActivityLoginAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 改变玩家标记
 	activity.LoginAward.Set(uint32(req.Index))
-	go activity.DB_UpdateLoginAward(activityIndex)
+	activity.DB_UpdateLoginAward(activityIndex)
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

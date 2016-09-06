@@ -1,9 +1,7 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
-	"mongodb"
 	"msg"
 
 	"gopkg.in/mgo.v2/bson"
@@ -11,11 +9,11 @@ import (
 
 //修改一个阵营战阵营
 func (self *TCampBattleModule) DB_SaveBattleCamp() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{"battlecamp": self.BattleCamp}})
+	GameSvrUpdateToDB("PlayerCampBat", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"battlecamp": self.BattleCamp}})
 }
 
 func (self *TCampBattleModule) DB_SaveKillData() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{"kill": self.Kill,
+	GameSvrUpdateToDB("PlayerCampBat", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"kill": self.Kill,
 		"killsum":    self.KillSum,
 		"killhonor":  self.KillHonor,
 		"destroy":    self.Destroy,
@@ -23,13 +21,13 @@ func (self *TCampBattleModule) DB_SaveKillData() {
 }
 
 func (self *TCampBattleModule) DB_SaveMoveStautus() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{"lefttimes": self.LeftTimes,
+	GameSvrUpdateToDB("PlayerCampBat", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"lefttimes": self.LeftTimes,
 		"endtime":   self.EndTime,
 		"crystalid": self.CrystalID}})
 }
 
 func (self *TCampBattleModule) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerCampBat", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"lefttimes": self.LeftTimes,
 		"endtime":   self.EndTime,
 		"killhonor": self.KillHonor,
@@ -41,22 +39,22 @@ func (self *TCampBattleModule) DB_Reset() {
 //! 更新购买次数
 func (self *TCampBattleModule) DB_UpdateStoreItemBuyTimes(nindex int, times int) {
 	filedName := fmt.Sprintf("buyrecord.%d", nindex)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerCampBat", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.BuyRecord[nindex]}})
 }
 
 //! 增加购买信息
 func (self *TCampBattleModule) DB_AddStoreItemBuyInfo(info msg.MSG_BuyData) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"buyrecord": info}})
+	GameSvrUpdateToDB("PlayerCampBat", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"buyrecord": info}})
 }
 
 //! 重置购买信息
 func (self *TCampBattleModule) DB_SaveShoppingInfo() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerCampBat", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"buyrecord": self.BuyRecord}})
 }
 
 //! 增加购买奖励信息
 func (self *TCampBattleModule) DB_AddStoreAwardInfo(id int) {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerCampBat", bson.M{"_id": self.PlayerID}, bson.M{"$push": bson.M{"awardstoreindex": id}})
+	GameSvrUpdateToDB("PlayerCampBat", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"awardstoreindex": id}})
 }

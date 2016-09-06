@@ -70,7 +70,7 @@ func (self *TRebelModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerRebel").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerRebel").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerRebel Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -95,7 +95,7 @@ func (self *TRebelModule) OnNewDay(newday uint32) {
 	self.Damage = 0
 	self.ExploitAwardLst = IntLst{}
 	self.ResetDay = utility.GetCurDay()
-	go self.DB_UpdateResetTime()
+	self.DB_UpdateResetTime()
 }
 
 //! 是否发现叛军
@@ -122,7 +122,7 @@ func (self *TRebelModule) RandRebel() {
 	self.IsShare = false
 
 	//! 更新到数据库
-	go self.DB_UpdateRebelInfo()
+	self.DB_UpdateRebelInfo()
 }
 
 //! 检测逃跑时间
@@ -134,7 +134,7 @@ func (self *TRebelModule) CheckEscapeTime() {
 	self.RebelID = 0
 	self.EscapeTime = 0
 	self.IsShare = false
-	go self.DB_UpdateRebelInfo()
+	self.DB_UpdateRebelInfo()
 }
 
 //! 获取当期叛军等级

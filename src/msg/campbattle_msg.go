@@ -69,10 +69,10 @@ type MSG_GetCampbatStoreState_Ack struct {
 //! 玩家请求购买积分商店道具
 //! 消息: /buy_campbat_store_item
 type MSG_BuyCampbatStoreItem_Req struct {
-	PlayerID    int32
-	SessionKey  string
-	StoreItemID int //商店道具ID
-	BuyNum      int //购买数量
+	PlayerID   int32
+	SessionKey string
+	StoreID    int //商店道具ID
+	Num        int //购买数量
 }
 
 type MSG_BuyCampbatStoreItem_Ack struct {

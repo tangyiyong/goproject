@@ -90,7 +90,7 @@ func (taskmodule *TTaskMoudle) RefreshTask(update bool) {
 
 	if update == true {
 		//! 更新到数据库
-		go taskmodule.DB_UpdateDailyTaskInfo()
+		taskmodule.DB_UpdateDailyTaskInfo()
 	}
 }
 
@@ -171,7 +171,7 @@ func (self *TTaskMoudle) OnNewDay(newday uint32) {
 	//! 刷新日常任务与重置时间
 	self.RefreshTask(true)
 	self.ResetDay = newday
-	go self.DB_UpdateResetTime()
+	self.DB_UpdateResetTime()
 }
 
 //玩家对象销毁
@@ -193,7 +193,7 @@ func (taskmoudle *TTaskMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) 
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerTask").Find(bson.M{"_id": playerid}).One(taskmoudle)
+	err := s.DB(appconfig.GameDbName).C("PlayerTask").Find(&bson.M{"_id": playerid}).One(taskmoudle)
 	if err != nil {
 		gamelog.Error("PlayerTask Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -454,7 +454,7 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 							if taskmodule.ownplayer.ActivityModule.LimitDaily[i].IsAllComplete() {
 								taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = 1
 								taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status = 1
-								go taskmodule.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
+								taskmodule.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
 							}
 							continue
 						}
@@ -518,7 +518,7 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 							continue
 						}
 
-						go taskmodule.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
+						taskmodule.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
 					}
 
 				}
@@ -578,7 +578,7 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 					continue
 				}
 
-				go taskmodule.ownplayer.ActivityModule.Festival.DB_UpdateTaskStatus(j)
+				taskmodule.ownplayer.ActivityModule.Festival.DB_UpdateTaskStatus(j)
 			}
 		}
 	}
@@ -752,7 +752,7 @@ func (taskmodule *TTaskMoudle) UpdateNextAchievement(achievementID int) *TAchiev
 			}
 
 			//! 替换数据库成就
-			go taskmodule.DB_UpdateAchievement(&taskmodule.AchievementList[i], frontTaskID)
+			taskmodule.DB_UpdateAchievement(&taskmodule.AchievementList[i], frontTaskID)
 
 			newTask.ID = taskmodule.AchievementList[i].ID
 			newTask.Type = taskmodule.AchievementList[i].Type

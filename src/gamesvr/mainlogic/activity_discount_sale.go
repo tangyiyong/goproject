@@ -1,10 +1,8 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
 	"gamelog"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -42,7 +40,7 @@ func (self *TActivityDiscountSale) Init(activityID int, mPtr *TActivityModule, v
 //! 刷新数据
 func (self *TActivityDiscountSale) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
@@ -50,7 +48,7 @@ func (self *TActivityDiscountSale) End(versionCode int32, resetCode int32) {
 	self.ShopLst = []TDiscountSaleGoodsInfo{}
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityDiscountSale) GetRefreshV() int32 {
@@ -73,7 +71,7 @@ func (self *TActivityDiscountSale) RedTip() bool {
 //! 添加一个商品数据
 func (self *TActivityDiscountSale) AddItem(info TDiscountSaleGoodsInfo, index int) *TDiscountSaleGoodsInfo {
 	self.ShopLst = append(self.ShopLst, info)
-	go self.DB_AddShoppingInfo(index, &info)
+	self.DB_AddShoppingInfo(index, &info)
 	return &self.ShopLst[len(self.ShopLst)-1]
 }
 
@@ -92,7 +90,7 @@ func (self *TActivityDiscountSale) DB_Refresh() {
 	}
 
 	filedName := fmt.Sprintf("discount.%d.versioncode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
 }
 
@@ -113,7 +111,7 @@ func (self *TActivityDiscountSale) DB_Reset() {
 	filedName := fmt.Sprintf("discount.%d.shoplst", index)
 	filedName2 := fmt.Sprintf("discount.%d.versioncode", index)
 	filedName3 := fmt.Sprintf("discount.%d.resetcode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.ShopLst,
 		filedName2: self.VersionCode,
 		filedName3: self.ResetCode}})
@@ -121,11 +119,11 @@ func (self *TActivityDiscountSale) DB_Reset() {
 
 func (self *TActivityDiscountSale) DB_AddShoppingInfo(activityIndex int, info *TDiscountSaleGoodsInfo) {
 	filedName := fmt.Sprintf("discountsale.%d.shoplst", activityIndex)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{filedName: *info}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{filedName: *info}})
 }
 
 func (self *TActivityDiscountSale) DB_UpdateShoppingTimes(activityIndex int, index int, info *TDiscountSaleGoodsInfo) {
 	filedName := fmt.Sprintf("discountsale.%d.shoplst.%d.times", activityIndex, index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: (*info).Times}})
 }

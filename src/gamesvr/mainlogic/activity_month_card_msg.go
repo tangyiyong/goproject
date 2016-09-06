@@ -57,7 +57,7 @@ func Hand_ReceiveMonthCard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	player.ActivityModule.MonthCard.CardStatus[pMonthCard.ID] = true
-	go player.ActivityModule.MonthCard.DB_UpdateCardStatus()
+	player.ActivityModule.MonthCard.DB_UpdateCardStatus()
 
 	player.RoleMoudle.AddMoney(gamedata.ChargeMoneyID, pMonthCard.ExtraAward)
 

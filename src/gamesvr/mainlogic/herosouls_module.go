@@ -232,7 +232,7 @@ func (self *THeroSoulsModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerHeroSouls").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerHeroSouls").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerHeroSouls Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -259,7 +259,7 @@ func (self *THeroSoulsModule) CheckStoreRefresh() int {
 		if self.RefreshStoreTimeMark.Get(uint32(i+1)) == false {
 			self.RefreshHeroSoulsStore(true)
 			self.RefreshStoreTimeMark.Set(uint32(i + 1))
-			go self.DB_SaveHeroSoulsRefreshMark()
+			self.DB_SaveHeroSoulsRefreshMark()
 		}
 	}
 
@@ -286,7 +286,7 @@ func (self *THeroSoulsModule) OnNewDay(newday uint32) {
 	self.RefreshStoreTimeMark = 0
 	self.ChallengeTimes = gamedata.HeroSoulsChallengeTimes
 	self.ResetDay = newday
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *THeroSoulsModule) RedTip() bool {
@@ -343,7 +343,7 @@ func (self *THeroSoulsModule) RefreshHeroSoulsStore(isSave bool) {
 	}
 
 	if isSave == true {
-		go self.DB_SaveHeroSoulsStoreLst()
+		self.DB_SaveHeroSoulsStoreLst()
 	}
 }
 
@@ -367,7 +367,7 @@ func (self *THeroSoulsModule) ResetHeroSoulsLst(isSave bool) {
 	self.TargetIndex = 0
 
 	if isSave == true {
-		go self.DB_SaveHeroSoulsLst()
+		self.DB_SaveHeroSoulsLst()
 	}
 }
 
@@ -383,5 +383,5 @@ func (self *THeroSoulsModule) AddHeroSouls(index int) {
 	//! 加入将灵背包
 	self.ownplayer.BagMoudle.AddHeroSoul(heroSoulsInfo.HeroID, 1)
 	heroSoulsInfo.IsExist = false
-	go self.DB_UpdateHeroSoulsMark(index)
+	self.DB_UpdateHeroSoulsMark(index)
 }

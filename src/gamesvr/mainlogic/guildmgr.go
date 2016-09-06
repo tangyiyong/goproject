@@ -478,7 +478,7 @@ func (pGuild *TGuild) AddGuildMember(playerid int32) bool {
 	pGuild.MemberList = append(pGuild.MemberList, newMember)
 
 	//! 插入数据库
-	go DB_GuildAddMember(pGuild.GuildID, &newMember)
+	DB_GuildAddMember(pGuild.GuildID, &newMember)
 
 	return true
 }
@@ -488,7 +488,7 @@ func (self *TGuild) AddExp(exp int) {
 	Guild_Map_Mutex.Lock()
 
 	self.CurExp += exp
-	go self.DB_UpdateGuildLevel()
+	self.DB_UpdateGuildLevel()
 
 	Guild_Map_Mutex.Unlock()
 
@@ -513,7 +513,7 @@ func (self *TGuild) LevelUp() {
 
 	self.CurExp -= guildData.NeedExp
 	self.Level += 1
-	go self.DB_UpdateGuildLevel()
+	self.DB_UpdateGuildLevel()
 	G_GuildLevelRanker.SetRankItem(self.GuildID, self.Level)
 }
 
@@ -546,11 +546,11 @@ func (self *TGuild) AddGuildSkillLevel(id int, costExp int) {
 
 	//! 等级提升
 	self.SkillLst[id-1] += 1
-	go self.DB_UpdateGuildSkillLimit(id - 1)
+	self.DB_UpdateGuildSkillLimit(id - 1)
 
 	//! 扣除经验
 	self.CurExp -= costExp
-	go self.DB_UpdateGuildLevel()
+	self.DB_UpdateGuildLevel()
 
 }
 
@@ -583,7 +583,7 @@ func (pGuild *TGuild) RemoveGuildMember(playerid int32) bool {
 	}
 
 	//! 修改数据库
-	go DB_GuildRemoveMember(pGuild.GuildID, &removeMember)
+	DB_GuildRemoveMember(pGuild.GuildID, &removeMember)
 
 	return true
 }
@@ -612,7 +612,7 @@ func (pGuild *TGuild) UpdateGuildMemeber(playerid int32, pose int, contribute in
 		if pGuild.MemberList[i].PlayerID == playerid {
 			pGuild.MemberList[i].Pose = pose
 			pGuild.MemberList[i].Contribute = contribute
-			go DB_GuildUpdateMember(pGuild.GuildID, &pGuild.MemberList[i], i)
+			DB_GuildUpdateMember(pGuild.GuildID, &pGuild.MemberList[i], i)
 		}
 	}
 
@@ -624,7 +624,7 @@ func (self *TGuild) AddApplyList(playerid int32) {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 	self.ApplyList = append(self.ApplyList, playerid)
-	go DB_AddApplyList(self.GuildID, playerid)
+	DB_AddApplyList(self.GuildID, playerid)
 }
 
 //! 删除申请列表
@@ -654,7 +654,7 @@ func (self *TGuild) RemoveApplyList(playerid int32) {
 		self.ApplyList = append(self.ApplyList[:pos], self.ApplyList[pos+1:]...)
 	}
 
-	go DB_RemoveApplyList(self.GuildID, playerid)
+	DB_RemoveApplyList(self.GuildID, playerid)
 }
 
 //! 增加军团动态
@@ -664,7 +664,7 @@ func (self *TGuild) AddGuildEvent(playerid int32, action int, value int, value2 
 
 	//! 超过20条则删除第一条
 	if len(self.EventLst) > 20 {
-		go self.DB_RemoveGuildEvent(self.EventLst[0])
+		self.DB_RemoveGuildEvent(self.EventLst[0])
 		self.EventLst = self.EventLst[1:]
 	}
 
@@ -677,7 +677,7 @@ func (self *TGuild) AddGuildEvent(playerid int32, action int, value int, value2 
 	event.Time = time.Now().Unix()
 
 	self.EventLst = append(self.EventLst, event)
-	go self.DB_AddGuildEvent(event)
+	self.DB_AddGuildEvent(event)
 }
 
 //! 扣除军团副本阵营血量
@@ -702,7 +702,7 @@ func (self *TGuild) SubCampLife(copyID int, damage int64, playerName string) (bo
 		passChapter.PassTime = time.Now().Unix()
 		passChapter.PlayerName = playerName
 		self.AwardChapterLst = append(self.AwardChapterLst, passChapter)
-		go self.DB_AddPassChapter(passChapter)
+		self.DB_AddPassChapter(passChapter)
 
 		isKilled = true
 	}
@@ -740,7 +740,7 @@ func (self *TGuild) NextChapter() {
 
 	G_GuildCopyRanker.SetRankItem(self.GuildID, int(self.PassChapter))
 
-	go self.DB_UpdateChapter()
+	self.DB_UpdateChapter()
 }
 
 //! 记录玩家领取副本奖励
@@ -755,7 +755,7 @@ func (self *TGuild) PlayerRecvAward(playerid int32, playerName string, copyID in
 	treasure.PlayerName = playerName
 	self.CopyTreasure = append(self.CopyTreasure, treasure)
 
-	go self.DB_AddRecvRecord(treasure)
+	self.DB_AddRecvRecord(treasure)
 }
 
 //! 判断玩家是否领取该奖励
@@ -792,7 +792,7 @@ func (self *TGuild) AddMsgBoard(playerid int32, message string) {
 
 	self.MsgBoard = append(self.MsgBoard, msg)
 
-	go self.DB_AddGuildMsgBoard(msg)
+	self.DB_AddGuildMsgBoard(msg)
 }
 
 //! 删除留言板留言
@@ -822,5 +822,5 @@ func (self *TGuild) RemoveMsgBoard(playerid int32, time int64) {
 		self.MsgBoard = append(self.MsgBoard[:removePos], self.MsgBoard[removePos+1:]...)
 	}
 
-	go self.DB_RemoveGuildMsgBoard(removeMsg)
+	self.DB_RemoveGuildMsgBoard(removeMsg)
 }

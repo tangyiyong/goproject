@@ -1,9 +1,7 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"gamesvr/gamedata"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -38,14 +36,14 @@ func (self *TActivityFirstRecharge) Init(activityID int, mPtr *TActivityModule, 
 //! 刷新数据
 func (self *TActivityFirstRecharge) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
 func (self *TActivityFirstRecharge) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivityFirstRecharge) GetRefreshV() int32 {
@@ -76,26 +74,26 @@ func (self *TActivityFirstRecharge) CheckRecharge(rmb int) {
 		self.NextRechargeAward = 1
 	}
 
-	go self.DB_SetFirstRechargeMark()
+	self.DB_SetFirstRechargeMark()
 
 }
 
 //! 更新
 func (self *TActivityFirstRecharge) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"firstrecharge.versioncode": self.VersionCode}})
 }
 
 //! 重置
 func (self *TActivityFirstRecharge) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"firstrecharge.activityid":  self.ActivityID,
 		"firstrecharge.resetcode":   self.ResetCode,
 		"firstrecharge.versioncode": self.VersionCode}})
 }
 
 func (self *TActivityFirstRecharge) DB_SetFirstRechargeMark() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"firstrecharge.firstrechargeaward": self.FirstRechargeAward,
 		"firstrecharge.nextrechargeaward":  self.NextRechargeAward}})
 }

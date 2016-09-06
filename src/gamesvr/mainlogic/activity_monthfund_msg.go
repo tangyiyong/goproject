@@ -52,7 +52,6 @@ func Hand_GetMonthFundStatus(w http.ResponseWriter, r *http.Request) {
 	awardCount := gamedata.GetMonthFundAwardCount(awardType)
 
 	response.CountDown = countDown
-	response.MoneyID, response.MoneyNum = gamedata.MonthFundCostMoneyID, gamedata.MonthFundCostMoneyNum
 	response.Day = player.ActivityModule.MonthFund.Day
 	response.IsReceived = player.ActivityModule.MonthFund.AwardMark.Get(uint32(awardCount - response.Day + 1))
 	response.RetCode = msg.RE_SUCCESS
@@ -109,7 +108,7 @@ func Hand_ReceiveMonthFund(w http.ResponseWriter, r *http.Request) {
 	}
 
 	player.ActivityModule.MonthFund.AwardMark.Set(uint32(awardCount - day + 1))
-	go player.ActivityModule.MonthFund.DB_UpdateAwardMark()
+	player.ActivityModule.MonthFund.DB_UpdateAwardMark()
 
 	player.BagMoudle.AddAwardItem(award.ItemID, award.ItemNum)
 	response.AwardLst = append(response.AwardLst, msg.MSG_ItemData{award.ItemID, award.ItemNum})

@@ -1,11 +1,9 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"mongodb"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -49,7 +47,7 @@ func (self *TActivitySingleRecharge) Init(activityID int, mPtr *TActivityModule,
 //! 刷新数据
 func (self *TActivitySingleRecharge) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
-	go self.DB_Refresh()
+	self.DB_Refresh()
 }
 
 //! 活动结束
@@ -58,7 +56,7 @@ func (self *TActivitySingleRecharge) End(versionCode int32, resetCode int32) {
 	self.SingleAwardLst = []TActivityRechargeInfo{}
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
-	go self.DB_Reset()
+	self.DB_Reset()
 }
 
 func (self *TActivitySingleRecharge) GetRefreshV() int32 {
@@ -128,7 +126,7 @@ func (self *TActivitySingleRecharge) DB_Refresh() {
 	}
 
 	filedName := fmt.Sprintf("singlerecharge.%d.versioncode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
 }
 
@@ -150,7 +148,7 @@ func (self *TActivitySingleRecharge) DB_Reset() {
 	filedName2 := fmt.Sprintf("singlerecharge.%d.singleawardlst", index)
 	filedName3 := fmt.Sprintf("singlerecharge.%d.versioncode", index)
 	filedName4 := fmt.Sprintf("singlerecharge.%d.resetcode", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName1: self.RechargeRecord,
 		filedName2: self.SingleAwardLst,
 		filedName3: self.VersionCode,
@@ -159,5 +157,5 @@ func (self *TActivitySingleRecharge) DB_Reset() {
 
 func (self *TActivitySingleRecharge) DB_AddSingleRecharge(index int, info TActivityRechargeInfo) {
 	filedName := fmt.Sprintf("singlerecharge.%d.singleawardlst", index)
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$push": bson.M{filedName: info}})
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{filedName: info}})
 }

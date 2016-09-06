@@ -25,6 +25,8 @@ type MSG_BuyVipGift_Ack struct {
 	ID       []int //! 显示礼包ID
 	MoneyID  int
 	MoneyNum int
+	ItemID   int
+	ItemNum  int
 }
 
 //! 玩家请求查询道具商品购买次数

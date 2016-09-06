@@ -99,7 +99,7 @@ func (self *TSangokuMusouModule) OnNewDay(newday uint32) {
 		}
 	}
 
-	go self.DB_UpdateResetTime()
+	self.DB_UpdateResetTime()
 }
 
 //! 玩家销毁角色
@@ -122,7 +122,7 @@ func (self *TSangokuMusouModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerSangokuMusou").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerSangokuMusou").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerSangokuMusou Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -150,7 +150,7 @@ func (self *TSangokuMusouModule) GetMusouTreasure() int {
 	if self.TreasureID == 0 && self.IsBuyTreasure == false {
 		self.TreasureID = gamedata.RandMusouTreasure(self.CurStar)
 
-		go self.DB_UpdateTreasure()
+		self.DB_UpdateTreasure()
 		return self.TreasureID
 	}
 
@@ -192,7 +192,7 @@ func (self *TSangokuMusouModule) PassCopy(copyID int, starNum int, isVictory boo
 	}
 
 	if self.IsEnd == true {
-		go self.DB_UpdateIsEndMark()
+		self.DB_UpdateIsEndMark()
 		return
 	}
 
@@ -221,7 +221,7 @@ func (self *TSangokuMusouModule) PassCopy(copyID int, starNum int, isVictory boo
 	}
 
 	//! 信息写入数据库
-	go self.DB_UpdatePassCopyRecord()
+	self.DB_UpdatePassCopyRecord()
 
 	var info TSangokuMusouCopyInfo
 	info.CopyID = copyID
@@ -230,7 +230,7 @@ func (self *TSangokuMusouModule) PassCopy(copyID int, starNum int, isVictory boo
 	self.CopyInfoLst = append(self.CopyInfoLst, info)
 
 	//! 记录通关信息
-	go self.DB_AddPassCopyInfoLst(info)
+	self.DB_AddPassCopyInfoLst(info)
 
 	//! 获取副本信息
 	copyData := gamedata.GetSangokuMusouChapterInfo(copyID)
@@ -319,7 +319,7 @@ func (self *TSangokuMusouModule) PassEliteCopy(copyID int) bool {
 	normalAward := gamedata.GetItemsFromAwardID(copyBase.AwardID)
 	self.ownplayer.BagMoudle.AddAwardItems(normalAward)
 
-	go self.DB_UpdatePassEliteCopyRecord()
+	self.DB_UpdatePassEliteCopyRecord()
 
 	return isFirstVictory
 }
@@ -386,7 +386,7 @@ func (self *TSangokuMusouModule) SweepChapter(chapter int) (dropItem [][]msg.MSG
 
 	}
 
-	go self.DB_UpdatePassCopyRecord()
+	self.DB_UpdatePassCopyRecord()
 
 	return dropItem
 }
@@ -408,7 +408,7 @@ func (self *TSangokuMusouModule) ResetCopy() {
 
 	self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_SGWS_RESET, 1)
 
-	go self.DB_UpdateResetCopy()
+	self.DB_UpdateResetCopy()
 }
 
 func (self *TSangokuMusouModule) IsShoppingInfoExist(id int) bool {

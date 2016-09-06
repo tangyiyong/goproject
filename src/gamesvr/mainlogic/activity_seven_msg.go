@@ -184,7 +184,7 @@ func Hand_GetSevenActivityAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 设置状态
 	taskInfo.TaskStatus = Task_Received
-	go activity.DB_UpdatePlayerSevenTask(taskData.TaskID, taskInfo.TaskCount, taskInfo.TaskStatus)
+	activity.DB_UpdatePlayerSevenTask(taskData.TaskID, taskInfo.TaskCount, taskInfo.TaskStatus)
 
 	for _, v := range awardItems {
 		var item msg.MSG_ItemData
@@ -289,7 +289,7 @@ func Hand_BuySevenActivityLimit(w http.ResponseWriter, r *http.Request) {
 
 	//! 记录购买
 	activity.BuyLst.Add(req.OpenDay)
-	go activity.DB_AddPlayerSevenTaskMark(req.OpenDay)
+	activity.DB_AddPlayerSevenTaskMark(req.OpenDay)
 
 	//! 购买数目加一
 	G_GlobalVariables.AddSevenDayLimit(activity.ActivityID, req.OpenDay-1)

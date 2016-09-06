@@ -79,7 +79,7 @@ func (self *THeroMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) bool {
 	defer s.Close()
 	var bRet = true
 
-	err := s.DB(appconfig.GameDbName).C("PlayerHero").Find(bson.M{"_id": playerid}).One(self)
+	err := s.DB(appconfig.GameDbName).C("PlayerHero").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerHero Load Error :%s， PlayerID: %d", err.Error(), playerid)
 		bRet = false
@@ -1157,5 +1157,5 @@ func (self *THeroMoudle) AddPlayerGuildSkillLevel(id int) {
 	moneyID, moneyNum := gamedata.GetGuildSkillNeedMoney(int(self.GuildSkiLvl[id-1]), id)
 	self.ownplayer.RoleMoudle.CostMoney(moneyID, moneyNum)
 
-	go self.DB_SaveGuildSkillLevel()
+	self.DB_SaveGuildSkillLevel()
 }

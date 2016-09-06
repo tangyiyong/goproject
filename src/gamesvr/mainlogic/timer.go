@@ -137,10 +137,10 @@ func (self *Timer) OnNewDayFunc(nowUnix int64) bool {
 	}
 
 	G_CampBat_TodayKill.Clear()
-	mongodb.UpdateToDBAll(appconfig.GameDbName, "PlayerCampBat", nil, bson.M{"$set": bson.M{"kill": 0}})
+	GameSvrUpdateToDBAll("PlayerCampBat", nil, &bson.M{"$set": bson.M{"kill": 0}})
 
 	G_CampBat_TodayDestroy.Clear()
-	mongodb.UpdateToDBAll(appconfig.GameDbName, "PlayerCampBat", nil, bson.M{"$set": bson.M{"destroy": 0}})
+	GameSvrUpdateToDBAll("PlayerCampBat", nil, &bson.M{"$set": bson.M{"destroy": 0}})
 
 	for i := 0; i < len(G_CampBat_CampKill[0].List); i++ {
 		pRankAward := gamedata.GetCampBatRank(i + 1)
@@ -333,7 +333,7 @@ func (self *Timer) OnTimerFunc(now int64) {
 
 //! 存储到数据库
 func (self *Timer) SaveTimer() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "Timer", bson.M{"_id": 1}, bson.M{"$set": self})
+	GameSvrUpdateToDB("Timer", &bson.M{"_id": 1}, &bson.M{"$set": self})
 }
 
 //! 读取到内存

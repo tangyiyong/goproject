@@ -374,7 +374,7 @@ func Hand_TestPassCopy(w http.ResponseWriter, r *http.Request) {
 
 		player.CopyMoudle.Main.CurChapter = req.Chapter
 		player.CopyMoudle.Main.CurCopyID = chapterInfo.EndID
-		go player.CopyMoudle.DB_UpdateMainCopyInfo()
+		player.CopyMoudle.DB_UpdateMainCopyInfo()
 
 	} else if req.CopyType == gamedata.COPY_TYPE_Elite {
 		//! 获取章节最后关卡
@@ -387,7 +387,7 @@ func Hand_TestPassCopy(w http.ResponseWriter, r *http.Request) {
 
 		player.CopyMoudle.Elite.CurChapter = req.Chapter
 		player.CopyMoudle.Elite.CurCopyID = chapterInfo.EndID
-		go player.CopyMoudle.DB_UpdateEliteCopyInfo()
+		player.CopyMoudle.DB_UpdateEliteCopyInfo()
 
 	}
 

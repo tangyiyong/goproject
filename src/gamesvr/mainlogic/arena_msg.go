@@ -501,7 +501,7 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//! 存储数据
-		go player.ArenaModule.DB_UpdateRankToDatabase()
+		player.ArenaModule.DB_UpdateRankToDatabase()
 
 	}
 
@@ -665,18 +665,18 @@ func Hand_BuyArenaStoreItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//! 检测参数
-	if req.Num <= 0 {
-		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_BuyArenaStoreItem invalid num. Num: %v  PlayerID: %v", req.Num, player.playerid)
-		return
-	}
-
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_ARENA, player.GetLevel(), player.GetVipLevel())
 	if isFuncOpen == false {
 		gamelog.Error("Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
+		return
+	}
+
+	//! 检测参数
+	if req.Num <= 0 {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_BuyArenaStoreItem invalid num. Num: %v  PlayerID: %v", req.Num, player.playerid)
 		return
 	}
 
@@ -690,7 +690,7 @@ func Hand_BuyArenaStoreItem(w http.ResponseWriter, r *http.Request) {
 	//! 判断玩家等级是否足够
 	if player.GetLevel() < item.NeedLevel {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
-		gamelog.Error("Not enough level")
+		gamelog.Error("Hand_BuyArenaStoreItem Error: Not enough level")
 		return
 	}
 
@@ -733,7 +733,7 @@ func Hand_BuyArenaStoreItem(w http.ResponseWriter, r *http.Request) {
 	//! 记录购买
 	if item.Type == 2 {
 		player.ArenaModule.StoreAward = append(player.ArenaModule.StoreAward, item.ID)
-		go player.ArenaModule.DB_UpdateStoreToDatabase()
+		player.ArenaModule.DB_UpdateStoreToDatabase()
 	}
 
 	//! 扣除道具

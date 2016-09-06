@@ -221,7 +221,7 @@ func Hand_GetMainUITip(w http.ResponseWriter, r *http.Request) {
 		response.FuncID = append(response.FuncID, gamedata.FUNC_FRIEND)
 	} else if player.FameHallModule.RedTip() == true { //! 名人堂
 		response.FuncID = append(response.FuncID, gamedata.FUNC_FAMOUSHALL)
-	} else if player.SanGuoZhiModule.RedTip() == true { //! 三国志
+	} else if player.RoleMoudle.RedTip() == true { //! 三国志
 		response.FuncID = append(response.FuncID, gamedata.FUNC_SANGUOZHI)
 	} else if player.ArenaModule.RedTip() == true { //! 竞技场
 		response.FuncID = append(response.FuncID, gamedata.FUNC_ARENA)
@@ -238,4 +238,126 @@ func Hand_GetMainUITip(w http.ResponseWriter, r *http.Request) {
 	} else if player.TerritoryModule.RedTip() == true { //! 领地征讨
 		response.FuncID = append(response.FuncID, gamedata.FUNC_TERRITORY)
 	}
+}
+
+func Hand_SanGuoZhiInfo(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接收消息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.MSG_GetSanGuoZhiInfo_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_SanGuoZhiInfo Unmarshal is fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_GetSanGuoZhiInfo_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	//! 常规检测
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	//! 检测功能是否开启
+	if gamedata.IsFuncOpen(gamedata.FUNC_SANGUOZHI, player.GetLevel(), player.GetVipLevel()) == false {
+		response.RetCode = msg.RE_FUNC_NOT_OPEN
+		return
+	}
+
+	//! 获取已命星的星
+	response.CurOpenID = player.RoleMoudle.CurStarID
+	response.RetCode = msg.RE_SUCCESS
+}
+
+//! 玩家请求命星
+func Hand_SetSanGuoZhi(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接收信息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.MSG_SetSanGuoZhi_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_SetSanGuoZhi Unmarshal is fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_SetSanGuoZhi_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	//! 常规检测
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	//! 检测功能是否开启
+	if gamedata.IsFuncOpen(gamedata.FUNC_SANGUOZHI, player.GetLevel(), player.GetVipLevel()) == false {
+		response.RetCode = msg.RE_FUNC_NOT_OPEN
+		return
+	}
+
+	if gamedata.IsStarEnd(player.RoleMoudle.CurStarID) == true {
+		response.RetCode = msg.RE_MAX_STAR
+		return
+	}
+
+	//! 检测命星材料是否足够
+	info := gamedata.GetSanGuoZhiInfo(player.RoleMoudle.CurStarID + 1)
+	if info == nil {
+		//! 无法获取该星信息
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
+	bEnough := player.BagMoudle.IsItemEnough(info.CostType, info.CostNum)
+	if !bEnough {
+		response.RetCode = msg.RE_SANGUOZHI_ITEM_NOT_ENOUGH
+		return
+	}
+
+	player.BagMoudle.RemoveNormalItem(info.CostType, info.CostNum)
+
+	//! 开始升星
+	player.RoleMoudle.CurStarID += 1
+	player.RoleMoudle.DB_SaveSanGuoZhiStar()
+
+	if info.Type == gamedata.Sanguo_Add_Attr {
+		//! 全队增加指定属性
+		player.HeroMoudle.AddExtraProperty(info.AttrID, int32(info.Value), false, 0)
+		player.HeroMoudle.DB_SaveExtraProperty()
+	} else if info.Type == gamedata.Sanguo_Give_Item {
+		//! 给予道具
+		player.BagMoudle.AddAwardItem(info.AttrID, int(info.Value))
+		response.AwardItem = msg.MSG_ItemData{info.AttrID, int(info.Value)}
+	} else if info.Type == gamedata.Sanguo_Main_Hero_Up {
+		//! 提升主角品质
+		player.HeroMoudle.ChangeMainQuality(info.Value)
+		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_HERO_QUALITY, int(info.Value))
+	}
+
+	response.FightValue = player.CalcFightValue()
+	response.Quality = player.HeroMoudle.CurHeros[0].Quality
+	response.RetCode = msg.RE_SUCCESS
 }

@@ -35,7 +35,7 @@ func ActivityTimerFunc(now int64) bool {
 		}
 	}
 
-	go G_GlobalVariables.DB_UpdateActivityLst()
+	G_GlobalVariables.DB_UpdateActivityLst()
 
 	return true
 }
@@ -86,7 +86,7 @@ func EndActivity(activityType int, activityID int) bool {
 		G_HuntTreasureTodayRanker.Clear()
 		G_HuntTreasureTotalRanker.Clear()
 		G_HuntTreasureYesterdayRanker.Clear()
-		mongodb.UpdateToDBAll(appconfig.GameDbName, "PlayerActivity", nil, bson.M{"$set": bson.M{
+		GameSvrUpdateToDBAll("PlayerActivity", nil, &bson.M{"$set": bson.M{
 			"hunttreasure.todayscore.0": 0,
 			"hunttreasure.todayscore.1": 0,
 			"hunttreasure.score":        0}})
@@ -94,7 +94,7 @@ func EndActivity(activityType int, activityID int) bool {
 		G_CardMasterTodayRanker.Clear()
 		G_CardMasterTotalRanker.Clear()
 		G_CardMasterYesterdayRanker.Clear()
-		mongodb.UpdateToDBAll(appconfig.GameDbName, "PlayerActivity", nil, bson.M{"$set": bson.M{
+		GameSvrUpdateToDBAll("PlayerActivity", nil, &bson.M{"$set": bson.M{
 			"cardmaster.jifen.0":    0,
 			"cardmaster.jifen.1":    0,
 			"cardmaster.totaljifen": 0}})
@@ -103,14 +103,14 @@ func EndActivity(activityType int, activityID int) bool {
 		G_LuckyWheelTodayRanker.Clear()
 		G_LuckyWheelTotalRanker.Clear()
 		G_LuckyWheelYesterdayRanker.Clear()
-		mongodb.UpdateToDBAll(appconfig.GameDbName, "PlayerActivity", nil, bson.M{"$set": bson.M{
+		GameSvrUpdateToDBAll("PlayerActivity", nil, &bson.M{"$set": bson.M{
 			"luckywheel.todayscore.0": 0,
 			"luckywheel.todayscore.1": 0,
 			"luckywheel.totalscore":   0}})
 	} else if activityType == gamedata.Activity_Beach_Baby {
 		G_BeachBabyTotalRanker.Clear()
 		G_BeachBabyYesterdayRanker.Clear()
-		mongodb.UpdateToDBAll(appconfig.GameDbName, "PlayerActivity", nil, bson.M{"$set": bson.M{
+		GameSvrUpdateToDBAll("PlayerActivity", nil, &bson.M{"$set": bson.M{
 			"beachbaby.score.0":    0,
 			"beachbaby.score.1":    0,
 			"beachbaby.totalscore": 0}})
@@ -208,7 +208,7 @@ func RefreshActivity(activityType int, activityID int) bool {
 
 			//! 清除玩家今日积分
 			FieldName := fmt.Sprintf("hunttreasure.todayscore.%d", utility.GetCurDayMod())
-			mongodb.UpdateToDBAll(appconfig.GameDbName, "PlayerActivity", nil, bson.M{"$set": bson.M{FieldName: 0}})
+			GameSvrUpdateToDBAll("PlayerActivity", nil, &bson.M{"$set": bson.M{FieldName: 0}})
 		}
 	} else if activityType == gamedata.Activity_Card_Master {
 		if len(G_CardMasterYesterdayRanker.List) != 0 {
@@ -219,7 +219,7 @@ func RefreshActivity(activityType int, activityID int) bool {
 
 			//! 清除玩家今日积分
 			FieldName := fmt.Sprintf("cardmaster.jifen.%d", utility.GetCurDayMod())
-			mongodb.UpdateToDBAll(appconfig.GameDbName, "PlayerActivity", nil, bson.M{"$set": bson.M{FieldName: 0}})
+			GameSvrUpdateToDBAll("PlayerActivity", nil, &bson.M{"$set": bson.M{FieldName: 0}})
 		}
 	} else if activityType == gamedata.Activity_MoonlightShop {
 	} else if activityType == gamedata.Activity_Luckly_Wheel {
@@ -231,7 +231,7 @@ func RefreshActivity(activityType int, activityID int) bool {
 
 			//! 清除玩家今日积分
 			FieldName := fmt.Sprintf("luckywheel.todayscore.%d", utility.GetCurDayMod())
-			mongodb.UpdateToDBAll(appconfig.GameDbName, "PlayerActivity", nil, bson.M{"$set": bson.M{FieldName: 0}})
+			GameSvrUpdateToDBAll("PlayerActivity", nil, &bson.M{"$set": bson.M{FieldName: 0}})
 		}
 	} else if activityType == gamedata.Activity_Beach_Baby {
 		//! 今日排行榜计入昨天
@@ -241,7 +241,7 @@ func RefreshActivity(activityType int, activityID int) bool {
 
 		//! 清除玩家今日积分
 		FieldName := fmt.Sprintf("beachbaby.score.%d", utility.GetCurDayMod())
-		mongodb.UpdateToDBAll(appconfig.GameDbName, "PlayerActivity", nil, bson.M{"$set": bson.M{FieldName: 0}})
+		GameSvrUpdateToDBAll("PlayerActivity", nil, &bson.M{"$set": bson.M{FieldName: 0}})
 	} else if activityType == gamedata.Activity_Group_Purchase {
 	} else if activityType == gamedata.Activity_Festival {
 	}

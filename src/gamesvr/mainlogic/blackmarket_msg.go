@@ -135,7 +135,7 @@ func Hand_BuyBlackMarketGoods(w http.ResponseWriter, r *http.Request) {
 	//! 设置状态
 	itemInfo.IsBuy = true
 
-	go player.BlackMarketModule.DB_UpdateBuyMark(req.ID - 1)
+	player.BlackMarketModule.DB_UpdateBuyMark(req.ID - 1)
 
 	response.RetCode = msg.RE_SUCCESS
 }

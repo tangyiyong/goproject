@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"msg"
 	"net/http"
+	"os"
 	"strings"
 	"utility"
 )
@@ -160,6 +161,29 @@ func Hand_GetServerInfo(w http.ResponseWriter, r *http.Request) {
 
 	ret, _ := json.Marshal(&response)
 	w.Write(ret)
+	return
+
+}
+
+var clientlog *os.File = nil
+
+func Hand_SaveClientInfo(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	var err error
+	if clientlog == nil {
+		clientlog, err = os.OpenFile(utility.GetCurrPath()+"log/client.log", os.O_CREATE|os.O_APPEND, os.ModePerm)
+		if err != nil {
+			gamelog.Error("Hand_SaveClientInfo Error : %s", err.Error())
+			return
+		}
+	}
+
+	clientlog.Write(buffer)
+
 	return
 
 }

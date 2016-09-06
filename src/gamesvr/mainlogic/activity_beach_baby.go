@@ -1,10 +1,8 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
-	"mongodb"
 	"time"
 	"utility"
 
@@ -156,22 +154,22 @@ func (self *TBeachBabyInfo) GetTotalScore() int {
 
 //! DB相关
 func (self *TBeachBabyInfo) DB_SaveAllGoods() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"beachbaby.goods":           self.Goods,
 		"beachbaby.autorefreshtime": self.AutoRefreshTime}})
 }
 func (self *TBeachBabyInfo) DB_SaveScore() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"beachbaby.score":      self.Score,
 		"beachbaby.totalscore": self.TotalScore}})
 }
 func (self *TBeachBabyInfo) DB_SaveRankAwardFlag() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"beachbaby.isgettodayrankaward": self.IsGetTodayRankAward,
 		"beachbaby.isgettotalrankaward": self.IsGetTotalRankAward}})
 }
 func (self *TBeachBabyInfo) DB_Refresh() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"beachbaby.score":               self.Score,
 		"beachbaby.totalscore":          self.TotalScore,
 		"beachbaby.freeconchbit":        self.FreeConchBit,
@@ -183,7 +181,7 @@ func (self *TBeachBabyInfo) DB_Refresh() {
 }
 
 func (self *TBeachBabyInfo) DB_Reset() {
-	mongodb.UpdateToDB(appconfig.GameDbName, "PlayerActivity", bson.M{"_id": self.activityModule.PlayerID}, bson.M{"$set": bson.M{
+	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"beachbaby.score":               self.Score,
 		"beachbaby.totalscore":          self.TotalScore,
 		"beachbaby.freeconchbit":        self.FreeConchBit,
