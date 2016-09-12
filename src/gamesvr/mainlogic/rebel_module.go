@@ -47,7 +47,7 @@ func (self *TRebelModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerRebel", self)
+	mongodb.InsertToDB( "PlayerRebel", self)
 }
 
 //! 玩家销毁角色

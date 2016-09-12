@@ -2,8 +2,8 @@ package mainlogic
 
 import (
 	"gamesvr/gamedata"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 type TActivityFirstRecharge struct {
@@ -80,20 +80,20 @@ func (self *TActivityFirstRecharge) CheckRecharge(rmb int) {
 
 //! 更新
 func (self *TActivityFirstRecharge) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"firstrecharge.versioncode": self.VersionCode}})
 }
 
 //! 重置
 func (self *TActivityFirstRecharge) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"firstrecharge.activityid":  self.ActivityID,
 		"firstrecharge.resetcode":   self.ResetCode,
 		"firstrecharge.versioncode": self.VersionCode}})
 }
 
 func (self *TActivityFirstRecharge) DB_SetFirstRechargeMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"firstrecharge.firstrechargeaward": self.FirstRechargeAward,
 		"firstrecharge.nextrechargeaward":  self.NextRechargeAward}})
 }

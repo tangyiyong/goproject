@@ -6,7 +6,6 @@ import (
 	"gamelog"
 	"msg"
 	_ "mysql"
-	"time"
 )
 
 type TMysqlLog struct {
@@ -29,8 +28,7 @@ func (self *TMysqlLog) WriteLog(pdata []byte) {
 		gamelog.Error("MysqlLog::WriteLog : Message Reader Error!!!!")
 		return
 	}
-	timeStr := time.Now().Format("2006-01-02 15:04:05")
-	stmt.Exec(req.EventID, req.PlayerID, req.SvrID, timeStr, req.Param[0], req.Param[1], req.Param[2], req.Param[3])
+	stmt.Exec(req.SvrID, req.EventID, req.PlayerID, req.Time, req.Param[0], req.Param[1], req.Param[2], req.Param[3])
 	stmt.Close()
 
 	self.writeCnt++
@@ -57,15 +55,22 @@ func (self *TMysqlLog) SetFlushCnt(cnt int) {
 	}
 }
 
-func CreateMysqlFile(filename string, svrid int32) *TMysqlLog {
+func CreateMysqlFile(filename string, svrid int32) TLog {
 	var log TMysqlLog
 	var err error = nil
 	log.db, err = sql.Open("mysql", filename)
 	if err != nil {
-		gamelog.Error("Create MysqlLog Error : %s", err.Error())
+		gamelog.Error("CreateMysqlFile Error : %s", err.Error())
 		return nil
 	}
-	log.query = fmt.Sprintf("INSERT log_%d SET EventID=?,SrcID=?,TargetID=?,Time=?,Param1=?,Param2=?,Param3=?,Param4=?", svrid)
+
+	err = log.db.Ping()
+	if err != nil {
+		gamelog.Error("CreateMysqlFile Error : db.ping : %s", err.Error())
+		return nil
+	}
+
+	log.query = fmt.Sprintf("INSERT log_%d SET SvrID=?,EventID=?,PlayerID=?,Time=?,Param1=?,Param2=?,Param3=?,Param4=?", svrid)
 
 	return &log
 }

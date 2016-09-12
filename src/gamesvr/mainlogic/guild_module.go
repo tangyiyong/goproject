@@ -55,6 +55,7 @@ type TGuildModule struct {
 
 	ShoppingLst TGuildShopInfoLst //! 商店购买信息
 
+	ActionBuyTimes    int      //! 行动力购买次数
 	ActionTimes       int      //! 军团副本行动力
 	ActionRecoverTime int64    //! 行动力恢复
 	CopyAwardMark     Int32Lst //! 章节通关奖励
@@ -71,8 +72,9 @@ func (self *TGuildModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 
 func (self *TGuildModule) OnCreate(playerid int32) {
 	//! 初始化各类参数
+	self.ActionBuyTimes = 0
 	self.SacrificeStatus = 0
-	self.ActionTimes = 10
+	self.ActionTimes = 8
 	hour := gamedata.GuildCopyBattleTimeBegin / 3600
 	min := (gamedata.GuildCopyBattleTimeBegin - hour*3600) / 60
 	sec := gamedata.GuildCopyBattleTimeBegin - hour*3600 - min*60
@@ -84,7 +86,7 @@ func (self *TGuildModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerGuild", self)
+	mongodb.InsertToDB( "PlayerGuild", self)
 }
 
 func (self *TGuildModule) OnDestroy(playerid int32) {
@@ -148,6 +150,8 @@ func (self *TGuildModule) OnNewDay(newday uint32) {
 	self.SacrificeStatus = 0
 	self.TodayContribution = 0
 	self.SacrificeAwardLst = IntLst{}
+	self.ActionBuyTimes = 0
+	self.ActionTimes = 8
 
 	for i := 0; i < len(self.ShoppingLst); i++ {
 		if self.ShoppingLst[i].Type == 1 {
@@ -241,30 +245,13 @@ func (self *TGuildModule) RefreshFalshSale() {
 
 //! 行动力恢复
 func (self *TGuildModule) RecoverAction() {
+	if self.ActionTimes > 8 {
+		self.ActionTimes = 8
+	}
+
 	now := time.Now().Unix()
 	if now < self.ActionRecoverTime {
 		//! 未到恢复时间
-		return
-	}
-
-	//! 副本关闭时间
-	hour := gamedata.GuildCopyBattleTimeEnd / 60 * 60
-	min := (gamedata.GuildCopyBattleTimeEnd - hour*3600) / 60
-	sec := gamedata.GuildCopyBattleTimeEnd - hour*3600 - min*60
-	endTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), hour, min, sec, 0, time.Now().Location())
-
-	if now >= endTime.Unix() {
-		//! 副本开始时间
-		hour = gamedata.GuildCopyBattleTimeBegin / 60 * 60
-		min = (gamedata.GuildCopyBattleTimeBegin - hour*3600) / 60
-		sec = gamedata.GuildCopyBattleTimeBegin - hour*3600 - min*60
-
-		beginTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), hour+1, min, sec, 0, time.Now().Location())
-		beginTime.AddDate(0, 0, 1)
-
-		self.ActionTimes = 10
-		self.ActionRecoverTime = beginTime.Unix() + int64(gamedata.GuildActionRecoverTime)
-		self.DB_UpdateCopyAction()
 		return
 	}
 
@@ -283,6 +270,7 @@ func (self *TGuildModule) RecoverAction() {
 
 	self.ActionRecoverTime = self.ActionRecoverTime + int64(action*gamedata.GuildActionRecoverTime)
 	self.ActionTimes += action
+
 	self.DB_UpdateCopyAction()
 }
 

@@ -161,7 +161,7 @@ func (self *TMiningModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerMining", self)
+	mongodb.InsertToDB( "PlayerMining", self)
 }
 
 //! 玩家销毁角色

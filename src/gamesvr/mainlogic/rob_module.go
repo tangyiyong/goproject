@@ -38,7 +38,7 @@ func (self *TRobModule) OnCreate(playerid int32) {
 	self.FreeWarTime = 0
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerRob", self)
+	mongodb.InsertToDB( "PlayerRob", self)
 }
 
 func (self *TRobModule) OnDestroy(playerid int32) {
@@ -131,7 +131,7 @@ func (self *TRobModule) GetRobList(itemID int, exclude Int32Lst) (robPlayerLst [
 	//! 机器人
 	robotNum := 5 - len(robPlayerLst)
 	for i := 0; i < robotNum; i++ {
-		robot := gamedata.RandRobot()
+		robot := gamedata.RandRobot(0)
 		if robot == nil {
 			gamelog.Error("Rand Robot Error: robot is nil")
 			return
@@ -230,6 +230,6 @@ func (self *TRobModule) RobPlayer(targetLevel int) bool {
 }
 
 func (self *TRobModule) UpdateFreeWarTime() {
-	GameSvrUpdateToDB("PlayerRob", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerRob", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"freewartime": self.FreeWarTime}})
 }

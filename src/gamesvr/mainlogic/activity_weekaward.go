@@ -2,8 +2,8 @@ package mainlogic
 
 import (
 	"gamesvr/gamedata"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 //! 周周盈
@@ -102,13 +102,13 @@ func (self *TActivityWeekAward) AddRechargeNum(rechargeNum int) {
 }
 
 func (self *TActivityWeekAward) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"weekaward.loginday":    self.LoginDay,
 		"weekaward.versioncode": self.VersionCode}})
 }
 
 func (self *TActivityWeekAward) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"weekaward.activityid":  self.ActivityID,
 		"weekaward.loginday":    self.LoginDay,
 		"weekaward.AwardMark":   self.AwardMark,
@@ -118,11 +118,11 @@ func (self *TActivityWeekAward) DB_Reset() {
 }
 
 func (self *TActivityWeekAward) DB_UpdateRechargeNum() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"weekaward.rechargenum": self.RechargeNum}})
 }
 
 func (self *TActivityWeekAward) DB_UpdateAwardMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"weekaward.awardmark": self.AwardMark}})
 }

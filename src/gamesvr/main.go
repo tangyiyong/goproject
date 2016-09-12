@@ -40,14 +40,14 @@ func main() {
 	//注册所有的TCP消息处理方法
 	RegTcpMsgHandler()
 
-	//初始服务器逻辑
-	gameLogicInit()
+	//初始化主逻辑模块
+	mainlogic.Init()
 
 	//注册到账号服务器
 	reggamesvr.RegisterToSvr()
 
-	//连接到聊天服务器
-	mainlogic.ConnectToChatSvr(appconfig.ChatSvrInnerIp + ":" + strconv.Itoa(appconfig.ChatSvrPort))
+	//连接到其它服务器
+	mainlogic.ConnectToOtherSvr()
 
 	//启动http监听服务
 	gamelog.Error("----Game Server Start-----")
@@ -56,10 +56,4 @@ func main() {
 	if err != nil {
 		gamelog.Error("----Http Listen Error :%s-----", err.Error())
 	}
-}
-
-func gameLogicInit() {
-
-	//初始化玩家管理器
-	mainlogic.Init()
 }

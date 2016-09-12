@@ -3,8 +3,8 @@ package mainlogic
 import (
 	"fmt"
 	"gamelog"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 type TDiscountSaleGoodsInfo struct {
@@ -90,7 +90,7 @@ func (self *TActivityDiscountSale) DB_Refresh() {
 	}
 
 	filedName := fmt.Sprintf("discount.%d.versioncode", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
 }
 
@@ -111,7 +111,7 @@ func (self *TActivityDiscountSale) DB_Reset() {
 	filedName := fmt.Sprintf("discount.%d.shoplst", index)
 	filedName2 := fmt.Sprintf("discount.%d.versioncode", index)
 	filedName3 := fmt.Sprintf("discount.%d.resetcode", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.ShopLst,
 		filedName2: self.VersionCode,
 		filedName3: self.ResetCode}})
@@ -119,11 +119,11 @@ func (self *TActivityDiscountSale) DB_Reset() {
 
 func (self *TActivityDiscountSale) DB_AddShoppingInfo(activityIndex int, info *TDiscountSaleGoodsInfo) {
 	filedName := fmt.Sprintf("discountsale.%d.shoplst", activityIndex)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{filedName: *info}})
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{filedName: *info}})
 }
 
 func (self *TActivityDiscountSale) DB_UpdateShoppingTimes(activityIndex int, index int, info *TDiscountSaleGoodsInfo) {
 	filedName := fmt.Sprintf("discountsale.%d.shoplst.%d.times", activityIndex, index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: (*info).Times}})
 }

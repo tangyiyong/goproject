@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 //! 充值活动数据
@@ -98,7 +98,7 @@ func (self *TActivityRecharge) DB_Refresh() {
 	}
 
 	filedName := fmt.Sprintf("recharge.%d.versioncode", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
 }
 
@@ -120,7 +120,7 @@ func (self *TActivityRecharge) DB_Reset() {
 	filedName2 := fmt.Sprintf("recharge.%d.AwardMark", index)
 	filedName3 := fmt.Sprintf("recharge.%d.versioncode", index)
 	filedName4 := fmt.Sprintf("recharge.%d.resetcode", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName1: self.RechargeValue,
 		filedName2: self.AwardMark,
 		filedName3: self.VersionCode,
@@ -129,6 +129,6 @@ func (self *TActivityRecharge) DB_Reset() {
 
 func (self *TActivityRecharge) DB_UpdateRechargeMark(index int, mark int) {
 	filedName := fmt.Sprintf("recharge.%d.AwardMark", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: mark}})
 }

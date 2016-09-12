@@ -2,9 +2,9 @@ package mainlogic
 
 import (
 	"gamesvr/gamedata"
-	"time"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
+	"time"
 )
 
 type TActivityMoneyGod struct {
@@ -100,12 +100,12 @@ func (self *TActivityMoneyGod) CheckMoneyGod() {
 }
 
 func (self *TActivityMoneyGod) DB_UpdateNextTime() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moneygod.nexttime": self.NextTime}})
 }
 
 func (self *TActivityMoneyGod) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moneygod.currenttimes":    self.CurrentTimes,
 		"moneygod.nexttime":        self.NextTime,
 		"moneygod.totalmoney":      self.TotalMoney,
@@ -114,13 +114,13 @@ func (self *TActivityMoneyGod) DB_Refresh() {
 }
 
 func (self *TActivityMoneyGod) DB_UpdateCumulativeTimes() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moneygod.totalmoney":      self.TotalMoney,
 		"moneygod.cumulativetimes": self.CumulativeTimes}})
 }
 
 func (self *TActivityMoneyGod) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"moneygod.activityid":  self.ActivityID,
 		"moneygod.versioncode": self.VersionCode,
 		"moneygod.resetcode":   self.ResetCode}})

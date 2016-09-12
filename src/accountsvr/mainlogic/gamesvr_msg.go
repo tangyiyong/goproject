@@ -52,7 +52,6 @@ func Handle_SetGamesvrFlag(w http.ResponseWriter, r *http.Request) {
 
 	G_ServerList[req.SvrID].SvrFlag = req.Flag
 	DB_UpdateSvrState(req.SvrID, req.Flag)
-
 	response.RetCode = msg.RE_SUCCESS
 	return
 }
@@ -64,7 +63,7 @@ func Handle_GetServerList(w http.ResponseWriter, r *http.Request) {
 
 	var req msg.MSG_GetServerList_Req
 	if json.Unmarshal(buffer, &req) != nil {
-		gamelog.Error("Handle_SetGamesvrFlag : Unmarshal error!!!!")
+		gamelog.Error("Handle_GetServerList : Unmarshal error!!!!")
 		return
 	}
 

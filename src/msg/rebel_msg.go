@@ -38,9 +38,12 @@ type MSG_Attack_Rebel_Req struct {
 
 type MSG_Attack_Rebel_Ack struct {
 	RetCode     int
-	IsKill      int //! 是否击杀叛军  0->未击杀 1->已击杀
-	DamageRank  int //! 伤害排行榜 若为0则未进榜
-	ExploitRank int //! 功勋排行榜 若为0则未进榜
+	IsKill      int   //! 是否击杀叛军  0->未击杀 1->已击杀
+	DamageRank  int   //! 伤害排行榜 若为0则未进榜
+	ExploitRank int   //! 功勋排行榜 若为0则未进榜
+	ActionID    int   //! 精力ID
+	ActionValue int   //! 用户精力
+	ActionTime  int64 //! 下次恢复精力时间
 }
 
 //! 玩家请求分享叛军

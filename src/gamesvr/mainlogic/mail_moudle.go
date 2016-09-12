@@ -74,7 +74,7 @@ func (playermail *TMailMoudle) OnCreate(playerid int32) {
 	playermail.PlayerID = playerid
 	//创建数据库记录
 	playermail.MailList = make([]TMailInfo, 0)
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerMail", playermail)
+	mongodb.InsertToDB( "PlayerMail", playermail)
 }
 
 //玩家对象销毁
@@ -137,22 +137,22 @@ func SendMailToPlayer(playerid int32, pMailInfo *TMailInfo) {
 
 //! 保存邮件到数据库
 func DB_SaveMailToPlayer(playerid int32, pMailInfo *TMailInfo) {
-	GameSvrUpdateToDB("PlayerMail", &bson.M{"_id": playerid}, &bson.M{"$push": bson.M{"maillist": *pMailInfo}})
+	mongodb.UpdateToDB("PlayerMail", &bson.M{"_id": playerid}, &bson.M{"$push": bson.M{"maillist": *pMailInfo}})
 }
 
 //! 保存战报到数据库
 func DB_SaveScoreResultToPlayer(playerid int32, pResult *TScoreReport) {
-	GameSvrUpdateToDB("PlayerMail", &bson.M{"_id": playerid}, &bson.M{"$push": bson.M{"reports": *pResult}})
+	mongodb.UpdateToDB("PlayerMail", &bson.M{"_id": playerid}, &bson.M{"$push": bson.M{"reports": *pResult}})
 }
 
 //! 清空邮件到数据库
 func (self *TMailMoudle) DB_ClearAllMails() {
-	GameSvrUpdateToDB("PlayerMail", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"maillist": self.MailList}})
+	mongodb.UpdateToDB("PlayerMail", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"maillist": self.MailList}})
 }
 
 //! 清空邮件到数据库
 func (self *TMailMoudle) DB_ClearAllReports() {
-	GameSvrUpdateToDB("PlayerMail", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"reports": self.Reports}})
+	mongodb.UpdateToDB("PlayerMail", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"reports": self.Reports}})
 }
 
 //以下为各功能的发邮件方法

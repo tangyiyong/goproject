@@ -37,6 +37,8 @@ type TPlayer struct {
 
 	Heros   [6]msg.MSG_HeroObj
 	IsEnter bool
+
+	PackNo int32 //消息编号
 }
 
 var G_PlayerMgr map[string]*TPlayer

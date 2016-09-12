@@ -32,9 +32,6 @@ func main() {
 	//注册控制台命令处理方法
 	RegConsoleCmdHandler()
 
-	//初始化账号管理器
-	mainlogic.InitAccountMgr()
-
 	//注册所有HTTP消息处理方法
 	RegHttpMsgHandler()
 

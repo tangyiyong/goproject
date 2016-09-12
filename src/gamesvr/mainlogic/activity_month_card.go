@@ -3,8 +3,8 @@ package mainlogic
 import (
 	"fmt"
 	"gamesvr/gamedata"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 //! 月卡活动
@@ -88,7 +88,7 @@ func (self *TActivityMonthCard) RedTip() bool {
 
 //! 重置
 func (self *TActivityMonthCard) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthcard.activityid":  self.ActivityID,
 		"monthcard.resetcode":   self.ResetCode,
 		"monthcard.versioncode": self.VersionCode}})
@@ -96,14 +96,14 @@ func (self *TActivityMonthCard) DB_Reset() {
 
 //! 更新月卡状态与时间
 func (self *TActivityMonthCard) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthcard.carddays":    self.CardDays,
 		"monthcard.versioncode": self.VersionCode,
 		"monthcard.cardstatus":  self.CardStatus}})
 }
 
 func (self *TActivityMonthCard) DB_UpdateCardStatus() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthcard.carddays":   self.CardDays,
 		"monthcard.cardstatus": self.CardStatus}})
 }
@@ -111,6 +111,6 @@ func (self *TActivityMonthCard) DB_UpdateCardStatus() {
 //! 更新月卡天数
 func (self *TActivityMonthCard) DB_UpdateCardDays(index int, days int) {
 	filedName := fmt.Sprintf("monthcard.carddays.%d", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: days}})
 }

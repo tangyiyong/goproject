@@ -53,7 +53,7 @@ func (self *TCampBattleModule) OnCreate(playerid int32) {
 	self.CrystalID = 1
 	self.LeftTimes = gamedata.CampBat_MoveTimes
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerCampBat", self)
+	mongodb.InsertToDB( "PlayerCampBat", self)
 }
 
 func (self *TCampBattleModule) OnDestroy(playerid int32) {

@@ -53,7 +53,7 @@ func (self *TSummonModule) OnCreate(playerid int32) {
 	self.Normal.ResetTime = GetTodayTime() + 24*60*60
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerSummon", self)
+	mongodb.InsertToDB( "PlayerSummon", self)
 }
 
 //! 玩家销毁角色

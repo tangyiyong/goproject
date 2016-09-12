@@ -119,15 +119,13 @@ func (self *TPlayer) userEnterRoom() bool {
 }
 
 func (self *TPlayer) userMove() bool {
-
 	self.Heros[0].Position[0] = self.Heros[0].Position[0] + float32(utility.Rand()%10-5)
 	self.Heros[0].Position[2] = self.Heros[0].Position[2] + float32(utility.Rand()%10-5)
-
 	var req msg.MSG_Move_Req
-	req.MsgNo = 1
+	req.MsgNo = self.PackNo
 	req.MoveEvents_Cnt = 1
 	req.MoveEvents = append(req.MoveEvents, msg.MSG_Move_Item{self.Heros[0].ObjectID, self.Heros[0].Position})
-
+	self.PackNo = self.PackNo + 1
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_MOVE_STATE, 0)
 	req.Write(&writer)
@@ -140,11 +138,6 @@ func (self *TPlayer) userMove() bool {
 
 	if self.BatClient.TcpConn == nil {
 		fmt.Println("userMove failed TcpConn == nil:")
-		return false
-	}
-
-	if self.BatClient.TcpConn.IsConnected() == true {
-		fmt.Println("userMove not connected:")
 		return false
 	}
 

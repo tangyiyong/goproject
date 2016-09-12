@@ -2,8 +2,8 @@ package mainlogic
 
 import (
 	"gamesvr/gamedata"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 //! 月基金
@@ -138,7 +138,7 @@ func (self *TActivityMonthFund) AwardRetroactive() {
 }
 
 func (self *TActivityMonthFund) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthfund.activityid":  self.ActivityID,
 		"monthfund.day":         self.Day,
 		"monthfund.awardmark":   self.AwardMark,
@@ -147,18 +147,18 @@ func (self *TActivityMonthFund) DB_Reset() {
 }
 
 func (self *TActivityMonthFund) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthfund.day":         self.Day,
 		"monthfund.versioncode": self.VersionCode}})
 }
 
 func (self *TActivityMonthFund) DB_MonthFund() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthfund.day":       self.Day,
 		"monthfund.awardmark": self.AwardMark}})
 }
 
 func (self *TActivityMonthFund) DB_UpdateAwardMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthfund.awardmark": self.AwardMark}})
 }

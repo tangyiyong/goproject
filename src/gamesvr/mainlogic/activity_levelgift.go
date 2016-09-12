@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 	"strconv"
 	"time"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type TLevelGiftInfo struct {
@@ -161,12 +161,12 @@ func (self *TActivityLevelGift) CheckDeadLine() {
 }
 
 func (self *TActivityLevelGift) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"levelgift.versioncode": self.VersionCode}})
 }
 
 func (self *TActivityLevelGift) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"levelgift.activityid":    self.ActivityID,
 		"levelgift.resetcode":     self.ResetCode,
 		"levelgift.ishavenewitem": self.IsHaveNewItem,
@@ -175,18 +175,18 @@ func (self *TActivityLevelGift) DB_Reset() {
 }
 
 func (self *TActivityLevelGift) DB_RemoveDeadGift(gift *TLevelGiftInfo) {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$pull": bson.M{"levelgift.giftlst": *gift}})
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$pull": bson.M{"levelgift.giftlst": *gift}})
 }
 
 func (self *TActivityLevelGift) DB_AddGift(gift *TLevelGiftInfo) {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{"levelgift.giftlst": *gift}})
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{"levelgift.giftlst": *gift}})
 
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"levelgift.ishavenewitem": self.IsHaveNewItem}})
 }
 
 func (self *TActivityLevelGift) DB_UpdateGiftLst() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"levelgift.giftlst": self.GiftLst}})
 }
 
@@ -204,11 +204,11 @@ func (self *TActivityLevelGift) DB_UpdateBuyTimes(id int, times int) {
 	}
 
 	filedName := fmt.Sprintf("levelgift.giftlst.%d.buytimes", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
 		&bson.M{"$set": bson.M{filedName: times}})
 }
 
 func (self *TActivityLevelGift) DB_UpdateNewItemMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
 		&bson.M{"$set": bson.M{"levelgift.ishavenewitem": self.IsHaveNewItem}})
 }

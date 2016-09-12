@@ -269,6 +269,7 @@ func RegHttpMsgHandler() {
 		{"/search_guild", mainlogic.Hand_SearchGuild, false},
 		{"/cancellation_guild_apply", mainlogic.Hand_CancellationGuildApply, false},
 		{"/get_guild_status", mainlogic.Hand_GetGuildStatus, false},
+		{"/buy_guild_copy_action", mainlogic.Hand_BuyGuildCopyAction, false},
 
 		//! 黑市协议
 		{"/get_black_market_info", mainlogic.Hand_GetBlackMarketInfo, false},

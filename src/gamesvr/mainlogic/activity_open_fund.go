@@ -121,7 +121,7 @@ func (self *TActivityOpenFund) RedTip() bool {
 }
 
 func (self *TActivityOpenFund) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"openfund.activityid":    self.ActivityID,
 		"openfund.fundlevelmark": self.FundLevelMark,
 		"openfund.fundcountmark": self.FundCountMark,
@@ -131,24 +131,24 @@ func (self *TActivityOpenFund) DB_Reset() {
 }
 
 func (self *TActivityOpenFund) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"openfund.versioncode": self.VersionCode}})
 }
 
 //! 更改购买标记
 func (self *TActivityOpenFund) UpdateBuyFundMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"openfund.isbuyfund": self.IsBuyFund}})
 }
 
 //! 更改基金全民奖励领取标记
 func (self *TActivityOpenFund) UpdateFundCountMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"openfund.fundcountmark": self.FundCountMark}})
 }
 
 //! 更改基金等级奖励领取标记
 func (self *TActivityOpenFund) UpdateFundLevelMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"openfund.fundlevelmark": self.FundLevelMark}})
 }

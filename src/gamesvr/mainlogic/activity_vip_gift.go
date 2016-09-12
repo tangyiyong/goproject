@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"utility"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
+	"utility"
 )
 
 //! VIP每周礼包
@@ -129,7 +129,7 @@ func (self *TActivityVipGift) CheckWeekGiftRefresh() {
 
 //! 重置活动
 func (self *TActivityVipGift) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"vipgift.activityid":    self.ActivityID,
 		"vipgift.weekgift":      self.WeekGift,
 		"vipgift.versioncode":   self.VersionCode,
@@ -140,21 +140,21 @@ func (self *TActivityVipGift) DB_Reset() {
 
 //! 更新每周礼包信息
 func (self *TActivityVipGift) DB_UpdateWeekGiftToDatabase() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"vipgift.weekgift":  self.WeekGift,
 		"vipgift.resetweek": self.ResetWeek}})
 }
 
 //! 更新VIP日常福利领取时间到数据库
 func (self *TActivityVipGift) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"vipgift.isrecvwelfare": self.IsRecvWelfare,
 		"vipgift.versioncode":   self.VersionCode}})
 
 }
 
 func (self *TActivityVipGift) DB_SaveDailyResetTime() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"vipgift.isrecvwelfare": self.IsRecvWelfare}})
 }
 
@@ -173,6 +173,6 @@ func (self *TActivityVipGift) DB_UpdateBuyTimes(id int, times int) {
 	}
 
 	filedName := fmt.Sprintf("vipgift.weekgift.%d.buytimes", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: times}})
 }

@@ -72,7 +72,7 @@ func (accountmgr *TAccountMgr) ResetAccount(name string, password string, newnam
 	accountmgr.accountNameMap[newname] = account.AccountID
 	delete(accountmgr.accountNameMap, name)
 	accountmgr.accmutex.Unlock()
-	mongodb.UpdateToDB(appconfig.AccountDbName, "Account", &bson.M{"_id": accountid}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("Account", &bson.M{"_id": accountid}, &bson.M{"$set": bson.M{
 		"name":     newname,
 		"password": newpassword}})
 	return true
@@ -110,9 +110,7 @@ func (accountmgr *TAccountMgr) GetNextAccountID() (ret int32) {
 func (accountmgr *TAccountMgr) AddLoginKey(accountid int32, loginkey string) {
 	accountmgr.accmutex.Lock()
 	defer accountmgr.accmutex.Unlock()
-
 	accountmgr.loginKeyMap[accountid] = loginkey
-
 	return
 }
 
@@ -171,12 +169,4 @@ func CheckAccountName(account string) bool {
 	}
 
 	return true
-}
-
-func ChangeLoginCountAndLast(AccountID int32, GameSvrDomainID int) {
-	db_Session := mongodb.GetDBSession()
-	defer db_Session.Close()
-	AcountColn := db_Session.DB(appconfig.AccountDbName).C("Account")
-	AcountColn.Update(bson.M{"_id": AccountID}, bson.M{"$set": bson.M{"lastsvrid": GameSvrDomainID, "logincount": 1}})
-	AcountColn = nil
 }

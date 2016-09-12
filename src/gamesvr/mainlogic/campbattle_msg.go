@@ -18,7 +18,7 @@ func Hand_RegBattleSvr(w http.ResponseWriter, r *http.Request) {
 	var req msg.MSG_RegBattleSvr_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
-		gamelog.Error("Hand_SetBattleCamp Error: Unmarshal fail, Error: %s", err.Error())
+		gamelog.Error("Hand_RegBattleSvr Error: Unmarshal fail, Error: %s", err.Error())
 		return
 	}
 

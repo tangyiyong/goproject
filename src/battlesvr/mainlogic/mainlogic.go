@@ -49,10 +49,18 @@ func BatSvrMsgDispatcher(pTcpConn *tcpserver.TCPConn, msgid int16, extra int16, 
 		G_RoomMgr.Hand_HeartBeat(pTcpConn, pdata)
 	default:
 		{
+			var msgno int32
 			var pRoom *TBattleRoom = nil
-			if pTcpConn.Extra == 0 || pTcpConn.ConnID < 10000 {
+			if pTcpConn.ConnID < 10000 {
 				pRoom = G_RoomMgr.GetRoomByID(extra)
 			} else {
+				msgno = int32(pdata[3])<<24 | int32(pdata[2])<<16 | int32(pdata[1])<<8 | int32(pdata[0])
+				if msgno != pTcpConn.PackNo {
+					gamelog.Error("BatSvrMsgDispatcher Error: PackNo Not Right msgno:%d, packNo:%d,msgid:%d", msgno, pTcpConn.PackNo, msgid)
+					return
+				}
+
+				pTcpConn.PackNo = msgno + 1
 				pRoom = G_RoomMgr.GetRoomByID(int16(pTcpConn.Extra))
 			}
 

@@ -314,7 +314,7 @@ func Hand_ChangeBackHero(w http.ResponseWriter, r *http.Request) {
 	if req.TargetID == 0 { //上阵
 		//删除掉背包中的英雄
 		player.BagMoudle.RemoveHeroAt(req.SourcePos)
-		player.BagMoudle.DB_SaveHeroBag()
+		player.BagMoudle.DB_RemoveHeroAt(req.SourcePos)
 	} else {
 		player.BagMoudle.HeroBag.Heros[req.SourcePos] = tempTarget
 		player.DB_SaveHeroAt(POSTYPE_BAG, req.SourcePos)
@@ -403,7 +403,6 @@ func Hand_ChangeHero(w http.ResponseWriter, r *http.Request) {
 		//删除掉背包中的英雄
 		player.BagMoudle.RemoveHeroAt(req.SourcePos)
 		player.BagMoudle.DB_RemoveHeroAt(req.SourcePos)
-		//player.DB_SaveHeros(POSTYPE_BAG)
 	} else {
 		player.BagMoudle.HeroBag.Heros[req.SourcePos] = tempTarget
 		player.DB_SaveHeroAt(POSTYPE_BAG, req.SourcePos)
@@ -643,7 +642,6 @@ func Hand_UpWakeLevel(w http.ResponseWriter, r *http.Request) {
 	if pWakeLevel.NeedHeroNum != 0 && bHost == false {
 		player.BagMoudle.RemoveHeroAt(req.SourcePos)
 		player.BagMoudle.DB_RemoveHeroAt(req.SourcePos)
-		//player.DB_SaveHeros(POSTYPE_BAG)
 	}
 
 	player.RoleMoudle.CostMoney(pWakeLevel.NeedMoneyID, pWakeLevel.NeedMoneyNum)
@@ -1170,7 +1168,7 @@ func Hand_BreakOutHero(w http.ResponseWriter, r *http.Request) {
 	pTargetHeroData := player.GetHeroByPos(req.TargetHero.PosType, req.TargetHero.HeroPos)
 	if (pTargetHeroData == nil) || pTargetHeroData.ID != req.TargetHero.HeroID {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_BreakOutHero : req.posType:%d, req.Pos:%d, req.id:%d, targetID:%d", req.TargetHero.PosType,
+		gamelog.Error("Hand_BreakOutHero : req.posType:%d, req.Pos:%d, req.id:%d, heroid:%d", req.TargetHero.PosType,
 			req.TargetHero.HeroPos, req.TargetHero.HeroID, pTargetHeroData.ID)
 		return
 	}
@@ -1202,8 +1200,7 @@ func Hand_BreakOutHero(w http.ResponseWriter, r *http.Request) {
 		needItemCount = pBreakLevelInfo.HostItemNum
 	}
 
-	bEnough := player.BagMoudle.IsItemEnough(pBreakLevelInfo.ItemID, needItemCount)
-	if !bEnough {
+	if false == player.BagMoudle.IsItemEnough(pBreakLevelInfo.ItemID, needItemCount) {
 		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
 		gamelog.Error("Hand_BreakOutHero : Invalid HeroBreakItemID :%d!!!!", pBreakLevelInfo.ItemID)
 		return
@@ -1238,7 +1235,6 @@ func Hand_BreakOutHero(w http.ResponseWriter, r *http.Request) {
 		}
 
 		tempPos = t.HeroPos
-
 		if req.TargetHero.PosType == POSTYPE_BAG {
 			if t.HeroPos == req.TargetHero.HeroPos {
 				response.RetCode = msg.RE_INVALID_PARAM
@@ -1261,7 +1257,7 @@ func Hand_BreakOutHero(w http.ResponseWriter, r *http.Request) {
 	response.NewLevel = pTargetHeroData.BreakLevel
 
 	//必须以不影响的索引的方式删除
-	for t := len(req.CostHeros) - 1; t >= 0; t-- {
+	for t := 0; t < len(req.CostHeros); t++ {
 		player.BagMoudle.RemoveHeroAt(req.CostHeros[t].HeroPos)
 	}
 	player.BagMoudle.DB_SaveHeroBag()
@@ -1354,7 +1350,6 @@ func Hand_ChangeEquip(w http.ResponseWriter, r *http.Request) {
 		player.HeroMoudle.DB_SaveBattleEquipAt(req.TargetPos)
 		player.BagMoudle.RemoveEquipAt(req.SourcePos)
 		player.BagMoudle.DB_RemoveEquipAt(req.SourcePos)
-		//player.BagMoudle.DB_SaveBagEquips()
 	} else if req.SourceID == 0 { //下阵
 		player.BagMoudle.AddEqiupData(&targetEquipData)
 		player.HeroMoudle.CurEquips[req.TargetPos].Clear()
@@ -2393,6 +2388,7 @@ func Hand_DecomposeHero(w http.ResponseWriter, r *http.Request) {
 	var resmap map[int]int
 	resmap = make(map[int]int)
 
+	var tempPos = 1000
 	for _, t := range req.CostHeros {
 		pTempHeroData := player.BagMoudle.GetBagHeroByPos(t.HeroPos)
 		if pTempHeroData == nil || pTempHeroData.ID != t.HeroID || t.HeroID == 0 {
@@ -2400,6 +2396,14 @@ func Hand_DecomposeHero(w http.ResponseWriter, r *http.Request) {
 			gamelog.Error("Hand_DecomposeHero error :  Invalid SourcePos: %d  HeroID: %d", t.HeroPos, pTempHeroData.ID)
 			return
 		}
+
+		if t.HeroPos > tempPos {
+			response.RetCode = msg.RE_INVALID_PARAM
+			gamelog.Error("Hand_DecomposeHero error :  Wrong Squence: %d", t.HeroPos)
+			return
+		}
+
+		tempPos = t.HeroPos
 
 		heroInfo := gamedata.GetHeroInfo(pTempHeroData.ID)
 
@@ -2457,13 +2461,7 @@ func Hand_DecomposeHero(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	pos := -1
 	for t := 0; t < len(req.CostHeros); t++ {
-		if pos >= 0 && req.CostHeros[t].HeroPos > pos {
-			req.CostHeros[t].HeroPos -= 1
-		}
-
-		pos = req.CostHeros[t].HeroPos
 		player.BagMoudle.RemoveHeroAt(req.CostHeros[t].HeroPos)
 	}
 
@@ -3180,6 +3178,7 @@ func Hand_DecomposeEquip(w http.ResponseWriter, r *http.Request) {
 	var resmap map[int]int
 	resmap = make(map[int]int)
 
+	var tempPos = 10000
 	for _, v := range req.CostEquips {
 		//! 获取装备信息
 		equiInfo := player.BagMoudle.GetEqiupByPos(v.EquipPos)
@@ -3189,6 +3188,13 @@ func Hand_DecomposeEquip(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if v.EquipPos > tempPos {
+			response.RetCode = msg.RE_INVALID_PARAM
+			gamelog.Error("Hand_DecomposeEquip error :  Wrong Squence: %d", v.EquipPos)
+			return
+		}
+
+		tempPos = v.EquipPos
 		equiData := gamedata.GetEquipmentInfo(v.EquipID)
 
 		//! 获取强化使用银币
@@ -3212,15 +3218,10 @@ func Hand_DecomposeEquip(w http.ResponseWriter, r *http.Request) {
 		resmap[gamedata.EquipRefineDecomposeItemID] += totalExp / itemInfo.Data1
 	}
 
-	pos := -1
 	for _, item := range req.CostEquips {
-		if item.EquipPos > pos && pos >= 0 {
-			item.EquipPos -= 1
-		}
-
-		pos = item.EquipPos
 		player.BagMoudle.RemoveEquipAt(item.EquipPos)
 	}
+
 	player.BagMoudle.DB_SaveBagEquips()
 
 	//! 奖励物品
@@ -4181,7 +4182,6 @@ func Hand_ChangePet(w http.ResponseWriter, r *http.Request) {
 		player.HeroMoudle.DB_SaveBattlePetAt(req.TargetPos)
 		player.BagMoudle.RemovePetAt(req.SourcePos)
 		player.BagMoudle.DB_RemovePetAt(req.SourcePos)
-		//player.BagMoudle.DB_SavePetBag()
 	} else if req.SourceID == 0 { //下阵
 		player.BagMoudle.AddPetData(&targetPetData)
 		player.HeroMoudle.CurPets[req.TargetPos].Clear()

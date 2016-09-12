@@ -87,7 +87,7 @@ func (self *TGlobalVariables) Init() {
 			self.ActivityLst = append(self.ActivityLst, activity)
 		}
 
-		mongodb.InsertToDB(appconfig.GameDbName, "GlobalVariables", self)
+		mongodb.InsertToDB("GlobalVariables", self)
 	}
 
 	//! 检测新加活动select
@@ -284,13 +284,13 @@ func (self *TGlobalVariables) AddGroupPurchaseRecord(itemID int, saleNum int) in
 
 //! 添加团购记录
 func (self *TGlobalVariables) DB_AddNewGroupPurchaseRecord(record *TGroupPurchaseInfo) {
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$push": bson.M{"grouppurchaselst": *record}})
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$push": bson.M{"grouppurchaselst": *record}})
 }
 
 //! 更新团购商品购买记录
 func (self *TGlobalVariables) DB_UpdateGroupPurchaseSaleNum(index int) {
 	filedName := fmt.Sprintf("grouppurchaselst.%d.salenum", index)
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
 		filedName: self.GroupPurchaseLst[index].SaleNum}})
 }
 
@@ -298,7 +298,7 @@ func (self *TGlobalVariables) DB_CleanMoneyPoor() {
 	if self.NormalMoneyPoor != 0 || self.ExcitedMoneyPoor != 0 {
 		self.NormalMoneyPoor = 0
 		self.ExcitedMoneyPoor = 0
-		GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
+		mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
 			"normalmoneypoor":  self.NormalMoneyPoor,
 			"excitedmoneypoor": self.ExcitedMoneyPoor}})
 	}
@@ -308,13 +308,13 @@ func (self *TGlobalVariables) DB_CleanGroupPurchase() {
 	if len(self.GroupPurchaseLst) != 0 {
 		self.GroupPurchaseLst = []TGroupPurchaseInfo{}
 
-		GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
+		mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
 			"grouppurchaselst": self.GroupPurchaseLst}})
 	}
 }
 
 func (self *TGlobalVariables) DB_SaveMoneyPoor() {
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
 		"normalmoneypoor":  self.NormalMoneyPoor,
 		"excitedmoneypoor": self.ExcitedMoneyPoor}})
 }
@@ -327,20 +327,20 @@ func (self *TGlobalVariables) DB_LoadGlobalVariables() bool {
 }
 
 func (self *TGlobalVariables) DB_SaveGlobalVariables() {
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": self})
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": self})
 }
 
 func (self *TGlobalVariables) DB_AddNewActivity(activity TActivityData) {
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$push": bson.M{"activitylst": activity}})
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$push": bson.M{"activitylst": activity}})
 }
 
 func (self *TGlobalVariables) DB_UpdateActivityLst() {
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
 		"activitylst": self.ActivityLst}})
 }
 
 func (self *TGlobalVariables) DB_AddSevenDayBuyInfo(seven TSevenDayBuyInfo) {
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$push": bson.M{"sevendaylimit": seven}})
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$push": bson.M{"sevendaylimit": seven}})
 }
 
 func (self *TGlobalVariables) DB_CleanSevenDayInfo(activityID int) {
@@ -358,17 +358,17 @@ func (self *TGlobalVariables) DB_CleanSevenDayInfo(activityID int) {
 	}
 
 	filedName := fmt.Sprintf("sevendaylimit.%d.limitbuy", index)
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{filedName: self.SevenDayLimit[index].LimitBuy}})
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{filedName: self.SevenDayLimit[index].LimitBuy}})
 }
 
 func (self *TGlobalVariables) DB_SaveSevenDayLimit(index int) {
 	filedName := fmt.Sprintf("sevendaylimit.%d", index)
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{filedName: self.SevenDayLimit[index]}})
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{filedName: self.SevenDayLimit[index]}})
 }
 
 func (self *TGlobalVariables) DB_UpdateActivityInfo(index int) {
 	filedName := fmt.Sprintf("activitylst.%d.status", index)
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
 		filedName: self.ActivityLst[index].Status}})
 }
 
@@ -391,16 +391,16 @@ func (self *TGlobalVariables) DelSvrAward(id int) {
 	}
 }
 func (self *TGlobalVariables) DB_AddAward(pAwardData *TAwardData) {
-	GameSvrUpdateToDB("SvrAwardCenter", &bson.M{"_id": 0}, &bson.M{"$push": bson.M{"svrawardlist": *pAwardData}})
+	mongodb.UpdateToDB("SvrAwardCenter", &bson.M{"_id": 0}, &bson.M{"$push": bson.M{"svrawardlist": *pAwardData}})
 }
 func (self *TGlobalVariables) DB_DelAward(id int) {
-	GameSvrUpdateToDB("SvrAwardCenter", &bson.M{"_id": 0}, &bson.M{"$pull": bson.M{"svrawardlist": bson.M{"id": id}}})
+	mongodb.UpdateToDB("SvrAwardCenter", &bson.M{"_id": 0}, &bson.M{"$pull": bson.M{"svrawardlist": bson.M{"id": id}}})
 }
 func (self *TGlobalVariables) DB_SaveIncrementID() {
-	GameSvrUpdateToDB("SvrAwardCenter", &bson.M{"_id": 0}, &bson.M{"$set": bson.M{"svrawardincid": self.SvrAwardIncID}})
+	mongodb.UpdateToDB("SvrAwardCenter", &bson.M{"_id": 0}, &bson.M{"$set": bson.M{"svrawardincid": self.SvrAwardIncID}})
 }
 
 func (self *TGlobalVariables) DB_UpdateLimitSaleNum() {
-	GameSvrUpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
 		"limitsalenum": self.LimitSaleNum}})
 }

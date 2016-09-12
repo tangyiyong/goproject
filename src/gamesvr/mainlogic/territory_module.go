@@ -55,7 +55,7 @@ func (self *TTerritoryModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerTerritory", self)
+	mongodb.InsertToDB( "PlayerTerritory", self)
 }
 
 //! 玩家销毁角色

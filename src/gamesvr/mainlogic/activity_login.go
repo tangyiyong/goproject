@@ -3,8 +3,8 @@ package mainlogic
 import (
 	"fmt"
 	"gamelog"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 //! 登录送礼活动
@@ -94,7 +94,7 @@ func (self *TActivityLogin) DB_Reset() {
 	filedName2 := fmt.Sprintf("login.%d.loginaward", index)
 	filedName4 := fmt.Sprintf("login.%d.versioncode", index)
 	filedName5 := fmt.Sprintf("login.%d.resetcode", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName1: self.LoginDay,
 		filedName2: self.LoginAward,
 		filedName4: self.VersionCode,
@@ -105,7 +105,7 @@ func (self *TActivityLogin) DB_AddLoginDay(index int) {
 
 	filedName := fmt.Sprintf("login.%d.loginday", index)
 	filedName3 := fmt.Sprintf("login.%d.versioncode", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.LoginDay,
 		filedName3: self.VersionCode}})
 
@@ -127,13 +127,13 @@ func (self *TActivityLogin) DB_Refresh() {
 
 	filedName := fmt.Sprintf("login.%d.loginday", index)
 	filedName3 := fmt.Sprintf("login.%d.versioncode", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.LoginDay,
 		filedName3: self.VersionCode}})
 }
 
 func (self *TActivityLogin) DB_UpdateLoginAward(activityIndex int) {
 	filedName := fmt.Sprintf("login.%d.loginaward", activityIndex)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.LoginAward}})
 }

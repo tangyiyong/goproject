@@ -50,10 +50,10 @@ type MSG_ServerList_Ack struct {
 //验证玩家登录请求
 //消息:/verifyuserlogin
 type MSG_VerifyUserLogin_Req struct {
-	AccountID   int32  //账号ID
-	AccountName string //账户名
-	LoginKey    string //登录key
-	DomainID    int    //服务器ID
+	AccountID int32  //账号ID
+	LoginKey  string //登录key
+	SvrID     int32  //服务器ID
+	PlayerID  int32  //角色ID
 }
 
 type MSG_VerifyUserLogin_Ack struct {

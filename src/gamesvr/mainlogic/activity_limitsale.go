@@ -3,11 +3,11 @@ package mainlogic
 import (
 	"fmt"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"math/rand"
+	"mongodb"
 	"time"
 	"utility"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type TLimitSaleInfo struct {
@@ -166,34 +166,34 @@ func (self *TActivityLimitSale) DiscountChargeClear() {
 }
 
 func (self *TActivityLimitSale) DB_UpdateDiscountCharge() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.score":            self.Score,
 		"limitsale.discountchargeid": self.DiscountChargeID}})
 }
 
 func (self *TActivityLimitSale) DB_UpdateScore() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.score": self.Score}})
 }
 
 func (self *TActivityLimitSale) DB_UpdateStatus(index int) {
 	filedName := fmt.Sprintf("limitsale.itemlst.%d.status", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.ItemLst[index].Status}})
 }
 
 func (self *TActivityLimitSale) DB_SaveRefreshMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.refreshmark": self.RefreshMark}})
 }
 
 func (self *TActivityLimitSale) DB_UpdateAwardMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.awardmark": self.AwardMark}})
 }
 
 func (self *TActivityLimitSale) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.versioncode":      self.VersionCode,
 		"limitsale.refreshmark":      self.RefreshMark,
 		"limitsale.score":            self.Score,
@@ -204,7 +204,7 @@ func (self *TActivityLimitSale) DB_Refresh() {
 }
 
 func (self *TActivityLimitSale) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.versioncode":      self.VersionCode,
 		"limitsale.resetcode":        self.ResetCode,
 		"limitsale.refreshmark":      self.RefreshMark,

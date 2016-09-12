@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"sync"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type TChargeMoudle struct {
@@ -29,7 +28,7 @@ func (self *TChargeMoudle) OnCreate(playerid int32) {
 	self.ChargeTimes = make([]int, count)
 
 	//创建数据库记录
-	mongodb.InsertToDB(appconfig.GameDbName, "PlayerCharge", self)
+	mongodb.InsertToDB("PlayerCharge", self)
 }
 func (self *TChargeMoudle) OnDestroy(playerid int32) {
 	self = nil
@@ -69,7 +68,7 @@ func (self *TChargeMoudle) AddChargeTimes(id int) int {
 //! DB相关
 func (self *TChargeMoudle) DB_SaveChargeTimes(nIndex int) {
 	FieldName := fmt.Sprintf("chargetimes.%d", nIndex)
-	GameSvrUpdateToDB("PlayerCharge", &bson.M{"_id": self.PlayerID},
+	mongodb.UpdateToDB("PlayerCharge", &bson.M{"_id": self.PlayerID},
 		&bson.M{"$set": bson.M{FieldName: self.ChargeTimes[nIndex]}})
 }
 

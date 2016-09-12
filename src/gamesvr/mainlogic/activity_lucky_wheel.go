@@ -3,11 +3,11 @@ package mainlogic
 import (
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"math/rand"
+	"mongodb"
 	"time"
 	"utility"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 //! 幸运轮盘
@@ -202,14 +202,14 @@ func (self *TActivityWheel) RandWheelAward(wheelType int) (itemID int, itemNum i
 }
 
 func (self *TActivityWheel) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"luckywheel.isrecvtodayrankaward": self.IsRecvTodayRankAward,
 		"luckywheel.normalfreetimes":      self.NormalFreeTimes,
 		"luckywheel.versioncode":          self.VersionCode}})
 }
 
 func (self *TActivityWheel) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"luckywheel.activityid":           self.ActivityID,
 		"luckywheel.normalawardlst":       self.NormalAwardLst,
 		"luckywheel.excitedawardlst":      self.ExcitedAwardLst,
@@ -223,23 +223,23 @@ func (self *TActivityWheel) DB_Reset() {
 }
 
 func (self *TActivityWheel) DB_SaveLuckyWheelScore() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"luckywheel.todayscore": self.TodayScore,
 		"luckywheel.totalscore": self.TotalScore}})
 }
 
 func (self *TActivityWheel) DB_SaveLuckyWheelFreeTimes() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"luckywheel.normalfreetimes": self.NormalFreeTimes}})
 
 }
 
 func (self *TActivityWheel) DB_UpdateWheelTodayRankAward() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"luckywheel.isrecvtodayrankaward": self.IsRecvTodayRankAward}})
 }
 
 func (self *TActivityWheel) DB_UpdateWheelTotalRankAward() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"luckywheel.isrecvtotalrankaward": self.IsRecvTotalRankAward}})
 }

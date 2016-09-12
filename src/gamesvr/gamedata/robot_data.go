@@ -81,15 +81,23 @@ func GetRobot(robotid int32) *ST_Robot {
 }
 
 //! 随机机器人
-func RandRobot() *ST_Robot {
+func RandRobot(minLevel int) *ST_Robot {
 
-	if len(GT_Robot_List) <= 0 {
-		gamelog.Error("RandRobot error: list is nil")
+	robotLst := []ST_Robot{}
+	length := len(GT_Robot_List)
+	for i := 0; i < length; i++ {
+		if GT_Robot_List[i].Level >= minLevel {
+			robotLst = append(robotLst, GT_Robot_List[i])
+		}
+	}
+
+	if len(robotLst) <= 0 {
+		gamelog.Error("RandRobot error: list is nil minlevel: %d", minLevel)
 		return nil
 	}
 
-	randIndex := r.Intn(len(GT_Robot_List) - 1)
+	randIndex := r.Intn(len(robotLst) - 1)
 	randIndex += 1
 
-	return &GT_Robot_List[randIndex]
+	return &robotLst[randIndex]
 }

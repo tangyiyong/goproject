@@ -119,6 +119,9 @@ func (self *TRoomMgr) Hand_LoadCampBatAck(pTcpConn *tcpserver.TCPConn, pdata []b
 		resAck.Heros[i].CurHp = pBattleObj.HeroObj[i].CurProperty[0]
 	}
 
+	resAck.BeginMsgNo = 100
+	pConn.PackNo = 100
+
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_ENTER_ROOM_ACK, 0)
 	resAck.Write(&writer)

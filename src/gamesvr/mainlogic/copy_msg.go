@@ -121,6 +121,7 @@ func CopyCheck(player *TPlayer, copyID int, chapter int, copyType int) (bool, in
 		if isSerialid == false {
 			//! 如果不是连环计,则检测挑战次数
 			if player.CopyMoudle.Famous.BattleTimes > gamedata.FamousCopyChallengeTimes {
+				gamelog.Error("BattleTimes: %d  ChallengeTimes: %d", player.CopyMoudle.Famous.BattleTimes, gamedata.FamousCopyChallengeTimes)
 				return false, msg.RE_NOT_ENOUGH_TIMES
 			}
 		} else {
@@ -1773,7 +1774,7 @@ func Hand_GetCopyData(w http.ResponseWriter, r *http.Request) {
 
 		}
 	}
-	response.CopyFamousInfo.BattleTimes = player.CopyMoudle.Famous.BattleTimes
+	response.CopyFamousInfo.BattleTimes = gamedata.FamousCopyChallengeTimes - player.CopyMoudle.Famous.BattleTimes
 
 	//! 日常
 	//! 获取今天开启的副本

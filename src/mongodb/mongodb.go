@@ -67,23 +67,24 @@ func GetDBSession() *mgo.Session {
 }
 
 //更新多条记录
-func UpdateToDBAll(dbname string, collection string, search *bson.M, stuff *bson.M) bool {
-	s := GetDBSession()
-	defer s.Close()
-	coll := s.DB(dbname).C(collection)
-	_, err := coll.UpdateAll(search, stuff)
-	if err != nil {
-		gamelog.Error3("UpdateToDB Failed: DB:[%s] Collection:[%s] search:[%v], stuff:[%v], Error:%v", dbname, collection, search, stuff, err.Error())
-		return false
-	}
+//func UpdateToDBAll(dbname string, collection string, search *bson.M, stuff *bson.M) bool {
+//	s := GetDBSession()
+//	defer s.Close()
+//	coll := s.DB(dbname).C(collection)
+//	_, err := coll.UpdateAll(search, stuff)
+//	if err != nil {
+//		gamelog.Error3("UpdateToDB Failed: DB:[%s] Collection:[%s] search:[%v], stuff:[%v], Error:%v", dbname, collection, search, stuff, err.Error())
+//		return false
+//	}
 
-	return true
-}
+//	return true
+//}
 
 //var UpdateLock sync.Mutex
 //var InsertLock sync.Mutex
 
 //更新一条记录
+/*
 func UpdateToDB(dbname string, collection string, search *bson.M, stuff *bson.M) bool {
 	s := GetDBSession()
 	defer s.Close()
@@ -101,24 +102,24 @@ func UpdateToDB(dbname string, collection string, search *bson.M, stuff *bson.M)
 
 	return true
 }
-
+*/
 //插入一条记录
-func InsertToDB(dbname string, collection string, data interface{}) bool {
-	s := GetDBSession()
-	defer s.Close()
-	coll := s.DB(dbname).C(collection)
-	err := coll.Insert(&data)
-	if err != nil {
-		if !mgo.IsDup(err) {
-			gamelog.Error("InsertToDB Failed: DB:[%s] Collection:[%s] Error:[%s]", dbname, collection, err.Error())
-		} else {
-			gamelog.Warn("InsertToDB Failed: DB:[%s] Collection:[%s] Error:[%s]", dbname, collection, err.Error())
-		}
-		return false
-	}
+//func InsertToDB(dbname string, collection string, data interface{}) bool {
+//	s := GetDBSession()
+//	defer s.Close()
+//	coll := s.DB(dbname).C(collection)
+//	err := coll.Insert(&data)
+//	if err != nil {
+//		if !mgo.IsDup(err) {
+//			gamelog.Error("InsertToDB Failed: DB:[%s] Collection:[%s] Error:[%s]", dbname, collection, err.Error())
+//		} else {
+//			gamelog.Warn("InsertToDB Failed: DB:[%s] Collection:[%s] Error:[%s]", dbname, collection, err.Error())
+//		}
+//		return false
+//	}
 
-	return true
-}
+//	return true
+//}
 
 //删掉指定的一条记录
 func RemoveFromDB(dbname string, collection string, search *bson.M) error {

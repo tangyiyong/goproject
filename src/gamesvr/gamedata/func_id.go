@@ -23,7 +23,7 @@ const (
 	FUNC_BUY_COIN_TIMES                 = 19  //! 每日可购买银两次数
 	FUNC_BUY_ORANGE_EQUI_TIMES          = 20  //! 每日可购买橙色装备宝箱次数
 	FUNC_BUY_ORANGE_TREASURE_TIMES      = 21  //! 每日可购买橙色宝物宝箱次数
-	FUNC_GLIDE_COPY_BUY_TIMES           = 22  //! 每日可购买公会副本挑战次数
+	FUNC_GUILD_COPY_BUY_TIMES           = 22  //! 每日可购买公会副本挑战次数
 	FUNC_FAMOUS_TRIALS_TIMES            = 23  //! 每日将灵,名将试炼可挑战次数
 	FUNC_PLUTUS_TIMES                   = 24  //! 每日可招财次数
 	FUNC_GLIDE_WORSHIP_CEREMONY_PLUS    = 25  //! 公会高级祭天功能
@@ -128,6 +128,9 @@ const (
 	FUNC_PET_STAR                       = 137 //! 宠物升星
 	FUNC_CHAT                           = 138 //! 聊天
 	FUNC_SCORE_SYSTEM                   = 139 //! 积分赛系统
+	FUNC_TOP_RACE                       = 140 //! 争霸赛
+	FUNC_FASHION_COMPROMISES            = 141 //! 时装融合
+	FUNC_HOLY_MELTING                   = 142 //! 圣物融合
 
 	//功能ID结束标记
 	FUNC_END_ID = 139 //!功能ID结束标记

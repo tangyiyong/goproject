@@ -55,7 +55,7 @@ func InitGameSvrMgr() {
 		G_ServerList[tempList[i].SvrID].SvrFlag = tempList[i].SvrFlag
 	}
 
-	go CheckGameStateRoutine()
+	//go CheckGameStateRoutine()
 
 	return
 }
@@ -96,7 +96,7 @@ func UpdateGameSvrInfo(svrid int32, svrname string, outaddr string, inaddr strin
 		G_ServerList[svrid].isSvrOK = true
 		G_ServerList[svrid].SvrFlag = SFG_ALL
 		G_ServerList[svrid].updateTime = time.Now().Unix()
-		mongodb.InsertToDB(appconfig.AccountDbName, "GameSvrList", &G_ServerList[svrid])
+		mongodb.InsertToDB("GameSvrList", &G_ServerList[svrid])
 	} else {
 		if G_ServerList[svrid].SvrName != svrname {
 			gamelog.Error("UpdateGameSvrInfo Error : %d has two domainname:%s, %s", svrid, svrname, G_ServerList[svrid].SvrName)

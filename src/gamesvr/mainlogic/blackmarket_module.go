@@ -43,7 +43,7 @@ func (self *TBlackMarketModule) OnCreate(playerid int32) {
 	self.IsOpen = false
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerBlackMarket", self)
+	mongodb.InsertToDB("PlayerBlackMarket", self)
 }
 
 func (self *TBlackMarketModule) RefreshGoods(isSave bool) {
@@ -157,7 +157,7 @@ func (self *TBlackMarketModule) GetBlackMarketItemInfo(index int) *TBlackMarketG
 }
 
 func (self *TBlackMarketModule) DB_SaveGoods() {
-	GameSvrUpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"goodslst":    self.GoodsLst,
 		"refreshtime": self.RefreshTime,
 		"openendtime": self.OpenEndTime,
@@ -166,12 +166,12 @@ func (self *TBlackMarketModule) DB_SaveGoods() {
 
 func (self *TBlackMarketModule) DB_UpdateBuyMark(id int) {
 	filedName := fmt.Sprintf("goodslst.%d.isbuy", id)
-	GameSvrUpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID},
+	mongodb.UpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID},
 		&bson.M{"$set": bson.M{filedName: true}})
 }
 
 func (self *TBlackMarketModule) DB_Reset() {
-	GameSvrUpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"openendtime": self.OpenEndTime,
 		"isopen":      self.IsOpen}})
 }

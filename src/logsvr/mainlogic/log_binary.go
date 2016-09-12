@@ -6,7 +6,6 @@ import (
 	"gamelog"
 	"os"
 	"time"
-	"utility"
 )
 
 type TBinaryLog struct {
@@ -45,10 +44,10 @@ func (self *TBinaryLog) SetFlushCnt(cnt int) {
 	}
 }
 
-func CreateBinaryFile(name string, svrid int32) *TBinaryLog {
+func CreateBinaryFile(name string, svrid int32) TLog {
 	var err error = nil
 	timeStr := time.Now().Format("20060102_150405")
-	logFileName := fmt.Sprintf("%slog\\%s_svr%d_%s.blog", utility.GetCurrPath(), name, svrid, timeStr)
+	logFileName := fmt.Sprintf("%s/%d_%s.blog", name, svrid, timeStr)
 
 	var blog TBinaryLog
 	blog.file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_APPEND, os.ModePerm)

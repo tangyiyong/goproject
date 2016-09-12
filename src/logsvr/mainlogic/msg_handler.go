@@ -23,7 +23,19 @@ func Hand_CheckInReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	CheckAndClean(req.PlayerID)
 	gamelog.Info("message: Hand_CheckInReq id:%d, name:%s", req.PlayerID, req.PlayerName)
 	AddTcpConn(req.PlayerID, req.PlayerName, pTcpConn)
-	NewOneFile(pTcpConn.ConnID)
+	CreateLogFile(pTcpConn.ConnID)
+
+	return
+}
+
+func Hand_DisConnect(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
+	if pTcpConn == nil || pTcpConn.ConnID <= 0 {
+		return
+	}
+
+	if pTcpConn.Cleaned == false {
+		CheckAndClean(pTcpConn.ConnID)
+	}
 
 	return
 }

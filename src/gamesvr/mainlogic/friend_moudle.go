@@ -34,7 +34,7 @@ func (self *TFriendMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
 //OnCreate 响应角色创建
 func (self *TFriendMoudle) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerFriend", self)
+	mongodb.InsertToDB( "PlayerFriend", self)
 }
 
 //OnDestroy player销毁

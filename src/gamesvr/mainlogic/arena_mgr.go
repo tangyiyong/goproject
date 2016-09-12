@@ -41,9 +41,9 @@ func InitArenaMgr() bool {
 
 	for i := int32(0); i < 5000; i++ {
 		if G_Rank_List[i].PlayerID == 0 {
-			pRobot := gamedata.GetRobot(i%10 + 1)
+			pRobot := gamedata.GetRobot(i%1000 + 1)
 			if pRobot == nil {
-				gamelog.Error("GetRobot error: robotID: %d", i%10+1)
+				gamelog.Error("GetRobot error: robotID: %d", i%1000+1)
 				G_Rank_List[i].PlayerID = 0
 				G_Rank_List[i].IsRobot = true
 				continue

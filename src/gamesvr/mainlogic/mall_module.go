@@ -37,7 +37,7 @@ func (self *TMallModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerMall", self)
+	mongodb.InsertToDB( "PlayerMall", self)
 }
 
 //! 玩家销毁角色
@@ -126,13 +126,13 @@ func (self *TMallModule) AddItemShoppingTimes(id int, times int) {
 
 //! 数据库重置购买次数
 func (self *TMallModule) UpdateResetShoppingInfo() {
-	GameSvrUpdateToDB("PlayerMall", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerMall", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"shoppinginfo": self.ShoppingInfo,
 		"resetday":     self.ResetDay}})
 }
 
 //! 存储购买物品信息
 func (self *TMallModule) UpdateShoppingInfo() {
-	GameSvrUpdateToDB("PlayerMall", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerMall", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"shoppinginfo": self.ShoppingInfo}})
 }

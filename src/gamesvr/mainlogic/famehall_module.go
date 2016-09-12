@@ -44,7 +44,7 @@ func (self *TFameHallModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerFameHall", self)
+	mongodb.InsertToDB( "PlayerFameHall", self)
 }
 
 func (self *TFameHallModule) OnDestroy(playerid int32) {

@@ -28,6 +28,7 @@ func parseConfigFile(path string) bool {
 	scanner := bufio.NewScanner(f)
 	scanner.Split(bufio.ScanLines)
 
+	var eqpos = 0
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if len(line) <= 2 {
@@ -38,12 +39,18 @@ func parseConfigFile(path string) bool {
 			continue
 		}
 
-		slice := strings.Split(line, "=")
-		if len(slice) != 2 {
+		eqpos = 0
+		for eqpos = 0; eqpos < len(line); eqpos++ {
+			if line[eqpos] == '=' {
+				break
+			}
+		}
+
+		if eqpos >= len(line)-1 {
 			continue
 		}
 
-		ParseConfigValue(strings.TrimSpace(slice[0]), strings.TrimSpace(slice[1]))
+		ParseConfigValue(strings.TrimSpace(line[0:eqpos]), strings.TrimSpace(line[eqpos+1:]))
 	}
 
 	return true

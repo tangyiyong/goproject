@@ -34,7 +34,10 @@ func Hand_PlayerLoginGame(w http.ResponseWriter, r *http.Request) {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
 	}()
-	bcheck := true //CheckUserIsLogin(req.AccountID, "", req.LoginKey)
+
+	var playerid = GetPlayerIDByAccountID(req.AccountID)
+
+	bcheck := true //CheckUserIsLogin(req.AccountID, playerid, req.LoginKey)
 	if !bcheck {
 		response.RetCode = msg.RE_INVALID_LOGINKEY
 		gamelog.Error("Invalid Login key!!!!!")
@@ -42,7 +45,7 @@ func Hand_PlayerLoginGame(w http.ResponseWriter, r *http.Request) {
 	}
 	response.SessionKey = sessionmgr.NewSessionKey()
 	sessionmgr.AddSessionKey(req.AccountID, response.SessionKey)
-	response.PlayerID = GetPlayerIDByAccountID(req.AccountID)
+	response.PlayerID = playerid
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -131,6 +134,7 @@ func Hand_PlayerEnterGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	G_SimpleMgr.Set_LoginDay(req.PlayerID, utility.GetCurDay())
+	SendLogNotify(req.PlayerID, 1, 0, 0, 0, 0)
 }
 
 func Hand_PlayerLeaveGame(w http.ResponseWriter, r *http.Request) {
@@ -222,12 +226,8 @@ func Hand_CreateNewPlayer(w http.ResponseWriter, r *http.Request) {
 	response.RetCode = msg.RE_SUCCESS
 	G_LevelRanker.SetRankItem(pSimpleInfo.PlayerID, pSimpleInfo.Level)
 	G_FightRanker.SetRankItemEx(pSimpleInfo.PlayerID, 0, int(pSimpleInfo.FightValue))
-
-	if false == mongodb.InsertToDB(appconfig.GameDbName, "PlayerSimple", pSimpleInfo) {
-		gamelog.Error("Hand_CreateNewPlayer Error: Insert to PlayserSimple Failed!!!")
-		return
-	}
-
+	mongodb.InsertToDB("PlayerSimple", pSimpleInfo)
+	SendLogNotify(pSimpleInfo.PlayerID, 2, 0, 0, 0, 0)
 	return
 }
 
@@ -294,11 +294,12 @@ func CheckPlayerName(name string) int {
 	return msg.RE_SUCCESS
 }
 
-func CheckUserIsLogin(accountid int32, accountname string, loginkey string) bool {
+func CheckUserIsLogin(accountid int32, playerid int32, loginkey string) bool {
 	var verifyuserReq msg.MSG_VerifyUserLogin_Req
 	verifyuserReq.AccountID = accountid
-	verifyuserReq.AccountName = accountname
+	verifyuserReq.PlayerID = playerid
 	verifyuserReq.LoginKey = loginkey
+	verifyuserReq.SvrID = GetCurServerID()
 	verifyuserBufferReq, _ := json.Marshal(&verifyuserReq)
 	resp, err := http.Post(appconfig.VerifyUserLoginUrl, "text/HTML", bytes.NewReader(verifyuserBufferReq))
 	if err != nil {

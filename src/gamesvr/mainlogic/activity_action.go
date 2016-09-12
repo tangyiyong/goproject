@@ -2,9 +2,9 @@ package mainlogic
 
 import (
 	"gamesvr/gamedata"
-	"time"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
+	"time"
 )
 
 //! 领取体力
@@ -102,7 +102,7 @@ func (self *TActivityReceiveAction) GetNextActionAwardTime() int {
 }
 
 func (self *TActivityReceiveAction) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"receiveaction.activityid":  self.ActivityID,
 		"receiveaction.versioncode": self.VersionCode,
 		"receiveaction.recvaction":  self.RecvAction,
@@ -110,7 +110,7 @@ func (self *TActivityReceiveAction) DB_Reset() {
 }
 
 func (self *TActivityReceiveAction) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"receiveaction.recvaction":  self.RecvAction,
 		"receiveaction.versioncode": self.VersionCode}})
 }

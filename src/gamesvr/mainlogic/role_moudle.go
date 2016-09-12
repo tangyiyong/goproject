@@ -54,7 +54,7 @@ func (self *TRoleMoudle) OnCreate(playerid int32) {
 	self.Moneys = make([]int, gamedata.GetMoneyCount())
 
 	//创建数据库记录
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerRole", self)
+	mongodb.InsertToDB( "PlayerRole", self)
 }
 
 //玩家对象销毁

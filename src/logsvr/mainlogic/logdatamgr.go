@@ -26,27 +26,38 @@ const (
 	FT_MYSQL   = 2 //MySql文件类型
 )
 
-func NewOneFile(svrid int32) (file TLog) {
+func CreateLogFile(svrid int32) {
+
+	var logfile TLog = nil
 	switch appconfig.LogFileType {
 	case FT_BINIARY:
-		file = CreateBinaryFile(appconfig.LogFileName, svrid)
+		logfile = CreateBinaryFile(appconfig.LogFileName, svrid)
 	case FT_MYSQL:
-		file = CreateMysqlFile(appconfig.LogFileName, svrid)
+		logfile = CreateMysqlFile(appconfig.LogFileName, svrid)
 	}
 
-	if file == nil || false == file.Start() {
-		gamelog.Error("NewOneFile Error, Start Log Failed!!!")
+	if logfile == nil {
+		gamelog.Error("CreateLogFile Failed type:%d!!!", appconfig.LogFileType)
 		return
 	}
 
-	file.SetFlushCnt(appconfig.LogSvrFlushCnt)
+	if false == logfile.Start() {
+		gamelog.Error("CreateLogFile Error, Log Start Failed!!!")
+		return
+	}
 
-	G_SvrLogMgr[svrid] = file
+	logfile.SetFlushCnt(appconfig.LogSvrFlushCnt)
+
+	G_SvrLogMgr[svrid] = logfile
+
+	gamelog.Error("CreateLogFile Successed!!!")
 	return
 }
 func WriteSvrLog(pdata []byte, svrid int32) {
-	if v := G_SvrLogMgr[svrid]; v != nil {
-		v.WriteLog(pdata)
+	if G_SvrLogMgr[svrid] == nil {
+		gamelog.Error("WriteSvrLog Error: Invalid svrid : %d", svrid)
+		return
 	}
-	gamelog.Error("WriteSvrLog Error: svrid(%d)", svrid)
+
+	G_SvrLogMgr[svrid].WriteLog(pdata)
 }

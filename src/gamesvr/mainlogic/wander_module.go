@@ -41,7 +41,7 @@ func (self *TWanderModule) OnCreate(playerid int32) {
 	self.SingleFree = true
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerWander", self)
+	mongodb.InsertToDB( "PlayerWander", self)
 }
 
 func (self *TWanderModule) OnDestroy(playerid int32) {

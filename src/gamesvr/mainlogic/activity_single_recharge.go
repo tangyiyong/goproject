@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 type TSingleRechargeRecord struct {
@@ -126,7 +126,7 @@ func (self *TActivitySingleRecharge) DB_Refresh() {
 	}
 
 	filedName := fmt.Sprintf("singlerecharge.%d.versioncode", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
 }
 
@@ -148,7 +148,7 @@ func (self *TActivitySingleRecharge) DB_Reset() {
 	filedName2 := fmt.Sprintf("singlerecharge.%d.singleawardlst", index)
 	filedName3 := fmt.Sprintf("singlerecharge.%d.versioncode", index)
 	filedName4 := fmt.Sprintf("singlerecharge.%d.resetcode", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName1: self.RechargeRecord,
 		filedName2: self.SingleAwardLst,
 		filedName3: self.VersionCode,
@@ -157,5 +157,5 @@ func (self *TActivitySingleRecharge) DB_Reset() {
 
 func (self *TActivitySingleRecharge) DB_AddSingleRecharge(index int, info TActivityRechargeInfo) {
 	filedName := fmt.Sprintf("singlerecharge.%d.singleawardlst", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{filedName: info}})
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{filedName: info}})
 }

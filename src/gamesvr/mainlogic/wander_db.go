@@ -2,10 +2,11 @@ package mainlogic
 
 import (
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 func (self *TWanderModule) DB_Reset() {
-	GameSvrUpdateToDB("PlayerWander", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"resetday": self.ResetDay,
+	mongodb.UpdateToDB("PlayerWander", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"resetday": self.ResetDay,
 		"curcopyid":  self.CurCopyID,
 		"canbattle":  self.CanBattle,
 		"maxcopyid":  self.MaxCopyID,
@@ -14,6 +15,6 @@ func (self *TWanderModule) DB_Reset() {
 }
 
 func (self *TWanderModule) DB_ResetSingleFreeDay() {
-	GameSvrUpdateToDB("PlayerWander", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"sglfreeday": self.SglFreeDay,
+	mongodb.UpdateToDB("PlayerWander", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"sglfreeday": self.SglFreeDay,
 		"singlefree": self.SingleFree}})
 }

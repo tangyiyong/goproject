@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gamesvr/gamedata"
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 	"utility"
 )
 
@@ -136,7 +137,7 @@ func (self *TActivityHunt) RedTip() bool {
 }
 
 func (self *TActivityHunt) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"hunttreasure.activityid":           self.ActivityID,
 		"hunttreasure.huntaward":            self.HuntAward,
 		"hunttreasure.score":                self.Score,
@@ -153,47 +154,47 @@ func (self *TActivityHunt) DB_Reset() {
 }
 
 func (self *TActivityHunt) DB_UpdateHuntTodayRankAward() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"hunttreasure.isrecvtodayrankaward": self.IsRecvTodayRankAward,
 		"hunttreasure.freetimes":            self.FreeTimes,
 		"hunttreasure.versioncode":          self.VersionCode}})
 }
 
 func (self *TActivityHunt) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"hunttreasure.isrecvtodayrankaward": self.IsRecvTodayRankAward,
 		"hunttreasure.freetimes":            self.FreeTimes,
 		"hunttreasure.versioncode":          self.VersionCode}})
 }
 
 func (self *TActivityHunt) DB_UpdateHuntTotalRankAward() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"hunttreasure.isrecvtotalrankaward": self.IsRecvTotalRankAward}})
 }
 
 func (self *TActivityHunt) DB_UpdateHuntStore() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"hunttreasure.storeitemlst": self.StoreItemLst}})
 }
 
 func (self *TActivityHunt) DB_SaveHuntScore() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"hunttreasure.todayscore": self.TodayScore,
 		"hunttreasure.score":      self.Score}})
 }
 
 func (self *TActivityHunt) DB_SaveFreeTiems() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"hunttreasure.freetimes": self.FreeTimes}})
 }
 
 func (self *TActivityHunt) DB_SaveHuntTurnsAwardMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"hunttreasure.huntaward": self.HuntAward}})
 }
 
 func (self *TActivityHunt) DB_SaveHuntStatus() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"hunttreasure.currentpos": self.CurrentPos,
 		"hunttreasure.todayscore": self.TodayScore,
 		"hunttreasure.score":      self.Score,
@@ -202,11 +203,11 @@ func (self *TActivityHunt) DB_SaveHuntStatus() {
 
 func (self *TActivityHunt) DB_ChangeHuntStoreItemMark(index int) {
 	filedName := fmt.Sprintf("hunttreasure.storeitemlst.%d.isbuy", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: true}})
 }
 
 func (self *TActivityHunt) DB_SaveStoreMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"hunttreasure.ishavestore": self.IsHaveStore}})
 }

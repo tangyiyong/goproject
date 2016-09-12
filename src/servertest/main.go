@@ -14,7 +14,7 @@ func main() {
 	RegTcpMsgHandler()
 
 	InitPlayerMgr()
-	for i := 1; i < 1000; i++ {
+	for i := 1; i < 10000; i++ {
 		CreatePlayer(i)
 	}
 
@@ -86,6 +86,8 @@ func Hand_EnterRoomAck(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	player.Heros = req.Heros
 
 	player.IsEnter = true
+
+	player.PackNo = req.BeginMsgNo
 
 	return
 }

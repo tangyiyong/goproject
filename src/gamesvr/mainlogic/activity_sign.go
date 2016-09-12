@@ -3,8 +3,8 @@ package mainlogic
 import (
 	"gamelog"
 	"gamesvr/gamedata"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 const (
@@ -206,12 +206,12 @@ func (self *TActivitySign) SetSignPlusStatus() {
 }
 
 func (self *TActivitySign) DB_UpdateSignPlusStatus() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"sign.signplusstatus": self.SignPlusStatus}})
 }
 
 func (self *TActivitySign) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"sign.activityid":     self.ActivityID,
 		"sign.issign":         self.IsSign,
 		"sign.issignplus":     self.IsSignPlus,
@@ -224,7 +224,7 @@ func (self *TActivitySign) DB_Reset() {
 
 //! 更新豪华签到信息到数据库
 func (self *TActivitySign) DB_UpdateSignPlusInfoToDatabase() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"sign.signplusaward":  self.SignPlusAward,
 		"sign.issignplus":     self.IsSignPlus,
 		"sign.signplusstatus": self.SignPlusStatus}})
@@ -232,14 +232,14 @@ func (self *TActivitySign) DB_UpdateSignPlusInfoToDatabase() {
 
 //! 更新普通签到信息到数据库
 func (self *TActivitySign) DB_UpdateSignInfoToDatabase() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"sign.signday":     self.SignDay,
 		"sign.issign":      self.IsSign,
 		"sign.versioncode": self.VersionCode}})
 }
 
 func (self *TActivitySign) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"sign.signplusaward":  self.SignPlusAward,
 		"sign.issignplus":     self.IsSignPlus,
 		"sign.signday":        self.SignDay,

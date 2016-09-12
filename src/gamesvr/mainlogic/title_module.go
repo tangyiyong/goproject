@@ -36,7 +36,7 @@ func (self *TTitleModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 func (self *TTitleModule) OnCreate(playerid int32) {
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerTitle", self)
+	mongodb.InsertToDB( "PlayerTitle", self)
 }
 
 func (self *TTitleModule) OnDestroy(playerid int32) {

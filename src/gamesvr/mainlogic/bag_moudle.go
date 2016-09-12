@@ -85,7 +85,7 @@ func (self *TBagMoudle) OnCreate(playerid int32) {
 
 	self.InitAddItem()
 
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerBag", self)
+	mongodb.InsertToDB("PlayerBag", self)
 }
 
 //玩家新建角色时给玩家的道具

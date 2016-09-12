@@ -20,6 +20,7 @@ type MSG_GetGuildStatus_Ack struct {
 	HistoryPassChapter int32                   //! 历史通关最高章节
 	AwardChapter       []MSG_PassAwardChapter  //! 已通关可领取奖励章节
 	IsRecvCopyAward    []MSG_RecvCopyMark      //! 已领取的奖励信息
+	BuyActionTimes     int                     //! 购买行动力次数
 
 	//! 商店
 	BuyLst []MSG_GuildGoods //! 已购买列表信息
@@ -606,6 +607,21 @@ type MSG_ChangeGuildRole_Req struct {
 
 type MSG_ChangeGuildRole_Ack struct {
 	RetCode int
+}
+
+//! 购买公会挑战次数
+//! 消息: /buy_guild_copy_action
+type MSG_BuyGuildCopyAction_Req struct {
+	PlayerID   int32
+	SessionKey string
+	BuyNum     int
+}
+
+type MSG_BuyGuildCopyAction_Ack struct {
+	RetCode      int
+	CostMoneyID  int
+	CostMoneyNum int
+	ActionTimes  int
 }
 
 //! 升级工会

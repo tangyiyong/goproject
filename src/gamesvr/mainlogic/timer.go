@@ -48,7 +48,7 @@ func GetTodayTime() int64 {
 func (self *Timer) Init() {
 	self.ID = 1
 	if self.LoadTimer() == false {
-		mongodb.InsertToDB(appconfig.GameDbName, "Timer", self)
+		mongodb.InsertToDB("Timer", self)
 	}
 
 	//! 加入各种模块功能
@@ -137,10 +137,10 @@ func (self *Timer) OnNewDayFunc(nowUnix int64) bool {
 	}
 
 	G_CampBat_TodayKill.Clear()
-	GameSvrUpdateToDBAll("PlayerCampBat", nil, &bson.M{"$set": bson.M{"kill": 0}})
+	mongodb.UpdateToDBAll("PlayerCampBat", nil, &bson.M{"$set": bson.M{"kill": 0}})
 
 	G_CampBat_TodayDestroy.Clear()
-	GameSvrUpdateToDBAll("PlayerCampBat", nil, &bson.M{"$set": bson.M{"destroy": 0}})
+	mongodb.UpdateToDBAll("PlayerCampBat", nil, &bson.M{"$set": bson.M{"destroy": 0}})
 
 	for i := 0; i < len(G_CampBat_CampKill[0].List); i++ {
 		pRankAward := gamedata.GetCampBatRank(i + 1)
@@ -333,7 +333,7 @@ func (self *Timer) OnTimerFunc(now int64) {
 
 //! 存储到数据库
 func (self *Timer) SaveTimer() {
-	GameSvrUpdateToDB("Timer", &bson.M{"_id": 1}, &bson.M{"$set": self})
+	mongodb.UpdateToDB("Timer", &bson.M{"_id": 1}, &bson.M{"$set": self})
 }
 
 //! 读取到内存

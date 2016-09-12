@@ -41,7 +41,7 @@ func (self *TAwardCenterModule) OnCreate(playerid int32) {
 	self.AwardLst = make([]TAwardData, 0)
 	self.SvrAwardID = G_GlobalVariables.SvrAwardIncID
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerAwardCenter", self)
+	mongodb.InsertToDB("PlayerAwardCenter", self)
 }
 
 //! 玩家销毁角色
@@ -158,7 +158,7 @@ func (self *TAwardCenterModule) GetAwardData(id int) *TAwardData {
 ////! DB相关
 //! 增加奖励项到数据库
 func (self *TAwardCenterModule) DB_AddToDatabaseLst(award TAwardData) {
-	GameSvrUpdateToDB("PlayerAwardCenter", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"awardlst": award}})
+	mongodb.UpdateToDB("PlayerAwardCenter", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"awardlst": award}})
 }
 
 func DB_SaveAwardToPlayer(playerid int32, award TAwardData) {
@@ -166,17 +166,17 @@ func DB_SaveAwardToPlayer(playerid int32, award TAwardData) {
 		gamelog.Error3("DB_SaveAwardToPlayer error. Invalid PlayerID:%d", playerid)
 		return
 	}
-	GameSvrUpdateToDB("PlayerAwardCenter", &bson.M{"_id": playerid}, &bson.M{"$push": bson.M{"awardlst": award}})
+	mongodb.UpdateToDB("PlayerAwardCenter", &bson.M{"_id": playerid}, &bson.M{"$push": bson.M{"awardlst": award}})
 }
 
 //! 删除奖励项到数据库
 func (self *TAwardCenterModule) DB_RemoveDatabaseLst(id int) {
-	GameSvrUpdateToDB("PlayerAwardCenter", &bson.M{"_id": self.PlayerID}, &bson.M{"$pull": bson.M{"awardlst": bson.M{"id": id}}})
+	mongodb.UpdateToDB("PlayerAwardCenter", &bson.M{"_id": self.PlayerID}, &bson.M{"$pull": bson.M{"awardlst": bson.M{"id": id}}})
 }
 
 //! 更新奖励项到数据库
 func (self *TAwardCenterModule) DB_UpdateDatabaseLst() {
-	GameSvrUpdateToDB("PlayerAwardCenter", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"awardlst": self.AwardLst}})
+	mongodb.UpdateToDB("PlayerAwardCenter", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"awardlst": self.AwardLst}})
 }
 
 func SendSvrAwardToPlayer(playerid int32) {
@@ -208,5 +208,5 @@ func SendSvrAwardToPlayer(playerid int32) {
 
 // 更新玩家已领取的全服奖励
 func (self *TAwardCenterModule) DB_UpdateSvrAwardID() {
-	GameSvrUpdateToDB("PlayerAwardCenter", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"svrawardid": self.SvrAwardID}})
+	mongodb.UpdateToDB("PlayerAwardCenter", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"svrawardid": self.SvrAwardID}})
 }

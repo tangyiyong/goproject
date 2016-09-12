@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 	"strconv"
 	"strings"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type TRankGiftInfo struct {
@@ -143,12 +143,12 @@ func (self *TActivityRankGift) CheckRankUp(rank int) {
 }
 
 func (self *TActivityRankGift) DB_Refresh() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"rankgift.versioncode": self.VersionCode}})
 }
 
 func (self *TActivityRankGift) DB_Reset() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"rankgift.activityid":    self.ActivityID,
 		"rankgift.resetcode":     self.ResetCode,
 		"rankgift.ishavenewitem": self.IsHaveNewItem,
@@ -157,9 +157,9 @@ func (self *TActivityRankGift) DB_Reset() {
 }
 
 func (self *TActivityRankGift) DB_AddGift(gift *TRankGiftInfo) {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{"rankgift.giftlst": *gift}})
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{"rankgift.giftlst": *gift}})
 
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"rankgift.ishavenewitem": self.IsHaveNewItem}})
 }
 
@@ -177,11 +177,11 @@ func (self *TActivityRankGift) DB_UpdateBuyTimes(id int, times int) {
 	}
 
 	filedName := fmt.Sprintf("rankgift.giftlst.%d.buytimes", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
 		&bson.M{"$set": bson.M{filedName: times}})
 }
 
 func (self *TActivityRankGift) DB_UpdateNewItemMark() {
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"rankgift.ishavenewitem": self.IsHaveNewItem}})
 }

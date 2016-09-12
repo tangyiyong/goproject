@@ -2,47 +2,47 @@ package mainlogic
 
 import (
 	"fmt"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 //保存上阵装备信息
 func (self *THeroMoudle) DB_SaveBattleEquipAt(nIndex int) {
 	FieldName := fmt.Sprintf("curequips.%d", nIndex)
-	GameSvrUpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.CurEquips[nIndex]}})
+	mongodb.UpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.CurEquips[nIndex]}})
 }
 
 //保存上阵宝物信息
 func (self *THeroMoudle) DB_SaveBattleGemAt(nIndex int) {
 	FieldName := fmt.Sprintf("curgems.%d", nIndex)
-	GameSvrUpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.CurGems[nIndex]}})
+	mongodb.UpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.CurGems[nIndex]}})
 }
 
 //保存主角的英雄ID
 func (self *THeroMoudle) DB_SaveMainHeroID() {
-	GameSvrUpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"curheros.0.id": self.CurHeros[0].ID}})
+	mongodb.UpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"curheros.0.id": self.CurHeros[0].ID}})
 }
 
 //保存称号信息
 func (self *THeroMoudle) DB_SaveTitleInfo() {
-	GameSvrUpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"titleid": self.TitleID}})
+	mongodb.UpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"titleid": self.TitleID}})
 }
 
 //保存称号信息
 func (self *THeroMoudle) DB_SaveFashionInfo() {
-	GameSvrUpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"fashionid": self.FashionID,
+	mongodb.UpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"fashionid": self.FashionID,
 		"fashionlvl": self.FashionLvl}})
 }
 
 //保存上阵宠物信息
 func (self *THeroMoudle) DB_SaveBattlePetAt(nIndex int) {
 	FieldName := fmt.Sprintf("curpets.%d", nIndex)
-	GameSvrUpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.CurPets[nIndex]}})
+	mongodb.UpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.CurPets[nIndex]}})
 }
 
 //保存额外属性信息
 func (self *THeroMoudle) DB_SaveExtraProperty() {
-	GameSvrUpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"extraprovalue": self.ExtraProValue,
+	mongodb.UpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"extraprovalue": self.ExtraProValue,
 		"extrapropercent": self.ExtraProPercent,
 		"extracampkill":   self.ExtraCampKill,
 		"extracampdef":    self.ExtraCampDef}})
@@ -50,6 +50,6 @@ func (self *THeroMoudle) DB_SaveExtraProperty() {
 
 //! 修改玩家公会技能等级
 func (self *THeroMoudle) DB_SaveGuildSkillLevel() {
-	GameSvrUpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"guildskilvl": self.GuildSkiLvl}})
 }

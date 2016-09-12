@@ -1,11 +1,16 @@
 package mainlogic
 
+import (
+	"appconfig"
+	"mongodb"
+)
+
 func Init() bool {
 	G_Players = make(map[int32]*TPlayer, 1)
 	G_SelectPlayers = make([]*TPlayer, 0, 10000)
 
 	//初始化数据库处理器
-	InitDbProcesser()
+	mongodb.InitDbProcesser(appconfig.GameDbName)
 
 	G_SimpleMgr.Init()
 

@@ -71,7 +71,7 @@ func (storemodule *TStoreModule) OnCreate(playerid int32) {
 	storemodule.RefreshGoods(gamedata.StoreType_Pet)
 
 	//! 插入数据
-	go mongodb.InsertToDB(appconfig.GameDbName, "HeroStore", storemodule)
+	mongodb.InsertToDB( "HeroStore", storemodule)
 }
 
 //! 获取用户每日可刷新次数上限

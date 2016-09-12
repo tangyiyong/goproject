@@ -44,7 +44,7 @@ func (hang *THangUpMoudle) OnCreate(playerid int32) {
 	hang.ResetDay = utility.GetCurDay()
 
 	//创建数据库记录
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerHang", hang)
+	mongodb.InsertToDB( "PlayerHang", hang)
 }
 
 //玩家对象销毁

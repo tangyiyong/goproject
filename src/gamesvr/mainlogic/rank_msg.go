@@ -245,10 +245,10 @@ func Hand_GetArenaRank(w http.ResponseWriter, r *http.Request) {
 		} else { //! 机器人
 			pRobotInfo := gamedata.GetRobot(v.PlayerID)
 			info.FightValue = pRobotInfo.FightValue
-			info.Name = "Robot"
+			info.Name = pRobotInfo.Name
 			info.Level = pRobotInfo.Level
 			info.HeroID = pRobotInfo.Heros[0].HeroID
-			info.Quality = 2
+			info.Quality = pRobotInfo.Quality
 			response.PlayerLst = append(response.PlayerLst, info)
 		}
 

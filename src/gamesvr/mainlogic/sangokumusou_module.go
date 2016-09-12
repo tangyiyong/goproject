@@ -73,7 +73,7 @@ func (self *TSangokuMusouModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerSangokuMusou", self)
+	mongodb.InsertToDB( "PlayerSangokuMusou", self)
 }
 
 func (self *TSangokuMusouModule) CheckReset() {

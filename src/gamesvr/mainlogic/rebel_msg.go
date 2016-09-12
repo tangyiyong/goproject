@@ -32,7 +32,6 @@ func Hand_GetRebelInfo(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-
 	}()
 
 	//! 通用检测
@@ -226,6 +225,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 
 	//! 扣除道具
 	player.RoleMoudle.CostAction(gamedata.AttackRebelActionID, needActionNum)
+	//gamelog.Info("CostActionID: %d  CostActionNum: %d  CurAction: %d", gamedata.AttackRebelActionID, needActionNum, player.RoleMoudle.GetAction(gamedata.AttackRebelActionID))
 
 	if rebelModulePtr.CurLife <= 0 {
 		//! 限时日常相关
@@ -273,6 +273,9 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	rebelModulePtr.DB_UpdateRebelInfo()
+
+	response.ActionID = gamedata.AttackRebelActionID
+	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(response.ActionID)
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS

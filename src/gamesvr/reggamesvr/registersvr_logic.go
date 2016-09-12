@@ -42,7 +42,8 @@ func RegisterToAccountRoutine() {
 		}
 
 		response.Body.Close()
-		time.Sleep(60 * time.Second)
+		return
+		//time.Sleep(60 * time.Second)
 	}
 
 }
@@ -66,7 +67,8 @@ func RegisterToCrossRoutine() {
 		}
 
 		response.Body.Close()
-		time.Sleep(60 * time.Second)
+		return
+		//time.Sleep(60 * time.Second)
 	}
 }
 

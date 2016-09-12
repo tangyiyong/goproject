@@ -41,19 +41,24 @@ func (tcpConn *TCPConn) Close() {
 }
 
 func (tcpConn *TCPConn) doWrite(b []byte) {
+	if tcpConn.closeFlag {
+		gamelog.Error("TCPConn.doWrite Error: tcpConn.closeFlag:%v", tcpConn.closeFlag)
+		return
+	}
+
 	select {
 	case tcpConn.writeChan <- b: //chan满后再写即阻塞，select进入default分支报错
 	default:
 		gamelog.Error("doWrite: channel full")
 		tcpConn.conn.(*net.TCPConn).SetLinger(0)
 		tcpConn.conn.Close()
-		// close(tcpConn.writeChan) //重连后chan里的数据得保留
 	}
 }
 
 // b must not be modified by other goroutines
 func (tcpConn *TCPConn) write(b []byte) {
 	if tcpConn.closeFlag || b == nil {
+		gamelog.Error("TCPConn.Write Error: b == nil or closeFlag:%v", tcpConn.closeFlag)
 		return
 	}
 
@@ -61,12 +66,16 @@ func (tcpConn *TCPConn) write(b []byte) {
 }
 
 func (tcpConn *TCPConn) WriteMsg(msgID int16, extra int16, msgdata []byte) bool {
+	if tcpConn.closeFlag {
+		return false
+	}
+
 	msgLen := len(msgdata)
-	msgbuffer := make([]byte, 8+msgLen)
+	msgbuffer := make([]byte, 8, 8+msgLen)
 	binary.LittleEndian.PutUint32(msgbuffer, uint32(msgLen))
-	binary.LittleEndian.PutUint16(msgbuffer[4:6], uint16(extra))
-	binary.LittleEndian.PutUint16(msgbuffer[6:8], uint16(msgID))
-	copy(msgbuffer[8:], msgdata)
+	binary.LittleEndian.PutUint16(msgbuffer[4:], uint16(extra))
+	binary.LittleEndian.PutUint16(msgbuffer[6:], uint16(msgID))
+	msgbuffer = append(msgbuffer[:8], msgdata...)
 	tcpConn.write(msgbuffer)
 	return true
 }
@@ -94,7 +103,6 @@ func (tcpConn *TCPConn) WriteMsgData(msgdata []byte) bool {
 func (tcpConn *TCPConn) ReadProcess() error {
 	var err error
 	var msgHeader = make([]byte, 8)
-
 	var msgLen int32
 	var msgID int16
 	var Extra int16
@@ -107,19 +115,19 @@ func (tcpConn *TCPConn) ReadProcess() error {
 
 		_, err = io.ReadAtLeast(tcpConn.reader, msgHeader, 8)
 		if err != nil {
-			gamelog.Error("ReadAtLeast error: %s", err.Error())
+			gamelog.Error("ReadProcess error: Read Header Error : Disconnect from Server")
 			return err
 		}
 
 		// parse len
 		msgLen = int32(binary.LittleEndian.Uint16(msgHeader[:4]))
+		Extra = int16(binary.LittleEndian.Uint16(msgHeader[4:6]))
+		msgID = int16(binary.LittleEndian.Uint16(msgHeader[6:]))
 		if msgLen <= 0 || msgLen > 10240 {
 			gamelog.Error("ReadProcess error: Invalid msgLen :%d", msgLen)
 			break
 		}
 
-		Extra = int16(binary.LittleEndian.Uint16(msgHeader[4:6]))
-		msgID = int16(binary.LittleEndian.Uint16(msgHeader[6:8]))
 		if msgID <= msg.MSG_BEGIN || msgID >= msg.MSG_END {
 			gamelog.Error("ReadProcess error: Invalid msgID :%d", msgID)
 			break
@@ -129,7 +137,7 @@ func (tcpConn *TCPConn) ReadProcess() error {
 		msgData := make([]byte, msgLen)
 		_, err = io.ReadAtLeast(tcpConn.reader, msgData, int(msgLen))
 		if err != nil {
-			gamelog.Error("ReadAtLeast error: %s", err.Error())
+			gamelog.Error("ReadProcess error: Read Data Error :%s", err.Error())
 			return err
 		}
 
@@ -145,13 +153,18 @@ func (tcpConn *TCPConn) WriteRoutine() {
 		if b == nil {
 			break
 		}
+
+		if tcpConn.closeFlag {
+			break
+		}
+
 		_, err := tcpConn.conn.Write(b)
 		if err != nil {
 			gamelog.Error("WriteRoutine error: %s", err.Error())
 			break
 		}
 	}
-	tcpConn.Close()
+	tcpConn.conn.Close()
 }
 
 //连接的读协程
@@ -160,9 +173,4 @@ func (tcpConn *TCPConn) ReadRoutine() {
 	tcpConn.Close()
 
 	msgDispatcher(tcpConn, msg.MSG_DISCONNECT, 0, nil)
-}
-
-//连接的读协程
-func (tcpConn *TCPConn) IsConnected() bool {
-	return tcpConn.closeFlag
 }

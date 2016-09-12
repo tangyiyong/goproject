@@ -44,7 +44,7 @@ func (self *TArenaModule) OnCreate(playerid int32) {
 	}
 
 	//! 插入数据库
-	mongodb.InsertToDB(appconfig.GameDbName, "PlayerArena", self)
+	mongodb.InsertToDB("PlayerArena", self)
 }
 
 func (self *TArenaModule) RedTip() bool {

@@ -122,7 +122,7 @@ func (copym *TCopyMoudle) OnCreate(playerid int32) {
 		copym.Daily.CopyInfo[i].IsChallenge = false
 	}
 
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerCopy", copym)
+	mongodb.InsertToDB( "PlayerCopy", copym)
 }
 
 //玩家对象销毁
@@ -783,7 +783,7 @@ func (daily_copy *TCopyMoudle) UpdateDailyReset() {
 func (famous_copy *TCopyMoudle) UpdateFamousReset() {
 
 	//! 刷新各种数据
-	famous_copy.Famous.BattleTimes = gamedata.FamousCopyChallengeTimes
+	famous_copy.Famous.BattleTimes = 0
 
 	for j, v := range famous_copy.Famous.Chapter {
 		for i, _ := range v.PassedCopy {

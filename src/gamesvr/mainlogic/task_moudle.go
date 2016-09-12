@@ -127,7 +127,7 @@ func (taskmoudle *TTaskMoudle) OnCreate(playerid int32) {
 	taskmoudle.ResetDay = utility.GetCurDay()
 
 	//创建数据库记录
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerTask", taskmoudle)
+	mongodb.InsertToDB( "PlayerTask", taskmoudle)
 }
 
 //! 检测重置时间

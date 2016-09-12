@@ -125,4 +125,7 @@ const (
 	RE_ACTIVITY_IS_OVER           = 122 //活动已结束
 	RE_ACTIVITY_NOT_OVER          = 123 //活动尚未结束
 	RE_REPEATED_BUY               = 124 //重复购买
+	RE_SERVER_LIMIT_NUM           = 125 //服务器人数己满
+	RE_SERVER_CANNT_LOGIN         = 126 //服务器繁忙
+	RE_ALEADY_REG                 = 127 //重复报名
 )

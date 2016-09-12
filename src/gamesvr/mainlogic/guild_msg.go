@@ -143,6 +143,7 @@ func Hand_GetGuildStatus(w http.ResponseWriter, r *http.Request) {
 
 	response.SkillLst = player.HeroMoudle.GuildSkiLvl
 	response.SkillLimit = guild.SkillLst
+	response.BuyActionTimes = player.GuildModule.ActionBuyTimes
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -1324,9 +1325,11 @@ func Hand_BuyGuildItem(w http.ResponseWriter, r *http.Request) {
 	//! 检测限购次数
 	goodsInfo := player.GuildModule.ShoppingLst.Get(req.ID)
 	if goodsInfo == nil && req.Num > itemData.Limit {
+		gamelog.Error("BuyGulidItem Error: req.Num > itemData.Limit  %d > %d   req.ID: %d", req.Num, itemData.Limit, req.ID)
 		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 		return
 	} else if goodsInfo != nil && goodsInfo.BuyTimes+req.Num > itemData.Limit {
+		gamelog.Error("BuyGulidItem Error: goodsInfo.BuyTimes + req.Num > itemData.Limit  %d > %d", req.Num+goodsInfo.BuyTimes, itemData.Limit)
 		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 		return
 	}
@@ -2552,6 +2555,78 @@ func Hand_GetGuildLog(w http.ResponseWriter, r *http.Request) {
 
 		response.LogLst = append(response.LogLst, log)
 	}
+	response.RetCode = msg.RE_SUCCESS
+}
+
+//! 购买公会挑战次数
+func Hand_BuyGuildCopyAction(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接受消息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.MSG_BuyGuildCopyAction_Req
+	if json.Unmarshal(buffer, &req) != nil {
+		gamelog.Error("Hand_BuyGuildCopyAction Error: invalid json: %s", buffer)
+		return
+	}
+
+	//! 定义返回
+	var response msg.MSG_BuyGuildCopyAction_Ack
+
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	if player.pSimpleInfo.GuildID == 0 {
+		response.RetCode = msg.RE_HAVE_NOT_GUILD
+		return
+	}
+
+	player.GuildModule.CheckReset()
+
+	totalTimes := gamedata.GetFuncVipValue(gamedata.FUNC_GUILD_COPY_BUY_TIMES, player.GetVipLevel())
+	if player.GuildModule.ActionBuyTimes+req.BuyNum > totalTimes {
+		gamelog.Error("Hand_BuyGuildCopyAction Error: Buy times not engouth")
+		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
+		return
+	}
+
+	needMoney := 0
+	for i := 0; i < req.BuyNum; i++ {
+		money := gamedata.GetFuncTimeCost(gamedata.FUNC_GUILD_COPY_BUY_TIMES, player.GuildModule.ActionBuyTimes+i+1)
+		if money <= 0 {
+			if money == -1 {
+				gamelog.Error("Hand_BuyGuildCopyAction Error: Reset_cost table error")
+				return
+			}
+			break
+		}
+		needMoney += money
+	}
+
+	if player.RoleMoudle.CheckMoneyEnough(1, needMoney) == false {
+		gamelog.Error("Hand_BuyGuildCopyAction Error: Money not enough")
+		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
+		return
+	}
+
+	player.RoleMoudle.CostMoney(1, needMoney)
+	player.GuildModule.ActionBuyTimes += req.BuyNum
+	player.GuildModule.DB_UpdateCopyAction()
+
+	response.CostMoneyID, response.CostMoneyNum = 1, needMoney
+	response.ActionTimes = player.GuildModule.ActionBuyTimes
 	response.RetCode = msg.RE_SUCCESS
 }
 

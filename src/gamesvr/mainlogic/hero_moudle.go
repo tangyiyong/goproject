@@ -55,7 +55,7 @@ func (self *THeroMoudle) OnCreate(playerid int32) {
 	self.CurHeros[0].Level = 1
 	self.CurHeros[0].CurExp = 0
 	self.CurHeros[0].Quality = gamedata.GetHeroQuality(self.CurHeros[0].ID)
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerHero", self)
+	mongodb.InsertToDB( "PlayerHero", self)
 }
 
 //OnDestroy player销毁

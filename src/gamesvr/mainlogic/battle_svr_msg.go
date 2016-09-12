@@ -10,41 +10,6 @@ import (
 	"utility"
 )
 
-func Hand_Connect(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
-	gamelog.Info("message: Hand_Connect")
-	SendCheckInMsg(pTcpConn)
-
-	pClient := pTcpConn.Data.(*tcpclient.TCPClient)
-	if pClient == nil {
-		return
-	}
-
-	if pClient.ConType == tcpclient.CON_TYPE_CHAT {
-
-	} else if pClient.ConType == tcpclient.CON_TYPE_BATSVR {
-		SetBattleSvrConnectOK(pClient.SvrID, true)
-	}
-
-	return
-}
-
-func Hand_DisConnect(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
-	gamelog.Info("message: Hand_DisConnect")
-
-	pClient := pTcpConn.Data.(*tcpclient.TCPClient)
-	if pClient == nil {
-		return
-	}
-
-	if pClient.ConType == tcpclient.CON_TYPE_CHAT {
-
-	} else if pClient.ConType == tcpclient.CON_TYPE_BATSVR {
-		SetBattleSvrConnectOK(pClient.SvrID, false)
-	}
-
-	return
-}
-
 func Hand_KillEventReq(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 	gamelog.Info("message: MSG_KILL_EVENT_REQ")
 

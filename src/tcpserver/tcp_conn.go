@@ -83,7 +83,6 @@ func (tcpConn *TCPConn) WriteMsg(msgID int16, extra int16, msgdata []byte) bool 
 	binary.LittleEndian.PutUint16(msgbuffer[6:], uint16(msgID))
 	msgbuffer = append(msgbuffer[:8], msgdata...)
 	tcpConn.write(msgbuffer)
-
 	return true
 }
 

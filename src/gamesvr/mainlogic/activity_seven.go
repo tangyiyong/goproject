@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
 )
 
 //! 七日活动表结构
@@ -98,7 +98,7 @@ func (self *TActivitySevenDay) DB_Refresh() {
 	}
 
 	filedName := fmt.Sprintf("sevenday.%d.versioncode", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.VersionCode}})
 }
 
@@ -121,7 +121,7 @@ func (self *TActivitySevenDay) DB_Reset() {
 	filedName3 := fmt.Sprintf("sevenday.%d.resetcode", index)
 	filedName4 := fmt.Sprintf("sevenday.%d.versioncode", index)
 
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName1: self.TaskList,
 		filedName2: self.BuyLst,
 		filedName3: self.ResetCode,
@@ -158,7 +158,7 @@ func (self *TActivitySevenDay) DB_UpdatePlayerSevenTask(taskID int, count int, s
 
 	filedName := fmt.Sprintf("sevenday.%d.tasklist.%d.taskstatus", index, indexTask)
 	filedName2 := fmt.Sprintf("sevenday.%d.tasklist.%d.taskcount", index, indexTask)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  status,
 		filedName2: count}})
 }
@@ -179,5 +179,5 @@ func (self *TActivitySevenDay) DB_AddPlayerSevenTaskMark(ID int) {
 	}
 
 	filedName1 := fmt.Sprintf("sevenday.%d.buylst", index)
-	GameSvrUpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{filedName1: ID}})
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{filedName1: ID}})
 }

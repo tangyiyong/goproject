@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	CON_TYPE_CHAT   = 1
-	CON_TYPE_BATSVR = 2
+	CON_TYPE_CHAT   = 1 //聊天服务器
+	CON_TYPE_BATSVR = 2 //战场服务器
+	CON_TYPE_LOGSVR = 3 //日志服务器
 )
 
 type TCPClient struct {
@@ -16,7 +17,7 @@ type TCPClient struct {
 	PendingWriteNum int
 	TcpConn         *TCPConn
 	Reconnect       int //重连次数
-	ConType         int //连接类型 1:聊天服连接，2: 战斗服连接
+	ConType         int //连接类型
 	SvrID           int //连接服务器ID
 	ExtraData       interface{}
 }
@@ -84,18 +85,18 @@ func (client *TCPClient) connect() bool {
 		return false
 	}
 
+	if client.ConType <= 0 {
+		gamelog.Error("connect error invalid contype : %d", client.ConType)
+		return false
+	}
+
 	if client.TcpConn != nil {
 		client.TcpConn.ResetConn(conn)
 	} else {
-		if client.ConType <= 0 {
-			gamelog.Error("connect error invalid contype : %d", client.ConType)
-			return false
-		}
-
 		client.TcpConn = newTCPConn(conn, client.PendingWriteNum)
-		client.TcpConn.Data = client
-
 	}
+
+	client.TcpConn.Data = client
 
 	return true
 }

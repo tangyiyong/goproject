@@ -238,7 +238,7 @@ func (self *TActivityModule) OnCreate(playerid int32) {
 			self.LimitSale.Init(activityID, self, verionCode, resetCode)
 		}
 	}
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerActivity", self)
+	mongodb.InsertToDB("PlayerActivity", self)
 }
 
 func (self *TActivityModule) OnDestroy(playerid int32) {

@@ -211,7 +211,7 @@ func (self *THeroSoulsModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerHeroSouls", self)
+	mongodb.InsertToDB( "PlayerHeroSouls", self)
 }
 
 func (self *THeroSoulsModule) OnDestroy(playerid int32) {

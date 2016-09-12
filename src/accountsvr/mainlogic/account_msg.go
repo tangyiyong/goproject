@@ -1,16 +1,14 @@
 package mainlogic
 
 import (
-	"appconfig"
 	"encoding/json"
 	"gamelog"
+	"gopkg.in/mgo.v2/bson"
 	"math/rand"
 	"mongodb"
 	"msg"
 	"net/http"
 	"strconv"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 //处理登录请求
@@ -71,7 +69,7 @@ func Handle_Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if response.RetCode == msg.RE_SUCCESS {
-		go mongodb.UpdateToDB(appconfig.AccountDbName, "Account", &bson.M{"_id": response.AccountID}, &bson.M{"$inc": bson.M{"logincount": 1}})
+		mongodb.UpdateToDB("Account", &bson.M{"_id": response.AccountID}, &bson.M{"$inc": bson.M{"logincount": 1}})
 	}
 }
 
@@ -108,7 +106,7 @@ func Handle_Register(w http.ResponseWriter, r *http.Request) {
 	var pAccount *TAccount = nil
 	pAccount, response.RetCode = G_AccountMgr.AddNewAccount(req.Name, req.Password)
 	if response.RetCode == msg.RE_SUCCESS {
-		mongodb.InsertToDB(appconfig.AccountDbName, "Account", pAccount)
+		mongodb.InsertToDB("Account", pAccount)
 	}
 }
 
@@ -137,7 +135,7 @@ func Handle_TouristRegister(w http.ResponseWriter, r *http.Request) {
 	var pAccount *TAccount = nil
 	pAccount, response.RetCode = G_AccountMgr.AddNewAccount(name, password)
 	if response.RetCode == msg.RE_SUCCESS {
-		mongodb.InsertToDB(appconfig.AccountDbName, "Account", pAccount)
+		mongodb.InsertToDB("Account", pAccount)
 	}
 
 	response.Name = name
@@ -196,6 +194,27 @@ func Handle_VerifyUserLogin(w http.ResponseWriter, r *http.Request) {
 
 	var response msg.MSG_VerifyUserLogin_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
+	pServerInfo := GetGameSvrInfo(req.SvrID)
+
+	bOK := false
+
+	if req.PlayerID <= 0 {
+		//这是要创建角色
+		if pServerInfo.SvrFlag&SFG_CREATE > 0 {
+			bOK = true
+		}
+		response.RetCode = msg.RE_SERVER_LIMIT_NUM
+	} else {
+		//这是要登录
+		if pServerInfo.SvrFlag&SFG_LOGIN > 0 {
+			bOK = true
+		}
+		response.RetCode = msg.RE_SERVER_CANNT_LOGIN
+	}
+
+	if bOK == false {
+		return
+	}
 
 	if G_AccountMgr.CheckLoginKey(req.AccountID, req.LoginKey) {
 		response.RetCode = msg.RE_SUCCESS
@@ -204,7 +223,7 @@ func Handle_VerifyUserLogin(w http.ResponseWriter, r *http.Request) {
 	b, _ := json.Marshal(&response)
 	w.Write(b)
 
-	go ChangeLoginCountAndLast(req.AccountID, req.DomainID)
+	DB_UpdateCountAndLastSvr(req.AccountID, req.SvrID)
 }
 
 //处理登录请求

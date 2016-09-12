@@ -69,7 +69,7 @@ func (self *TFoodWarModule) OnCreate(playerid int32) {
 	G_FoodWarRanker.SetRankItem(self.PlayerID, self.TotalFood)
 
 	//! 插入数据库
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerFoodWar", self)
+	mongodb.InsertToDB( "PlayerFoodWar", self)
 }
 
 func (self *TFoodWarModule) OnDestroy(playerid int32) {

@@ -52,7 +52,7 @@ func (self *TScoreMoudle) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//创建数据库记录
-	go mongodb.InsertToDB(appconfig.GameDbName, "PlayerScore", self)
+	mongodb.InsertToDB( "PlayerScore", self)
 }
 
 func (self *TScoreMoudle) CheckReset() {
