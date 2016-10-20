@@ -190,6 +190,7 @@ func ParseSangokuMusouSaleRecord(rs *RecordSet) {
 func GetSangokuMusouChapterInfo(copyID int) *ST_SangokuMusou_Chapter {
 	_, ok := GT_SangokuMusou_Chapter[copyID]
 	if ok != true {
+		gamelog.Error("GetSangokuMusouChapterInfo Error: Invalid copyID %d", copyID)
 		return nil
 	}
 

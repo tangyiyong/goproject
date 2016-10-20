@@ -5,6 +5,7 @@ import (
 	"gamelog"
 	"gamesvr/gamedata"
 	"mongodb"
+	"msg"
 	"sync"
 	"time"
 	"utility"
@@ -16,11 +17,6 @@ type THeroSouls struct {
 	ID      int  //! 唯一ID
 	HeroID  int  //! 将灵ID
 	IsExist bool //! true 存在 false 不存在
-}
-
-type THeroSoulsLink struct {
-	ID    int //! 将灵链接ID
-	Level int //! 将灵等级
 }
 
 type THeroSoulsStore struct {
@@ -47,27 +43,24 @@ type THeroSoulsProperty struct {
 type THeroSoulsModule struct {
 	PlayerID int32 `bson:"_id"`
 
-	TargetIndex          int    //! 指针指向
-	UnLockChapter        int    //! 当前解锁章节
-	SoulMapValue         int    //! 阵图值
-	ChallengeTimes       int    //! 当前剩余挑战将灵次数
-	BuyChallengeTimes    int    //! 当前已购买挑战将灵次数
-	ResetDay             uint32 //! 重置天数
-	RefreshStoreTimeMark Mark   //! 更新商店时间标记
-
-	Achievement int //! 阵图成就
-
-	HeroSoulsStoreLst []THeroSoulsStore //! 将灵商店
-	HeroSoulsLst      []THeroSouls      //! 可挑战将灵
-	HeroSoulsLink     []THeroSoulsLink  //! 已激活将灵链接
+	TargetIndex       int                     //! 指针指向
+	UnLockChapter     int                     //! 当前解锁章节
+	SoulMapValue      int                     //! 阵图值
+	LeftTimes         int                     //! 当前剩余挑战将灵次数
+	BuyTimes          int                     //! 当前已购买挑战将灵次数
+	ResetDay          uint32                  //! 重置天数
+	StoreMark         BitsType                //! 更新商店时间标记
+	Achievement       int                     //! 阵图成就
+	HeroSoulsStoreLst []THeroSoulsStore       //! 将灵商店
+	HeroSoulsLst      []THeroSouls            //! 可挑战将灵
+	HeroSoulsLink     []msg.MSG_HeroSoulsLink //! 已激活将灵链接
 
 	//临时数据
 	propertyInt            [11]int //! 加成实际数值
 	propertyPercent        [11]int //! 加成百分比
 	campPropertyKillLst    [4]int  //! 对阵营加伤百分比
 	campPropertyDefenceLst [4]int  //! 对阵营减伤百分比
-
-	ownplayer *TPlayer
+	ownplayer              *TPlayer
 }
 
 func (self *THeroSoulsModule) CalcHeroSoulProperty() {
@@ -206,12 +199,12 @@ func (self *THeroSoulsModule) OnCreate(playerid int32) {
 	self.RefreshHeroSoulsStore(false)
 	self.UnLockChapter = 1
 	self.TargetIndex = 0
-	self.BuyChallengeTimes = 0
-	self.ChallengeTimes = gamedata.HeroSoulsChallengeTimes
+	self.BuyTimes = 0
+	self.LeftTimes = gamedata.HeroSoulsChallengeTimes
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerHeroSouls", self)
+	mongodb.InsertToDB("PlayerHeroSouls", self)
 }
 
 func (self *THeroSoulsModule) OnDestroy(playerid int32) {
@@ -256,9 +249,9 @@ func (self *THeroSoulsModule) CheckStoreRefresh() int {
 	}
 
 	for i := 0; i < index; i++ {
-		if self.RefreshStoreTimeMark.Get(uint32(i+1)) == false {
+		if self.StoreMark.Get(i+1) == false {
 			self.RefreshHeroSoulsStore(true)
-			self.RefreshStoreTimeMark.Set(uint32(i + 1))
+			self.StoreMark.Set(i + 1)
 			self.DB_SaveHeroSoulsRefreshMark()
 		}
 	}
@@ -282,15 +275,15 @@ func (self *THeroSoulsModule) CheckReset() {
 }
 
 func (self *THeroSoulsModule) OnNewDay(newday uint32) {
-	self.BuyChallengeTimes = 0
-	self.RefreshStoreTimeMark = 0
-	self.ChallengeTimes = gamedata.HeroSoulsChallengeTimes
+	self.BuyTimes = 0
+	self.StoreMark = 0
+	self.LeftTimes = gamedata.HeroSoulsChallengeTimes
 	self.ResetDay = newday
 	self.DB_Reset()
 }
 
 func (self *THeroSoulsModule) RedTip() bool {
-	if self.ChallengeTimes != 0 { //! 挑战英灵次数
+	if self.LeftTimes != 0 { //! 挑战英灵次数
 		return true
 	}
 
@@ -306,7 +299,7 @@ func (self *THeroSoulsModule) RedTip() bool {
 	}
 
 	for i := 0; i < index; i++ {
-		if self.RefreshStoreTimeMark.Get(uint32(i+1)) == false {
+		if self.StoreMark.Get(i+1) == false {
 			self.CheckStoreRefresh()
 			return true
 		}

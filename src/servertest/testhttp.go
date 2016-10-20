@@ -8,21 +8,23 @@ import (
 	"msg"
 	"net/http"
 	"sync"
+	"time"
 )
 
 var TestLock sync.Mutex
 
 func PostServerReq(url string, body io.Reader) ([]byte, error) {
 	TestLock.Lock()
-	//t1 := time.Now().UnixNano()
+	t1 := time.Now().UnixNano()
 	resp, err := http.Post(url, "text/HTML", body)
 	if resp == nil {
 		return nil, err
 	}
+	fmt.Println("len:", resp.ContentLength)
 	buffer := make([]byte, resp.ContentLength)
 	resp.Body.Read(buffer)
 	resp.Body.Close()
-	//fmt.Println("t:", time.Now().UnixNano()-t1)
+	fmt.Println("t:", time.Now().UnixNano()-t1)
 	TestLock.Unlock()
 
 	return buffer, err

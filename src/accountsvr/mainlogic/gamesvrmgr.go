@@ -3,39 +3,39 @@ package mainlogic
 import (
 	"appconfig"
 	"gamelog"
-	"gopkg.in/mgo.v2"
 	"mongodb"
-	"sync"
-	"time"
+	"utility"
+
+	"gopkg.in/mgo.v2"
 )
 
 const (
-	SFG_RECOMMAND = 0x00000001 //推荐服务器
-	SFG_CREATE    = 0x00000002 //允许创建角色
-	SFG_LOGIN     = 0x00000004 //允许登录角色
-	SFG_VISIBLE   = 0x00000008 //服务器可见
-
-	////组合标记
-	SFG_ALL    = 0x0000000F
-	SFG_NORMAL = 0x0000000E //可注册，可登录，可见，
+	SS_Ready    = 1 //未开放
+	SS_NewSvr   = 2 //新服
+	SS_Good     = 3 //流畅
+	SS_Busy     = 4 //拥挤
+	SS_Maintain = 5 //维护
+	SS_Full     = 6 //爆满
+	SS_Close    = 7 //关闭
 )
 
 type TGameServerInfo struct {
-	SvrID   int32 `bson:"_id"` //账号ID
-	SvrName string
-	SvrFlag uint32 //游戏服标记
+	SvrID        int32  `bson:"_id"` //账号ID
+	SvrName      string //服务器名字
+	ControlFlag  uint32 //控制标记
+	SvrState     uint32 //显示标记
+	SvrDefault   uint32 //是否默认
+	SvrOutAddr   string //外部地址
+	SvrInnerAddr string //内部地址
 
 	//以下的变量不是存数据库
-	svrOutAddr   string
-	svrInnerAddr string //内部地址
-	isSvrOK      bool   //服务器是否正常
-	updateTime   int64  //更新时间
+	isSvrOK    bool  //服务器是否正常
+	updateTime int32 //更新时间
 }
 
 var (
 	G_ServerList  [10000]TGameServerInfo
 	G_RecommendID int32 //推荐的服务器ID
-	ListLock      sync.Mutex
 )
 
 func InitGameSvrMgr() {
@@ -52,19 +52,28 @@ func InitGameSvrMgr() {
 	for i := 0; i < len(tempList); i++ {
 		G_ServerList[tempList[i].SvrID].SvrID = tempList[i].SvrID
 		G_ServerList[tempList[i].SvrID].SvrName = tempList[i].SvrName
-		G_ServerList[tempList[i].SvrID].SvrFlag = tempList[i].SvrFlag
+		G_ServerList[tempList[i].SvrID].SvrState = tempList[i].SvrState
+		G_ServerList[tempList[i].SvrID].SvrInnerAddr = tempList[i].SvrInnerAddr
+		G_ServerList[tempList[i].SvrID].SvrOutAddr = tempList[i].SvrOutAddr
+		G_ServerList[tempList[i].SvrID].SvrDefault = tempList[i].SvrDefault
+		G_ServerList[tempList[i].SvrID].isSvrOK = false
+
+		if G_ServerList[tempList[i].SvrID].SvrDefault == 1 {
+			G_RecommendID = tempList[i].SvrID
+		}
 	}
 
-	//go CheckGameStateRoutine()
+	go CheckGameStateRoutine()
 
 	return
 }
 
+/*
 func CheckGameStateRoutine() {
 	regtimer := time.Tick(10 * time.Second)
 	for {
 		ListLock.Lock()
-		curtime := time.Now().Unix()
+		curtime := utility.GetCurTime()
 		for i := 0; i < 10000; i++ {
 			if G_ServerList[i].SvrID <= 0 {
 				continue
@@ -78,6 +87,7 @@ func CheckGameStateRoutine() {
 		<-regtimer
 	}
 }
+*/
 
 func UpdateGameSvrInfo(svrid int32, svrname string, outaddr string, inaddr string) {
 	if svrid <= 0 || svrid >= 10000 {
@@ -85,35 +95,31 @@ func UpdateGameSvrInfo(svrid int32, svrname string, outaddr string, inaddr strin
 		return
 	}
 
-	ListLock.Lock()
-	defer ListLock.Unlock()
-
 	if G_ServerList[svrid].SvrID == 0 {
 		G_ServerList[svrid].SvrID = svrid
 		G_ServerList[svrid].SvrName = svrname
-		G_ServerList[svrid].svrInnerAddr = inaddr
-		G_ServerList[svrid].svrOutAddr = outaddr
+		G_ServerList[svrid].SvrInnerAddr = inaddr
+		G_ServerList[svrid].SvrOutAddr = outaddr
 		G_ServerList[svrid].isSvrOK = true
-		G_ServerList[svrid].SvrFlag = SFG_ALL
-		G_ServerList[svrid].updateTime = time.Now().Unix()
+		G_ServerList[svrid].SvrState = SS_Ready
+		G_ServerList[svrid].SvrDefault = 0
+		G_ServerList[svrid].updateTime = utility.GetCurTime()
 		mongodb.InsertToDB("GameSvrList", &G_ServerList[svrid])
 	} else {
 		if G_ServerList[svrid].SvrName != svrname {
-			gamelog.Error("UpdateGameSvrInfo Error : %d has two domainname:%s, %s", svrid, svrname, G_ServerList[svrid].SvrName)
+			gamelog.Error("UpdateGameSvrInfo Error : **************** Server:%s and %s has same svrid:%d*********", svrname, G_ServerList[svrid].SvrName, svrid)
 		}
 		G_ServerList[svrid].SvrName = svrname
-		G_ServerList[svrid].svrInnerAddr = inaddr
-		G_ServerList[svrid].svrOutAddr = outaddr
+		G_ServerList[svrid].SvrInnerAddr = inaddr
+		G_ServerList[svrid].SvrOutAddr = outaddr
 		G_ServerList[svrid].isSvrOK = true
-		G_ServerList[svrid].updateTime = time.Now().Unix()
+		G_ServerList[svrid].updateTime = utility.GetCurTime()
+		DB_UpdateSvrInfo(svrid, G_ServerList[svrid])
 	}
 
 }
 
 func GetGameSvrName(svrid int32) string {
-	ListLock.Lock()
-	defer ListLock.Unlock()
-
 	if G_ServerList[svrid].SvrID == 0 {
 		gamelog.Error("GetGameSvrName Error Invalid svrid :%d", svrid)
 		return ""
@@ -123,31 +129,23 @@ func GetGameSvrName(svrid int32) string {
 }
 
 func GetGameSvrOutAddr(svrid int32) string {
-	ListLock.Lock()
-	defer ListLock.Unlock()
-
 	if G_ServerList[svrid].SvrID == 0 {
 		gamelog.Error("GetGameSvrAddr Error Invalid svrid :%d", svrid)
 		return ""
 	}
 
-	return G_ServerList[svrid].svrOutAddr
+	return G_ServerList[svrid].SvrOutAddr
 }
 
 func GetGameSvrInAddr(svrid int32) string {
-	ListLock.Lock()
-	defer ListLock.Unlock()
 	if G_ServerList[svrid].SvrID == 0 {
 		return ""
 	}
 
-	return G_ServerList[svrid].svrInnerAddr
+	return G_ServerList[svrid].SvrInnerAddr
 }
 
 func GetGameSvrInfo(svrid int32) (pInfo *TGameServerInfo) {
-	ListLock.Lock()
-	defer ListLock.Unlock()
-
 	if G_ServerList[svrid].SvrID == 0 {
 		gamelog.Error("GetGameSvrInfo Error Invalid svrid :%d", svrid)
 		return nil
@@ -157,22 +155,17 @@ func GetGameSvrInfo(svrid int32) (pInfo *TGameServerInfo) {
 }
 
 func RemoveGameSvrInfo(svrid int32) bool {
-	ListLock.Lock()
-	defer ListLock.Unlock()
 	G_ServerList[svrid].SvrID = 0
 	return true
 }
 
 func GetRecommendSvrID() *TGameServerInfo {
-	ListLock.Lock()
-	defer ListLock.Unlock()
-
-	if G_RecommendID > 0 && G_ServerList[G_RecommendID].SvrID != 0 && G_ServerList[G_RecommendID].isSvrOK == true && (G_ServerList[G_RecommendID].SvrFlag&SFG_VISIBLE > 0) {
+	if G_RecommendID > 0 && G_ServerList[G_RecommendID].SvrID != 0 && G_ServerList[G_RecommendID].isSvrOK == true && (G_ServerList[G_RecommendID].SvrState > SS_Ready) {
 		return &G_ServerList[G_RecommendID]
 	}
 
 	for i := 9999; i > 0; i-- {
-		if G_ServerList[i].SvrID != 0 && G_ServerList[i].isSvrOK == true && (G_ServerList[i].SvrFlag&SFG_VISIBLE) > 0 {
+		if G_ServerList[i].SvrID != 0 && G_ServerList[i].isSvrOK == true && G_ServerList[i].SvrDefault > SS_Ready {
 			return &G_ServerList[i]
 		}
 	}

@@ -5,10 +5,10 @@ import (
 	"mongodb"
 )
 
-func DB_UpdateSvrState(svrid int32, svrflag uint32) {
-	mongodb.UpdateToDB("GameSvrList", &bson.M{"_id": svrid}, &bson.M{"$set": bson.M{"svrflag": svrflag}})
+func DB_UpdateSvrInfo(svrid int32, svrinfo TGameServerInfo) {
+	mongodb.UpdateToDB("GameSvrList", &bson.M{"_id": svrid}, &bson.M{"$set": svrinfo})
 }
 
-func DB_UpdateCountAndLastSvr(accountid int32, svrid int32) {
-	mongodb.UpdateToDB("Account", &bson.M{"_id": accountid}, &bson.M{"$set": bson.M{"lastsvrid": svrid, "logincount": 1}})
+func DB_UpdateLastSvrID(accountid int32, svrid int32) {
+	mongodb.UpdateToDB("Account", &bson.M{"_id": accountid}, &bson.M{"$set": bson.M{"lastsvrid": svrid}})
 }

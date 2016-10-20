@@ -14,15 +14,22 @@ type TActivityPurchaseCost struct {
 	Times    int //! 购买次数
 }
 
+//! 记录团购购买物品次数
+type TActivityPurchaseOrder struct {
+	ItemID int
+	Times  int //! 购买次数
+}
+
 //! 团购
 type TActivityGroupPurchase struct {
-	ActivityID      int                     //! 活动ID
-	PurchaseCostLst []TActivityPurchaseCost //! 个人花费信息
-	Score           int                     //! 积分
-	ScoreAwardMark  IntLst                  //! 积分奖励领取标记
-	VersionCode     int32                   //! 更新号
-	ResetCode       int32                   //! 迭代号
-	activityModule  *TActivityModule        //! 活动模块指针
+	ActivityID      int32                    //! 活动ID
+	PurchaseCostLst []TActivityPurchaseCost  //! 个人花费信息
+	ShoppingInfo    []TActivityPurchaseOrder //! 购物信息
+	Score           int                      //! 积分
+	ScoreAwardMark  IntLst                   //! 积分奖励领取标记
+	VersionCode     int32                    //! 更新号
+	ResetCode       int32                    //! 迭代号
+	activityModule  *TActivityModule         //! 活动模块指针
 }
 
 //! 赋值基础数据
@@ -32,7 +39,7 @@ func (self *TActivityGroupPurchase) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityGroupPurchase) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityGroupPurchase) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -48,11 +55,18 @@ func (self *TActivityGroupPurchase) Init(activityID int, mPtr *TActivityModule, 
 //! 刷新数据
 func (self *TActivityGroupPurchase) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
+
+	length := len(self.ShoppingInfo)
+	for i := 0; i < length; i++ {
+		self.ShoppingInfo[i].Times = 0
+	}
+
 	self.DB_Refresh()
 }
 
 //! 活动结束
 func (self *TActivityGroupPurchase) End(versionCode int32, resetCode int32) {
+	self.ShoppingInfo = []TActivityPurchaseOrder{}
 	self.PurchaseCostLst = []TActivityPurchaseCost{}
 	self.Score = 0
 	self.ScoreAwardMark = IntLst{}
@@ -76,8 +90,9 @@ func (self *TActivityGroupPurchase) RedTip() bool {
 		return false
 	}
 
-	count := gamedata.GetGroupPurchaseScoreAwardCount()
-	for i := 1; i <= count; i++ {
+	awardType := G_GlobalVariables.GetActivityAwardType(self.ActivityID)
+	beginIndex, endIndex := gamedata.GetGroupPurchaseScoreAwardSection(awardType)
+	for i := beginIndex; i < endIndex; i++ {
 		scoreInfo := gamedata.GetGroupPurchaseScoreAward(i)
 
 		if self.Score >= scoreInfo.NeedScore && self.ScoreAwardMark.IsExist(i) < 0 {
@@ -106,22 +121,51 @@ func (self *TActivityGroupPurchase) GetGroupItemInfo(itemID int) (*TActivityPurc
 	return &self.PurchaseCostLst[length], length
 }
 
+func (self *TActivityGroupPurchase) GetGroupItemShoppingInfo(itemID int) (*TActivityPurchaseOrder, int) {
+	length := len(self.ShoppingInfo)
+	for i := 0; i < length; i++ {
+		if self.ShoppingInfo[i].ItemID == itemID {
+			return &self.ShoppingInfo[i], i
+		}
+	}
+
+	var newRecord TActivityPurchaseOrder
+	newRecord.ItemID = itemID
+	newRecord.Times = 0
+	self.ShoppingInfo = append(self.ShoppingInfo, newRecord)
+	self.DB_AddNewPurchaseOrderInfo(&newRecord)
+
+	return &self.ShoppingInfo[length], length
+}
+
 func (self *TActivityGroupPurchase) DB_AddNewPurchaseCostInfo(newRecord *TActivityPurchaseCost) {
 	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
 		&bson.M{"$push": bson.M{"grouppurchase.purchasecostlst": *newRecord}})
 }
 
+func (self *TActivityGroupPurchase) DB_AddNewPurchaseOrderInfo(newRecord *TActivityPurchaseOrder) {
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
+		&bson.M{"$push": bson.M{"grouppurchase.shoppinginfo": *newRecord}})
+}
+
 func (self *TActivityGroupPurchase) DB_UpdatePurchaseCostInfo(index int) {
-	filedName := fmt.Sprintf("grouppurchase.%d.purchasecostlst.times", index)
-	filedName2 := fmt.Sprintf("grouppurchase.%d.purchasecostlst.moneynum", index)
+	filedName := fmt.Sprintf("grouppurchase.purchasecostlst.%d.times", index)
+	filedName2 := fmt.Sprintf("grouppurchase.purchasecostlst.%d.moneynum", index)
 	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.PurchaseCostLst[index].Times,
 		filedName2: self.PurchaseCostLst[index].MoneyNum}})
 }
 
+func (self *TActivityGroupPurchase) DB_UpdatePurchaseOrderInfo(index int) {
+	filedName := fmt.Sprintf("grouppurchase.shoppinginfo.%d.times", index)
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+		filedName: self.ShoppingInfo[index].Times}})
+}
+
 func (self *TActivityGroupPurchase) DB_Refresh() {
 	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
-		"grouppurchase.versioncode": self.VersionCode}})
+		"grouppurchase.versioncode":  self.VersionCode,
+		"grouppurchase.shoppinginfo": self.ShoppingInfo}})
 }
 
 //! 存储数据库
@@ -132,6 +176,7 @@ func (self *TActivityGroupPurchase) DB_Reset() {
 		"grouppurchase.score":           self.Score,
 		"grouppurchase.scoreawardmark":  self.ScoreAwardMark,
 		"grouppurchase.versioncode":     self.VersionCode,
+		"grouppurchase.shoppinginfo":    self.ShoppingInfo,
 		"grouppurchase.resetcode":       self.ResetCode}})
 }
 
@@ -142,4 +187,8 @@ func (self *TActivityGroupPurchase) DB_SaveScore() {
 
 func (self *TActivityGroupPurchase) DB_AddScoreAward(id int) {
 	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{"grouppurchase.scoreawardmark": id}})
+}
+
+func (self *TActivityGroupPurchase) DB_UpdateScoreAward() {
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{"grouppurchase.scoreawardmark": self.ScoreAwardMark}})
 }

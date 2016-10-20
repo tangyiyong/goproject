@@ -6,6 +6,7 @@ import (
 	"gamesvr/gamedata"
 	"msg"
 	"net/http"
+	"utility"
 )
 
 //! 获取今日活动
@@ -107,7 +108,7 @@ func Hand_WanderOpenBox(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		awardLst := gamedata.GetItemsFromAwardIDEx(gamedata.WanderTenBoxID)
+		awardLst := gamedata.GetItemsFromAwardID(gamedata.WanderTenBoxID)
 		player.BagMoudle.AddAwardItems(awardLst)
 		for _, v := range awardLst {
 			var item msg.MSG_ItemData
@@ -284,10 +285,15 @@ func Hand_WanderResult(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
+
+	if false == utility.MsgDataCheck(buffer, G_XorCode) {
+		//存在作弊的可能
+		gamelog.Error("Hand_WanderResult : Message Data Check Error!!!!")
+		return
+	}
 	var req msg.MSG_WanderResult_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_WanderResult Error: Unmarshal fail, Error: %s", err.Error())
+	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
+		gamelog.Error("Hand_WanderResult : Unmarshal error!!!!")
 		return
 	}
 
@@ -308,6 +314,12 @@ func Hand_WanderResult(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	if player.WanderMoudle.CanBattle == 0 {
 		response.RetCode = msg.RE_INVALID_PARAM

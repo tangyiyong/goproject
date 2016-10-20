@@ -6,7 +6,6 @@ import (
 	"gamesvr/gamedata"
 	"msg"
 	"net/http"
-	"time"
 	"utility"
 )
 
@@ -45,10 +44,7 @@ func Hand_GetBattleData(w http.ResponseWriter, r *http.Request) {
 	response.GuildSkiLvl = player.HeroMoudle.GuildSkiLvl
 	response.FashionID = player.HeroMoudle.FashionID
 	response.FashionLvl = player.HeroMoudle.FashionLvl
-	response.ExtraProValue = player.HeroMoudle.ExtraProValue
-	response.ExtraProPercent = player.HeroMoudle.ExtraProPercent
-	response.ExtraCampDef = player.HeroMoudle.ExtraCampDef
-	response.ExtraCampKill = player.HeroMoudle.ExtraCampKill
+	response.HeroSouls = player.HeroSoulsModule.HeroSoulsLink
 	response.CurStarID = player.RoleMoudle.CurStarID
 	response.RetCode = msg.RE_SUCCESS
 	return
@@ -154,11 +150,12 @@ func Hand_UpgradeHero(w http.ResponseWriter, r *http.Request) {
 	response.NewExp = pTargetHeroData.CurExp
 
 	//必须以不影响的索引的方式删除
+	var dels []int = make([]int, 0, 5)
 	for t := 0; t < len(req.CostHeros); t++ {
 		player.BagMoudle.RemoveHeroAt(req.CostHeros[t].HeroPos)
+		dels = append(dels, req.CostHeros[t].HeroPos)
 	}
-
-	player.BagMoudle.DB_SaveHeroBag()
+	player.BagMoudle.DB_RemoveHeros(dels)
 	response.RetCode = msg.RE_SUCCESS
 	response.CostMoney = ExpSum * pHeroLevelInfo.MoneyNum
 
@@ -217,7 +214,9 @@ func Hand_LevelUpNotify(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if pMainHero.CurExp >= pStHeroLevelInfo.MainNeedExp {
+	if pMainHero.CurExp < pStHeroLevelInfo.MainNeedExp {
+		gamelog.Error("Hand_LevelUpNotify Error : CurExp:%d, needExp:%d!!", pMainHero.CurExp, pStHeroLevelInfo.MainNeedExp)
+	} else {
 		pMainHero.CurExp -= pStHeroLevelInfo.MainNeedExp
 		pMainHero.Level += 1
 		player.DB_SaveHeroLevelExp(POSTYPE_BATTLE, 0)
@@ -225,13 +224,11 @@ func Hand_LevelUpNotify(w http.ResponseWriter, r *http.Request) {
 		G_LevelRanker.SetRankItem(req.PlayerID, pMainHero.Level)
 		response.FightValue = player.CalcFightValue()
 		player.ActivityModule.LevelGift.CheckLevelUp(pMainHero.Level)
-	} else {
-		gamelog.Error("Hand_LevelUpNotify Error : CurExp:%d, needExp:%d!!", pMainHero.CurExp, pStHeroLevelInfo.MainNeedExp)
 	}
 
 	response.Level = player.HeroMoudle.CurHeros[0].Level
 	response.CurExp = player.HeroMoudle.CurHeros[0].CurExp
-	response.CurSvrTime = time.Now().Unix()
+	response.CurSvrTime = utility.GetCurTime()
 	response.RetCode = msg.RE_SUCCESS
 	return
 }
@@ -275,7 +272,6 @@ func Hand_ChangeBackHero(w http.ResponseWriter, r *http.Request) {
 
 	if req.TargetID == 0 { //上阵
 		if !gamedata.IsFuncOpen(gamedata.FUNC_BACK_POS_BEGIN+req.TargetPos-1, player.GetLevel(), 0) {
-			gamelog.Error("Hand_ChangeBackHero battle pos is not open!")
 			response.RetCode = msg.RE_INVALID_PARAM
 			return
 		}
@@ -319,6 +315,54 @@ func Hand_ChangeBackHero(w http.ResponseWriter, r *http.Request) {
 		player.BagMoudle.HeroBag.Heros[req.SourcePos] = tempTarget
 		player.DB_SaveHeroAt(POSTYPE_BAG, req.SourcePos)
 	}
+
+	response.RetCode = msg.RE_SUCCESS
+	response.FightValue = player.CalcFightValue()
+}
+
+func Hand_UnsetBackHero(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	var req msg.MSG_UnsetBackHero_Req
+	if json.Unmarshal(buffer, &req) != nil {
+		gamelog.Error("Hand_UnsetBackHero : Unmarshal error!!!!")
+		return
+	}
+
+	var response msg.MSG_UnsetBackHero_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	if req.HeroPos < 0 || req.HeroPos >= BACK_NUM {
+		gamelog.Error("Hand_UnsetBackHero error Invalid TargetPos:%d", req.HeroPos)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
+	tempTarget := player.HeroMoudle.BackHeros[req.HeroPos]
+	if tempTarget.ID != req.HeroID {
+		gamelog.Error("Hand_UnsetBackHero error req.HeroID:%d, tempTarget.HeroID:%d", req.HeroID, tempTarget.ID)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
+	//将英雄装到背包中
+	player.BagMoudle.AddHeroData(&tempTarget)
+	player.HeroMoudle.BackHeros[req.HeroPos].Clear()
+	player.DB_SaveHeroAt(POSTYPE_BACK, req.HeroPos)
+	response.RetCode = msg.RE_SUCCESS
+	response.FightValue = player.CalcFightValue()
 
 	response.RetCode = msg.RE_SUCCESS
 	response.FightValue = player.CalcFightValue()
@@ -387,9 +431,16 @@ func Hand_ChangeHero(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	for i := 0; i < 6; i++ {
+		if req.SourceID == player.HeroMoudle.CurHeros[i].ID {
+			gamelog.Error("Hand_ChangeHero req.SourceID :%d Already in Battle pos:%d", req.SourceID, i)
+			response.RetCode = msg.RE_INVALID_PARAM
+			return
+		}
+	}
+
 	if req.TargetID == 0 { //上阵
 		if !gamedata.IsFuncOpen(gamedata.FUNC_POS_START+req.TargetPos-1, player.GetLevel(), 0) {
-			gamelog.Error("Hand_ChangeHero battle pos is not open!, tPos:%d", req.TargetPos)
 			response.RetCode = msg.RE_INVALID_PARAM
 			return
 		}
@@ -437,9 +488,9 @@ func Hand_SetWakeItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.BagMoudle.GetWakeItemCount(req.SourceItemID) <= 0 {
+	if player.BagMoudle.GetWakeItemCount(req.ID) <= 0 {
 		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
-		gamelog.Error("Hand_SetWakeItem : Not Enough Wake Item:%d", req.SourceItemID)
+		gamelog.Error("Hand_SetWakeItem : Not Enough Wake Item:%d", req.ID)
 		return
 	}
 
@@ -458,17 +509,19 @@ func Hand_SetWakeItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if pWakeLevelInfo.NeedItem[req.TargetItemPos] != req.SourceItemID || pTargetHeroData.WakeItem[req.TargetItemPos] != 0 {
+	if pWakeLevelInfo.NeedItem[req.Pos] != req.ID || pTargetHeroData.WakeItem[req.Pos] != 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_SetWakeItem : Invalid Wake NeedID:%d, SourceID:%d, CurID:%d", pWakeLevelInfo.NeedItem[req.TargetItemPos], req.SourceItemID, pTargetHeroData.WakeItem[req.TargetItemPos])
+		gamelog.Error("Hand_SetWakeItem : Invalid Wake NeedID:%d, SourceID:%d, CurID:%d", pWakeLevelInfo.NeedItem[req.Pos], req.ID, pTargetHeroData.WakeItem[req.Pos])
 		return
 	}
 
-	player.BagMoudle.RemoveWakeItem(req.SourceItemID, 1)
-	pTargetHeroData.WakeItem[req.TargetItemPos] = req.SourceItemID
+	player.BagMoudle.RemoveWakeItem(req.ID, 1)
+	pTargetHeroData.WakeItem[req.Pos] = req.ID
 	player.DB_SaveHeroWakeItem(req.TargetHero.PosType, req.TargetHero.HeroPos)
 	response.FightValue = player.CalcFightValue()
 	response.RetCode = msg.RE_SUCCESS
+	response.ID = req.ID
+	response.Pos = req.Pos
 
 	return
 }
@@ -507,7 +560,7 @@ func Hand_ComposeWakeItem(w http.ResponseWriter, r *http.Request) {
 	//钱是否足够
 	if false == player.RoleMoudle.CheckMoneyEnough(pWakeComposeInfo.MoneyID, pWakeComposeInfo.MoneyNum) {
 		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
-		gamelog.Error("Hand_ComposeWakeItem : Not Enough Money")
+		gamelog.Error("Hand_ComposeWakeItem : Not Enough Money, req.ItemID:%d")
 		return
 	}
 
@@ -728,7 +781,6 @@ func Hand_UpgodHero(w http.ResponseWriter, r *http.Request) {
 
 	if false == gamedata.IsFuncOpen(gamedata.FUNC_HEROGOD, player.GetLevel(), player.GetVipLevel()) {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
-		gamelog.Error("Hand_UpgodHero : Hero God Not Open!!!")
 		return
 	}
 
@@ -885,7 +937,7 @@ func Hand_ComposeHero(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player.BagMoudle.AddHeroByID(pHeroInfo.HeroID, 1)
+	player.BagMoudle.AddHeroByID(pHeroInfo.HeroID, 1, 1)
 	player.BagMoudle.RemoveHeroPiece(req.HeroPieceID, pHeroInfo.PieceNum)
 
 	response.HeroID = pHeroInfo.HeroID
@@ -1114,12 +1166,12 @@ func Hand_CultureHero(w http.ResponseWriter, r *http.Request) {
 
 	//培养的次数处理
 	for j := 0; j < req.Times; j++ {
-		pHeroData.Cultures[0] += utility.Rand() % 10 //生命
-		pHeroData.Cultures[2] += utility.Rand() % 10 //物防
-		pHeroData.Cultures[4] += utility.Rand() % 10 //法防
-		rValue := utility.Rand() % 10                //攻击力
-		pHeroData.Cultures[1] += rValue              //物攻
-		pHeroData.Cultures[3] += rValue              //魔攻
+		pHeroData.Cultures[0] += utility.Rand()%90 + 10 //生命
+		pHeroData.Cultures[2] += utility.Rand() % 10    //物防
+		pHeroData.Cultures[4] += utility.Rand() % 10    //法防
+		rValue := utility.Rand() % 10                   //攻击力
+		pHeroData.Cultures[1] += rValue                 //物攻
+		pHeroData.Cultures[3] += rValue                 //魔攻
 	}
 
 	//上限处理
@@ -1257,10 +1309,14 @@ func Hand_BreakOutHero(w http.ResponseWriter, r *http.Request) {
 	response.NewLevel = pTargetHeroData.BreakLevel
 
 	//必须以不影响的索引的方式删除
+	var dels []int = make([]int, 0, 5)
 	for t := 0; t < len(req.CostHeros); t++ {
 		player.BagMoudle.RemoveHeroAt(req.CostHeros[t].HeroPos)
+		dels = append(dels, req.CostHeros[t].HeroPos)
 	}
-	player.BagMoudle.DB_SaveHeroBag()
+	if len(dels) > 0 {
+		player.BagMoudle.DB_RemoveHeros(dels)
+	}
 
 	response.FightValue = player.CalcFightValue()
 	response.CostItems = needItemCount
@@ -1427,7 +1483,6 @@ func Hand_EquipStrengthen(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var pEquipData *TEquipData = nil
-
 	if req.PosType == POSTYPE_BATTLE {
 		if req.PosIndex < 0 || req.PosIndex >= EQUIP_NUM {
 			response.RetCode = msg.RE_INVALID_PARAM
@@ -1459,7 +1514,7 @@ func Hand_EquipStrengthen(w http.ResponseWriter, r *http.Request) {
 
 	if pEquipData.StrengLevel >= player.GetLevel()*2 {
 		response.RetCode = msg.RE_ALREADY_MAX_LEVEL
-		gamelog.Error("Hand_EquipStrengthen Error : Already reach the max level limit")
+		gamelog.Error("Hand_EquipStrengthen Error : Already reach the max level limit, Curlevel:%d, playerlevel:%d", pEquipData.StrengLevel, player.GetLevel())
 		return
 	}
 
@@ -1484,7 +1539,6 @@ func Hand_EquipStrengthen(w http.ResponseWriter, r *http.Request) {
 
 		costmoneyId = pEquipStrengCost.MoneyID
 		tempCost := costMoney + pEquipStrengCost.MoneyNum[pEquipInfo.Quality-1]
-
 		if false == player.RoleMoudle.CheckMoneyEnough(costmoneyId, tempCost) {
 			break
 		}
@@ -1503,11 +1557,11 @@ func Hand_EquipStrengthen(w http.ResponseWriter, r *http.Request) {
 		costMoney = tempCost
 	}
 
-	if pEquipData.StrengLevel > player.GetLevel()*2+1 {
-		pEquipData.StrengLevel = player.GetLevel()*2 + 1
-	}
-
 	if oldlevel < pEquipData.StrengLevel {
+		if pEquipData.StrengLevel > player.GetLevel()*2+1 {
+			pEquipData.StrengLevel = player.GetLevel()*2 + 1
+		}
+
 		player.RoleMoudle.CostMoney(costmoneyId, costMoney)
 		player.DB_SaveEquipStrength(req.PosType, req.PosIndex)
 		response.CostMoney = costMoney
@@ -1593,12 +1647,10 @@ func Hand_ComposeEquip(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player.BagMoudle.AddEqiupByID(pEquipInfo.EquipID)
+	player.BagMoudle.AddEqiups(pEquipInfo.EquipID, 1)
 	player.BagMoudle.RemoveEquipPiece(req.EquipPieceID, pEquipInfo.PieceNum)
-
 	response.EquipID = pEquipInfo.EquipID
 	response.RetCode = msg.RE_SUCCESS
-
 	return
 }
 
@@ -1656,13 +1708,24 @@ func Hand_EquipRiseStar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pEquipStarInfo := gamedata.GetEquipStarInfo(pEquipInfo.Quality, pEquipInfo.Position, pEquipData.Star)
+	if pEquipStarInfo == nil {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_EquipRiseStar Error : Invalid StarInfo, Quality :%d, position:%d, star:%d", pEquipInfo.Quality, pEquipInfo.Position, pEquipData.Star)
+		return
+	}
+
+	if pEquipStarInfo.AddExp <= 0 {
+		response.RetCode = msg.RE_MAX_STAR
+		gamelog.Error("Hand_EquipRiseStar Error : Already reach to the max star! quality:%d, star:%d", pEquipInfo.Quality, pEquipData.Star)
+		return
+	}
+
 	if req.CondIndex == 1 {
 		if false == player.RoleMoudle.CheckMoneyEnough(pEquipStarInfo.MoneyID[0], pEquipStarInfo.MoneyNum[0]) || pEquipStarInfo.MoneyID[0] <= 0 {
 			response.RetCode = msg.RE_NOT_ENOUGH_MONEY
 			gamelog.Error("Hand_EquipRiseStar Error : Not Enough Money")
 			return
 		}
-
 		player.RoleMoudle.CostMoney(pEquipStarInfo.MoneyID[0], pEquipStarInfo.MoneyNum[0])
 		pEquipData.StarCost[0] += int32(pEquipStarInfo.MoneyNum[0])
 	} else if req.CondIndex == 2 {
@@ -1671,7 +1734,6 @@ func Hand_EquipRiseStar(w http.ResponseWriter, r *http.Request) {
 			gamelog.Error("Hand_EquipRiseStar Error : Not Enough Money")
 			return
 		}
-
 		player.RoleMoudle.CostMoney(pEquipStarInfo.MoneyID[1], pEquipStarInfo.MoneyNum[1])
 		pEquipData.StarCost[1] += int32(pEquipStarInfo.MoneyNum[1])
 	} else if req.CondIndex == 3 {
@@ -1824,6 +1886,9 @@ func Hand_EquipRefine(w http.ResponseWriter, r *http.Request) {
 
 	response.Exp = pEquipData.RefineExp
 	response.Level = pEquipData.RefineLevel
+	response.PosIndex = req.PosIndex
+	response.PosType = req.PosType
+	response.ItemID = req.ItemID
 	response.RetCode = msg.RE_SUCCESS
 
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_EQUI_REFINED, req.ItemNum)
@@ -2083,13 +2148,15 @@ func Hand_GemStrengthen(w http.ResponseWriter, r *http.Request) {
 	response.Level = pGemData.StrengLevel
 	response.NewPos = req.GemIndex
 	//必须以不影响的索引的方式删除
+	var dels []int = make([]int, 0, 5)
 	for t := 0; t < len(req.CostGems); t++ {
 		player.BagMoudle.RemoveGemAt(req.CostGems[t].GemPos)
+		dels = append(dels, req.CostGems[t].GemPos)
 		if req.GemPosType == POSTYPE_BAG && req.CostGems[t].GemPos < req.GemIndex {
 			response.NewPos -= 1
 		}
 	}
-	player.BagMoudle.DB_SaveGemBag()
+	player.BagMoudle.DB_RemoveGems(dels)
 	if oldLevel < pGemData.StrengLevel && req.GemPosType == POSTYPE_BATTLE {
 		response.FightValue = player.CalcFightValue()
 	}
@@ -2207,10 +2274,12 @@ func Hand_GemRefine(w http.ResponseWriter, r *http.Request) {
 	pGemData.RefineLevel += 1
 	response.Level = pGemData.RefineLevel
 	//必须以不影响的索引的方式删除
+	var dels []int = make([]int, 0, 5)
 	for t := 0; t < len(req.CostGems); t++ {
 		player.BagMoudle.RemoveGemAt(req.CostGems[t].GemPos)
+		dels = append(dels, req.CostGems[t].GemPos)
 	}
-	player.BagMoudle.DB_SaveGemBag()
+	player.BagMoudle.DB_RemoveGems(dels)
 	player.RoleMoudle.CostMoney(pGemRefineCostInfo.MoneyID, pGemRefineCostInfo.MoneyNum)
 	if req.GemPosType == POSTYPE_BATTLE {
 		response.FightValue = player.CalcFightValue()
@@ -2461,11 +2530,12 @@ func Hand_DecomposeHero(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	var dels []int = make([]int, 0, 5)
 	for t := 0; t < len(req.CostHeros); t++ {
 		player.BagMoudle.RemoveHeroAt(req.CostHeros[t].HeroPos)
+		dels = append(dels, req.CostHeros[t].HeroPos)
 	}
-
-	player.BagMoudle.DB_SaveHeroBag()
+	player.BagMoudle.DB_RemoveHeros(dels)
 
 	//! 发放奖励
 	for i, v := range resmap {
@@ -3218,11 +3288,12 @@ func Hand_DecomposeEquip(w http.ResponseWriter, r *http.Request) {
 		resmap[gamedata.EquipRefineDecomposeItemID] += totalExp / itemInfo.Data1
 	}
 
+	var dels []int = make([]int, 0, 5)
 	for _, item := range req.CostEquips {
 		player.BagMoudle.RemoveEquipAt(item.EquipPos)
+		dels = append(dels, item.EquipPos)
 	}
-
-	player.BagMoudle.DB_SaveBagEquips()
+	player.BagMoudle.DB_RemoveEquips(dels)
 
 	//! 奖励物品
 	for i, v := range resmap {
@@ -3558,6 +3629,7 @@ func Hand_UpgradeDiaoWen(w http.ResponseWriter, r *http.Request) {
 
 	if req.DiaoWenID <= 0 || req.DiaoWenID > 6 {
 		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_UpgradeDiaoWen : Invalid DiaoWenID:%d", req.DiaoWenID)
 		return
 	}
 
@@ -3571,6 +3643,12 @@ func Hand_UpgradeDiaoWen(w http.ResponseWriter, r *http.Request) {
 
 	if pTargetHeroData.DiaoWenQuality[req.DiaoWenID-1] < 2 {
 		pTargetHeroData.DiaoWenQuality[req.DiaoWenID-1] = 2
+	}
+
+	if pTargetHeroData.DiaoWenQuality[req.DiaoWenID-1] >= 7 {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_UpgradeDiaoWen : you have already up to the max limit:%d", pTargetHeroData.DiaoWenQuality[req.DiaoWenID-1])
+		return
 	}
 
 	pDiaoWenItem := gamedata.GetDiaoWenInfo(req.DiaoWenID, int(pTargetHeroData.DiaoWenQuality[req.DiaoWenID-1]))
@@ -3807,7 +3885,6 @@ func Hand_UpgradePet(w http.ResponseWriter, r *http.Request) {
 
 	if false == gamedata.IsFuncOpen(gamedata.FUNC_BATTLE_PET, player.GetLevel(), player.GetVipLevel()) {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
-		gamelog.Error("Hand_UpgradePet : Func is not open!!!!")
 		return
 	}
 
@@ -3875,6 +3952,10 @@ func Hand_UpgradePet(w http.ResponseWriter, r *http.Request) {
 
 		pTargetPetData.Exp -= pPetLevelInfo.NeedExp
 		pTargetPetData.Level += 1
+
+		if pTargetPetData.Level >= 100 {
+			break
+		}
 	}
 
 	player.DB_SavePetLevel(req.PosType, req.PosIndex)
@@ -3924,7 +4005,6 @@ func Hand_UpstarPet(w http.ResponseWriter, r *http.Request) {
 
 	if false == gamedata.IsFuncOpen(gamedata.FUNC_BATTLE_PET, player.GetLevel(), player.GetVipLevel()) {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
-		gamelog.Error("Hand_UpstarPet : Func is not open!!!!")
 		return
 	}
 
@@ -4028,13 +4108,6 @@ func Hand_UpgodPet(w http.ResponseWriter, r *http.Request) {
 
 	if false == gamedata.IsFuncOpen(gamedata.FUNC_BATTLE_PET, player.GetLevel(), player.GetVipLevel()) {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
-		gamelog.Error("Hand_UpgodPet : Func is not open!!!!")
-		return
-	}
-
-	if false == gamedata.IsFuncOpen(gamedata.FUNC_BATTLE_PET, player.GetLevel(), player.GetVipLevel()) {
-		response.RetCode = msg.RE_FUNC_NOT_OPEN
-		gamelog.Error("Hand_UpgodPet : Func is not open!!!!")
 		return
 	}
 
@@ -4059,6 +4132,12 @@ func Hand_UpgodPet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if pTargetPetData.God >= gamedata.GT_Max_God_Level {
+		gamelog.Error("Hand_UpgodPet error : Max God Level")
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
 	pItemInfo := gamedata.GetItemInfo(req.ItemID)
 	if pItemInfo == nil || pItemInfo.SubType != gamedata.SUB_TYPE_PET_GOD {
 		gamelog.Error("Hand_UpgodPet error : RE_INVALID_PARAM")
@@ -4077,6 +4156,10 @@ func Hand_UpgodPet(w http.ResponseWriter, r *http.Request) {
 
 		pTargetPetData.GodExp -= pPetGodInfo.NeedExp
 		pTargetPetData.God += 1
+
+		if pTargetPetData.God >= gamedata.GT_Max_God_Level {
+			break
+		}
 	}
 
 	player.DB_SavePetGod(req.PosType, req.PosIndex)
@@ -4121,7 +4204,6 @@ func Hand_ChangePet(w http.ResponseWriter, r *http.Request) {
 
 	if false == gamedata.IsFuncOpen(gamedata.FUNC_BATTLE_PET, player.GetLevel(), player.GetVipLevel()) {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
-		gamelog.Error("Hand_ChangePet : Func is not open!!!!")
 		return
 	}
 
@@ -4134,7 +4216,6 @@ func Hand_ChangePet(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if !gamedata.IsFuncOpen(gamedata.FUNC_PET_POS_BEGIN+petcount-1, player.GetLevel(), 0) {
-			gamelog.Error("Hand_ChangePet battle pos is not open!")
 			response.RetCode = msg.RE_INVALID_PARAM
 			return
 		}
@@ -4224,7 +4305,6 @@ func Hand_UnsetPet(w http.ResponseWriter, r *http.Request) {
 
 	if false == gamedata.IsFuncOpen(gamedata.FUNC_BATTLE_PET, player.GetLevel(), player.GetVipLevel()) {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
-		gamelog.Error("Hand_UnsetPet : Func is not open!!!!")
 		return
 	}
 
@@ -4237,7 +4317,6 @@ func Hand_UnsetPet(w http.ResponseWriter, r *http.Request) {
 
 	//将宠物装到背包中
 	player.BagMoudle.AddPetData(&tempTarget)
-	player.BagMoudle.DB_AddPetAtLast(false)
 
 	player.HeroMoudle.CurPets[req.TargetPos].Clear()
 	player.DB_SavePetAt(POSTYPE_BATTLE, req.TargetPos)
@@ -4300,7 +4379,7 @@ func Hand_ComposePet(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	player.BagMoudle.AddPetByID(pPetInfo.PetID)
+	player.BagMoudle.AddPets(pPetInfo.PetID, 1)
 	player.BagMoudle.RemovePetPiece(req.PetPieceID, pPetInfo.PieceNum)
 	response.PetID = pPetInfo.PetID
 	response.RetCode = msg.RE_SUCCESS
@@ -4311,7 +4390,7 @@ func Hand_ComposePet(w http.ResponseWriter, r *http.Request) {
 
 	bAdd := false
 	for j := 0; j < len(gamedata.GT_PetMap_List); j++ {
-		for k := 0; k < 3; k++ {
+		for k := 0; k < len(gamedata.GT_PetMap_List[j].PetIds); k++ {
 			if gamedata.GT_PetMap_List[j].PetIds[k] == pPetInfo.PetID && gamedata.GT_PetMap_List[j].IsMapOK(player.BagMoudle.ColPets) {
 				bAdd = true
 				for _, n := range gamedata.GT_PetMap_List[j].Buffs {
@@ -4450,9 +4529,14 @@ func Hand_FashionStrength(w http.ResponseWriter, r *http.Request) {
 	player.BagMoudle.DB_SaveFashionAt(nIndex)
 	player.BagMoudle.RemoveNormalItem(pFashionLevel.CostItemID, pFashionLevel.CostItemNum)
 	player.RoleMoudle.CostMoney(pFashionLevel.CostMoneyID, pFashionLevel.CostMoneyNum)
+	response.FID = player.BagMoudle.FashionBag.Fashions[nIndex].ID
+	response.FLevel = player.BagMoudle.FashionBag.Fashions[nIndex].Level
+	response.FightValue = 0
+	response.RetCode = msg.RE_SUCCESS
 	if player.HeroMoudle.FashionID == player.BagMoudle.FashionBag.Fashions[nIndex].ID {
 		player.HeroMoudle.FashionLvl = player.BagMoudle.FashionBag.Fashions[nIndex].Level
 		player.HeroMoudle.DB_SaveFashionInfo()
+		response.FightValue = player.CalcFightValue()
 	}
 
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FASHION_STRENGTH, 1)
@@ -4484,6 +4568,12 @@ func Hand_FashionRecast(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if false == player.RoleMoudle.CheckMoneyEnough(gamedata.FashionRecastMoneyID, gamedata.FashionRecastMoneyNum) {
+		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
+		gamelog.Error("Hand_FashionRecast : Not Enought Money!!!!")
+		return
+	}
+
 	nIndex := -1
 	//先检测是否存在时装
 	for i := 0; i < len(player.BagMoudle.FashionBag.Fashions); i++ {
@@ -4499,6 +4589,12 @@ func Hand_FashionRecast(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if player.BagMoudle.FashionBag.Fashions[nIndex].Level <= 1 {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_FashionRecast Error: No Need Recast:%d", req.FashionID)
+		return
+	}
+
 	pFashionInfo := gamedata.GetFashionInfo(req.FashionID)
 	if pFashionInfo == nil {
 		response.RetCode = msg.RE_INVALID_PARAM
@@ -4511,13 +4607,32 @@ func Hand_FashionRecast(w http.ResponseWriter, r *http.Request) {
 		gamelog.Error("Hand_FashionRecast Error: Invalid Fashion quality %d, level :%d", pFashionInfo.Quality, player.BagMoudle.FashionBag.Fashions[nIndex].Level)
 		return
 	}
+
+	player.BagMoudle.FashionBag.Fashions[nIndex].Level = 1
+	player.BagMoudle.DB_SaveFashionAt(nIndex)
+
+	if player.HeroMoudle.FashionID == player.BagMoudle.FashionBag.Fashions[nIndex].ID {
+		player.HeroMoudle.FashionLvl = player.BagMoudle.FashionBag.Fashions[nIndex].Level
+		player.HeroMoudle.DB_SaveFashionInfo()
+		response.FightValue = player.CalcFightValue()
+	}
+
+	player.RoleMoudle.CostMoney(gamedata.FashionRecastMoneyID, gamedata.FashionRecastMoneyNum)
+
+	response.RetCode = msg.RE_SUCCESS
+	response.FID = req.FashionID
+	response.FLevel = 1
+	response.CostID = pFashionLevel.CostItemID
+	response.CostNum = pFashionLevel.CostItemSum
+	response.MoneyID = pFashionLevel.CostMoneyID
+	response.MoneyNum = pFashionLevel.CostMoneySum
 }
 
 func IsFashionMapOK(pMap *gamedata.ST_FashionMapInfo, Fashions []TFashionData) bool {
-	for i := 0; i < 3; i++ {
+	for i := 0; i < len(pMap.FashionIds); i++ {
 		bFind := false
 		for j := 0; j < len(Fashions); j++ {
-			if pMap.FashionIds[i] == int(Fashions[j].ID) || pMap.FashionIds[i] == 0 {
+			if pMap.FashionIds[i] == Fashions[j].ID || pMap.FashionIds[i] == 0 {
 				bFind = true
 				break
 			}
@@ -4558,7 +4673,7 @@ func Hand_FashionCompose(w http.ResponseWriter, r *http.Request) {
 
 	for i := 0; i < len(player.BagMoudle.FashionBag.Fashions); i++ {
 		if player.BagMoudle.FashionBag.Fashions[i].ID == req.FashionID {
-			response.RetCode = msg.RE_NOT_ENOUGH_ITEM
+			response.RetCode = msg.RE_INVALID_PARAM
 			gamelog.Error("Hand_FashionCompose Error: Fashion %d already exist", req.FashionID)
 			return
 		}
@@ -4566,6 +4681,7 @@ func Hand_FashionCompose(w http.ResponseWriter, r *http.Request) {
 
 	pFashionInfo := gamedata.GetFashionInfo(req.FashionID)
 	if pFashionInfo == nil {
+		response.RetCode = msg.RE_INVALID_PARAM
 		gamelog.Error("Hand_FashionCompose Error: Invalid Fashion ID %d", req.FashionID)
 		return
 	}
@@ -4576,7 +4692,7 @@ func Hand_FashionCompose(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player.BagMoudle.AddFashionByID(req.FashionID)
+	player.BagMoudle.AddFashionByID(int(req.FashionID))
 	player.BagMoudle.RemoveFashionPiece(pFashionInfo.PieceID, pFashionInfo.PieceNum)
 
 	response.RetCode = msg.RE_SUCCESS
@@ -4584,7 +4700,7 @@ func Hand_FashionCompose(w http.ResponseWriter, r *http.Request) {
 
 	bAdd := false
 	for j := 0; j < len(gamedata.GT_FashionMap_List); j++ {
-		for k := 0; k < 3; k++ {
+		for k := 0; k < len(gamedata.GT_FashionMap_List[j].FashionIds); k++ {
 			if gamedata.GT_FashionMap_List[j].FashionIds[k] == req.FashionID && IsFashionMapOK(&gamedata.GT_FashionMap_List[j], player.BagMoudle.FashionBag.Fashions) {
 				bAdd = true
 				for _, n := range gamedata.GT_FashionMap_List[j].Buffs {
@@ -4601,6 +4717,35 @@ func Hand_FashionCompose(w http.ResponseWriter, r *http.Request) {
 	}
 
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FASHION_COMPOSE, pFashionInfo.Quality)
+}
+
+//时装熔炼
+func Hand_FashionMeltValue(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	var req msg.MSG_FashionMeltValue_Req
+	if json.Unmarshal(buffer, &req) != nil {
+		gamelog.Error("Hand_FashionMeltValue : Unmarshal error!!!!")
+		return
+	}
+
+	var response msg.MSG_FashionMeltValue_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	response.Value = player.HeroMoudle.FashionMelt
+	response.RetCode = msg.RE_SUCCESS
 }
 
 //时装熔炼
@@ -4628,46 +4773,95 @@ func Hand_FashionMelting(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	MeltingValue := 0
-	//检查所有有碎片是不是足够
-	for i := 0; i < len(req.PieceIDs); i++ {
-		if player.BagMoudle.GetFashionPieceCount(req.PieceIDs[i]) < req.PieceNums[i] {
-			response.RetCode = msg.RE_NOT_ENOUGH_ITEM
-			gamelog.Error("Hand_FashionMelting : Not Enought Piece Item!!!!")
-			return
-		}
-
-		pItemInfo := gamedata.GetItemInfo(req.PieceIDs[i])
-		if pItemInfo == nil {
-			response.RetCode = msg.RE_INVALID_PARAM
-			gamelog.Error("Hand_FashionMelting : Invalid PieceID:%d!!!!", req.PieceIDs[i])
-			return
-		}
-
-		MeltingValue += pItemInfo.Data2
-	}
-
-	if MeltingValue < gamedata.FashionMeltingSum {
+	if player.BagMoudle.GetFashionPieceCount(req.PieceID) < req.PieceNum {
 		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
 		gamelog.Error("Hand_FashionMelting : Not Enought Piece Item!!!!")
+		return
+	}
+
+	pItemInfo := gamedata.GetItemInfo(req.PieceID)
+	if pItemInfo == nil {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_FashionMelting : Invalid PieceID:%d!!!!", req.PieceID)
+		return
+	}
+
+	player.BagMoudle.RemoveFashionPiece(req.PieceID, req.PieceNum)
+	player.HeroMoudle.FashionMelt += int32(pItemInfo.Data2 * req.PieceNum)
+	player.HeroMoudle.DB_SaveFashionInfo()
+	response.Value = player.HeroMoudle.FashionMelt
+	response.RetCode = msg.RE_SUCCESS
+}
+
+//时装熔炼
+func Hand_FashionMeltAward(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	var req msg.MSG_FashionMeltAward_Req
+	if json.Unmarshal(buffer, &req) != nil {
+		gamelog.Error("Hand_FashionMeltAward : Unmarshal error!!!!")
+		return
+	}
+
+	var response msg.MSG_FashionMeltAward_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	if player.HeroMoudle.FashionMelt < int32(gamedata.FashionMeltingSum) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_FashionMeltAward : Not Enought MeltingSum!!!!")
+		return
+	}
+
+	if false == player.RoleMoudle.CheckMoneyEnough(gamedata.FashionMeltingMoneyID, gamedata.FashionMeltingMoneyNum) {
+		response.RetCode = msg.RE_NOT_ENOUGH_MONEY
+		gamelog.Error("Hand_FashionMeltAward : Not Enought Money!!!!")
 		return
 	}
 
 	ret := gamedata.GetItemsFromAwardID(gamedata.FashionMeltingAwardID)
 	if ret == nil || len(ret) <= 0 {
 		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
-		gamelog.Error("Hand_FashionMelting : GetItemsFromAwardID Failed!!!!")
+		gamelog.Error("Hand_FashionMeltAward : GetItemsFromAwardID Failed:%d!!!!", gamedata.FashionMeltingAwardID)
 		return
 	}
+
 	bFind := false
 	for i := 0; i < len(player.BagMoudle.FashionBag.Fashions); i++ {
-		if ret[0].ItemID == player.BagMoudle.FashionBag.Fashions[i].ID {
+		if ret[0].ItemID == int(player.BagMoudle.FashionBag.Fashions[i].ID) {
 			bFind = true
 		}
 	}
 
 	if bFind == true {
+		pFashionInfo := gamedata.GetFashionInfo(int32(ret[0].ItemID))
+		if pFashionInfo == nil {
+			gamelog.Error("Hand_FashionMeltAward Error : Invalid FashionID:%d", ret[0].ItemID)
+			return
+		}
 
+		response.PieceID = pFashionInfo.PieceID
+		response.PieceNum = pFashionInfo.PieceNum
+		player.BagMoudle.AddFashionPiece(response.PieceID, response.PieceNum)
+
+	} else {
+		response.FashionID = int32(ret[0].ItemID)
+		player.BagMoudle.AddFashionByID(ret[0].ItemID)
 	}
 
+	player.RoleMoudle.CostMoney(gamedata.FashionMeltingMoneyID, gamedata.FashionMeltingMoneyNum)
+	player.HeroMoudle.FashionMelt = 0
+	player.HeroMoudle.DB_SaveFashionInfo()
+	response.RetCode = msg.RE_SUCCESS
 }

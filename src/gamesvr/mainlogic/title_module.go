@@ -6,7 +6,7 @@ import (
 	"gamesvr/gamedata"
 	"mongodb"
 	"sync"
-	"time"
+	"utility"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -14,7 +14,7 @@ import (
 //! 称号信息
 type TitleInfo struct {
 	TitleID int   //! 拥有称号ID
-	EndTime int64 //! 结束时间
+	EndTime int32 //! 结束时间
 	Status  int   //! 0->未激活 1->已激活 2->已佩戴
 }
 
@@ -36,7 +36,7 @@ func (self *TTitleModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 func (self *TTitleModule) OnCreate(playerid int32) {
 
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerTitle", self)
+	mongodb.InsertToDB("PlayerTitle", self)
 }
 
 func (self *TTitleModule) OnDestroy(playerid int32) {
@@ -77,10 +77,10 @@ func (self *TTitleModule) AddTitle(titleID int) {
 
 	var title TitleInfo
 	title.TitleID = titleID
-	title.EndTime = time.Now().Unix() + int64(titleInfo.Time)
+	title.EndTime = utility.GetCurTime() + int32(titleInfo.Time)
 
 	if titleInfo.Time == -1 {
-		title.EndTime = -1
+		title.EndTime = 0xFFFFFFF
 	}
 
 	self.TitleLst = append(self.TitleLst, title)
@@ -108,7 +108,7 @@ func (self *TTitleModule) RemoveTitle(index int) {
 
 //! 检测称号到期情况
 func (self *TTitleModule) CheckTitleDeadLine() {
-	now := time.Now().Unix()
+	now := utility.GetCurTime()
 
 	for i := 0; i < len(self.TitleLst); i++ {
 		if now >= self.TitleLst[i].EndTime && self.TitleLst[i].EndTime >= 0 {

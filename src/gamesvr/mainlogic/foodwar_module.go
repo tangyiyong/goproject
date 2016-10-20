@@ -4,12 +4,11 @@ import (
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"sync"
 	"time"
 	"utility"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type TRevengeInfo struct {
@@ -19,26 +18,18 @@ type TRevengeInfo struct {
 
 //! 夺粮战
 type TFoodWarModule struct {
-	PlayerID int32 `bson:"_id"`
-
-	FixedFood int //! 固定粮草
-	TotalFood int //! 总计粮草
-
-	AttackTimes  int //! 攻打次数
-	RevengeTimes int //! 复仇次数
-
-	BuyAttackTimes  int //! 已购买攻击次数
-	BuyRevengeTimes int //! 已购买复仇次数
-
-	RevengeLst []TRevengeInfo //! 复仇名单
-
-	NextTime int64
-
+	PlayerID     int32          `bson:"_id"`
+	FixedFood    int            //! 固定粮草
+	TotalFood    int            //! 总计粮草
+	AttackTimes  int            //! 攻打次数
+	RevengeTimes int            //! 复仇次数
+	BuyTimes     int            //! 已购买攻击次数
+	BuyRevTimes  int            //! 已购买复仇次数
+	RevengeLst   []TRevengeInfo //! 复仇名单
+	NextTime     uint32
 	AwardRecvLst IntLst //! 粮草奖励领取记录
-
-	ResetDay uint32
-
-	ownplayer *TPlayer
+	ResetDay     uint32
+	ownplayer    *TPlayer
 }
 
 func (self *TFoodWarModule) SetPlayerPtr(playerid int32, player *TPlayer) {
@@ -55,21 +46,21 @@ func (self *TFoodWarModule) OnCreate(playerid int32) {
 	now := time.Now()
 	nextTime := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, time.Local).Unix()
 	nextTime += 3600
-	self.NextTime = nextTime
+	self.NextTime = uint32(nextTime)
 	self.ResetDay = utility.GetCurDay()
 
 	self.TotalFood = gamedata.FoodWarFixedFood + gamedata.FoodWarNonFixedFood
 	self.FixedFood = gamedata.FoodWarFixedFood
 	self.RevengeLst = []TRevengeInfo{}
-	self.BuyAttackTimes = 0
-	self.BuyRevengeTimes = 0
+	self.BuyTimes = 0
+	self.BuyRevTimes = 0
 	self.AwardRecvLst = IntLst{}
 
 	//! 加入粮草排行榜
 	G_FoodWarRanker.SetRankItem(self.PlayerID, self.TotalFood)
 
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerFoodWar", self)
+	mongodb.InsertToDB("PlayerFoodWar", self)
 }
 
 func (self *TFoodWarModule) OnDestroy(playerid int32) {
@@ -145,14 +136,14 @@ func (self *TFoodWarModule) OnNewDay(newday uint32) {
 	now := time.Now()
 	nextTime := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, time.Local).Unix()
 	nextTime += 3600
-	self.NextTime = nextTime
+	self.NextTime = uint32(nextTime)
 	self.ResetDay = newday
 
 	self.TotalFood = gamedata.FoodWarFixedFood + gamedata.FoodWarNonFixedFood
 	self.FixedFood = gamedata.FoodWarFixedFood
 	self.RevengeLst = []TRevengeInfo{}
-	self.BuyAttackTimes = 0
-	self.BuyRevengeTimes = 0
+	self.BuyTimes = 0
+	self.BuyRevTimes = 0
 	self.AwardRecvLst = IntLst{}
 
 	//! 加入粮草排行榜
@@ -180,7 +171,7 @@ func (self *TFoodWarModule) CheckTime() {
 
 	now := time.Now()
 
-	interval := now.Unix() - self.NextTime
+	interval := uint32(now.Unix()) - self.NextTime
 	addTimes := 0
 	if interval < 0 {
 		//! 未到下次增加时间
@@ -205,7 +196,7 @@ func (self *TFoodWarModule) CheckTime() {
 
 	nextTime := time.Date(now.Year(), now.Month(), now.Day(), now.Hour(), 0, 0, 0, time.Local).Unix()
 	nextTime += 3600
-	self.NextTime = nextTime
+	self.NextTime = uint32(nextTime)
 
 	self.DB_CheckTime()
 }

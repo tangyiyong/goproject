@@ -5,12 +5,11 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"sync"
 	"time"
 	"utility"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type TBlackMarketGoods struct {
@@ -20,16 +19,13 @@ type TBlackMarketGoods struct {
 
 //! 黑市
 type TBlackMarketModule struct {
-	PlayerID int32 `bson:"_id"`
-
+	PlayerID    int32               `bson:"_id"`
 	GoodsLst    []TBlackMarketGoods //! 商品
-	RefreshTime int64               //! 刷新时间
-
-	IsOpen      bool   //! 是否开启
-	OpenEndTime int64  //! 商店结束时间
-	ResetDay    uint32 //! 隔天刷新
-
-	ownplayer *TPlayer
+	RefreshTime int32               //! 刷新时间
+	IsOpen      bool                //! 是否开启
+	BlackTime   int32               //! 商店结束时间
+	ResetDay    uint32              //! 隔天刷新
+	ownplayer   *TPlayer
 }
 
 func (self *TBlackMarketModule) SetPlayerPtr(playerid int32, player *TPlayer) {
@@ -52,7 +48,7 @@ func (self *TBlackMarketModule) RefreshGoods(isSave bool) {
 	}
 
 	self.RefreshTime = self.GetNextRefreshTime()
-	self.OpenEndTime = time.Now().Unix() + 60*60
+	self.BlackTime = utility.GetCurTime() + 60*60
 
 	randGoodsIDLst := gamedata.BlackMarketRandGoods(self.ownplayer.GetLevel())
 
@@ -71,7 +67,7 @@ func (self *TBlackMarketModule) RefreshGoods(isSave bool) {
 }
 
 func (self *TBlackMarketModule) CheckReset() {
-	if time.Now().Unix() > self.RefreshTime {
+	if utility.GetCurTime() > self.RefreshTime {
 		self.RefreshGoods(true)
 	}
 
@@ -84,12 +80,12 @@ func (self *TBlackMarketModule) CheckReset() {
 
 func (self *TBlackMarketModule) OnNewDay(newday uint32) {
 	self.IsOpen = false
-	self.OpenEndTime = 0
+	self.BlackTime = 0
 	self.ResetDay = newday
 	self.DB_Reset()
 }
 
-func (self *TBlackMarketModule) GetNextRefreshTime() int64 {
+func (self *TBlackMarketModule) GetNextRefreshTime() int32 {
 	now := time.Now()
 	nowsec := now.Hour()*60*60 + now.Minute()*60 + now.Second()
 
@@ -109,14 +105,14 @@ func (self *TBlackMarketModule) GetNextRefreshTime() int64 {
 
 		now.AddDate(0, 0, 1)
 		refreshTime := time.Date(now.Year(), now.Month(), now.Day(), hour, min, sec, 0, now.Location())
-		return refreshTime.Unix()
+		return int32(refreshTime.Unix())
 	}
 
 	hour := refreshSec / 3600
 	min := (refreshSec - hour*3600) / 60
 	sec := refreshSec - hour*3600 - min*60
 	refreshTime := time.Date(now.Year(), now.Month(), now.Day(), hour, min, sec, 0, now.Location())
-	return refreshTime.Unix()
+	return int32(refreshTime.Unix())
 }
 
 func (self *TBlackMarketModule) OnDestroy(playerid int32) {
@@ -160,7 +156,7 @@ func (self *TBlackMarketModule) DB_SaveGoods() {
 	mongodb.UpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
 		"goodslst":    self.GoodsLst,
 		"refreshtime": self.RefreshTime,
-		"openendtime": self.OpenEndTime,
+		"blacktime":   self.BlackTime,
 		"isopen":      self.IsOpen}})
 }
 
@@ -172,6 +168,6 @@ func (self *TBlackMarketModule) DB_UpdateBuyMark(id int) {
 
 func (self *TBlackMarketModule) DB_Reset() {
 	mongodb.UpdateToDB("PlayerBlackMarket", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"openendtime": self.OpenEndTime,
-		"isopen":      self.IsOpen}})
+		"blacktime": self.BlackTime,
+		"isopen":    self.IsOpen}})
 }

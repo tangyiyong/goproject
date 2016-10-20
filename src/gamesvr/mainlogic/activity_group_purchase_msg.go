@@ -49,7 +49,7 @@ func Hand_GetGroupPurchaseInfo(w http.ResponseWriter, r *http.Request) {
 		groupItemInfo, _ := G_GlobalVariables.GetGroupPurchaseItemInfo(n.ItemID)
 		itemInfo.SaleNum = groupItemInfo.SaleNum
 
-		for _, v := range player.ActivityModule.GroupPurchase.PurchaseCostLst {
+		for _, v := range player.ActivityModule.GroupPurchase.ShoppingInfo {
 			if n.ItemID == v.ItemID {
 				itemInfo.CanBuyNum -= v.Times
 				break
@@ -71,8 +71,7 @@ func Hand_GetGroupPurchaseInfo(w http.ResponseWriter, r *http.Request) {
 
 	for _, v := range G_GlobalVariables.ActivityLst {
 		if v.ActivityID == player.ActivityModule.GroupPurchase.ActivityID {
-			activityInfo := gamedata.GetActivityInfo(v.ActivityID)
-			response.EndTime = v.endTime - int64(activityInfo.AwardTime*60*60*24)
+			response.EndTime = v.actEndTime
 			response.AwardTime = v.endTime
 		}
 	}
@@ -117,12 +116,12 @@ func Hand_BuyGroupPurchaseItem(w http.ResponseWriter, r *http.Request) {
 	itemData := gamedata.GetGroupPurchaseItemInfo(req.ItemID, awardType)
 
 	//! 检测团购次数是否足够
-	costInfo, costIndex := player.ActivityModule.GroupPurchase.GetGroupItemInfo(req.ItemID)
-	canBuyNum := itemData.BuyTimes - costInfo.Times
+	orderInfo, orderIndex := player.ActivityModule.GroupPurchase.GetGroupItemShoppingInfo(req.ItemID)
+	canBuyNum := itemData.BuyTimes - orderInfo.Times
 
 	if canBuyNum <= 0 {
 		gamelog.Error("Hand_BuyGroupPurchaseItem Error: Buy times not enough")
-		response.RetCode = msg.RE_INVALID_PARAM
+		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 		return
 	}
 
@@ -157,15 +156,19 @@ func Hand_BuyGroupPurchaseItem(w http.ResponseWriter, r *http.Request) {
 	response.ItemNum = itemData.ItemNum
 
 	//! 增加积分
-	response.Score = curItemNum + needMoney*10
+	response.Score = curItemNum + needMoney
 	player.ActivityModule.GroupPurchase.Score += response.Score
 	response.Score = player.ActivityModule.GroupPurchase.Score
 	player.ActivityModule.GroupPurchase.DB_SaveScore()
 
 	//! 增加购买记录
+	costInfo, costIndex := player.ActivityModule.GroupPurchase.GetGroupItemInfo(req.ItemID)
 	costInfo.MoneyNum += needMoney
 	costInfo.Times += 1
 	player.ActivityModule.GroupPurchase.DB_UpdatePurchaseCostInfo(costIndex)
+
+	orderInfo.Times += 1
+	player.ActivityModule.GroupPurchase.DB_UpdatePurchaseOrderInfo(orderIndex)
 
 	//! 增加总购买记录
 	response.SaleNum = G_GlobalVariables.AddGroupPurchaseRecord(req.ItemID, 1)
@@ -219,7 +222,7 @@ func Hand_GetGroupPurchaseScoreAward(w http.ResponseWriter, r *http.Request) {
 
 	if player.ActivityModule.GroupPurchase.Score < scoreInfo.NeedScore {
 		gamelog.Error("Hand_GetGroupPurchaseScoreAward Error: Score not enough")
-		response.RetCode = msg.RE_NOT_ENOUGH_SCORE
+		response.RetCode = msg.RE_SCORE_NOT_ENOUGH
 		return
 	}
 
@@ -229,5 +232,61 @@ func Hand_GetGroupPurchaseScoreAward(w http.ResponseWriter, r *http.Request) {
 	//! 增加记录
 	player.ActivityModule.GroupPurchase.ScoreAwardMark.Add(req.ID)
 	player.ActivityModule.GroupPurchase.DB_AddScoreAward(req.ID)
+	response.RetCode = msg.RE_SUCCESS
+}
+
+//! 玩家请求一键领取团购积分奖励
+func Hand_OneKeyReceiveGroupScoreAward(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	var req msg.MSG_GetGroupScoreAwardOneKey_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_OneKeyReceiveGroupScoreAward Error: unmarshal fail")
+		return
+	}
+
+	var response msg.MSG_GetGroupScoreAwardOneKey_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	player.ActivityModule.CheckReset()
+
+	awardType := G_GlobalVariables.GetActivityAwardType(player.ActivityModule.GroupPurchase.ActivityID)
+	begin, end := gamedata.GetGroupPurchaseScoreAwardSection(awardType)
+
+	awardLst := []gamedata.ST_ItemData{}
+	for i := begin; i < end; i++ {
+		scoreInfo := gamedata.GetGroupPurchaseScoreAward(i)
+		if player.ActivityModule.GroupPurchase.Score >= scoreInfo.NeedScore && player.ActivityModule.GroupPurchase.ScoreAwardMark.IsExist(i) < 0 {
+			awardLst = append(awardLst, gamedata.ST_ItemData{scoreInfo.ItemID, scoreInfo.ItemNum})
+			player.ActivityModule.GroupPurchase.ScoreAwardMark.Add(i)
+		}
+	}
+
+	player.ActivityModule.GroupPurchase.DB_UpdateScoreAward()
+
+	player.BagMoudle.AddAwardItems(awardLst)
+
+	for _, v := range awardLst {
+		var item msg.MSG_ItemData
+		item.ID = v.ItemID
+		item.Num = v.ItemNum
+		response.AwardLst = append(response.AwardLst, item)
+	}
+
+	response.ScoreAwardMark = player.ActivityModule.GroupPurchase.ScoreAwardMark
 	response.RetCode = msg.RE_SUCCESS
 }

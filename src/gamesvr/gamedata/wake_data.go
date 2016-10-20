@@ -41,6 +41,7 @@ var (
 
 func InitWakeLevelParser(total int) bool {
 	GT_WakeLevelList = make([]ST_WakeLevel, total+1)
+	MaxWakeLevel = 0
 	return true
 }
 
@@ -66,6 +67,10 @@ func ParseWakeLevelRecord(rs *RecordSet) {
 	GT_WakeLevelList[level].HostWakeNum = rs.GetFieldInt("host_wake_num")
 	GT_WakeLevelList[level].NeedWakeID = rs.GetFieldInt("need_wake_id")
 	GT_WakeLevelList[level].bCalculate = false
+
+	if MaxWakeLevel < level {
+		MaxWakeLevel = level
+	}
 }
 
 func ParseWakeComposeRecord(rs *RecordSet) {
@@ -81,12 +86,14 @@ func ParseWakeComposeRecord(rs *RecordSet) {
 	compose.Items[2].ItemNum = rs.GetFieldInt("item_3_num")
 	compose.Items[3].ItemID = rs.GetFieldInt("item_4")
 	compose.Items[3].ItemNum = rs.GetFieldInt("item_4_num")
+	compose.MoneyID = rs.GetFieldInt("money_id")
+	compose.MoneyNum = rs.GetFieldInt("money_num")
 	GT_WakeComposeList[id] = compose
 }
 
 func FinishWakeLevelParser() bool {
 	for level := 0; level <= MaxWakeLevel; level++ {
-		pWakeLevel := GT_WakeLevelList[level]
+		pWakeLevel := &GT_WakeLevelList[level]
 		if level == 0 {
 			for i := 0; i < len(pWakeLevel.NeedItem); i++ {
 				itemid := pWakeLevel.NeedItem[i]
@@ -110,15 +117,14 @@ func FinishWakeLevelParser() bool {
 				pWakeLevel.PropertyPercents[3] += pWakeLevel.ExtraValue
 				pWakeLevel.PropertyPercents[4] += pWakeLevel.ExtraValue
 			} else if pWakeLevel.ExtraProperty == AttackPropertyID {
-				pWakeLevel.PropertyValues[AttackMagicID] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyValues[AttackPhysicID] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[AttackMagicID-1] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[AttackPhysicID-1] += pWakeLevel.ExtraValue
 			} else if pWakeLevel.ExtraProperty == DefencePropertyID {
-				pWakeLevel.PropertyValues[DefenceMagicID] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyValues[DefencePhysicID] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[DefenceMagicID-1] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[DefencePhysicID-1] += pWakeLevel.ExtraValue
 			} else if pWakeLevel.ExtraProperty > 0 && pWakeLevel.ExtraProperty <= 11 {
-				pWakeLevel.PropertyValues[pWakeLevel.ExtraProperty] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[pWakeLevel.ExtraProperty-1] += pWakeLevel.ExtraValue
 			}
-
 		} else {
 			pWakeLevel.PropertyValues = GT_WakeLevelList[level-1].PropertyValues
 			pWakeLevel.PropertyPercents = GT_WakeLevelList[level-1].PropertyPercents
@@ -141,15 +147,14 @@ func FinishWakeLevelParser() bool {
 				pWakeLevel.PropertyPercents[3] += pWakeLevel.ExtraValue
 				pWakeLevel.PropertyPercents[4] += pWakeLevel.ExtraValue
 			} else if pWakeLevel.ExtraProperty == AttackPropertyID {
-				pWakeLevel.PropertyValues[AttackMagicID] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyValues[AttackPhysicID] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[AttackMagicID-1] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[AttackPhysicID-1] += pWakeLevel.ExtraValue
 			} else if pWakeLevel.ExtraProperty == DefencePropertyID {
-				pWakeLevel.PropertyValues[DefenceMagicID] += pWakeLevel.ExtraValue
-				pWakeLevel.PropertyValues[DefencePhysicID] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[DefenceMagicID-1] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[DefencePhysicID-1] += pWakeLevel.ExtraValue
 			} else if pWakeLevel.ExtraProperty > 0 && pWakeLevel.ExtraProperty <= 11 {
-				pWakeLevel.PropertyValues[pWakeLevel.ExtraProperty] += pWakeLevel.ExtraValue
+				pWakeLevel.PropertyValues[pWakeLevel.ExtraProperty-1] += pWakeLevel.ExtraValue
 			}
-
 		}
 	}
 	return true

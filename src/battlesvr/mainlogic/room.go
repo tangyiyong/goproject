@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	max_room_player     = 15 //一个房间的最大人数
-	max_room_camp       = 3  //一个房间的最大阵营数
-	max_one_camp_player = 5  //一个阵营的最大人数
+	room_player_num = 15 //一个房间的最大人数
+	room_camp_num   = 3  //一个房间的最大阵营数
+	camp_player_num = 5  //一个阵营的最大人数
 )
 
 type TMessage struct {
@@ -17,16 +17,14 @@ type TMessage struct {
 }
 
 type TBattleRoom struct {
-	RoomID   int16                        //房间ID
-	RoomType int32                        //等级类型
-	Players  [max_room_player]*TBattleObj //三个阵营的人员
-	CampNum  [max_room_camp]int32         //各个阵营人数
-	MsgList  chan TMessage                //消息队列
+	RoomID  int16                        //房间ID
+	Players [room_player_num]*TBattleObj //三个阵营的人员
+	CampNum [room_camp_num]int32         //各个阵营人数
+	MsgList chan TMessage                //消息队列
 }
 
-func (self *TBattleRoom) Init(id int16, roomtype int32) bool {
+func (self *TBattleRoom) Init(id int16) bool {
 	self.RoomID = id
-	self.RoomType = roomtype
 	self.MsgList = make(chan TMessage, 100)
 	go self.MsgProcess()
 	return true
@@ -34,7 +32,6 @@ func (self *TBattleRoom) Init(id int16, roomtype int32) bool {
 
 func (self *TBattleRoom) MsgProcess() {
 	for msgItem := range self.MsgList {
-
 		switch msgItem.MsgID {
 		case msg.MSG_MOVE_STATE:
 			self.Hand_MoveState(msgItem.MsgData)
@@ -74,13 +71,13 @@ func (self *TBattleRoom) MsgProcess() {
 
 //由于客户端原因，index_player需要从2开始计
 func (self *TBattleRoom) AddPlayer(pBattleObj *TBattleObj) bool {
-	if pBattleObj == nil || pBattleObj.PlayerID <= 0 || pBattleObj.BatCamp <= 0 || pBattleObj.BatCamp > max_room_camp {
+	if pBattleObj == nil || pBattleObj.PlayerID <= 0 || pBattleObj.BatCamp <= 0 || pBattleObj.BatCamp > room_camp_num {
 		gamelog.Error("AddPlayer Error Invalid Parameter playerid:%d, batcamp:%d!!!", pBattleObj.PlayerID, pBattleObj.BatCamp)
 		return false
 	}
 
 	var i int32 = 0
-	for ; i < max_room_player; i++ {
+	for ; i < room_player_num; i++ {
 		if self.Players[i] == nil {
 			self.Players[i] = pBattleObj
 			for j := int32(0); j < 6; j++ {
@@ -90,7 +87,7 @@ func (self *TBattleRoom) AddPlayer(pBattleObj *TBattleObj) bool {
 		}
 	}
 
-	if i == max_room_player {
+	if i == room_player_num {
 		gamelog.Error("AddPlayer Error No space for new player!")
 		return false
 	}
@@ -106,7 +103,7 @@ func (self *TBattleRoom) RemovePlayer(playerid int32) bool {
 	}
 
 	var i = 0
-	for ; i < max_room_player; i++ {
+	for ; i < room_player_num; i++ {
 		if self.Players[i] == nil {
 			continue
 		}
@@ -125,7 +122,7 @@ func (self *TBattleRoom) GetHeroObject(objectid int32) *THeroObj {
 	idx_player := (objectid >> 16) - 2
 	idx_hero := objectid & 0x00ff
 
-	if idx_player >= max_room_player || idx_player < 0 {
+	if idx_player >= room_player_num || idx_player < 0 {
 		gamelog.Error("GetHeroObject Error Objectid:%d, Invalid idx_player:%d", objectid, idx_player)
 		return nil
 	}
@@ -144,7 +141,7 @@ func (self *TBattleRoom) GetHeroObject(objectid int32) *THeroObj {
 }
 
 func (self *TBattleRoom) GetBattleByPID(playerid int32) *TBattleObj {
-	for i := 0; i < max_room_player; i++ {
+	for i := 0; i < room_player_num; i++ {
 		if self.Players[i] != nil && self.Players[i].PlayerID == playerid {
 			return self.Players[i]
 		}
@@ -163,7 +160,7 @@ func (self *TBattleRoom) GetPlayerHeros(playerid int32) (ret [6]int32) {
 		return
 	}
 
-	for i := 0; i < max_room_player; i++ {
+	for i := 0; i < room_player_num; i++ {
 		if self.Players[i] != nil && self.Players[i].PlayerID == playerid {
 			for j := 0; j < 6; j++ {
 				ret[j] = self.Players[i].HeroObj[j].ObjectID

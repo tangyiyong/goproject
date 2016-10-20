@@ -28,18 +28,10 @@ const (
 
 //角色任务表结构
 type TTaskInfo struct {
-	TaskID     int //! 任务ID
-	TaskType   int //! 任务类型
-	TaskStatus int //! 任务状态 0-> 未完成 1-> 已完成  2-> 已领取
-	TaskCount  int //! 任务次数
-}
-
-//! 角色成就表结构
-type TAchievementInfo struct {
-	ID         int //! 成就ID
-	Type       int //! 成就类型
-	TaskStatus int //! 成就达成状态 0-> 未完成 1-> 已完成  2-> 已领取
-	TaskCount  int //! 成就达成次数
+	ID     int //! 任务ID
+	Type   int //! 任务类型
+	Status int //! 任务状态 0-> 未完成 1-> 已完成  2-> 已领取
+	Count  int //! 任务次数
 }
 
 //! 积分奖励表
@@ -49,9 +41,8 @@ type TTaskMoudle struct {
 	ScoreAwardStatus IntLst      //! 记录已积分宝箱ID
 	ScoreAwardID     []int       //! 日常任务宝箱
 	TaskList         []TTaskInfo //! 任务列表
-
-	AchievementList []TAchievementInfo //! 成就列表
-	AchievedList    []int              //! 已达成成就
+	AchieveList      []TTaskInfo //! 成就列表
+	AchieveIDs       []int       //! 已达成成就
 
 	ResetDay  uint32   //! 更新时间戳
 	ownplayer *TPlayer //父player指针
@@ -72,17 +63,21 @@ func (taskmodule *TTaskMoudle) RefreshTask(update bool) {
 
 	//! 获取对应等级日常任务
 	level := taskmodule.ownplayer.GetLevel()
-	dailyTaskLst := gamedata.GetDailyTask(level)
 
-	//! 添加日常任务
-	for _, v := range dailyTaskLst {
-		var task TTaskInfo
-		task.TaskID = v.TaskID
-		task.TaskType = v.Type
-		task.TaskStatus = Task_Unfinished //! 状态初始未完成
-		task.TaskCount = 0                //! 次数初始为零
+	for i := 0; i < len(gamedata.GT_Task_List); i++ {
+		if level >= gamedata.GT_Task_List[i].NeedMinLevel && level < gamedata.GT_Task_List[i].NeedMaxLevel {
+			if gamedata.GT_Task_List[i].TaskID == 0 {
+				continue
+			}
 
-		taskmodule.TaskList = append(taskmodule.TaskList, task)
+			var task TTaskInfo
+			task.ID = gamedata.GT_Task_List[i].TaskID
+			task.Type = gamedata.GT_Task_List[i].Type
+			task.Status = Task_Unfinished //! 状态初始未完成
+			task.Count = 0                //! 次数初始为零
+
+			taskmodule.TaskList = append(taskmodule.TaskList, task)
+		}
 	}
 
 	//! 获取对应等级的日常任务积分奖励宝箱ID
@@ -109,25 +104,23 @@ func (taskmoudle *TTaskMoudle) OnCreate(playerid int32) {
 	taskmoudle.RefreshTask(false)
 
 	//! 创建成就任务
-	achieveLst := gamedata.GetAchievementTask(taskmoudle.ownplayer.GetLevel())
-
-	for _, v := range achieveLst {
-		var info TAchievementInfo
-		if v.TaskID == 0 {
+	for i := 0; i < len(gamedata.GT_Achievement_Lst); i++ {
+		if gamedata.GT_Achievement_Lst[i].TaskID == 0 {
 			continue
 		}
-		info.ID = v.TaskID
-		info.Type = v.Type
-		info.TaskStatus = 0
-		info.TaskCount = 0
 
-		taskmoudle.AchievementList = append(taskmoudle.AchievementList, info)
+		if 1 >= gamedata.GT_Achievement_Lst[i].NeedLevel && gamedata.GT_Achievement_Lst[i].FrontID == 0 {
+			var info TTaskInfo
+			info.ID = gamedata.GT_Achievement_Lst[i].TaskID
+			info.Type = gamedata.GT_Achievement_Lst[i].Type
+			taskmoudle.AchieveList = append(taskmoudle.AchieveList, info)
+		}
 	}
 
 	taskmoudle.ResetDay = utility.GetCurDay()
 
 	//创建数据库记录
-	mongodb.InsertToDB( "PlayerTask", taskmoudle)
+	mongodb.InsertToDB("PlayerTask", taskmoudle)
 }
 
 //! 检测重置时间
@@ -143,14 +136,14 @@ func (self *TTaskMoudle) RedTip() bool {
 	length := len(self.TaskList)
 
 	for i := 0; i < length; i++ {
-		if self.TaskList[i].TaskStatus == 1 {
+		if self.TaskList[i].Status == 1 {
 			return true
 		}
 	}
 
-	length = len(self.AchievementList)
+	length = len(self.AchieveList)
 	for i := 0; i < length; i++ {
-		if self.AchievementList[i].TaskStatus == 1 {
+		if self.AchieveList[i].Status == 1 {
 			return true
 		}
 	}
@@ -169,9 +162,8 @@ func (self *TTaskMoudle) RedTip() bool {
 
 func (self *TTaskMoudle) OnNewDay(newday uint32) {
 	//! 刷新日常任务与重置时间
-	self.RefreshTask(true)
 	self.ResetDay = newday
-	self.DB_UpdateResetTime()
+	self.RefreshTask(true)
 }
 
 //玩家对象销毁
@@ -181,7 +173,6 @@ func (taskmoudle *TTaskMoudle) OnDestroy(playerid int32) {
 
 //OnPlayerOnline 玩家进入游戏
 func (taskmoudle *TTaskMoudle) OnPlayerOnline(playerid int32) {
-	//taskmoudle.LoadPlayer(playerid)
 }
 
 //OnPlayerOffline 玩家离开游戏
@@ -205,24 +196,23 @@ func (taskmoudle *TTaskMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) 
 }
 
 //! 增加任务进度
-func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
+func (self *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
+	self.CheckReset()
+	KindLst := gamedata.GetTaskSubType(taskType)
+	if len(KindLst) <= 0 {
+		gamelog.Error("AddPlayerTaskSchedule failed. Invalid taskType: %d", taskType)
+		return
+	}
 
-	//! 检测任务进度
-	taskmodule.CheckReset()
-	kind := gamedata.GetTaskSubType(taskType)
-
-	for _, taskKind := range kind {
-		if taskKind == Task_Kind_Achievement {
-			//! 成就任务
-			for i, v := range taskmodule.AchievementList {
-				if v.Type == taskType && v.TaskStatus == Task_Unfinished {
-					//! 判断次数是否上限
-					info := gamedata.GetAchievementTaskInfo(taskmodule.AchievementList[i].ID)
+	for kind := 0; kind < len(KindLst); kind++ {
+		if KindLst[kind] == Task_Kind_Achievement { //! 成就任务
+			for i := 0; i < len(self.AchieveList); i++ {
+				if self.AchieveList[i].Type == taskType && self.AchieveList[i].Status == Task_Unfinished {
+					info := gamedata.GetAchievementInfo(self.AchieveList[i].ID)
 					if info == nil {
-						gamelog.Error("GetAchievementTask failed. taskID: %v", v.ID)
+						gamelog.Error("AddPlayerTaskSchedule failed. AchieID: %v", self.AchieveList[i].ID)
 						break
 					}
-
 					//! 增加完成进度
 					//! 特殊处理
 					if taskType == gamedata.TASK_HERO_EQUI_STRENGTH ||
@@ -254,47 +244,43 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 						taskType == gamedata.TASK_CAMP_BATTLE_GROUP_KILL ||
 						taskType == gamedata.TASK_PET_LEVEL ||
 						taskType == gamedata.TASK_HERO_QUALITY {
-
-						if count > taskmodule.AchievementList[i].TaskCount {
-							taskmodule.AchievementList[i].TaskCount = count
+						if count > self.AchieveList[i].Count {
+							self.AchieveList[i].Count = count
 						}
-
 					} else if (taskType == gamedata.TASK_SINGLE_RECHARGE ||
 						taskType == gamedata.TASK_CAMP_HERO_FULL_1 ||
 						taskType == gamedata.TASK_CAMP_HERO_FULL_2 ||
 						taskType == gamedata.TASK_CAMP_HERO_FULL_3 ||
 						taskType == gamedata.TASK_CAMP_HERO_FULL_4) && info.Count == count {
-						taskmodule.AchievementList[i].TaskCount += 1
+						self.AchieveList[i].Count += 1
 					} else {
 						//! 增加完成进度
-						taskmodule.AchievementList[i].TaskCount += count
+						self.AchieveList[i].Count += count
 					}
 
 					//! 判断完成进度
-					if taskmodule.AchievementList[i].TaskCount >= info.Count && taskmodule.AchievementList[i].TaskStatus != Task_Received {
+					if self.AchieveList[i].Count >= info.Count {
 						//! 任务完成
-						taskmodule.AchievementList[i].TaskStatus = Task_Finished
+						self.AchieveList[i].Status = Task_Finished
 					}
 
 					//! 更新数据
-					taskmodule.DB_UpdatePlayerAchievement(taskmodule.AchievementList[i].ID,
-						taskmodule.AchievementList[i].TaskCount,
-						taskmodule.AchievementList[i].TaskStatus)
+					self.DB_UpdateAchieve(i)
 				}
 			}
 
-		} else if taskKind == Task_Kind_Daily {
+		} else if KindLst[kind] == Task_Kind_Daily {
 			//! 日常任务
-			for i, _ := range taskmodule.TaskList {
-				if taskmodule.TaskList[i].TaskType == taskType && taskmodule.TaskList[i].TaskStatus == Task_Unfinished {
+			for i := 0; i < len(self.TaskList); i++ {
+				if self.TaskList[i].Type == taskType && self.TaskList[i].Status == Task_Unfinished {
 					//! 判断次数是否上限
-					info := gamedata.GetTaskInfo(taskmodule.TaskList[i].TaskID)
+					info := gamedata.GetTaskInfo(self.TaskList[i].ID)
 					if info == nil {
-						gamelog.Error("GetTaskInfo failed. taskID: %v", taskmodule.TaskList[i].TaskID)
+						gamelog.Error("GetTaskInfo failed. taskID: %v", self.TaskList[i].ID)
 						break
 					}
 
-					if taskmodule.TaskList[i].TaskCount >= info.Count {
+					if self.TaskList[i].Count >= info.Count {
 						//! 已达次数上限
 						continue
 					}
@@ -330,9 +316,8 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 						taskType == gamedata.TASK_GUILD_LEVEL ||
 						taskType == gamedata.TASK_CAMP_BATTLE_GROUP_KILL ||
 						taskType == gamedata.TASK_HERO_QUALITY {
-
-						if count > taskmodule.TaskList[i].TaskCount {
-							taskmodule.TaskList[i].TaskCount = count
+						if count > self.TaskList[i].Count {
+							self.TaskList[i].Count = count
 						}
 
 					} else if (taskType == gamedata.TASK_SINGLE_RECHARGE ||
@@ -340,35 +325,32 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 						taskType == gamedata.TASK_CAMP_HERO_FULL_2 ||
 						taskType == gamedata.TASK_CAMP_HERO_FULL_3 ||
 						taskType == gamedata.TASK_CAMP_HERO_FULL_4) && info.Count == count {
-						taskmodule.TaskList[i].TaskCount += 1
+						self.TaskList[i].Count += 1
 					} else {
 						//! 增加完成进度
-						taskmodule.TaskList[i].TaskCount += count
+						self.TaskList[i].Count += count
 					}
 
 					//! 判断完成进度
-					if taskmodule.TaskList[i].TaskCount >= info.Count {
+					if self.TaskList[i].Count >= info.Count {
 						//! 任务完成
-						taskmodule.TaskList[i].TaskStatus = Task_Finished
+						self.TaskList[i].Status = Task_Finished
 					}
 
 					//! 更新数据
-					taskmodule.DB_UpdatePlayerTask(taskmodule.TaskList[i].TaskID,
-						taskmodule.TaskList[i].TaskCount,
-						taskmodule.TaskList[i].TaskStatus)
+					self.DB_UpdateTask(i)
 				}
 			}
-		} else if taskKind == Task_Kind_SevenDay {
-
-			for n, v := range taskmodule.ownplayer.ActivityModule.SevenDay {
+		} else if KindLst[kind] == Task_Kind_SevenDay {
+			for n, v := range self.ownplayer.ActivityModule.SevenDay {
 				if G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 					//! 七日活动
-					for i, _ := range taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList {
-						if taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskType == taskType && taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskStatus == Task_Unfinished {
+					for i, _ := range self.ownplayer.ActivityModule.SevenDay[n].TaskList {
+						if self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Type == taskType && self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Status == Task_Unfinished {
 							//! 判断次数是否上限
-							info := gamedata.GetSevenTaskInfo(taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskID)
+							info := gamedata.GetSevenTaskInfo(self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].ID)
 							if info == nil {
-								gamelog.Error("GetTaskInfo failed. taskID: %v", taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskID)
+								gamelog.Error("GetTaskInfo failed. taskID: %v", self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].ID)
 								break
 							}
 
@@ -377,7 +359,7 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 								continue //! 未开启活动不计算进度
 							}
 
-							if taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount >= info.Count {
+							if self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Count >= info.Count {
 								//! 已达次数上限
 								continue
 							}
@@ -413,48 +395,48 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 								taskType == gamedata.TASK_CAMP_BATTLE_GROUP_KILL ||
 								taskType == gamedata.TASK_HERO_QUALITY {
 
-								if count > taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount {
-									taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount = count
+								if count > self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Count {
+									self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Count = count
 								}
 							} else if (taskType == gamedata.TASK_SINGLE_RECHARGE ||
 								taskType == gamedata.TASK_CAMP_HERO_FULL_1 ||
 								taskType == gamedata.TASK_CAMP_HERO_FULL_2 ||
 								taskType == gamedata.TASK_CAMP_HERO_FULL_3 ||
 								taskType == gamedata.TASK_CAMP_HERO_FULL_4) && info.Count == count {
-								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount += 1
+								self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Count += 1
 							} else {
 								//! 增加完成进度
-								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount += count
+								self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Count += count
 							}
 
 							//! 判断完成进度
-							if taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount >= info.Count {
+							if self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Count >= info.Count {
 								//! 任务完成
-								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskStatus = Task_Finished
+								self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Status = Task_Finished
 							}
 
 							//! 更新数据
-							taskmodule.ownplayer.ActivityModule.SevenDay[n].DB_UpdatePlayerSevenTask(
-								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskID,
-								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskCount,
-								taskmodule.ownplayer.ActivityModule.SevenDay[n].TaskList[i].TaskStatus)
+							self.ownplayer.ActivityModule.SevenDay[n].DB_UpdatePlayerSevenTask(
+								self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].ID,
+								self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Count,
+								self.ownplayer.ActivityModule.SevenDay[n].TaskList[i].Status)
 						}
 					}
 				}
 
 			}
-		} else if taskKind == Task_Kind_Limit_Daily { //! 限时日常
+		} else if KindLst[kind] == Task_Kind_Limit_Daily { //! 限时日常
 			//! 遍历目前所有开启活动
-			for i, v := range taskmodule.ownplayer.ActivityModule.LimitDaily {
+			for i, v := range self.ownplayer.ActivityModule.LimitDaily {
 				for j, m := range v.TaskLst {
 
 					if m.TaskType == taskType {
 						//! 特殊处理任务
 						if taskType == gamedata.TASK_COMPLETE_ALL_TASK && m.Status == 0 {
-							if taskmodule.ownplayer.ActivityModule.LimitDaily[i].IsAllComplete() {
-								taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = 1
-								taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status = 1
-								taskmodule.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
+							if self.ownplayer.ActivityModule.LimitDaily[i].IsAllComplete() {
+								self.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = 1
+								self.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status = 1
+								self.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
 							}
 							continue
 						}
@@ -490,8 +472,8 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 							taskType == gamedata.TASK_CAMP_BATTLE_GROUP_KILL ||
 							taskType == gamedata.TASK_FIGHT_VALUE && m.Status == 0 {
 
-							if count > taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count {
-								taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = count
+							if count > self.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count {
+								self.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count = count
 							}
 
 						} else if (taskType == gamedata.TASK_SINGLE_RECHARGE ||
@@ -499,35 +481,35 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 							taskType == gamedata.TASK_CAMP_HERO_FULL_2 ||
 							taskType == gamedata.TASK_CAMP_HERO_FULL_3 ||
 							taskType == gamedata.TASK_CAMP_HERO_FULL_4) && m.Need == count && m.Status == 0 {
-							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count += 1
+							self.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count += 1
 						} else {
-							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count += count
+							self.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count += count
 						}
 
-						if taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count >= m.Need {
-							taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status = Task_Finished
+						if self.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count >= m.Need {
+							self.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status = Task_Finished
 						}
 
 						// gamelog.Error("LimitDailyTask taskType: %d  TaskCount: %d   Status: %d", taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].TaskType,
 						// 	taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Count,
 						// 	taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j].Status)
 
-						taskInfo := taskmodule.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j]
+						taskInfo := self.ownplayer.ActivityModule.LimitDaily[i].TaskLst[j]
 
 						if taskInfo.Status == Task_Received {
 							continue
 						}
 
-						taskmodule.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
+						self.ownplayer.ActivityModule.DB_UpdateLimitDailySchedule(i, j)
 					}
 
 				}
 			}
 
-			for j, m := range taskmodule.ownplayer.ActivityModule.Festival.TaskLst {
+			for j, m := range self.ownplayer.ActivityModule.Festival.TaskLst {
 
 				if m.TaskType == taskType && m.Status == 0 {
-					taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Count += count
+					self.ownplayer.ActivityModule.Festival.TaskLst[j].Count += count
 				} else if taskType == gamedata.TASK_HERO_EQUI_STRENGTH ||
 					taskType == gamedata.TASK_HERO_EQUI_QUALITY ||
 					taskType == gamedata.TASK_ARENA_RANK ||
@@ -556,8 +538,8 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 					taskType == gamedata.TASK_CAMP_BATTLE_GROUP_KILL ||
 					taskType == gamedata.TASK_FIGHT_VALUE {
 
-					if count > taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Count {
-						taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Count = count
+					if count > self.ownplayer.ActivityModule.Festival.TaskLst[j].Count {
+						self.ownplayer.ActivityModule.Festival.TaskLst[j].Count = count
 					}
 
 				} else if (taskType == gamedata.TASK_SINGLE_RECHARGE ||
@@ -565,20 +547,20 @@ func (taskmodule *TTaskMoudle) AddPlayerTaskSchedule(taskType int, count int) {
 					taskType == gamedata.TASK_CAMP_HERO_FULL_2 ||
 					taskType == gamedata.TASK_CAMP_HERO_FULL_3 ||
 					taskType == gamedata.TASK_CAMP_HERO_FULL_4) && m.Need == count {
-					taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Count += 1
+					self.ownplayer.ActivityModule.Festival.TaskLst[j].Count += 1
 				}
 
-				if taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Count >= m.Need {
-					taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j].Status = Task_Finished
+				if self.ownplayer.ActivityModule.Festival.TaskLst[j].Count >= m.Need {
+					self.ownplayer.ActivityModule.Festival.TaskLst[j].Status = Task_Finished
 				}
 
-				taskInfo := taskmodule.ownplayer.ActivityModule.Festival.TaskLst[j]
+				taskInfo := self.ownplayer.ActivityModule.Festival.TaskLst[j]
 
 				if taskInfo.Status == Task_Received {
 					continue
 				}
 
-				taskmodule.ownplayer.ActivityModule.Festival.DB_UpdateTaskStatus(j)
+				self.ownplayer.ActivityModule.Festival.DB_UpdateTaskStatus(j)
 			}
 		}
 	}
@@ -600,13 +582,13 @@ func (taskmodule *TTaskMoudle) CheckPlayerTask(taskID int) (result bool, errcode
 
 	//! 根据ID获取玩家进度
 	for _, v := range taskmodule.TaskList {
-		if v.TaskID == taskID {
-			if v.TaskStatus == Task_Received {
+		if v.ID == taskID {
+			if v.Status == Task_Received {
 				errcode = msg.RE_ALREADY_RECEIVED
 				break
 			}
 
-			if v.TaskStatus == Task_Finished {
+			if v.Status == Task_Finished {
 				result = true
 				errcode = msg.RE_SUCCESS
 				break
@@ -623,7 +605,7 @@ func (taskmodule *TTaskMoudle) ReceiveTaskAward(taskID int) (bool, []gamedata.ST
 
 	//! 获取任务积分
 	taskmodule.TaskScore += data.Score
-	taskmodule.DB_UpdatePlayerTaskScore(taskmodule.TaskScore)
+	taskmodule.DB_UpdateTaskScore(taskmodule.TaskScore)
 
 	//! 发放物品奖励
 	awardInfo := gamedata.GetItemsFromAwardID(data.AwardItem)
@@ -633,7 +615,7 @@ func (taskmodule *TTaskMoudle) ReceiveTaskAward(taskID int) (bool, []gamedata.ST
 //! 发放成就完成奖励
 func (taskmodule *TTaskMoudle) ReceiveAchievementAward(achievementID int) bool {
 	//! 获取奖励信息
-	data := gamedata.GetAchievementTaskInfo(achievementID)
+	data := gamedata.GetAchievementInfo(achievementID)
 
 	awardInfo := gamedata.GetItemsFromAwardID(data.AwardItem)
 	return taskmodule.ownplayer.BagMoudle.AddAwardItems(awardInfo)
@@ -679,7 +661,7 @@ func (taskmodule *TTaskMoudle) CheckTaskScore(scoreAwardID int) (result bool, er
 
 	//! 判断奖励条件
 	if taskmodule.TaskScore < data.NeedScore {
-		errcode = msg.RE_TASK_SCORE_NOT_ENOUGH
+		errcode = msg.RE_SCORE_NOT_ENOUGH
 		return result, errcode
 	}
 
@@ -698,10 +680,10 @@ func (taskmodule *TTaskMoudle) CheckAchievement(achievementID int) (result bool,
 	//! 检查用户是否有条件达成该成就
 	exist := false
 	result = false
-	var info *TAchievementInfo
-	for i, v := range taskmodule.AchievementList {
+	var info *TTaskInfo
+	for i, v := range taskmodule.AchieveList {
 		if v.ID == achievementID {
-			info = &taskmodule.AchievementList[i]
+			info = &taskmodule.AchieveList[i]
 			exist = true
 		}
 	}
@@ -711,13 +693,13 @@ func (taskmodule *TTaskMoudle) CheckAchievement(achievementID int) (result bool,
 	}
 
 	//! 获取奖励内容
-	awardData := gamedata.GetAchievementTaskInfo(achievementID)
+	awardData := gamedata.GetAchievementInfo(achievementID)
 	if awardData == nil {
 		return result, msg.RE_INVALID_PARAM
 	}
 
 	//! 检查进度
-	if info.TaskCount < awardData.Count {
+	if info.Count < awardData.Count {
 		return result, msg.RE_TASK_NOT_COMPLETE
 	}
 
@@ -726,39 +708,31 @@ func (taskmodule *TTaskMoudle) CheckAchievement(achievementID int) (result bool,
 }
 
 //! 查询替换成就
-func (taskmodule *TTaskMoudle) UpdateNextAchievement(achievementID int) *TAchievementInfo {
-	data := gamedata.GetAchievementTaskFromFrontTask(achievementID)
+func (taskmodule *TTaskMoudle) UpdateNextAchievement(achievementID int) *TTaskInfo {
+	data := gamedata.GetNextAchievement(achievementID)
 
 	//! 创建新任务
-	frontTaskID := 0
-	var newTask TAchievementInfo
-	for i, _ := range taskmodule.AchievementList {
-		if taskmodule.AchievementList[i].ID == achievementID {
+	for i := 0; i < len(taskmodule.AchieveList); i++ {
+		if taskmodule.AchieveList[i].ID == achievementID {
 			if data == nil {
 				//! 已经没有新的成就任务,返回完成
-				return &taskmodule.AchievementList[i]
+				return &taskmodule.AchieveList[i]
 			}
-
 			//! 赋值新的成就任务
-			frontTaskID = taskmodule.AchievementList[i].ID
-			taskmodule.AchievementList[i].ID = data.TaskID
-			taskmodule.AchievementList[i].Type = data.Type
+			taskmodule.AchieveList[i].ID = data.TaskID
+			taskmodule.AchieveList[i].Type = data.Type
 
 			//! 判断新成就达成
-			if taskmodule.AchievementList[i].TaskCount >= data.Count {
-				taskmodule.AchievementList[i].TaskStatus = Task_Finished
+			if taskmodule.AchieveList[i].Count >= data.Count {
+				taskmodule.AchieveList[i].Status = Task_Finished
 			} else {
-				taskmodule.AchievementList[i].TaskStatus = Task_Unfinished
+				taskmodule.AchieveList[i].Status = Task_Unfinished
 			}
 
 			//! 替换数据库成就
-			taskmodule.DB_UpdateAchievement(&taskmodule.AchievementList[i], frontTaskID)
-
-			newTask.ID = taskmodule.AchievementList[i].ID
-			newTask.Type = taskmodule.AchievementList[i].Type
-			newTask.TaskCount = taskmodule.AchievementList[i].TaskCount
-			newTask.TaskStatus = taskmodule.AchievementList[i].TaskStatus
+			taskmodule.DB_UpdateAchieve(i)
+			return &taskmodule.AchieveList[i]
 		}
 	}
-	return &newTask
+	return nil
 }

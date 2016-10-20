@@ -34,7 +34,7 @@ var (
 	GameDbAddr      string
 	GameMaxCon      int
 	GameLogLevel    int
-	GameOpenSvrTime int64  //服务器开服时间
+	GameOpenSvrTime int32  //服务器开服时间
 	GameSvrName     string //服务器域名
 	GameSvrID       int    //服务器ID
 
@@ -67,6 +67,7 @@ var (
 	SdkSvrOuterIp string
 	SdkSvrPort    int
 	SdkLogLevel   int
+	SdkDataSource string
 )
 
 //一些全局变量
@@ -75,10 +76,12 @@ var (
 	VerifyUserLoginUrl    string //验证登录的URL
 	RegToAccountSvrUrl    string //游戏服注删到账号服URL
 	RegToCrossSvrUrl      string //游戏服注删到跨服服URL
+	RegToSdkSvrUrl        string //游戏服注册表SDK服URL
 	RegToGameSvrUrl       string //阵营战服注册表游戏服URL
 	CrossQueryScoreTarget string //请求积分目标的URL
 	CrossQueryScoreRank   string //请求积分排行的URL
 	CrossGetFightTarget   string //Game服请求跨服战斗目标
+	GiftCodeSvrUrl        string //礼包码游戏服务器查询礼包URL
 )
 
 func ParseConfigValue(key string, value string) {
@@ -92,7 +95,7 @@ func ParseConfigValue(key string, value string) {
 	case "account_svr_inner_ip":
 		AccountSvrInnerIp = value
 	case "account_svr_outer_ip":
-		AccountSvrInnerIp = value
+		AccountSvrOuterIp = value
 	case "account_svr_port":
 		AccountSvrPort, _ = strconv.Atoi(value)
 	case "account_db_name":
@@ -119,7 +122,7 @@ func ParseConfigValue(key string, value string) {
 		GameLogLevel, _ = strconv.Atoi(value)
 	case "game_open_time":
 		t, _ := time.ParseInLocation("20060102_150405", value, time.Local)
-		GameOpenSvrTime = t.Unix()
+		GameOpenSvrTime = int32(t.Unix())
 	case "chat_svr_inner_ip":
 		ChatSvrInnerIp = value
 	case "chat_svr_outer_ip":
@@ -176,6 +179,9 @@ func ParseConfigValue(key string, value string) {
 		SdkSvrPort, _ = strconv.Atoi(value)
 	case "sdk_svr_log_level":
 		SdkLogLevel, _ = strconv.Atoi(value)
+	case "sdk_svr_datasrc":
+		SdkDataSource = value
+
 	case "gmuser":
 		ParseGmUser(value)
 	default:
@@ -188,9 +194,12 @@ func initGlobalVar() bool {
 	ChatSvrAddr = ChatSvrOuterIp + ":" + strconv.Itoa(ChatSvrPort)
 	RegToAccountSvrUrl = "http://" + AccountSvrInnerIp + ":" + strconv.Itoa(AccountSvrPort) + "/reggameserver"
 	RegToCrossSvrUrl = "http://" + CrossSvrInnerIp + ":" + strconv.Itoa(CrossSvrHttpPort) + "/reggameserver"
+	RegToSdkSvrUrl = "http://" + SdkSvrOuterIp + ":" + strconv.Itoa(SdkSvrPort) + "/reggameserver"
 	RegToGameSvrUrl = "http://" + GameSvrInnerIp + ":" + strconv.Itoa(GameSvrPort) + "/register_battle_svr"
 	CrossQueryScoreTarget = "http://" + CrossSvrInnerIp + ":" + strconv.Itoa(CrossSvrHttpPort) + "/cross_query_score_target"
 	CrossQueryScoreRank = "http://" + CrossSvrInnerIp + ":" + strconv.Itoa(CrossSvrHttpPort) + "/cross_query_score_rank"
 	CrossGetFightTarget = "http://" + CrossSvrInnerIp + ":" + strconv.Itoa(CrossSvrHttpPort) + "/cross_get_fight_target"
+	GiftCodeSvrUrl = "http://" + AccountSvrOuterIp + ":" + strconv.Itoa(AccountSvrPort) + "/gamesvr_giftcode"
+
 	return true
 }

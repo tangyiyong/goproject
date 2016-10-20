@@ -8,16 +8,15 @@ type MSG_QueryHuntTreasure_Req struct {
 }
 
 type MSG_QueryHuntTreasure_Ack struct {
-	RetCode      int
-	CurrentPos   int  //! 当前所在格ID
-	HuntTurns    int  //! 巡回轮数
-	Score        int  //! 总积分
-	EndCountDown int  //! 活动结束倒计时
-	TodayRank    int  //! 今日排名变化
-	TotalRank    int  //! 累计排名变化
-	AwardType    int  //! 返回奖励模板
-	FreeTimes    int  //! 今日免费次数
-	IsHaveStore  bool //! 是否存在商店
+	RetCode     int
+	CurrentPos  int  //! 当前所在格ID
+	HuntTurns   int  //! 巡回轮数
+	Score       int  //! 总积分
+	TodayRank   int  //! 今日排名变化
+	TotalRank   int  //! 累计排名变化
+	AwardType   int  //! 返回奖励模板
+	FreeTimes   int  //! 今日免费次数
+	IsHaveStore bool //! 是否存在商店
 }
 
 //! 玩家开始掷骰
@@ -31,7 +30,7 @@ type Msg_StartHuntTreasure_Req struct {
 }
 
 type Msg_StartHuntTreasure_Ack struct {
-	RetCode       int
+	RetCode       int            //! 返回码
 	CurrentPos    int            //! 移动后所在格ID
 	MoveTypeLst   []int          //! 移动到过的格子
 	ExMove        []int          //! 倘若出现移动事件,此参数代表移动格子
@@ -54,7 +53,7 @@ type MSG_QueryHuntTurn_Req struct {
 
 type MSG_QueryHuntTurn_Ack struct {
 	RetCode   int
-	AwardMask int //! 进行位运算 1 0 表示已领取或者未领取
+	AwardMark int //! 进行位运算 1 0 表示已领取或者未领取
 }
 
 //! 玩家领取巡回奖励
@@ -84,12 +83,11 @@ type MSG_GetActivityRank_Ack struct {
 	YesterdayRankLst []MSG_OperationalActivityRank
 	TotalRankLst     []MSG_OperationalActivityRank
 
-	ScoreLst [3]int //! 玩家自身分数  0->昨天 1->今天 2->公共的
-	RankLst  [3]int //! 玩家自身排名
-
-	EliteScore           int  //! 进入精英榜最低要求积分
-	IsRecvTodayRankAward bool //! 是否领取今日奖励
-	IsRecvTotalRankAward bool //! 是否领取总排行奖励
+	ScoreLst    [3]int //! 玩家自身分数  0->昨天 1->今天 2->公共的
+	RankLst     [3]int //! 玩家自身排名
+	EliteScore  int    //! 进入精英榜最低要求积分
+	IsRecvToday int8   //! 是否领取今日奖励
+	IsRecvTotal int8   //! 是否领取总排行奖励
 }
 
 //! 玩家领取活动排行榜奖励
@@ -171,12 +169,25 @@ type MSG_QueryHuntStore_Ack struct {
 	GoodsLst []MSG_HuntStoreItem
 }
 
+//! 一键领取巡回奖励
+//! 消息: /one_key_hunt_award
+type MSG_OneKeyReceiveHuntAward_Req struct {
+	PlayerID   int32
+	SessionKey string
+}
+
+type MSG_OneKeyReceiveHuntAward_Ack struct {
+	RetCode   int
+	AwardItem []MSG_ItemData
+	AwardMark int
+}
+
 //! 玩家购买巡回商店物品
 //! 消息: /buy_hunt_store
 type MSG_BuyHuntStoreItem_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ID         int
+	Index      int
 }
 
 type MSG_BuyHuntStoreItem_Ack struct {
@@ -222,10 +233,9 @@ type MSG_QueryLuckyWheel_Ack struct {
 	CostMoneyID  [4]int
 	CostMoneyNum [4]int
 
-	Score        int //! 今日积分
-	EndCountDown int //! 活动结束倒计时
-	TodayRank    int //! 今日排名变化
-	TotalRank    int //! 累计排名变化
+	Score     int //! 今日积分
+	TodayRank int //! 今日排名变化
+	TotalRank int //! 累计排名变化
 }
 
 //! 玩家转动轮盘
@@ -308,8 +318,8 @@ type MSG_GetGroupPurchaseInfo_Ack struct {
 	AwardType      int
 	ItemInfo       []MSG_GroupPurchase
 	Score          int   //! 总积分
-	EndTime        int64 //! 结束
-	AwardTime      int64 //! 领奖
+	EndTime        int32 //! 结束
+	AwardTime      int32 //! 领奖
 	ScoreAwardMark []int
 }
 
@@ -356,6 +366,19 @@ type MSG_GetGroupScoreAward_Ack struct {
 	RetCode int
 }
 
+//! 玩家请求一键获取积分奖励
+//! 消息: /onekey_group_score_award
+type MSG_GetGroupScoreAwardOneKey_Req struct {
+	PlayerID   int32
+	SessionKey string
+}
+
+type MSG_GetGroupScoreAwardOneKey_Ack struct {
+	RetCode        int
+	AwardLst       []MSG_ItemData
+	ScoreAwardMark []int
+}
+
 //! 查询欢庆佳节活动信息
 //! 消息: /get_festival_task
 type MSG_GetFestivalTask_Req struct {
@@ -378,7 +401,8 @@ type MSG_FestivalExchange struct {
 	ID          int //! ID
 	NeedItemID  int //! 所需物品
 	NeedItemNum int //!
-	Award       int //! 兑换物品
+	ItemID      int //! 物品ID
+	ItemNum     int //! 物品数量
 	Times       int //! 剩余兑换次数
 }
 
@@ -411,8 +435,9 @@ type MSG_ExchangeFestivalAward_Req struct {
 }
 
 type MSG_ExchangeFestivalAward_Ack struct {
-	RetCode  int
-	AwardLst []MSG_ItemData
+	RetCode int
+	ItemID  int
+	ItemNum int
 }
 
 //! 欢庆佳节半折贩售

@@ -41,9 +41,15 @@ func GetFamousChapterInfo(chapter int) *ST_FamousChapter {
 }
 
 func IsSerialCopy(chapter int, copyID int) bool {
+	if chapter < 0 || chapter > len(GT_FamousChapterList) {
+		gamelog.Error("IsSerialCopy Error: invalid chapter :%d", chapter)
+		return false
+	}
+
 	if GT_FamousChapterList[chapter].SerialID == copyID {
 		return true
 	}
+
 	return false
 }
 

@@ -44,6 +44,7 @@ func InitMasterParser(total int) bool {
 
 func ParseMasterRecord(rs *RecordSet) {
 	Level := CheckAtoi(rs.Values[0], 0)
+	GT_Master_List[Level].Level = Level
 	GT_Master_List[Level].EquipStrengthLevel = rs.GetFieldInt("equip_strength_level")
 	GT_Master_List[Level].EquipRefineLevel = rs.GetFieldInt("equip_refine_level")
 	GT_Master_List[Level].GemStrengthLevel = rs.GetFieldInt("gem_strength_level")

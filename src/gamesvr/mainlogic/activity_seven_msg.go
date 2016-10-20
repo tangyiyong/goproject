@@ -60,10 +60,10 @@ func Hand_GetSevenActivityInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, v := range activity.TaskList {
-		var taskInfo msg.TTaskInfo
-		taskInfo.TaskID = v.TaskID
-		taskInfo.TaskStatus = v.TaskStatus
-		taskInfo.TaskCount = v.TaskCount
+		var taskInfo msg.MSG_TaskInfo
+		taskInfo.ID = v.ID
+		taskInfo.Status = v.Status
+		taskInfo.Count = v.Count
 		response.SevenActivityLst = append(response.SevenActivityLst, taskInfo)
 	}
 
@@ -136,11 +136,11 @@ func Hand_GetSevenActivityAward(w http.ResponseWriter, r *http.Request) {
 
 	var taskInfo *TTaskInfo
 	for i, _ := range activity.TaskList {
-		if activity.TaskList[i].TaskID == taskData.TaskID {
-			if activity.TaskList[i].TaskCount < taskData.Count {
+		if activity.TaskList[i].ID == taskData.TaskID {
+			if activity.TaskList[i].Count < taskData.Count {
 				response.RetCode = msg.RE_TASK_NOT_COMPLETE
 				return
-			} else if activity.TaskList[i].TaskStatus == Task_Received {
+			} else if activity.TaskList[i].Status == Task_Received {
 				response.RetCode = msg.RE_ALREADY_RECEIVED
 				return
 			} else {
@@ -183,8 +183,8 @@ func Hand_GetSevenActivityAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 设置状态
-	taskInfo.TaskStatus = Task_Received
-	activity.DB_UpdatePlayerSevenTask(taskData.TaskID, taskInfo.TaskCount, taskInfo.TaskStatus)
+	taskInfo.Status = Task_Received
+	activity.DB_UpdatePlayerSevenTask(taskData.TaskID, taskInfo.Count, taskInfo.Status)
 
 	for _, v := range awardItems {
 		var item msg.MSG_ItemData

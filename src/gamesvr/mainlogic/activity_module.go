@@ -12,7 +12,7 @@ import (
 
 type TActivity interface {
 	//! 创建初始化
-	Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32)
+	Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32)
 
 	//! 设置父模块指针
 	SetModulePtr(mPtr *TActivityModule)
@@ -44,7 +44,7 @@ type TActivityModule struct {
 	PlayerID int32 `bson:"_id"`
 
 	//! 首充/次充
-	FirstRecharge TActivityFirstRecharge
+	FirstCharge TActivityFirstCharge
 
 	//! 月卡
 	MonthCard TActivityMonthCard
@@ -53,7 +53,7 @@ type TActivityModule struct {
 	MoneyGod TActivityMoneyGod
 
 	//! 折扣贩售
-	DiscountSale []TActivityDiscountSale
+	DiscountSale []TActivityDiscount
 
 	//! 充值反馈
 	Recharge []TActivityRecharge
@@ -62,7 +62,7 @@ type TActivityModule struct {
 	SingleRecharge []TActivitySingleRecharge
 
 	//! 领体力
-	ReceiveAction TActivityReceiveAction
+	ReceiveAction TActivityAction
 
 	//! 登录送礼
 	Login []TActivityLogin
@@ -92,7 +92,7 @@ type TActivityModule struct {
 	CardMaster TCardMasterInfo
 
 	// 月光集市
-	MoonlightShop TMoonlightShop
+	MoonShop TMoonShop
 
 	// 沙滩宝贝
 	BeachBaby TBeachBabyInfo
@@ -118,7 +118,7 @@ type TActivityModule struct {
 	//! 限时特惠
 	LimitSale TActivityLimitSale
 
-	activityPtrs map[int]TActivity
+	activityPtrs map[int32]TActivity
 
 	ownplayer *TPlayer
 }
@@ -129,8 +129,8 @@ func (self *TActivityModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 }
 
 func (self *TActivityModule) OnCreate(playerid int32) {
-	self.activityPtrs = make(map[int]TActivity)
-	for i, _ := range G_GlobalVariables.ActivityLst {
+	self.activityPtrs = make(map[int32]TActivity)
+	for i := 0; i < len(G_GlobalVariables.ActivityLst); i++ {
 		activityID := G_GlobalVariables.ActivityLst[i].ActivityID
 		activityType := G_GlobalVariables.ActivityLst[i].activityType
 		verionCode := G_GlobalVariables.ActivityLst[i].VersionCode
@@ -170,13 +170,13 @@ func (self *TActivityModule) OnCreate(playerid int32) {
 
 		} else if activityType == gamedata.Activity_Discount_Sale {
 			//! 折扣贩售
-			discountActivity := TActivityDiscountSale{}
+			discountActivity := TActivityDiscount{}
 			discountActivity.Init(activityID, self, verionCode, resetCode)
 			self.DiscountSale = append(self.DiscountSale, discountActivity)
 
 		} else if activityType == gamedata.Activity_First_Recharge {
 			//! 首充
-			self.FirstRecharge.Init(activityID, self, verionCode, resetCode)
+			self.FirstCharge.Init(activityID, self, verionCode, resetCode)
 
 		} else if activityType == gamedata.Activity_Singel_Recharge {
 			//! 单充返利
@@ -209,7 +209,7 @@ func (self *TActivityModule) OnCreate(playerid int32) {
 			self.CardMaster.Init(activityID, self, verionCode, resetCode)
 		} else if activityType == gamedata.Activity_MoonlightShop {
 			// 月光集市
-			self.MoonlightShop.Init(activityID, self, verionCode, resetCode)
+			self.MoonShop.Init(activityID, self, verionCode, resetCode)
 		} else if activityType == gamedata.Activity_Beach_Baby {
 			// 沙滩宝贝
 			self.BeachBaby.Init(activityID, self, verionCode, resetCode)
@@ -267,7 +267,7 @@ func (self *TActivityModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 		wg.Done()
 	}
 	self.PlayerID = playerid
-	self.activityPtrs = make(map[int]TActivity)
+	self.activityPtrs = make(map[int32]TActivity)
 
 	//! 签到
 	self.Sign.SetModulePtr(self)
@@ -297,7 +297,7 @@ func (self *TActivityModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	}
 
 	//! 首充
-	self.FirstRecharge.SetModulePtr(self)
+	self.FirstCharge.SetModulePtr(self)
 
 	//! 单充返利
 	for i, _ := range self.SingleRecharge {
@@ -328,7 +328,7 @@ func (self *TActivityModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	self.CardMaster.SetModulePtr(self)
 
 	// 月光集市
-	self.MoonlightShop.SetModulePtr(self)
+	self.MoonShop.SetModulePtr(self)
 
 	// 沙滩宝贝
 	self.BeachBaby.SetModulePtr(self)
@@ -395,7 +395,7 @@ func (self *TActivityModule) CheckNewActivity() {
 
 		} else if v.activityType == gamedata.Activity_Discount_Sale {
 			//! 折扣贩售
-			discountActivity := TActivityDiscountSale{}
+			discountActivity := TActivityDiscount{}
 			discountActivity.Init(v.ActivityID, self, versionCode, resetCode)
 			self.DiscountSale = append(self.DiscountSale, discountActivity)
 			self.DB_AddNewDiscountActivity(discountActivity)
@@ -428,9 +428,9 @@ func (self *TActivityModule) CheckNewActivity() {
 		} else if v.activityType == gamedata.Activity_Festival && v.ActivityID != self.Festival.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) {
 			self.Festival.Init(v.ActivityID, self, versionCode, resetCode)
 			self.Festival.DB_Reset()
-		} else if v.activityType == gamedata.Activity_MoonlightShop && v.ActivityID != self.MoonlightShop.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
-			self.MoonlightShop.Init(v.ActivityID, self, versionCode, resetCode)
-			self.MoonlightShop.DB_Reset()
+		} else if v.activityType == gamedata.Activity_MoonlightShop && v.ActivityID != self.MoonShop.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
+			self.MoonShop.Init(v.ActivityID, self, versionCode, resetCode)
+			self.MoonShop.DB_Reset()
 		} else if v.activityType == gamedata.Activity_Beach_Baby && v.ActivityID != self.BeachBaby.ActivityID && G_GlobalVariables.IsActivityOpen(v.ActivityID) == true {
 			self.BeachBaby.Init(v.ActivityID, self, versionCode, resetCode)
 			self.BeachBaby.DB_Reset()
@@ -519,7 +519,7 @@ func (self *TActivityModule) AddRechargeValue(value int) {
 	}
 }
 
-func (self *TActivityModule) CheckSingleRecharge(activityID int, money int) (bool, int) {
+func (self *TActivityModule) CheckSingleRecharge(activityID int32, money int) (bool, int) {
 	for _, v := range self.SingleRecharge {
 		if v.ActivityID == activityID {
 			for i, n := range v.RechargeRecord {
@@ -535,7 +535,7 @@ func (self *TActivityModule) CheckSingleRecharge(activityID int, money int) (boo
 }
 
 //! 获取商品信息
-func (self *TActivityModule) GetItemShoppingInfo(activityID int, index int) *TDiscountSaleGoodsInfo {
+func (self *TActivityModule) GetItemShoppingInfo(activityID int32, index int) *TDiscountSaleGoodsInfo {
 	for i, v := range self.DiscountSale {
 		if v.ActivityID == activityID {
 			for j, n := range v.ShopLst {

@@ -6,6 +6,7 @@ import (
 	"gamelog"
 	"os"
 	"time"
+	"utility"
 )
 
 type TBinaryLog struct {
@@ -13,9 +14,25 @@ type TBinaryLog struct {
 	writer   *bufio.Writer
 	writeCnt int
 	flushCnt int
+	dir      string
+	svrid    int32
+	curday   uint32
 }
 
-func (self *TBinaryLog) Start() bool {
+func (self *TBinaryLog) Start(dir string, svrid int32) bool {
+	self.dir = dir
+	self.svrid = svrid
+	self.file = nil
+	self.writer = nil
+	timeStr := time.Now().Format("20060102")
+	logFileName := fmt.Sprintf("%s/%d_%s.blog", self.dir, self.svrid, timeStr)
+	var err error
+	self.file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_APPEND, os.ModePerm)
+	if err != nil {
+		gamelog.Error("BinaryLog Open File Error : %s", err.Error())
+		return false
+	}
+	self.writer = bufio.NewWriter(self.file)
 	return true
 }
 
@@ -35,6 +52,25 @@ func (self *TBinaryLog) Close() {
 
 func (self *TBinaryLog) Flush() {
 	self.writer.Flush()
+	if utility.GetCurDayByUnix() == self.curday {
+		return
+	}
+
+	if self.file != nil {
+		self.file.Close()
+	}
+
+	timeStr := time.Now().Format("20060102")
+	logFileName := fmt.Sprintf("%s/%d_%s.blog", self.dir, self.svrid, timeStr)
+
+	var err error
+	self.file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_APPEND, os.ModePerm)
+	if err != nil {
+		gamelog.Error("BinaryLog Open File Error : %s", err.Error())
+		return
+	}
+
+	self.writer = bufio.NewWriter(self.file)
 }
 
 func (self *TBinaryLog) SetFlushCnt(cnt int) {
@@ -42,20 +78,4 @@ func (self *TBinaryLog) SetFlushCnt(cnt int) {
 	if cnt <= 0 {
 		self.flushCnt = 100
 	}
-}
-
-func CreateBinaryFile(name string, svrid int32) TLog {
-	var err error = nil
-	timeStr := time.Now().Format("20060102_150405")
-	logFileName := fmt.Sprintf("%s/%d_%s.blog", name, svrid, timeStr)
-
-	var blog TBinaryLog
-	blog.file, err = os.OpenFile(logFileName, os.O_CREATE|os.O_APPEND, os.ModePerm)
-	if err != nil {
-		gamelog.Error("CreateBinaryFile Error : %s", err.Error())
-		return nil
-	}
-
-	blog.writer = bufio.NewWriter(blog.file)
-	return &blog
 }

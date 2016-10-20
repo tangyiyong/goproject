@@ -203,6 +203,7 @@ func Hand_AddFriendReq(w http.ResponseWriter, r *http.Request) {
 
 	DB_AddFriendAppList(req.TargetID, req.PlayerID)
 
+	SendGameSvrNotify(req.TargetID, gamedata.FUNC_FRIEND)
 	return
 }
 
@@ -364,6 +365,8 @@ func Hand_GiveAction(w http.ResponseWriter, r *http.Request) {
 		} else {
 			//DB_UpdateHasAct(req.TargetID, nIndex, true)
 		}
+
+		SendGameSvrNotify(req.TargetID, gamedata.FUNC_FRIEND)
 	}
 
 	//! 增送精力次数
@@ -592,6 +595,7 @@ func Hand_ProcessFriendReq(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response.FriendLst = make([]msg.MSG_FriendInfo, 0)
 	if req.TargetID == 0 { //全部处理
 		if req.IsAgree == 1 {
 			for _, v := range player.FriendMoudle.ApplyList {
@@ -624,7 +628,10 @@ func Hand_ProcessFriendReq(w http.ResponseWriter, r *http.Request) {
 						response.FriendLst[len(response.FriendLst)-1].OffTime = 0
 					}
 				}
+
+				SendGameSvrNotify(v, gamedata.FUNC_FRIEND)
 			}
+
 		}
 
 		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FRIEND_NUM, len(player.FriendMoudle.ApplyList))
@@ -669,6 +676,7 @@ func Hand_ProcessFriendReq(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FRIEND_NUM, 1)
+			SendGameSvrNotify(req.TargetID, gamedata.FUNC_FRIEND)
 		}
 
 		player.FriendMoudle.ApplyList = append(player.FriendMoudle.ApplyList[:nIndex], player.FriendMoudle.ApplyList[nIndex+1:]...)

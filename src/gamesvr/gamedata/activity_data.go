@@ -35,55 +35,74 @@ const (
 	Activity_Seven            = 26 //! 七天活动
 )
 
+const (
+	Time_NewSvr    = 1
+	Time_PublicSvr = 2
+	Time_AllSvr    = 3
+)
+
+const (
+	Cycle_Month   = 1
+	Cycle_Week    = 2
+	Cycle_OpenDay = 3
+	Cycle_FixDay  = 4
+	CyCle_All     = 5
+)
+
 //! 活动配置表
-type ST_ActivityData struct {
-	ID           int
-	Name         string
-	ServerType   int //! 1->新服 2->公服 3->全期存在
-	BeginTime    int
-	EndTime      int
-	TimeType     int //! 活动时间 1->月 2->周 3->开服 4->指定日期
-	AwardTime    int //! 活动奖励时间
-	ActivityType int //! 活动套用模板
-	AwardType    int //! 活动奖励套用模板
-	Status       int //! 开启状态
-	Icon         int //! ICON
-	Inside       int //! 1->里面 2->外面 3->同时存在(需判断持续days)
-	Days         int //! 临时存在天数
+type ST_ActivityInfo struct {
+	ID        int32  //! 活动ID
+	Name      string //! 活动名字
+	TimeType  int    //! 1->新服 2->公服 3->全期存在
+	CycleType int    //! 活动时间 1->月 2->周 3->开服 4->指定日期
+	BeginTime int    //! 活动开始时间
+	EndTime   int    //! 活动结束时间
+	AwardTime int    //! 活动奖励时间
+	ActType   int    //! 活动套用模板
+	AwardType int    //! 活动奖励索引
+	Status    int    //! 开启状态
+	Icon      int    //! ICON
+	Inside    int    //! 1->里面 2->外面 3->同时存在(需判断持续days)
+	Days      int    //! 临时存在天数
 }
 
-var GT_ActivityLst map[int]ST_ActivityData
+var GT_ActivityLst map[int32]ST_ActivityInfo
 
 func InitActivityParser(total int) bool {
-	GT_ActivityLst = make(map[int]ST_ActivityData)
+	GT_ActivityLst = make(map[int32]ST_ActivityInfo)
 	return true
 }
 
 func ParseActivityRecord(rs *RecordSet) {
-	id := CheckAtoi(rs.Values[0], 0)
+	id := int32(CheckAtoi(rs.Values[0], 0))
 	if id <= 0 {
 		gamelog.Error("ParseActivityRecord Error: invalid id %d", id)
 		return
 	}
 
-	data := ST_ActivityData{}
+	data := ST_ActivityInfo{}
 	data.ID = id
 	data.Name = rs.GetFieldString("name")
-	data.ServerType = rs.GetFieldInt("activity_type")
+	data.TimeType = rs.GetFieldInt("timetype")
+	data.CycleType = rs.GetFieldInt("cycletype")
 	data.BeginTime = rs.GetFieldInt("begintime")
 	data.EndTime = rs.GetFieldInt("endtime")
 	data.AwardTime = rs.GetFieldInt("awardtime")
-	data.TimeType = rs.GetFieldInt("timetype")
-	data.ActivityType = rs.GetFieldInt("type")
+	data.ActType = rs.GetFieldInt("type")
 	data.AwardType = rs.GetFieldInt("award_type")
 	data.Status = rs.GetFieldInt("status")
 	data.Icon = rs.GetFieldInt("icon")
 	data.Inside = rs.GetFieldInt("inside")
 	data.Days = rs.GetFieldInt("days")
 	GT_ActivityLst[id] = data
+
+	if data.TimeType <= 0 || data.CycleType <= 0 {
+		gamelog.Error("ParseActivityRecord Error: invalid data.TimeType :%d,data.CycleType:%d ", data.TimeType, data.CycleType)
+		return
+	}
 }
 
-func GetActivityInfo(id int) *ST_ActivityData {
+func GetActivityInfo(id int32) *ST_ActivityInfo {
 	data, ok := GT_ActivityLst[id]
 	if ok == false {
 		gamelog.Error("GetActivityInfo Error: Can't Find %d", id)
@@ -91,238 +110,6 @@ func GetActivityInfo(id int) *ST_ActivityData {
 	}
 
 	return &data
-}
-
-func GetActivityNextBeginTime(activityID int, openDay int) (beginTime int64, endTime int64) {
-	activityInfo := GetActivityInfo(activityID)
-
-	now := time.Now()
-	if activityInfo.TimeType == 1 { //! 按照月计算
-		beginDate := time.Date(now.Year(), now.Month(), activityInfo.BeginTime, 0, 0, 0, 0, now.Location())
-		endDate := time.Date(now.Year(), now.Month(), activityInfo.EndTime, 23, 59, 59, 59, now.Location())
-		beginDate = beginDate.AddDate(0, 1, 0)
-		endDate = endDate.AddDate(0, 1, 0)
-		beginTime = beginDate.Unix()
-		endTime = endDate.Unix()
-	} else if activityInfo.TimeType == 2 { //! 按照日计算
-		weekDay := int(now.Weekday())
-		if weekDay == 0 { //! 特殊处理周末
-			weekDay = 7
-		}
-
-		if activityInfo.EndTime == 7 && activityInfo.BeginTime == 1 {
-			//! 永久活动
-			beginTime = 0
-			endTime = 0
-		} else {
-			beginDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-			beginDate = beginDate.AddDate(0, 0, activityInfo.BeginTime-weekDay)
-			beginDate = beginDate.AddDate(0, 0, 7)
-			beginTime = beginDate.Unix()
-
-			endDate := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 59, now.Location())
-			endDate = endDate.AddDate(0, 0, activityInfo.EndTime-weekDay)
-			endDate = endDate.AddDate(0, 0, 7)
-			endTime = endDate.Unix()
-		}
-	} else if activityInfo.TimeType == 3 {
-		return -1, -1 //! 开服活动无下次开启时间
-	} else if activityInfo.TimeType == 4 { //! 按照 月*100+日格式写 比如 310 = 3月10日
-		day := activityInfo.BeginTime % 100
-		month := (activityInfo.BeginTime - day) / 100
-		if day < 1 || day > 31 || month < 1 || month > 12 {
-			gamelog.Error("Invalid Activity BeginTime: %d", activityInfo.BeginTime)
-			return -1, -1
-		}
-
-		beginData := time.Date(now.Year(), time.Month(month), day, 0, 0, 0, 0, now.Location())
-		beginData = beginData.AddDate(1, 0, 0)
-		beginTime = beginData.Unix()
-
-		day = activityInfo.EndTime % 100
-		month = (activityInfo.EndTime - day) / 100
-		if day < 1 || day > 31 || month < 1 || month > 12 {
-			gamelog.Error("Invalid Activity BeginTime: %d", activityInfo.BeginTime)
-			return -1, -1
-		}
-
-		endData := time.Date(now.Year(), time.Month(month), day, 23, 59, 59, 59, now.Location())
-		endData = endData.AddDate(1, 0, 0)
-		endTime = endData.Unix()
-	}
-
-	return beginTime, endTime
-}
-
-func GetNewServerTypeActivityEndTime(activityInfo *ST_ActivityData) int {
-	endDay := 0
-	for _, v := range GT_ActivityLst {
-		if activityInfo.ActivityType == v.ActivityType &&
-			v.Status == 1 &&
-			v.ServerType == 1 &&
-			v.EndTime > endDay {
-			endDay = v.EndTime
-		}
-	}
-
-	return endDay
-}
-
-func GetActivityEndTime(activityID int, openDay int) (beginTime int64, endTime int64) {
-	activityInfo := GetActivityInfo(activityID)
-	if activityInfo == nil {
-		gamelog.Error("GetActivityEndTime Error : Invalid activityid:%d", activityID)
-		return
-	}
-
-	if activityInfo.BeginTime == 0 && activityInfo.EndTime == 0 {
-		return 0, 0
-	}
-
-	now := time.Now()
-	if activityInfo.TimeType == 1 { //! 按照月计算
-		beginDate := time.Date(now.Year(), now.Month(), activityInfo.BeginTime, 0, 0, 0, 0, now.Location())
-		endDate := time.Date(now.Year(), now.Month(), activityInfo.EndTime, 23, 59, 59, 59, now.Location())
-
-		if endDate.Unix() <= now.Unix() {
-			beginDate = beginDate.AddDate(0, 1, 0)
-			endDate = endDate.AddDate(0, 1, 0)
-		}
-
-		if activityInfo.ServerType == 2 { //! 公服期活动
-			endDay := GetNewServerTypeActivityEndTime(activityInfo)
-			if endDay > openDay {
-				date := time.Now()
-				date = date.AddDate(0, 0, endDay-openDay)
-				for {
-					beginDate = beginDate.AddDate(0, 1, 0)
-					endDate = endDate.AddDate(0, 1, 0)
-					if (date.Unix() <= endDate.Unix() && date.Unix() >= beginDate.Unix()) || (date.Unix() > endDate.Unix()) {
-						//! 新服期与公服期冲突, 公服期活动顺延
-						beginDate = beginDate.AddDate(0, 1, 0)
-						endDate = endDate.AddDate(0, 1, 0)
-					} else {
-						break
-					}
-				}
-			}
-
-		}
-
-		beginTime = beginDate.Unix()
-		endTime = endDate.Unix()
-	} else if activityInfo.TimeType == 2 { //! 按照日计算
-		weekDay := int(now.Weekday())
-		if weekDay == 0 { //! 特殊处理周末
-			weekDay = 7
-		}
-
-		if activityInfo.EndTime == 7 && activityInfo.BeginTime == 1 {
-			//! 永久活动
-			beginTime = 0
-			endTime = 0
-		} else {
-			beginDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-			beginDate = beginDate.AddDate(0, 0, activityInfo.BeginTime-weekDay)
-
-			endDate := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 59, now.Location())
-			endDate = endDate.AddDate(0, 0, activityInfo.EndTime-weekDay)
-
-			if activityInfo.ServerType == 2 { //! 公服期活动
-				endDay := GetNewServerTypeActivityEndTime(activityInfo)
-				if endDay > openDay {
-					date := time.Now()
-					date = date.AddDate(0, 0, endDay-openDay)
-					for {
-						beginDate = beginDate.AddDate(0, 0, 7)
-						endDate = endDate.AddDate(0, 0, 7)
-						if (date.Unix() <= endDate.Unix() && date.Unix() >= beginDate.Unix()) || (date.Unix() > endDate.Unix()) {
-							//! 新服期与公服期冲突, 公服期活动顺延
-							beginDate = beginDate.AddDate(0, 0, 7)
-							endDate = endDate.AddDate(0, 0, 7)
-						} else {
-							break
-						}
-					}
-				}
-			}
-
-			endTime = endDate.Unix()
-			beginTime = beginDate.Unix()
-
-		}
-	} else if activityInfo.TimeType == 3 { //! 按照开服时间计算
-		beginDate := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-		beginDate = beginDate.AddDate(0, 0, -1*openDay)
-		beginDate = beginDate.AddDate(0, 0, activityInfo.BeginTime)
-		beginTime = beginDate.Unix()
-
-		endDate := time.Date(now.Year(), now.Month(), now.Day(), 23, 59, 59, 59, now.Location())
-		endDate = endDate.AddDate(0, 0, activityInfo.EndTime-openDay)
-		endTime = endDate.Unix()
-	} else if activityInfo.TimeType == 4 {
-		day := activityInfo.BeginTime % 100
-		month := (activityInfo.BeginTime - day) / 100
-		if day < 1 || day > 31 || month < 1 || month > 12 {
-			gamelog.Error("Invalid Activity BeginTime: %d", activityInfo.BeginTime)
-			return -1, -1
-		}
-
-		beginData := time.Date(now.Year(), time.Month(month), day, 0, 0, 0, 0, now.Location())
-		beginTime = beginData.Unix()
-
-		day = activityInfo.EndTime % 100
-		month = (activityInfo.EndTime - day) / 100
-		if day < 1 || day > 31 || month < 1 || month > 12 {
-			gamelog.Error("Invalid Activity BeginTime: %d", activityInfo.BeginTime)
-			return -1, -1
-		}
-
-		endData := time.Date(now.Year(), time.Month(month), day, 23, 59, 59, 59, now.Location())
-		endTime = endData.Unix()
-
-		//! 若今年活动时间已过,则时间变更为明年
-		if endTime < now.Unix() {
-			beginData = beginData.AddDate(1, 0, 0)
-			beginTime = beginData.Unix()
-
-			endData = endData.AddDate(1, 0, 0)
-			endTime = endData.Unix()
-		}
-	}
-
-	return beginTime, endTime
-}
-
-func GetTodayOpenActivity(openDay int) []int {
-	activityIDLst := []int{}
-	now := time.Now()
-
-	for _, v := range GT_ActivityLst {
-		if v.TimeType == 1 { //! 按照月计算
-			if now.Day() >= v.BeginTime && now.Day() <= v.EndTime {
-				activityIDLst = append(activityIDLst, v.ID)
-			}
-		} else if v.TimeType == 2 { //! 按照周计算
-			weekDay := int(now.Weekday())
-			if weekDay == 0 { //! 特殊处理周末
-				weekDay = 7
-			}
-
-			if weekDay >= v.BeginTime && weekDay <= v.EndTime {
-				activityIDLst = append(activityIDLst, v.ID)
-			}
-		} else if v.TimeType == 3 { //! 新服活动
-			gamelog.Error("OpenDay: %d  BeginTime: %d", openDay, v.BeginTime)
-			if openDay >= v.BeginTime && openDay <= v.EndTime {
-				activityIDLst = append(activityIDLst, v.ID)
-			}
-		} else {
-			continue
-		}
-	}
-
-	return activityIDLst
 }
 
 //! 开服竞赛配置表
@@ -362,71 +149,77 @@ func GetCompetitionAward(awardType int, rank int) int {
 }
 
 //! 领取体力
-type ST_Activity_RecvAction struct {
-	Award_Type int //! 奖励类型
-	Time_Begin int //! 活动开始时间
-	Time_End   int //! 活动结束时间
-	AwardPro   int //! 额外奖励概率
-	ActionID   int //! 奖励行动力ID
-	ActionNum  int //! 奖励行动力数量
-	MoneyID    int //! 额外奖励货币ID
-	MoneyNum   int //! 额外奖励货币数量
+type ST_Activity_Action struct {
+	Award_Type int    //! 奖励类型
+	Time_Begin [4]int //! 活动开始时间
+	Time_End   [4]int //! 活动结束时间
+	AwardPro   int    //! 额外奖励概率
+	ActionID   int    //! 奖励行动力ID
+	ActionNum  int    //! 奖励行动力数量
+	MoneyID    int    //! 额外奖励货币ID
+	MoneyNum   int    //! 额外奖励货币数量
 }
 
-var GT_RecvActionLst []ST_Activity_RecvAction
+var GT_ActivityActionLst []ST_Activity_Action
 
 func InitRecvActionParser(total int) bool {
-	//GT_RecvActionLst = make([]ST_Activity_RecvAction, total+1)
 	return true
 }
 
 func ParseRecvActionRecord(rs *RecordSet) {
-	var recv ST_Activity_RecvAction
+	var recv ST_Activity_Action
 	recv.Award_Type = rs.GetFieldInt("award_type")
-	recv.Time_Begin = rs.GetFieldInt("time_begin")
-	recv.Time_End = rs.GetFieldInt("time_end")
+
+	value := ParseTo2IntSlice(rs.GetFieldString("time1"))
+	recv.Time_Begin[0] = value[0]
+	recv.Time_End[0] = value[1]
+
+	value = ParseTo2IntSlice(rs.GetFieldString("time2"))
+	recv.Time_Begin[1] = value[0]
+	recv.Time_End[1] = value[1]
+
+	value = ParseTo2IntSlice(rs.GetFieldString("time3"))
+	recv.Time_Begin[2] = value[0]
+	recv.Time_End[2] = value[1]
+
+	value = ParseTo2IntSlice(rs.GetFieldString("time4"))
+	recv.Time_Begin[3] = value[0]
+	recv.Time_End[3] = value[1]
+
 	recv.AwardPro = rs.GetFieldInt("award_pro")
 	recv.ActionID = rs.GetFieldInt("action_id")
 	recv.ActionNum = rs.GetFieldInt("action_num")
 	recv.MoneyID = rs.GetFieldInt("money_id")
 	recv.MoneyNum = rs.GetFieldInt("money_num")
-	GT_RecvActionLst = append(GT_RecvActionLst, recv)
+	GT_ActivityActionLst = append(GT_ActivityActionLst, recv)
 }
 
-func GetRecvAction(awardType int, index int) *ST_Activity_RecvAction {
-	if index > len(GT_RecvActionLst) {
-		gamelog.Error("GetRecvAction Error: Invalid index %d", index)
-		return nil
+func (self *ST_Activity_Action) IsTimeOK(nIndex int) bool {
+	if nIndex <= 0 || nIndex > 4 {
+		gamelog.Error("IsTimeOK Error: Invalid nIndex:%d", nIndex)
+		return false
 	}
 
-	var awardLst []ST_Activity_RecvAction
-	for i, v := range GT_RecvActionLst {
-		if v.Award_Type == awardType {
-			awardLst = append(awardLst, GT_RecvActionLst[i])
-		}
-	}
-
-	return &awardLst[index]
-}
-
-func IsRecvActionTime(awardType int) int {
 	now := time.Now()
 	sec := now.Hour()*3600 + now.Minute()*60 + now.Second()
 
-	var awardLst []ST_Activity_RecvAction
-	for i, v := range GT_RecvActionLst {
-		if v.Award_Type == awardType {
-			awardLst = append(awardLst, GT_RecvActionLst[i])
+	if sec >= self.Time_Begin[nIndex-1] && sec <= self.Time_End[nIndex-1] {
+		return true
+	}
+
+	return false
+}
+
+func GetActivityAction(awardType int) *ST_Activity_Action {
+	for i := 0; i < len(GT_ActivityActionLst); i++ {
+		if GT_ActivityActionLst[i].Award_Type == awardType {
+			return &GT_ActivityActionLst[i]
 		}
 	}
 
-	for i, v := range awardLst {
-		if sec >= v.Time_Begin && sec <= v.Time_End {
-			return i + 1
-		}
-	}
+	gamelog.Error("GetActivityAction Error: Invalid awardType:%d", awardType)
 
-	return -1
+	return nil
 }
 
 //! 折扣销售
@@ -675,13 +468,13 @@ func GetWeekAwardInfo(awardType int, index int) *ST_Activity_WeekAward {
 //! 等级礼包
 type ST_Activity_LevelGift struct {
 	AwardType int    //! 奖励模板
-	ID        int    //! ID
+	ID        int32  //! ID
 	Level     string //! 需求等级
 	Award     int    //! 奖励
 	MoneyID   int    //! 货币ID
 	MoneyNum  int    //! 货币数量
 	BuyTimes  int    //! 可购买次数
-	DeadLine  int    //! 过期时间
+	DeadLine  int32  //! 过期时间
 }
 
 var GT_ActivityLevelGiftMap map[int][]ST_Activity_LevelGift
@@ -694,24 +487,24 @@ func InitActivityLevelGiftParser(total int) bool {
 func ParseActivityLevelGiftRecord(rs *RecordSet) {
 	var activity ST_Activity_LevelGift
 	activity.AwardType = rs.GetFieldInt("award_type")
-	activity.ID = rs.GetFieldInt("id")
+	activity.ID = int32(rs.GetFieldInt("id"))
 	activity.Level = rs.GetFieldString("level")
 	activity.Award = rs.GetFieldInt("award_id")
 	activity.MoneyID = rs.GetFieldInt("money_id")
 	activity.MoneyNum = rs.GetFieldInt("money_num")
 	activity.BuyTimes = rs.GetFieldInt("buy_times")
-	activity.DeadLine = rs.GetFieldInt("dead_line")
+	activity.DeadLine = int32(rs.GetFieldInt("dead_line"))
 	GT_ActivityLevelGiftMap[activity.AwardType] = append(GT_ActivityLevelGiftMap[activity.AwardType], activity)
 }
 
-func GetLevelGiftInfo(awardType int, id int) *ST_Activity_LevelGift {
+func GetLevelGiftInfo(awardType int, id int32) *ST_Activity_LevelGift {
 	data, ok := GT_ActivityLevelGiftMap[awardType]
 	if ok == false {
 		gamelog.Error("GetLevelGiftInfo Error: Invalid type : %d  id: %d", awardType, id)
 		return nil
 	}
 
-	if id > len(data) || id <= 0 {
+	if int(id) > len(data) || id <= 0 {
 		gamelog.Error("GetWeekAwardInfo Error: Invalid type : %d  id: %d", awardType, id)
 		return nil
 	}

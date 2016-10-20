@@ -12,7 +12,7 @@ type MSG_AwardCenter_Data struct {
 	TextType int            //! 类型
 	Value    []string       //! 参数
 	ItemLst  []MSG_ItemData //! 奖励内容
-	Time     int64          //! 发放奖励时间戳
+	Time     int32          //! 发放奖励时间戳
 }
 
 type MSG_AwardCenter_Query_Ack struct {

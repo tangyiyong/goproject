@@ -8,7 +8,6 @@ import (
 	"mongodb"
 	"msg"
 	"sync"
-	"time"
 	"utility"
 
 	"gopkg.in/mgo.v2/bson"
@@ -16,13 +15,13 @@ import (
 
 type TMiningMonster struct {
 	ID    int
-	Index int
+	Index int32
 	Life  int
 }
 
 type TMiningPos struct {
-	X int
-	Y int
+	X int32
+	Y int32
 }
 
 type TMiningBuff struct {
@@ -38,9 +37,9 @@ type TMiningBossAward struct { //! Boss打完后的翻牌奖励
 	Status  bool
 }
 
-type IndexLst []int
+type ElementLst []int32
 
-func (self *IndexLst) Set(index int, value int) {
+func (self *ElementLst) Set(index int32, value int32) {
 	for i, v := range *self {
 		if (v>>16)&0x0000FFFF == index {
 			(*self)[i] = index << 16
@@ -49,13 +48,13 @@ func (self *IndexLst) Set(index int, value int) {
 		}
 	}
 
-	var mark int
-	mark = index << 16
-	mark += value
-	*self = append(*self, mark)
+	var newValue int32
+	newValue = index << 16
+	newValue += value
+	*self = append(*self, newValue)
 }
 
-func (self *IndexLst) Get(index int) int {
+func (self *ElementLst) Get(index int32) int32 {
 	for i, v := range *self {
 		if v>>16 == index {
 			return (*self)[i] & 0x0000FFFF
@@ -65,71 +64,61 @@ func (self *IndexLst) Get(index int) int {
 	return 0
 }
 
-func (self *IndexLst) GetIndex(value int) int {
-	for i, v := range *self {
-		if v&0x0000FFFF == value {
-			return i
+//! 删除元素
+func (self *TMiningModule) DeleteElement(pos int32) {
+	index := 0
+	var value int32 = 0
+	for i, v := range self.Element {
+		if ((v >> 16) & 0x0000FFFF) == pos {
+			index = i
+			value = v
+			break
 		}
 	}
 
-	return -1
+	if index == 0 {
+		self.Element = self.Element[1:]
+	} else if (index + 1) == len(self.Element) {
+		self.Element = self.Element[:index]
+	} else {
+		self.Element = append(self.Element[:index], self.Element[index+1:]...)
+	}
+
+	self.DB_RemoveElement(value)
 }
 
-type MapLst [60]uint64
+type TMapData [60]uint64
 
-func (self *MapLst) Set(index int) {
+func (self *TMapData) Set(index int32) {
 	y := uint64(index / 60)
 	x := uint64(index % 60)
 	(*self)[y] |= (1 << x)
 }
 
-func (self *MapLst) Get(index int) bool {
+func (self *TMapData) Get(index int32) bool {
 	y := uint64(index / 60)
 	x := uint64(index % 60)
 
 	return ((*self)[y] & (1 << x)) > 0
 }
 
-func (self *MapLst) Count() int {
-	count := 0
-	for j := 0; j < gamedata.MiningMapLength; j++ {
-		for i := 0; i < 60; i++ {
-			if (*self).Get(j*60+i) == true {
-				count++
-			}
-		}
-	}
-	return count
-}
-
 type TMiningModule struct {
-	PlayerID int32 `bson:"_id"`
-
-	GuaJiType     int   //! 当前挂机类型
-	GuajiCalcTime int64 //! 挂机结算时间
-	Point         int   //! 玩家当前积分
-
-	Buff TMiningBuff //! 玩家Buff
-
-	MonsterLst []TMiningMonster //! 怪物信息
-
-	MiningMap MapLst   //! 地图挖掘标记 位运算
-	Element   IndexLst //! 前16位为index  后16位为值
-
-	LastPos TMiningPos //! 最后操作位置
-
-	ActionBuyTimes int    //! 购买行动力次数
-	ResetDay       uint32 //! 重置购买次数天数
-
-	BossAward []TMiningBossAward //! 翻牌奖励
-
-	BlackMarketBuyMark IntLst //! 黑市购买标记
-
-	StatusCode int //! 状态码
-
-	MiningResetTimes int
-
-	ownplayer *TPlayer
+	PlayerID   int32              `bson:"_id"`
+	GuaJiType  int                //! 当前挂机类型
+	GuajiTime  int32              //! 挂机结算时间
+	Point      int                //! 玩家当前积分
+	Buff       TMiningBuff        //! 玩家Buff
+	MonsterLst []TMiningMonster   //! 怪物信息
+	MapData    TMapData           //! 地图挖掘标记 位运算
+	MapCnt     int                //! 己经打开的位置个数
+	Element    ElementLst         //! 前16位为index  后16位为值
+	LastPos    TMiningPos         //! 最后操作位置
+	ResetDay   uint32             //! 重置购买次数天数
+	BossAward  []TMiningBossAward //! 翻牌奖励
+	BuyRecord  Int32Lst           //! 神秘商店购买标记
+	StatusCode int                //! 状态码
+	ResetTimes int                //! 地图重置次数
+	ownplayer  *TPlayer
 }
 
 //! 设置玩家指针
@@ -142,26 +131,26 @@ func (self *TMiningModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 func (self *TMiningModule) OnCreate(playerid int32) {
 
 	//! 创建地图
-	self.CreateNewMap(false)
+	self.CreateNewMap()
 
 	//! 初始化状态码
 	self.StatusCode = 1 + (1 << 16)
 
 	//! 初始化入口坐标
-	self.LastPos.X = gamedata.MiningEnterPointX
-	self.LastPos.Y = gamedata.MiningEnterPointY
+	self.LastPos.X = gamedata.MiningStartPointX
+	self.LastPos.Y = gamedata.MiningStartPointY
 
 	//! 初始化地图入口
-	self.MiningMap.Set(gamedata.MiningEnterPointY*60 + gamedata.MiningEnterPointX)
+	self.MapData.Set(gamedata.MiningStartPointY*60 + gamedata.MiningStartPointX)
 
 	//! 重置矿洞次数
-	self.MiningResetTimes = 0
+	self.ResetTimes = 0
 
 	//! 设置重置购买次数时间
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerMining", self)
+	mongodb.InsertToDB("PlayerMining", self)
 }
 
 //! 玩家销毁角色
@@ -196,8 +185,8 @@ func (self *TMiningModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 }
 
 func (self *TMiningModule) RedTip() bool {
-	now := time.Now().Unix()
-	if self.GuajiCalcTime < now {
+	now := utility.GetCurTime()
+	if self.GuajiTime < now {
 		return true
 	}
 
@@ -217,60 +206,37 @@ func (self *TMiningModule) RedTip() bool {
 
 //! 重置挖矿地图
 func (self *TMiningModule) ResetMiningMap() {
-	self.MiningResetTimes++
+	self.ResetTimes++
 
 	//! 标记重置
 	self.BossAward = []TMiningBossAward{} //! 翻牌奖励
 	self.Buff = TMiningBuff{}
 	self.Point = 0
 
-	self.Element = IndexLst{}
+	self.Element = ElementLst{}
 	self.MonsterLst = []TMiningMonster{}
 	self.StatusCode = 1 + (1 << 16)
 
-	self.CreateNewMap(true)
+	self.CreateNewMap()
 
 	//! 初始化状态码
 	self.StatusCode = 1 + (1 << 16)
 
 	//! 初始化入口坐标
-	self.LastPos.X = gamedata.MiningEnterPointX
-	self.LastPos.Y = gamedata.MiningEnterPointY
+	self.LastPos.X = gamedata.MiningStartPointX
+	self.LastPos.Y = gamedata.MiningStartPointY
 
 	//! 初始化地图入口
-	self.MiningMap.Set(gamedata.MiningEnterPointY*60 + gamedata.MiningEnterPointX)
+	self.MapData.Set(gamedata.MiningStartPointY*60 + gamedata.MiningStartPointX)
 
 	//! 设置重置购买次数时间
 	self.ResetDay = utility.GetCurDay()
 
-	self.DB_ResetMapInfo()
-}
-
-//! 删除元素
-func (self *TMiningModule) DeleteElement(index int) {
-	pos := 0
-	value := 0
-	for i, v := range self.Element {
-		if ((v >> 16) & 0x0000FFFF) == index {
-			pos = i
-			value = v
-			break
-		}
-	}
-
-	if pos == 0 {
-		self.Element = self.Element[1:]
-	} else if (pos + 1) == len(self.Element) {
-		self.Element = self.Element[:pos]
-	} else {
-		self.Element = append(self.Element[:pos], self.Element[pos+1:]...)
-	}
-
-	self.DB_RemoveElement(value)
+	self.DB_ResetMapData()
 }
 
 //! 删除怪物
-func (self *TMiningModule) DeleteMonster(index int) {
+func (self *TMiningModule) DeleteMonster(index int32) {
 	pos := 0
 	monster := TMiningMonster{}
 	for i, v := range self.MonsterLst {
@@ -293,7 +259,7 @@ func (self *TMiningModule) DeleteMonster(index int) {
 }
 
 //! 生成新可视区域部分坐标
-func (self *TMiningModule) GetNewVisualPosArena(x int, y int) (posLst []TMiningPos) {
+func (self *TMiningModule) GetNewVisualPosArena(x int32, y int32) (posLst []TMiningPos) {
 	visualLst := self.GetVisualPosArena(x, y)
 
 	//! 去除已经可以看见的区域
@@ -305,7 +271,7 @@ func (self *TMiningModule) GetNewVisualPosArena(x int, y int) (posLst []TMiningP
 		}
 
 		//! 去除已挖掘
-		if self.MiningMap.Get(index) == true {
+		if self.MapData.Get(index) == true {
 			continue
 		}
 
@@ -321,76 +287,59 @@ func (self *TMiningModule) GetNewVisualPosArena(x int, y int) (posLst []TMiningP
 }
 
 //! 生成可探视区域坐标
-func (self *TMiningModule) GetVisualPosArena(x int, y int) (posLst []TMiningPos) {
-	for i := 1; i <= 2; i++ {
-		if x-i >= 0 && x-i <= gamedata.MiningMapLength {
-			posLst = append(posLst, TMiningPos{x - i, y})
-		}
+func (self *TMiningModule) GetVisualPosArena(x int32, y int32) (posLst []TMiningPos) {
+	posLst = append(posLst, TMiningPos{x + 1, y})
+	posLst = append(posLst, TMiningPos{x + 2, y})
+	posLst = append(posLst, TMiningPos{x, y + 1})
+	posLst = append(posLst, TMiningPos{x, y + 2})
+	posLst = append(posLst, TMiningPos{x + 1, y + 1})
 
-		if x+i <= gamedata.MiningMapLength {
-			posLst = append(posLst, TMiningPos{x + i, y})
-		}
-
-		if y-i >= 0 && y-i <= gamedata.MiningMapLength {
-			posLst = append(posLst, TMiningPos{x, y - i})
-		}
-
-		if y+i <= gamedata.MiningMapLength {
-			posLst = append(posLst, TMiningPos{x, y + i})
-		}
+	if y >= 2 {
+		posLst = append(posLst, TMiningPos{x, y - 2})
 	}
 
-	if x-1 >= 0 && y-1 >= 0 {
-		posLst = append(posLst, TMiningPos{x - 1, y - 1})
-	}
-
-	if x-1 >= 0 && y+1 <= gamedata.MiningMapLength {
-		posLst = append(posLst, TMiningPos{x - 1, y + 1})
-	}
-
-	if y+1 <= gamedata.MiningMapLength && x+1 <= gamedata.MiningMapLength {
-		posLst = append(posLst, TMiningPos{x + 1, y + 1})
-	}
-
-	if y-1 >= 0 && x+1 <= gamedata.MiningMapLength {
+	if y >= 1 {
 		posLst = append(posLst, TMiningPos{x + 1, y - 1})
+		posLst = append(posLst, TMiningPos{x, y - 1})
+	}
+
+	if x >= 2 {
+		posLst = append(posLst, TMiningPos{x - 2, y})
+	}
+
+	if x >= 1 {
+		posLst = append(posLst, TMiningPos{x - 1, y + 1})
+		posLst = append(posLst, TMiningPos{x - 1, y})
+	}
+
+	if x >= 1 && y >= 1 {
+		posLst = append(posLst, TMiningPos{x - 1, y - 1})
 	}
 
 	return posLst
 }
 
 //! 生成一张新的挖矿地图
-func (self *TMiningModule) CreateNewMap(isSave bool) {
+func (self *TMiningModule) CreateNewMap() {
 	//! 初始化地图
-	self.initMap()
+	self.MapData = TMapData{}
+	self.Element = ElementLst{}
+	self.MapCnt = 1
 
-	posLst := self.GetVisualPosArena(gamedata.MiningEnterPointX, gamedata.MiningEnterPointY)
+	posLst := self.GetVisualPosArena(gamedata.MiningStartPointX, gamedata.MiningStartPointY)
 
 	for _, v := range posLst {
 		self.GetMapPosData(v.X, v.Y, false)
 	}
-
-	//! 存储地图
-	if isSave == true {
-		self.DB_SaveMiningMap()
-	}
-}
-
-//! 初始化地图 以下函数为该类私有,故不对外提供方法
-func (self *TMiningModule) initMap() {
-	self.MiningMap = MapLst{}
 }
 
 //! 获取当前玩家进度
 func (self *TMiningModule) GetSchedule() float64 {
 	digCount := 0
 	totalCount := gamedata.MiningMapLength * gamedata.MiningMapLength
-
-	digCount = self.MiningMap.Count()
+	digCount = self.MapCnt
 	digCount += len(self.Element)
-
 	schedule := float64(digCount) / float64(totalCount)
-
 	return schedule
 }
 
@@ -404,11 +353,7 @@ func (self *TMiningModule) CheckReset() {
 }
 
 func (self *TMiningModule) OnNewDay(newday uint32) {
-
-	//! 重置购买行动力次数
-	self.ActionBuyTimes = 0
 	self.ResetDay = newday
-	self.DB_SaveActionBuyTimes()
 }
 
 //! 当前是否刷新Boss
@@ -422,7 +367,7 @@ func (self *TMiningModule) isRefreshBoss() bool {
 }
 
 //! 随机元素
-func (self *TMiningModule) randElement(index int, savedb bool) (element int) {
+func (self *TMiningModule) randElement(index int32, savedb bool) (element int32) {
 	//! 随机一个元素
 	element = gamedata.RandMiningElement()
 	//! 判断完成度
@@ -449,7 +394,7 @@ func (self *TMiningModule) randElement(index int, savedb bool) (element int) {
 			info.ID = monsterID
 			info.Index = index
 
-			info.Life = int(float64(monster.MonsterLife) * math.Pow(1.2, float64(self.MiningResetTimes)))
+			info.Life = int(float64(monster.MonsterLife) * math.Pow(1.2, float64(self.ResetTimes)))
 
 			self.MonsterLst = append(self.MonsterLst, info)
 
@@ -481,7 +426,6 @@ func (self *TMiningModule) AddMapStatusCode() {
 	mapCode := (self.StatusCode >> 16) & 0x0000FFFF
 	miningCode := self.StatusCode & 0x0000FFFF
 	self.StatusCode = (mapCode << 16) + miningCode
-
 	self.DB_UpdateMiningStatusCode()
 }
 
@@ -492,9 +436,9 @@ func (self *TMiningModule) AddMiningStatusCode() {
 }
 
 //! 获取坐标信息
-func (self *TMiningModule) GetMapPosData(x int, y int, savedb bool) (isDig bool, element int, errcode int) {
+func (self *TMiningModule) GetMapPosData(x int32, y int32, savedb bool) (isDig bool, element int32, errcode int) {
 	index := y*gamedata.MiningMapLength + x
-	isDig = self.MiningMap.Get(index)
+	isDig = self.MapData.Get(index)
 	if self.Element.Get(index) != 0 {
 		element = self.Element.Get(index)
 		if element == 0 {
@@ -510,7 +454,7 @@ func (self *TMiningModule) GetMapPosData(x int, y int, savedb bool) (isDig bool,
 }
 
 //! 获取怪物信息
-func (self *TMiningModule) GetMonsterInfo(index int) (*TMiningMonster, int) {
+func (self *TMiningModule) GetMonsterInfo(index int32) (*TMiningMonster, int) {
 	for i, v := range self.MonsterLst {
 		if v.Index == index {
 			return &self.MonsterLst[i], i
@@ -536,11 +480,10 @@ func (self *TMiningModule) GetBossInfo() (*TMiningMonster, int) {
 
 //! 增加一个Buff信息
 func (self *TMiningModule) AddBuff(buffType int, times int, value int) {
-
 	self.Buff.BuffType = buffType
 	self.Buff.Times = times
 	self.Buff.Value = value
-	self.DB_SavePlayerBuff()
+	self.DB_SaveBuff()
 }
 
 //! 随机Boss奖励
@@ -556,7 +499,6 @@ func (self *TMiningModule) RandBossAward(bossID int) {
 
 //! 获取Boss奖励
 func (self *TMiningModule) GetBossAward(id int) *TMiningBossAward {
-
 	for _, v := range self.BossAward {
 		if v.ID == id {
 			return &v
@@ -570,7 +512,7 @@ func (self *TMiningModule) GetBossAward(id int) *TMiningBossAward {
 //! 设置挂机
 func (self *TMiningModule) SetGuaji(guajiType int, hour int) {
 	self.GuaJiType = guajiType
-	self.GuajiCalcTime = time.Now().Unix() + int64(hour*60*60)
+	self.GuajiTime = utility.GetCurTime() + int32(hour*60*60)
 	self.DB_SaveGuajiInfo()
 }
 
@@ -587,36 +529,8 @@ func (self *TMiningModule) GetGuajiAward() []gamedata.ST_ItemData {
 
 	//! 重置挂机时间信息
 	self.GuaJiType = 0
-	self.GuajiCalcTime = 0
+	self.GuajiTime = 0
 	self.DB_SaveGuajiInfo()
 
 	return awardItems
-}
-
-//! 检测行动力自增
-func (self *TMiningModule) CheckActionAddTime() int {
-	// if self.ownplayer.RoleMoudle.CheckActionEnough(gamedata.MiningCostActionID, gamedata.MiningActionRecoverLimit) == true {
-	// 	//! 如果已超过界限,则停止增长
-	// 	return 0
-	// }
-
-	// duration := time.Now().Unix() - self.ActionAddTime
-	// if duration < int64(gamedata.MiningActionRecoverTime) {
-	// 	return 0
-	// }
-
-	// addAction := duration / int64(gamedata.MiningActionRecoverTime)
-	// self.ActionAddTime = time.Now().Unix() - duration%int64(gamedata.MiningActionRecoverTime)
-
-	// action := self.ownplayer.RoleMoudle.GetAction(gamedata.MiningCostActionID)
-	// if action+int(addAction) > gamedata.MiningActionRecoverLimit {
-	// 	addAction = int64(gamedata.MiningActionRecoverLimit) - int64(action)
-	// }
-
-	// self.ownplayer.RoleMoudle.AddAction(gamedata.MiningCostActionID, int(addAction))
-	// self.DB_SaveActionAddTime()
-
-	// //! 返回倒计时
-	// nextTime := self.ActionAddTime + int64(gamedata.MiningActionRecoverTime) - time.Now().Unix()
-	return 0
 }

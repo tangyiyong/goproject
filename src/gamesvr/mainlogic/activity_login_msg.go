@@ -9,7 +9,7 @@ import (
 )
 
 //! 玩家查询累计登录活动信息
-func Hand_QueryActivityLoginInfo(w http.ResponseWriter, r *http.Request) {
+func Hand_QueryLoginData(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收消息
@@ -120,7 +120,7 @@ func Hand_GetActivityLoginAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测是否已经领取
-	if activity.LoginAward.Get(uint32(req.Index)) == true {
+	if activity.LoginAward.Get(req.Index) == true {
 		gamelog.Error("Hand_GetActivityLoginInfo Error: Aleady recvice award %d", req.Index)
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
@@ -153,7 +153,7 @@ func Hand_GetActivityLoginAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 改变玩家标记
-	activity.LoginAward.Set(uint32(req.Index))
+	activity.LoginAward.Set(req.Index)
 	activity.DB_UpdateLoginAward(activityIndex)
 
 	//! 返回成功

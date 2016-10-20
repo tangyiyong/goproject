@@ -11,18 +11,24 @@ var (
 	G_RegisterCnt    int //总注册玩家
 )
 
+//增加在线人数
 func IncOnlineCnt() {
 	G_StatisticMutex.Lock()
 	G_OnlineCnt = G_OnlineCnt + 1
+	if G_MaxOnlineCnt < G_OnlineCnt {
+		G_MaxOnlineCnt = G_OnlineCnt
+	}
 	G_StatisticMutex.Unlock()
 }
 
+//减少在线人数
 func DecOnlineCnt() {
 	G_StatisticMutex.Lock()
 	G_OnlineCnt = G_OnlineCnt - 1
 	G_StatisticMutex.Unlock()
 }
 
+//增加注册人数
 func IncRegisterCnt() {
 	G_StatisticMutex.Lock()
 	G_RegisterCnt = G_RegisterCnt + 1

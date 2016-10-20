@@ -60,6 +60,7 @@ type MSG_GetServerInfo_Req struct {
 }
 
 type MSG_GetServerInfo_Ack struct {
+	RetCode      int
 	SvrID        int32  //当前的服务器ID
 	SvrName      string //当前服务器名字
 	OnlineCnt    int    //在线人数
@@ -68,15 +69,16 @@ type MSG_GetServerInfo_Ack struct {
 }
 
 //验证玩家登录请求
-//消息:/set_gamesvr_flag
-type MSG_SetGameSvrFlag_Req struct {
+//消息:/gm_set_svrstate
+type MSG_SetGameSvrState_Req struct {
 	SessionID  string //GM SessionID
 	SessionKey string //GM SessionKey
 	SvrID      int32  //服务器ID
-	Flag       uint32 //服务器标记
+	SvrState   uint32 //服务器标记
+	SvrDefault uint32 //是否默认
 }
 
-type MSG_SetGameSvrFlag_Ack struct {
+type MSG_SetGameSvrState_Ack struct {
 	RetCode int //返回码 0:成功 1: 失
 }
 
@@ -101,4 +103,117 @@ type MSG_GmLogin_Req struct {
 
 type MSG_GmLogin_Ack struct {
 	RetCode int
+}
+
+//消息:/gm_enable_account
+type MSG_GmEnableAccount_Req struct {
+	SessionID  string //GM SessionID
+	SessionKey string //GM SessionKey
+	PlayerID   int32  //角色ID也是账号ID
+	SvrID      int32  //分区ID
+	RoleName   string //角色名字
+	Enable     int32  //0:表示禁用, 1:表示启用
+}
+
+type MSG_GmEnableAccount_Ack struct {
+	RetCode int
+}
+
+//消息:/gm_add_giftaward
+type MSG_AddGiftAward_Req struct {
+	SessionID  string
+	SessionKey string
+	ItemID     []int //物品ID
+	ItemNum    []int //物品数量
+}
+
+type MSG_AddGiftAward_Ack struct {
+	RetCode int
+	AwardID int
+}
+
+//消息:/gm_make_giftcode
+type MSG_MakeGiftCode_Req struct {
+	SessionID   string //GM SessionID
+	SessionKey  string //GM SessionKey
+	Platform    int32  //平台ID
+	SvrID       int32  //服务器ID
+	EndTime     int32  //结束时间
+	GiftAwardID int32  //奖励ID
+	GiftCodeNum int    //激活码数量
+	IsAll       bool   //是否为全服发放
+}
+
+type MSG_MakeGiftCode_Ack struct {
+	RetCode   int
+	GiftCodes []string //激活码
+}
+
+//消息:/gamesvr_giftcode
+type MSG_GameSvrGiftCode_Req struct {
+	ID        string //礼包ID
+	SvrID     int32  //服务器ID
+	AccountID int32  //玩家ID
+}
+
+type MSG_GameSvrGiftCode_Ack struct {
+	RetCode int
+	ItemID  []int //物品ID
+	ItemNum []int //物品数量
+}
+
+//! 查询账号服务器ID
+//! 消息: /query_account_id
+type MSG_QueryAccountID_Req struct {
+	Name string
+}
+
+type MSG_QueryAccountID_Ack struct {
+	AccountID int32
+}
+
+//!	查询玩家信息
+//! 消息: /query_account_info
+type MSG_QueryAccountInfo_Req struct {
+	AccountID int32
+}
+
+type MSG_QueryAccountInfo_Ack struct {
+	RetCode       int
+	AccountName   string //! 账号
+	AccountPwd    string //! 密码
+	CreateTime    int32  //! 创建时间
+	LastLoginTime int32  //! 上次登录时间
+	Platform      int32  //! 平台
+	Enable        int32  //! 封号状态 0: 表示禁用  1: 表示启用
+	LastLoginIP   string //! 上次登录IP
+}
+
+//! 查询玩家信息-GameSvr
+//! 消息: /query_player_info
+type MSG_QueryPlayerInfo_Req struct {
+	PlayerID   int32
+	PlayerName string
+}
+
+type MSG_QueryPlayerInfo_Ack struct {
+	RetCode        int
+	PlayerID       int32   //! ID
+	PlayerName     string  //! 昵称
+	Sex            int     //! 性别
+	Phone          string  //! 手机
+	Mac            string  //! Mac地址
+	Charge         int32   //! 充值额
+	ChargeGetMoney int32   //! 充值所获钻石
+	ChargeTimes    int32   //! 充值次数
+	Level          int     //! 等级
+	VIPLevel       int     //! VIP等级
+	Money          [14]int //! 货币
+	Strength       int     //! 体力
+	Action         int     //! 精力
+	AttackTimes    int     //! 净化次数
+	FightValue     int32   //! 战力
+	System         string  //! 手机系统
+	LastLogoffTime int32   //! 上次登出时间
+	IsOnline       bool    //! 是否在线
 }

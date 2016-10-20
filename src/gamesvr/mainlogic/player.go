@@ -3,8 +3,8 @@ package mainlogic
 import (
 	"gamelog"
 	"gamesvr/gamedata"
+	"msg"
 	"sync"
-	"time"
 	"utility"
 )
 
@@ -65,47 +65,46 @@ type TPlayer struct {
 	//非存数据库的临时状态数据
 	playerid    int32        //角色ID
 	pSimpleInfo *TSimpleInfo //角色简信息
-	mutex       sync.Mutex   //玩家的一些操作的锁
-	isLock      bool
+	msgTime     int32        //消息处理时间
 }
 
 //玩家初始化
-func (player *TPlayer) InitModules(playerid int32) {
+func (self *TPlayer) InitModules(playerid int32) {
 	if playerid <= 0 {
 		gamelog.Error("InitModules Error : Invalid PlayerID:%d", playerid)
 		return
 	}
-	player.RoleMoudle.SetPlayerPtr(playerid, player)
-	player.HeroMoudle.SetPlayerPtr(playerid, player)
-	player.TaskMoudle.SetPlayerPtr(playerid, player)
-	player.MailMoudle.SetPlayerPtr(playerid, player)
-	player.CopyMoudle.SetPlayerPtr(playerid, player)
-	player.BagMoudle.SetPlayerPtr(playerid, player)
-	player.StoreModule.SetPlayerPtr(playerid, player)
-	player.MallModule.SetPlayerPtr(playerid, player)
-	player.SummonModule.SetPlayerPtr(playerid, player)
-	player.ArenaModule.SetPlayerPtr(playerid, player)
-	player.RobModule.SetPlayerPtr(playerid, player)
-	player.SangokuMusouModule.SetPlayerPtr(playerid, player)
-	player.AwardCenterModule.SetPlayerPtr(playerid, player)
-	player.TerritoryModule.SetPlayerPtr(playerid, player)
-	player.FriendMoudle.SetPlayerPtr(playerid, player)
-	player.RebelModule.SetPlayerPtr(playerid, player)
-	player.MiningModule.SetPlayerPtr(playerid, player)
-	player.HangMoudle.SetPlayerPtr(playerid, player)
-	player.GuildModule.SetPlayerPtr(playerid, player)
-	player.BlackMarketModule.SetPlayerPtr(playerid, player)
-	player.ScoreMoudle.SetPlayerPtr(playerid, player)
-	player.FameHallModule.SetPlayerPtr(playerid, player)
-	player.TitleModule.SetPlayerPtr(playerid, player)
-	player.FoodWarModule.SetPlayerPtr(playerid, player)
-	player.ActivityModule.SetPlayerPtr(playerid, player)
-	player.WanderMoudle.SetPlayerPtr(playerid, player)
-	player.HeroSoulsModule.SetPlayerPtr(playerid, player)
-	player.CamBattleModule.SetPlayerPtr(playerid, player)
-	player.ChargeModule.SetPlayerPtr(playerid, player)
+	self.RoleMoudle.SetPlayerPtr(playerid, self)
+	self.HeroMoudle.SetPlayerPtr(playerid, self)
+	self.TaskMoudle.SetPlayerPtr(playerid, self)
+	self.MailMoudle.SetPlayerPtr(playerid, self)
+	self.CopyMoudle.SetPlayerPtr(playerid, self)
+	self.BagMoudle.SetPlayerPtr(playerid, self)
+	self.StoreModule.SetPlayerPtr(playerid, self)
+	self.MallModule.SetPlayerPtr(playerid, self)
+	self.SummonModule.SetPlayerPtr(playerid, self)
+	self.ArenaModule.SetPlayerPtr(playerid, self)
+	self.RobModule.SetPlayerPtr(playerid, self)
+	self.SangokuMusouModule.SetPlayerPtr(playerid, self)
+	self.AwardCenterModule.SetPlayerPtr(playerid, self)
+	self.TerritoryModule.SetPlayerPtr(playerid, self)
+	self.FriendMoudle.SetPlayerPtr(playerid, self)
+	self.RebelModule.SetPlayerPtr(playerid, self)
+	self.MiningModule.SetPlayerPtr(playerid, self)
+	self.HangMoudle.SetPlayerPtr(playerid, self)
+	self.GuildModule.SetPlayerPtr(playerid, self)
+	self.BlackMarketModule.SetPlayerPtr(playerid, self)
+	self.ScoreMoudle.SetPlayerPtr(playerid, self)
+	self.FameHallModule.SetPlayerPtr(playerid, self)
+	self.TitleModule.SetPlayerPtr(playerid, self)
+	self.FoodWarModule.SetPlayerPtr(playerid, self)
+	self.ActivityModule.SetPlayerPtr(playerid, self)
+	self.WanderMoudle.SetPlayerPtr(playerid, self)
+	self.HeroSoulsModule.SetPlayerPtr(playerid, self)
+	self.CamBattleModule.SetPlayerPtr(playerid, self)
+	self.ChargeModule.SetPlayerPtr(playerid, self)
 
-	player.playerid = playerid
+	self.playerid = playerid
 	return
 }
 
@@ -242,7 +241,7 @@ func (player *TPlayer) OnPlayerOffline(playerid int32) {
 	player.CamBattleModule.OnPlayerOffline(playerid)
 	player.ChargeModule.OnPlayerOffline(playerid)
 
-	G_SimpleMgr.Set_LogoffTime(playerid, time.Now().Unix())
+	G_SimpleMgr.Set_LogoffTime(playerid, utility.GetCurTime())
 }
 
 //响应玩家的加载请求
@@ -345,19 +344,25 @@ func (player *TPlayer) OnPlayerLoadSync(playerid int32) {
 	player.InitModules(playerid)
 }
 
-var GMap_HandleMsg_Lock map[string]bool
+//开始消息处理
+func (player *TPlayer) BeginMsgProcess() int {
+	if player.msgTime > 0 && (utility.GetCurTime()-player.msgTime) < 1000 {
+		gamelog.Error("BeginMsgProcess error : send req too fast :%d!", player.playerid)
+		return msg.RE_REQUEST_TOO_FAST
+	}
 
-func (player *TPlayer) Lock(url string) {
-	if val, ok := GMap_HandleMsg_Lock[url]; ok && val {
-		player.mutex.Lock()
-		player.isLock = true
-	}
+	player.msgTime = utility.GetCurTime()
+
+	return msg.RE_UNKNOWN_ERR
 }
-func (player *TPlayer) Unlock() {
-	if player.isLock {
-		player.isLock = false
-		player.mutex.Unlock()
-	}
+
+//完成消息处理
+//计算战力
+func (player *TPlayer) FinishMsgProcess() {
+
+	player.msgTime = 0
+
+	return
 }
 
 //计算战力
@@ -520,15 +525,14 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 			return false
 		}
 
-		if player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID] != 0 {
+		if player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID-1] != 0 {
 			gamelog.Error("OnChargeMoney Error : Repeat purchase")
 			return false
 		}
-		player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID] += pChargeInfo.DayNum
+		player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID-1] += pChargeInfo.DayNum
 		player.RoleMoudle.AddMoney(gamedata.ChargeMoneyID, pChargeInfo.Diamond)
 		getDiamond += pChargeInfo.Diamond
-
-		player.ActivityModule.MonthCard.DB_UpdateCardDays(pChargeInfo.ID, player.ActivityModule.MonthCard.CardDays[pChargeInfo.ID])
+		player.ActivityModule.MonthCard.DB_UpdateCardStatus()
 	}
 
 	player.RoleMoudle.AddVipExp(getDiamond)
@@ -552,7 +556,7 @@ func (player *TPlayer) OnChargeMoney(rmb, diamond int) {
 	player.ActivityModule.WeekAward.AddRechargeNum(rmb)
 
 	//! 首充/次充
-	player.ActivityModule.FirstRecharge.CheckRecharge(rmb)
+	player.ActivityModule.FirstCharge.CheckRecharge(rmb)
 
 	//! 单充/累充
 	player.ActivityModule.AddRechargeValue(rmb)
@@ -569,30 +573,31 @@ func OnConfigChange(tbname string) bool {
 		{
 			//! 获取今日开启活动
 			openDay := GetOpenServerDay()
-			activityLength := len(G_GlobalVariables.ActivityLst)
 			for _, v := range gamedata.GT_ActivityLst {
 				if v.ID == 0 {
 					continue
 				}
 				//! 遍历当前活动表
 				isExist := false
-				for j := 0; j < activityLength; j++ {
+				for j := 0; j < len(G_GlobalVariables.ActivityLst); j++ {
 					if v.ID == G_GlobalVariables.ActivityLst[j].ActivityID {
 						//! 活动已存在, 改变状态
 						G_GlobalVariables.ActivityLst[j].Status = v.Status
 						G_GlobalVariables.ActivityLst[j].award = v.AwardType
-						beginTime, endTime := gamedata.GetActivityEndTime(v.ID, openDay)
+						G_GlobalVariables.ActivityLst[j].activityType = v.ActType
+						beginTime, actEndTime, endTime := CalcActivityTime(v.ID, openDay)
 						G_GlobalVariables.ActivityLst[j].beginTime = beginTime
+						G_GlobalVariables.ActivityLst[j].actEndTime = actEndTime
 						G_GlobalVariables.ActivityLst[j].endTime = endTime
 						isExist = true
-						G_GlobalVariables.DB_UpdateActivityInfo(j)
+						G_GlobalVariables.DB_UpdateActivityStatus(j)
 						break
 					}
 				}
 
 				if isExist == false {
 					//! 新加活动
-					if v.ActivityType == gamedata.Activity_Seven {
+					if v.ActType == gamedata.Activity_Seven {
 						seven := TSevenDayBuyInfo{}
 						seven.ActivityID = v.ID
 						G_GlobalVariables.SevenDayLimit = append(G_GlobalVariables.SevenDayLimit, seven)
@@ -601,9 +606,9 @@ func OnConfigChange(tbname string) bool {
 
 					var activity TActivityData
 					activity.ActivityID = v.ID
-					activity.activityType = v.ActivityType
+					activity.activityType = v.ActType
 					activity.award = v.AwardType
-					activity.beginTime, activity.endTime = gamedata.GetActivityEndTime(v.ID, openDay)
+					activity.beginTime, activity.actEndTime, activity.endTime = CalcActivityTime(v.ID, openDay)
 					activity.VersionCode = 0
 					activity.Status = v.Status
 					activity.ResetCode = 0

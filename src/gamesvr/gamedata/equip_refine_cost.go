@@ -39,6 +39,7 @@ var (
 	GT_EquipRefineCostList []ST_EquipRefineCost  = nil
 	GT_ShenBinList         [7][51]ST_ShenBinInfo //最大精练等级装备50， 宝物20, 六个位置
 	GT_ShenBinSkillList    []ST_ShenBinSkillInfo = nil
+	GT_MinRefineLevel                            = 10000
 )
 
 func InitEquipRefineCostParser(total int) bool {
@@ -95,6 +96,10 @@ func ParseShenBinRecord(rs *RecordSet) {
 	GT_ShenBinList[pos][level].Propertyid = rs.GetFieldInt("p_id")
 	GT_ShenBinList[pos][level].PropertyV = rs.GetFieldInt("p_value")
 	GT_ShenBinList[pos][level].SkillID = rs.GetFieldInt("skill_id")
+
+	if GT_MinRefineLevel > level {
+		GT_MinRefineLevel = level
+	}
 	return
 }
 
@@ -111,7 +116,11 @@ func FinishShenBinParser() bool {
 }
 
 func GetShenBinInfo(pos int, level int) *ST_ShenBinInfo {
-	if level >= len(GT_ShenBinList) {
+	if level < GT_MinRefineLevel {
+		return nil
+	}
+
+	if pos <= 0 || pos > 6 || level > 50 {
 		gamelog.Error("GetShenBinInfo Error : Invalid level %d and pos :%d", level, pos)
 		return nil
 	}

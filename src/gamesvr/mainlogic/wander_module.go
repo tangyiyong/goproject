@@ -4,12 +4,11 @@ import (
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"sync"
 	"time"
 	"utility"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 //! 云游模块
@@ -41,7 +40,7 @@ func (self *TWanderModule) OnCreate(playerid int32) {
 	self.SingleFree = true
 
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerWander", self)
+	mongodb.InsertToDB("PlayerWander", self)
 }
 
 func (self *TWanderModule) OnDestroy(playerid int32) {

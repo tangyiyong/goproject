@@ -47,7 +47,6 @@ func Hand_GetScoreData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if gamedata.IsFuncOpen(gamedata.FUNC_SCORE_SYSTEM, player.GetLevel(), player.GetVipLevel()) == false {
-		gamelog.Error("Hand_GetScoreTarget Error: Score system func not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -57,7 +56,8 @@ func Hand_GetScoreData(w http.ResponseWriter, r *http.Request) {
 	response.WinTime = int(player.ScoreMoudle.SeriesWin & 0x0000FFFF)
 	response.IsRecv = int((player.ScoreMoudle.SeriesWin & 0xFFFF0000) >> 16)
 	response.BuyTime = player.ScoreMoudle.BuyTime
-	response.Targets, response.Rank = player.ScoreMoudle.GetScoreTargets()
+	response.Targets = player.ScoreMoudle.GetScoreTargets()
+	response.Rank = G_ScoreRaceRanker.GetRankIndex(player.playerid, player.ScoreMoudle.Score)
 	response.ItemLst = player.ScoreMoudle.BuyRecord
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -161,6 +161,7 @@ func Hand_SetScoreBattleResult(w http.ResponseWriter, r *http.Request) {
 		player.ScoreMoudle.Score -= gamedata.OneTimeFightScore
 		player.ScoreMoudle.SeriesWin &= 0xFFFF0000
 	}
+
 	if player.ScoreMoudle.Score < 0 {
 		player.ScoreMoudle.Score = 0
 	}
@@ -169,44 +170,35 @@ func Hand_SetScoreBattleResult(w http.ResponseWriter, r *http.Request) {
 	player.ScoreMoudle.DB_SaveScoreAndFightTime()
 
 	player.RoleMoudle.CostAction(1, 1)
-	response.Targets, response.Rank = player.ScoreMoudle.GetScoreTargets()
+	response.Targets = player.ScoreMoudle.GetScoreTargets()
 	response.RetCode = msg.RE_SUCCESS
-
+	response.Rank = G_ScoreRaceRanker.SetRankItem(player.playerid, player.ScoreMoudle.Score)
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_SCORE_RANK, response.Rank)
 	return
 }
 
-func (score *TScoreMoudle) GetScoreTargets() ([]msg.MSG_Target, int) {
+func (score *TScoreMoudle) GetScoreTargets() []msg.MSG_Target {
 	var ScoreTargetReq msg.MSG_CrossQueryScoreTarget_Req
 	ScoreTargetReq.PlayerID = score.PlayerID
-	ScoreTargetReq.Score = score.Score
-	ScoreTargetReq.SvrID = GetCurServerID()
-	ScoreTargetReq.SvrName = GetCurServerName()
-	ScoreTargetReq.HeroID = score.ownplayer.HeroMoudle.CurHeros[0].ID
-	ScoreTargetReq.FightValue = score.ownplayer.pSimpleInfo.FightValue
-	ScoreTargetReq.PlayerName = score.ownplayer.RoleMoudle.Name
-	ScoreTargetReq.Quality = score.ownplayer.HeroMoudle.CurHeros[0].Quality
-
 	b, _ := json.Marshal(ScoreTargetReq)
 	http.DefaultClient.Timeout = 3 * time.Second
 	httpret, err := http.Post(appconfig.CrossQueryScoreTarget, "text/HTML", bytes.NewReader(b))
 	if err != nil || httpret == nil {
 		gamelog.Error("GetScoreTargets failed, err : %s !!!!", err.Error())
-		return nil, -1
+		return nil
 	}
 
 	buffer := make([]byte, httpret.ContentLength)
-	var ScoreTargetAck msg.MSG_CrossQueryScoreTarget_Ack
 	httpret.Body.Read(buffer)
 	httpret.Body.Close()
 
+	var ScoreTargetAck msg.MSG_CrossQueryScoreTarget_Ack
 	err = json.Unmarshal(buffer, &ScoreTargetAck)
 	if err != nil {
 		gamelog.Error("GetScoreTargets  Unmarshal fail, Error: %s", err.Error())
-		return nil, -1
+		return nil
 	}
 
-	score.rank = ScoreTargetAck.NewRank
 	for i := 0; i < len(ScoreTargetAck.TargetList); i++ {
 		score.ScoreEnemy[i].FightValue = ScoreTargetAck.TargetList[i].FightValue
 		score.ScoreEnemy[i].HeroID = ScoreTargetAck.TargetList[i].HeroID
@@ -218,7 +210,7 @@ func (score *TScoreMoudle) GetScoreTargets() ([]msg.MSG_Target, int) {
 		score.ScoreEnemy[i].Quality = ScoreTargetAck.TargetList[i].Quality
 	}
 
-	return ScoreTargetAck.TargetList[0:3], ScoreTargetAck.NewRank
+	return ScoreTargetAck.TargetList[0:3]
 }
 
 //请求积分赛排行榜信息
@@ -248,29 +240,38 @@ func Hand_GetScoreRank(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.RetCode = msg.RE_SUCCESS
 	response.ScoreRankList = []msg.MSG_ScoreRankInfo{}
-	response.MyRank = player.ScoreMoudle.rank
-	response.MyScore = player.ScoreMoudle.Score
-
-	var ScoreRankReq msg.MSG_CrossQueryScoreRank_Req
-	b, _ := json.Marshal(ScoreRankReq)
-	http.DefaultClient.Timeout = 3 * time.Second
-	httpret, err := http.Post(appconfig.CrossQueryScoreRank, "text/HTML", bytes.NewReader(b))
-	if err == nil && httpret != nil {
-		buffer = make([]byte, httpret.ContentLength)
-		var ScoreRankAck msg.MSG_CrossQueryScoreRank_Ack
-		httpret.Body.Read(buffer)
-		httpret.Body.Close()
-		err = json.Unmarshal(buffer, &ScoreRankAck)
-		if err != nil {
-			gamelog.Error("Hand_GetScoreRank Query Cross Rank Unmarshal fail, Error: %s", err.Error())
-			return
+	response.MyRank = -1
+	for i := 0; i < len(G_ScoreRaceRanker.List); i++ {
+		if G_ScoreRaceRanker.List[i].RankID <= 0 {
+			break
 		}
-		response.ScoreRankList = ScoreRankAck.ScoreRankList
-	} else {
-		gamelog.Error("Hand_GetScoreRank failed, err : %s !!!!", err.Error())
+
+		if len(response.ScoreRankList) >= G_FightRanker.ShowNum {
+			break
+		}
+		pSimpleInfo := G_SimpleMgr.GetSimpleInfoByID(G_ScoreRaceRanker.List[i].RankID)
+		if pSimpleInfo != nil {
+			var info msg.MSG_ScoreRankInfo
+			info.FightValue = pSimpleInfo.FightValue
+			info.Name = pSimpleInfo.Name
+			info.Quality = pSimpleInfo.Quality
+			info.HeroID = pSimpleInfo.HeroID
+			info.Score = G_ScoreRaceRanker.List[i].RankValue
+			response.ScoreRankList = append(response.ScoreRankList, info)
+		}
+
+		if G_ScoreRaceRanker.List[i].RankID == req.PlayerID {
+			response.MyRank = i + 1
+		}
 	}
+
+	if response.MyRank < 0 {
+		response.MyRank = G_ScoreRaceRanker.GetRankIndex(player.playerid, player.ScoreMoudle.Score)
+	}
+
+	response.RetCode = msg.RE_SUCCESS
+	response.MyScore = player.ScoreMoudle.Score
 
 	return
 }
@@ -490,7 +491,7 @@ func Hand_BuyScoreStoreItem(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var itemData msg.MSG_BuyData
-		itemData.ID = int(req.StoreItemID)
+		itemData.ID = req.StoreItemID
 		itemData.Times = req.BuyNum
 		player.ScoreMoudle.BuyRecord = append(player.ScoreMoudle.BuyRecord, itemData)
 		player.ScoreMoudle.DB_AddStoreItemBuyInfo(itemData)

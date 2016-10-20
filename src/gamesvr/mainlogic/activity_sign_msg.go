@@ -9,7 +9,7 @@ import (
 )
 
 //! 获取签到状态
-func Hand_GetSignInfo(w http.ResponseWriter, r *http.Request) {
+func Hand_GetSignData(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收消息
@@ -17,14 +17,14 @@ func Hand_GetSignInfo(w http.ResponseWriter, r *http.Request) {
 	r.Body.Read(buffer)
 
 	//! 解析消息
-	var req msg.MSG_GetSignInfo_Req
+	var req msg.MSG_GetSignData_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
-		gamelog.Error("Hand_GetSignInfo Unmarshal fail. Error: %s", err.Error())
+		gamelog.Error("Hand_GetSignData Unmarshal fail. Error: %s", err.Error())
 		return
 	}
 
-	var response msg.MSG_GetSignInfo_Ack
+	var response msg.MSG_GetSignData_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	defer func() {
 		b, _ := json.Marshal(&response)
@@ -41,7 +41,7 @@ func Hand_GetSignInfo(w http.ResponseWriter, r *http.Request) {
 	player.ActivityModule.CheckReset()
 
 	if G_GlobalVariables.IsActivityOpen(player.ActivityModule.Sign.ActivityID) == false {
-		gamelog.Error("Hand_GetSignInfo Error: Activity not open")
+		gamelog.Error("Hand_GetSignData Error: Activity not open")
 		response.RetCode = msg.RE_ACTIVITY_NOT_OPEN
 		return
 	}

@@ -36,7 +36,6 @@ func Hand_FoodWar_GetChallenger(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-		gamelog.Info("Retrun: %s", b)
 	}()
 
 	//! 通用检测
@@ -129,8 +128,8 @@ func Hand_FoodWar_GetTime(w http.ResponseWriter, r *http.Request) {
 	response.AttackTimes = player.FoodWarModule.AttackTimes
 	response.RecoverTime = player.FoodWarModule.NextTime
 	response.RevengeTimes = player.FoodWarModule.RevengeTimes
-	response.BuyAttackTimes = player.FoodWarModule.BuyAttackTimes
-	response.BuyRevengeTimes = player.FoodWarModule.BuyRevengeTimes
+	response.BuyAttackTimes = player.FoodWarModule.BuyTimes
+	response.BuyRevengeTimes = player.FoodWarModule.BuyRevTimes
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -177,7 +176,7 @@ func Hand_RobFood(w http.ResponseWriter, r *http.Request) {
 
 	//! 检测攻击次数
 	if player.FoodWarModule.AttackTimes <= 0 {
-		response.RetCode = msg.RE_NOT_ENOUGH_ATTACK_TIMES
+		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 		gamelog.Error("Hand_RobFood Error: Attack times not enough")
 		return
 	}
@@ -301,7 +300,7 @@ func Hand_FoodWar_Revenge(w http.ResponseWriter, r *http.Request) {
 	//! 检测复仇次数
 	if player.FoodWarModule.RevengeTimes <= 0 {
 		gamelog.Error("Hand_FoodWar_Revenge Error: Revenge times not enough")
-		response.RetCode = msg.RE_NOT_ENOUGH_REVENGE_TIMES
+		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 		return
 	}
 
@@ -425,7 +424,7 @@ func Hand_FoodWar_GetStatus(w http.ResponseWriter, r *http.Request) {
 
 	response.AttackTimes = player.FoodWarModule.AttackTimes
 	response.RecoverTime = player.FoodWarModule.NextTime
-	response.BuyAttackTimes = player.FoodWarModule.BuyAttackTimes
+	response.BuyAttackTimes = player.FoodWarModule.BuyTimes
 	response.AttackTimesMax = gamedata.FoodWarAttackTimes
 	response.FixFood = player.FoodWarModule.FixedFood
 	response.RecoverFood = gamedata.FoodWarTimeAddFood
@@ -504,7 +503,7 @@ func Hand_FoodWar_RevengeStatus(w http.ResponseWriter, r *http.Request) {
 
 	response.RecoverTime = player.FoodWarModule.NextTime
 	response.RevengeTimes = player.FoodWarModule.RevengeTimes
-	response.BuyRevengeTimes = player.FoodWarModule.BuyRevengeTimes
+	response.BuyRevengeTimes = player.FoodWarModule.BuyRevTimes
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -615,14 +614,14 @@ func Hand_FoodWar_BuyTimes(w http.ResponseWriter, r *http.Request) {
 	if req.TimesType == 1 {
 		resetTimes := gamedata.GetFuncVipValue(gamedata.FUNC_FOODWAR_ATTACK_TIMES, player.GetVipLevel())
 
-		if player.FoodWarModule.BuyAttackTimes+req.Times > resetTimes {
+		if player.FoodWarModule.BuyTimes+req.Times > resetTimes {
 			gamelog.Error("Hand_FoodWar_BuyTimes Error: Buy times limit")
-			response.RetCode = msg.RE_NOT_ENOUGH_ATTACK_TIMES
+			response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 			return
 		}
 
 		response.CostMoneyID = gamedata.FoodWarBuyTimesNeedMoneyID
-		for i := player.FoodWarModule.BuyAttackTimes + 1; i <= player.FoodWarModule.BuyAttackTimes+req.Times; i++ {
+		for i := player.FoodWarModule.BuyTimes + 1; i <= player.FoodWarModule.BuyTimes+req.Times; i++ {
 			cost := gamedata.GetFuncTimeCost(gamedata.FUNC_FOODWAR_ATTACK_TIMES, i)
 			response.CostMoneyNum += cost
 		}
@@ -638,7 +637,7 @@ func Hand_FoodWar_BuyTimes(w http.ResponseWriter, r *http.Request) {
 		player.RoleMoudle.CostMoney(gamedata.FoodWarBuyTimesNeedMoneyID, response.CostMoneyNum)
 
 		//! 增加次数
-		player.FoodWarModule.BuyAttackTimes += req.Times
+		player.FoodWarModule.BuyTimes += req.Times
 		player.FoodWarModule.AttackTimes += req.Times
 		player.FoodWarModule.DB_SaveBuyAttackTimes()
 
@@ -646,14 +645,14 @@ func Hand_FoodWar_BuyTimes(w http.ResponseWriter, r *http.Request) {
 	} else {
 		resetTimes := gamedata.GetFuncVipValue(gamedata.FUNC_FOODWAR_REVENGE_TIMES, player.GetVipLevel())
 
-		if player.FoodWarModule.BuyRevengeTimes+req.Times > resetTimes {
+		if player.FoodWarModule.BuyRevTimes+req.Times > resetTimes {
 			gamelog.Error("Hand_FoodWar_BuyTimes Error: Buy times limit")
-			response.RetCode = msg.RE_NOT_ENOUGH_REVENGE_TIMES
+			response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 			return
 		}
 
 		response.CostMoneyID = gamedata.FoodWarBuyTimesNeedMoneyID
-		for i := player.FoodWarModule.BuyRevengeTimes + 1; i <= player.FoodWarModule.BuyRevengeTimes+req.Times; i++ {
+		for i := player.FoodWarModule.BuyRevTimes + 1; i <= player.FoodWarModule.BuyRevTimes+req.Times; i++ {
 			cost := gamedata.GetFuncTimeCost(gamedata.FUNC_FOODWAR_REVENGE_TIMES, i)
 			response.CostMoneyNum += cost
 		}
@@ -669,7 +668,7 @@ func Hand_FoodWar_BuyTimes(w http.ResponseWriter, r *http.Request) {
 		player.RoleMoudle.CostMoney(gamedata.FoodWarBuyTimesNeedMoneyID, response.CostMoneyNum)
 
 		//! 增加次数
-		player.FoodWarModule.BuyRevengeTimes += req.Times
+		player.FoodWarModule.BuyRevTimes += req.Times
 		player.FoodWarModule.RevengeTimes += req.Times
 		player.FoodWarModule.DB_SaveBuyRevengeTimes()
 

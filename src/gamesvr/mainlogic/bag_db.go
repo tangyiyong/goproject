@@ -7,28 +7,6 @@ import (
 	"mongodb"
 )
 
-func (self *TBagMoudle) DB_SaveHeroBag() bool {
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"herobag.heros": self.HeroBag.Heros}})
-	return true
-}
-
-//数据库中在英雄背包中最末尾添加一个英雄
-func (self *TBagMoudle) DB_AddHeroAtLast(bCol bool) {
-	nIndex := len(self.HeroBag.Heros) - 1
-	if nIndex < 0 {
-		gamelog.Error("DB_AddHeroAtLast Error :Invalid nIndex :%d", nIndex)
-		return
-	}
-
-	if bCol == false {
-		mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"herobag.heros": self.HeroBag.Heros[nIndex]}})
-	} else {
-		mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"herobag.heros": self.HeroBag.Heros[nIndex],
-			"colheros": self.HeroBag.Heros[nIndex].ID}})
-	}
-
-}
-
 //修改一个英雄ID
 func (self *TBagMoudle) DB_UpdateHeroID(pos int, heroID int) {
 	filedName := fmt.Sprintf("herobag.heros.%d.heroid", pos)
@@ -36,13 +14,19 @@ func (self *TBagMoudle) DB_UpdateHeroID(pos int, heroID int) {
 }
 
 //添加一个英雄列表
-func (self *TBagMoudle) DB_AddHeroList(heros []THeroData) {
+func (self *TBagMoudle) DB_AddHeroList(heros []THeroData, bCol bool) {
 	count := len(heros)
 	if count <= 0 {
 		gamelog.Error("DB_AddHeroList Error :Invalid count :%d", count)
 		return
 	}
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pushAll": bson.M{"herobag.heros": heros}})
+
+	if bCol == false {
+		mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pushAll": bson.M{"herobag.heros": heros}})
+	} else {
+		mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pushAll": bson.M{"herobag.heros": heros,
+			"colheros": []int{heros[0].ID}}})
+	}
 }
 
 func (self *TBagMoudle) DB_RemoveHeroAt(nIndex int) bool {
@@ -52,9 +36,16 @@ func (self *TBagMoudle) DB_RemoveHeroAt(nIndex int) bool {
 	return true
 }
 
-//装备包
-func (self *TBagMoudle) DB_SaveBagEquips() {
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"equipbag.equips": self.EquipBag.Equips}})
+func (self *TBagMoudle) DB_RemoveHeros(nIndex []int) bool {
+	var heros bson.M = make(map[string]interface{}, 1)
+	for _, v := range nIndex {
+		FieldName := fmt.Sprintf("herobag.heros.%d", v)
+		heros[FieldName] = 1
+	}
+
+	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$unset": heros})
+	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pull": bson.M{"herobag.heros": nil}})
+	return true
 }
 
 //装备包
@@ -70,14 +61,16 @@ func (self *TBagMoudle) DB_RemoveEquipAt(nIndex int) bool {
 	return true
 }
 
-//数据库中在装备背包中最末尾添加一个装备
-func (self *TBagMoudle) DB_AddEquipAtLast() {
-	nIndex := len(self.EquipBag.Equips) - 1
-	if nIndex < 0 {
-		gamelog.Error("DB_AddEquipoAtLast Error :Invalid nIndex :%d", nIndex)
-		return
+func (self *TBagMoudle) DB_RemoveEquips(nIndex []int) bool {
+	var equips bson.M = make(map[string]interface{}, 1)
+	for _, v := range nIndex {
+		FieldName := fmt.Sprintf("equipbag.equips.%d", v)
+		equips[FieldName] = 1
 	}
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"equipbag.equips": self.EquipBag.Equips[nIndex]}})
+
+	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$unset": equips})
+	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pull": bson.M{"equipbag.equips": nil}})
+	return true
 }
 
 //添加一个装备列表
@@ -91,23 +84,9 @@ func (self *TBagMoudle) DB_AddEquipsList(equips []TEquipData) {
 }
 
 //宝物背包
-func (self *TBagMoudle) DB_SaveGemBag() {
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"gembag.gems": self.GemBag.Gems}})
-}
-
-//宝物背包
 func (self *TBagMoudle) DB_SaveBagGemAt(nIndex int) {
 	FieldName := fmt.Sprintf("gembag.gems.%d", nIndex)
 	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.GemBag.Gems[nIndex]}})
-}
-
-func (self *TBagMoudle) DB_AddGemAtLast() {
-	nIndex := len(self.GemBag.Gems) - 1
-	if nIndex < 0 {
-		gamelog.Error("DB_AddGemAtLast Error :Invalid nIndex :%d", nIndex)
-		return
-	}
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"gembag.gems": self.GemBag.Gems[nIndex]}})
 }
 
 //添加一个宝物列表
@@ -127,29 +106,16 @@ func (self *TBagMoudle) DB_RemoveGemAt(nIndex int) bool {
 	return true
 }
 
-//宝物碎片包
-func (self *TBagMoudle) DB_SaveGemPieceBag() {
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"gempiecebag.items": self.GemPieceBag.Items}})
-}
+func (self *TBagMoudle) DB_RemoveGems(nIndex []int) bool {
+	var gems bson.M = make(map[string]interface{}, 1)
+	for _, v := range nIndex {
+		FieldName := fmt.Sprintf("gembag.gems.%d", v)
+		gems[FieldName] = 1
+	}
 
-//道具背包
-func (self *TBagMoudle) DB_SaveNormalItemBag() {
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"normalitembag.items": self.NormalItemBag.Items}})
-}
-
-//觉醒道具背包
-func (self *TBagMoudle) DB_SaveWakeItemBag() {
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"wakeitembag.items": self.WakeItemBag.Items}})
-}
-
-//英雄碎片包
-func (self *TBagMoudle) DB_SaveHeroPieceBag() {
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"heropiecebag.items": self.HeroPieceBag.Items}})
-}
-
-//装备碎片包
-func (self *TBagMoudle) DB_SaveEquipPieceBag() {
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"equipbag.equips": self.EquipPieceBag.Items}})
+	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$unset": gems})
+	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pull": bson.M{"gembag.gems": nil}})
+	return true
 }
 
 //英雄碎片包
@@ -207,23 +173,6 @@ func (self *TBagMoudle) DB_RemoveWakeItem(itemid int) {
 	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pull": bson.M{"wakeitembag.items": bson.M{"itemid": itemid}}})
 }
 
-//在宠物背包中最末尾添加一个宠物
-func (self *TBagMoudle) DB_AddPetAtLast(bCol bool) {
-	nIndex := len(self.PetBag.Pets) - 1
-	if nIndex < 0 {
-		gamelog.Error("DB_AddPetAtLast Error :Invalid nIndex :%d", nIndex)
-		return
-	}
-
-	if bCol == false {
-		mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"petbag.pets": self.PetBag.Pets[nIndex]}})
-	} else {
-		mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"petbag.pets": self.PetBag.Pets[nIndex],
-			"colpets": self.PetBag.Pets[nIndex].ID}})
-	}
-
-}
-
 //宠物包
 func (self *TBagMoudle) DB_SaveBagPetAt(nIndex int) {
 	FieldName := fmt.Sprintf("petbag.pets.%d", nIndex)
@@ -238,18 +187,19 @@ func (self *TBagMoudle) DB_RemovePetAt(nIndex int) bool {
 }
 
 //添加一个宠物列表
-func (self *TBagMoudle) DB_AddPetList(pets []TPetData) {
+func (self *TBagMoudle) DB_AddPetList(pets []TPetData, bCol bool) {
 	count := len(pets)
 	if count <= 0 {
 		gamelog.Error("DB_AddPetList Error :Invalid count :%d", count)
 		return
 	}
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pushAll": bson.M{"petbag.pets": pets}})
-}
 
-//宠物碎片包
-func (self *TBagMoudle) DB_SavePetPieceBag() {
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"petpiecebag.items": self.PetPieceBag.Items}})
+	if bCol == false {
+		mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pushAll": bson.M{"petbag.pets": pets}})
+	} else {
+		mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pushAll": bson.M{"petbag.pets": pets,
+			"colpets": []int{pets[0].ID}}})
+	}
 }
 
 //保存宠物碎片包
@@ -279,11 +229,6 @@ func (self *TBagMoudle) DB_RemoveHeroSoul(itemid int) {
 	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pull": bson.M{"herosoulbag.items": bson.M{"itemid": itemid}}})
 }
 
-//将灵背包
-func (self *TBagMoudle) DB_SaveBagHeroSoul() {
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"herosoulbag.items": self.HeroSoulBag.Items}})
-}
-
 //数据库中在英雄背包中最末尾添加一个英雄
 func (self *TBagMoudle) DB_AddFashionAtLast() {
 	nIndex := len(self.FashionBag.Fashions) - 1
@@ -307,7 +252,7 @@ func (self *TBagMoudle) DB_AddFashionList(fashions []TFashionData) {
 
 func (self *TBagMoudle) DB_SaveFashionAt(nIndex int) {
 	FieldName := fmt.Sprintf("fashionbag.fashions.%d", nIndex)
-	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$pushAll": bson.M{FieldName: self.FashionBag.Fashions[nIndex]}})
+	mongodb.UpdateToDB("PlayerBag", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.FashionBag.Fashions[nIndex]}})
 }
 
 //英雄碎片包

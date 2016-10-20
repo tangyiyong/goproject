@@ -10,13 +10,13 @@ type MSG_GetSummonStatus_Req struct {
 //! 普通召唤
 type MSG_NormalSummon struct {
 	SummonCounts int   //! 今日还可免费召唤次数
-	SummonTime   int64 //! 下次可免费召唤时间戳
+	SummonTime   int32 //! 下次可免费召唤时间戳
 }
 
 //! 高级召唤
 type MSG_SeniorSummon struct {
 	Point       int   //! 当前召唤积分
-	SummonTime  int64 //! 下次可免费召唤时间戳
+	SummonTime  int32 //! 下次可免费召唤时间戳
 	OrangeCount int   //! 还有N次可以得橙将
 }
 

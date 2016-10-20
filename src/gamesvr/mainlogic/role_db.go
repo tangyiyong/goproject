@@ -53,5 +53,5 @@ func (self *TRoleMoudle) DB_SaveVipLevel() {
 
 //! 将升星信息存储到数据库
 func (self *TRoleMoudle) DB_SaveSanGuoZhiStar() {
-	mongodb.UpdateToDB("PlayerSanGuoZhi", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"curstarid": self.CurStarID}})
+	mongodb.UpdateToDB("PlayerRole", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"curstarid": self.CurStarID}})
 }

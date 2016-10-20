@@ -8,20 +8,20 @@ import (
 )
 
 //! 获取所有日常任务
-func Hand_GetAllTask(w http.ResponseWriter, r *http.Request) {
+func Hand_GetTaskData(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
-	var req msg.MSG_GetTasks_Req
+	var req msg.MSG_GetTaskData_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
-		gamelog.Error("Hand_GetAllTask : Unmarshal fail. Error: %s", err.Error())
+		gamelog.Error("Hand_GetTaskData : Unmarshal fail. Error: %s", err.Error())
 		return
 	}
 
-	var response msg.MSG_GetTasks_Ack
+	var response msg.MSG_GetTaskData_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	defer func() {
 		b, _ := json.Marshal(&response)
@@ -39,10 +39,10 @@ func Hand_GetAllTask(w http.ResponseWriter, r *http.Request) {
 
 	//! 获取数据
 	for _, v := range player.TaskMoudle.TaskList {
-		task := msg.TTaskInfo{}
-		task.TaskID = v.TaskID
-		task.TaskStatus = v.TaskStatus
-		task.TaskCount = v.TaskCount
+		task := msg.MSG_TaskInfo{}
+		task.ID = v.ID
+		task.Status = v.Status
+		task.Count = v.Count
 		response.Tasks = append(response.Tasks, task)
 	}
 	response.RetCode = msg.RE_SUCCESS
@@ -60,17 +60,17 @@ func Hand_GetAllTask(w http.ResponseWriter, r *http.Request) {
 		response.ScoreAwardLst = append(response.ScoreAwardLst, scoreaward)
 	}
 
-	for _, v := range player.TaskMoudle.AchievementList {
-		node := msg.TAchievementInfo{}
+	for _, v := range player.TaskMoudle.AchieveList {
+		node := msg.MSG_TaskInfo{}
 		node.ID = v.ID
-		node.TaskCount = v.TaskCount
-		node.TaskStatus = v.TaskStatus
+		node.Count = v.Count
+		node.Status = v.Status
 		response.List = append(response.List, node)
 	}
 }
 
 //! 领取任务奖励
-func Hand_GetTaskAward(w http.ResponseWriter, r *http.Request) {
+func Hand_RecvTaskAward(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收消息
@@ -78,14 +78,14 @@ func Hand_GetTaskAward(w http.ResponseWriter, r *http.Request) {
 	r.Body.Read(buffer)
 
 	//! 解析消息
-	var req msg.MSG_GetTaskAward_Req
+	var req msg.MSG_RecvTaskAward_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
-		gamelog.Error("Hand_GetAllTask : Unmarshal fail. Error: %s", err.Error())
+		gamelog.Error("Hand_RecvTaskAward : Unmarshal fail. Error: %s", err.Error())
 		return
 	}
 
-	var response msg.MSG_GetTaskAward_Ack
+	var response msg.MSG_RecvTaskAward_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	defer func() {
 		b, _ := json.Marshal(&response)
@@ -104,14 +104,14 @@ func Hand_GetTaskAward(w http.ResponseWriter, r *http.Request) {
 	ret, errcode := player.TaskMoudle.CheckPlayerTask(req.TaskID)
 	if ret == false {
 		response.RetCode = errcode
-		gamelog.Error("Hand_GetTaskAward error : Task not complete. playerID: %v  taskID: %v", req.PlayerID, req.TaskID)
+		gamelog.Error("Hand_RecvTaskAward error : Task not complete. playerID: %v  taskID: %v", req.PlayerID, req.TaskID)
 		return
 	}
 
 	//! 发放奖励
 	ret, itemLst := player.TaskMoudle.ReceiveTaskAward(req.TaskID)
 	if ret == false {
-		gamelog.Error("Hand_GetTaskAward error : TaskAward receive failed. playerID: %v  taskID: %v", req.PlayerID, req.TaskID)
+		gamelog.Error("Hand_RecvTaskAward error : TaskAward receive failed. playerID: %v  taskID: %v", req.PlayerID, req.TaskID)
 		return
 	}
 
@@ -126,14 +126,14 @@ func Hand_GetTaskAward(w http.ResponseWriter, r *http.Request) {
 	//! 改变领取标记
 	index := -1
 	for i, v := range player.TaskMoudle.TaskList {
-		if v.TaskID == req.TaskID {
-			player.TaskMoudle.TaskList[i].TaskStatus = Task_Received
+		if v.ID == req.TaskID {
+			player.TaskMoudle.TaskList[i].Status = Task_Received
 			index = i
 			break
 		}
 	}
 
-	player.TaskMoudle.DB_UpdatePlayerTask(req.TaskID, player.TaskMoudle.TaskList[index].TaskCount, Task_Received)
+	player.TaskMoudle.DB_UpdateTask(index)
 
 	//! 返回当前任务积分
 	response.TaskScore = player.TaskMoudle.TaskScore
@@ -141,7 +141,7 @@ func Hand_GetTaskAward(w http.ResponseWriter, r *http.Request) {
 }
 
 //! 领取任务积分奖励
-func Hand_GetTaskScoreAward(w http.ResponseWriter, r *http.Request) {
+func Hand_RecvTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收消息
@@ -149,14 +149,14 @@ func Hand_GetTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 	r.Body.Read(buffer)
 
 	//! 解析消息
-	var req msg.MSG_GetTaskScoreAward_Req
+	var req msg.MSG_RecvTaskScoreAward_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
-		gamelog.Error("Hand_GetTaskScoreAward : Unmarshal fail. Error: %s", err.Error())
+		gamelog.Error("Hand_RecvTaskScoreAward : Unmarshal fail. Error: %s", err.Error())
 		return
 	}
 
-	var response msg.MSG_GetTaskScoreAward_Ack
+	var response msg.MSG_RecvTaskScoreAward_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	defer func() {
 		b, _ := json.Marshal(&response)
@@ -174,14 +174,14 @@ func Hand_GetTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 	//! 检测参数
 	if req.ScoreAwardID <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_GetTaskScoreAward error: invalid ScoreAwardID: %d  PlayerID: %v", req.ScoreAwardID, player.playerid)
+		gamelog.Error("Hand_RecvTaskScoreAward error: invalid ScoreAwardID: %d  PlayerID: %v", req.ScoreAwardID, player.playerid)
 		return
 	}
 
 	//! 判断玩家积分领取资格
 	ret, errcode := player.TaskMoudle.CheckTaskScore(req.ScoreAwardID)
 	if ret == false {
-		gamelog.Error("Hand_GetTaskScoreAward error : Score not enough player : %d  score: %d  ask: %d",
+		gamelog.Error("Hand_RecvTaskScoreAward error : Score not enough player : %d  score: %d  ask: %d",
 			req.PlayerID, player.TaskMoudle.TaskScore, req.ScoreAwardID)
 		response.RetCode = errcode
 		return
@@ -190,7 +190,7 @@ func Hand_GetTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 	//! 发放积分奖励
 	ret, itemLst := player.TaskMoudle.ReceiveTaskScoreAward(req.ScoreAwardID)
 	if ret == false {
-		gamelog.Error("Hand_GetTaskScoreAward error : TaskScoreAward receive failed. playerID: %v  ScoreID: %v", req.PlayerID, req.ScoreAwardID)
+		gamelog.Error("Hand_RecvTaskScoreAward error : TaskScoreAward receive failed. playerID: %v  ScoreID: %v", req.PlayerID, req.ScoreAwardID)
 		return
 	}
 
@@ -206,7 +206,7 @@ func Hand_GetTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 	player.TaskMoudle.ScoreAwardStatus.Add(req.ScoreAwardID)
 
 	//! 当前领取状态更新到数据库
-	player.TaskMoudle.DB_UpdatePlayerTaskScoreAwardStatus()
+	player.TaskMoudle.DB_UpdateTaskScoreAwardStatus()
 
 	response.RetCode = msg.RE_SUCCESS
 
@@ -224,7 +224,7 @@ func Hand_GetTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 }
 
 //! 请求领取成就奖励
-func Hand_GetAchievementAward(w http.ResponseWriter, r *http.Request) {
+func Hand_RecvAchievementAward(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收消息
@@ -232,14 +232,14 @@ func Hand_GetAchievementAward(w http.ResponseWriter, r *http.Request) {
 	r.Body.Read(buffer)
 
 	//! 解析消息
-	var req msg.MSG_GetAchievementAward_Req
+	var req msg.MSG_RecvAchievementAward_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
-		gamelog.Error("Hand_GetAchievementAward : Unmarshal fail, Error: %s", err.Error())
+		gamelog.Error("Hand_RecvAchievementAward : Unmarshal fail, Error: %s", err.Error())
 		return
 	}
 
-	var response msg.MSG_GetAchievementAward_Ack
+	var response msg.MSG_RecvAchievementAward_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	defer func() {
 		b, _ := json.Marshal(&response)
@@ -258,14 +258,14 @@ func Hand_GetAchievementAward(w http.ResponseWriter, r *http.Request) {
 	//! 检查参数
 	if req.AchievementID <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_GetAchievementAward error: invalid achievementID: %d  PlayerID: %v", req.AchievementID, player.playerid)
+		gamelog.Error("Hand_RecvAchievementAward error: invalid achievementID: %d  PlayerID: %v", req.AchievementID, player.playerid)
 		return
 	}
 
 	//! 检查成就是否达成
 	ret, errcode := player.TaskMoudle.CheckAchievement(req.AchievementID)
 	if ret == false {
-		gamelog.Error("Hand_GetAchievementAward error: Achievement not complete. AchievemengtID: %d", req.AchievementID)
+		gamelog.Error("Hand_RecvAchievementAward error: Achievement not complete. AchievemengtID: %d", req.AchievementID)
 		response.RetCode = errcode
 		return
 	}
@@ -273,21 +273,19 @@ func Hand_GetAchievementAward(w http.ResponseWriter, r *http.Request) {
 	//! 发放成就奖励
 	ret = player.TaskMoudle.ReceiveAchievementAward(req.AchievementID)
 	if ret == false {
-		gamelog.Error("Hand_GetAchievementAward error : TaskScoreAward receive failed. playerID: %v  AchievementID: %v", req.PlayerID, req.AchievementID)
+		gamelog.Error("Hand_RecvAchievementAward error : TaskScoreAward receive failed. playerID: %v  AchievementID: %v", req.PlayerID, req.AchievementID)
 		return
 	}
 
-	for i, _ := range player.TaskMoudle.AchievementList {
-		if player.TaskMoudle.AchievementList[i].ID == req.AchievementID {
+	for i, _ := range player.TaskMoudle.AchieveList {
+		if player.TaskMoudle.AchieveList[i].ID == req.AchievementID {
 			//! 修改成就标记
-			player.TaskMoudle.AchievementList[i].TaskStatus = Task_Received
-			player.TaskMoudle.DB_UpdatePlayerAchievement(player.TaskMoudle.AchievementList[i].ID,
-				player.TaskMoudle.AchievementList[i].TaskCount,
-				player.TaskMoudle.AchievementList[i].TaskStatus)
+			player.TaskMoudle.AchieveList[i].Status = Task_Received
+			player.TaskMoudle.DB_UpdateAchieve(i)
 
 			//! 增加成就完成列表
-			player.TaskMoudle.AchievedList = append(player.TaskMoudle.AchievedList, player.TaskMoudle.AchievementList[i].ID)
-			player.TaskMoudle.DB_AddAchievementCompleteLst(player.TaskMoudle.AchievementList[i].ID)
+			player.TaskMoudle.AchieveIDs = append(player.TaskMoudle.AchieveIDs, player.TaskMoudle.AchieveList[i].ID)
+			player.TaskMoudle.DB_AddAchieveID(player.TaskMoudle.AchieveList[i].ID)
 
 		}
 	}
@@ -296,8 +294,8 @@ func Hand_GetAchievementAward(w http.ResponseWriter, r *http.Request) {
 	newTask := player.TaskMoudle.UpdateNextAchievement(req.AchievementID)
 	response.RetCode = msg.RE_SUCCESS
 	response.NewAchieve.ID = newTask.ID
-	response.NewAchieve.TaskCount = newTask.TaskCount
-	response.NewAchieve.TaskStatus = newTask.TaskStatus
+	response.NewAchieve.Count = newTask.Count
+	response.NewAchieve.Status = newTask.Status
 }
 
 //! 玩家请求开服天数

@@ -4,55 +4,52 @@ import (
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"math/rand"
 	"mongodb"
-
-	"gopkg.in/mgo.v2/bson"
-	//	"msg"
 	"sync"
 	"time"
 	"utility"
 )
 
 type TMainCopy struct {
-	CopyID      int //! 副本ID
-	BattleTimes int //! 战斗次数
-	ResetCount  int //! 当天刷新次数
-	StarNum     int //! 星数
+	ID       int //! 副本ID
+	Times    int //! 战斗次数
+	ResetCnt int //! 当天刷新次数
+	StarNum  int //! 星数
 }
 
 type TMainChapter struct {
 	Chapter    int
-	StarAward  [3]bool //! 6 12 15星 额外星级宝箱
-	SceneAward [3]bool //! 1 3 5关卡 场景宝箱
+	StarAward  BitsType //! 6 12 15星 额外星级宝箱
+	SceneAward BitsType //! 1 3 5关卡 场景宝箱
 }
 
-type TMainCopyData struct {
-	CurCopyID  int //! 当前副本ID
+type TMainData struct {
+	CurID      int //! 当前副本ID
 	CurChapter int //! 当前章节ID
-
-	CopyInfo []TMainCopy
-	Chapter  []TMainChapter
+	CopyLst    []TMainCopy
+	Chapter    []TMainChapter
 }
 
 type TEliteCopy struct {
-	CopyID      int //! 副本ID
-	BattleTimes int //! 战斗次数
-	ResetCount  int //! 当天刷新次数
-	StarNum     int //! 星数
+	ID       int //! 副本ID
+	Times    int //! 战斗次数
+	ResetCnt int //! 当天刷新次数
+	StarNum  int //! 星数
 }
 
 type TEliteChapter struct {
 	Chapter    int
-	StarAward  [3]bool //! 6 12 15星 额外星级宝箱
-	SceneAward bool    //! 场景宝箱领取标记
+	StarAward  BitsType //! 6 12 15星 额外星级宝箱
+	SceneAward bool     //! 场景宝箱领取标记
 }
 
-type TEliteCopyData struct {
-	CurCopyID     int             //! 当前副本ID
+type TEliteData struct {
+	CurID         int             //! 当前副本ID
 	CurChapter    int             //! 当前章节ID
 	Chapter       []TEliteChapter //! 章节信息
-	CopyInfo      []TEliteCopy    //! 副本信息
+	CopyLst       []TEliteCopy    //! 副本信息
 	InvadeChapter []int           //! 入侵章节
 }
 
@@ -61,93 +58,86 @@ type TDailyCopy struct {
 	IsChallenge bool
 }
 
-type TDailyCopyData struct {
-	CopyInfo [6]TDailyCopy //! 副本信息
+type TDailyData struct {
+	CopyLst [6]TDailyCopy //! 副本信息
 }
 
-type TFamousCopy struct {
-	CopyID      int //! 副本ID
-	BattleTimes int //! 挑战次数
+type TFamousChapter struct {
+	PassedCopy IntLst //! 已通关的副本
+	BoxAward   bool   //! 章节宝箱领取状态
+	Extra      bool   //! 连环计
 }
 
-type TFamousChapterData struct {
-	PassedCopy   []TFamousCopy //! 已通关的副本
-	ChapterAward bool          //! 章节宝箱领取状态
-}
-
-type TFamousCopyData struct {
-	Chapter     []TFamousChapterData
-	CurCopyID   int //当前挂副本ID
-	BattleTimes int //! 挑战次数
+type TFamousData struct {
+	Chapter    []TFamousChapter
+	CurID      int //! 当前挂副本ID
+	CurChapter int //! 当前章节ID
+	Times      int //! 挑战次数
 }
 
 type TCopyMoudle struct {
-	PlayerID int32 `bson:"_id"` //玩家ID
-
-	Main   TMainCopyData   //主线副本
-	Elite  TEliteCopyData  //精英副本
-	Famous TFamousCopyData //名将副本
-	Daily  TDailyCopyData  //日常副本
-
-	LastInvadeTime int64  //! 上次产生入侵时间
-	ResetDay       uint32 //! 重置天数
-
-	ownplayer *TPlayer //父player指针
+	PlayerID       int32       `bson:"_id"` //玩家ID
+	Main           TMainData   //! 主线副本
+	Elite          TEliteData  //! 精英副本
+	Famous         TFamousData //! 名将副本
+	Daily          TDailyData  //! 日常副本
+	LastInvadeTime int32       //! 上次产生入侵时间
+	ResetDay       uint32      //! 重置天数
+	ownplayer      *TPlayer    //! 父player指针
 }
 
-func (copym *TCopyMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
-	copym.PlayerID = playerid
-	copym.ownplayer = player
+func (self *TCopyMoudle) SetPlayerPtr(playerid int32, player *TPlayer) {
+	self.PlayerID = playerid
+	self.ownplayer = player
 }
 
 //响应玩家创建
-func (copym *TCopyMoudle) OnCreate(playerid int32) {
+func (self *TCopyMoudle) OnCreate(playerid int32) {
 	//初始化各个成员数值
-	copym.PlayerID = playerid
-	copym.ResetDay = utility.GetCurDay()
+	self.PlayerID = playerid
+	self.ResetDay = utility.GetCurDay()
 
 	//创建数据库记录
 	//! 主线副本
-	copym.Main.CurChapter = 1 //! 初始化为主线关卡第一章
+	self.Main.CurChapter = 1 //! 初始化为主线关卡第一章
 
 	//! 精英副本
-	copym.Elite.CurChapter = 1 //! 初始化精英副本关卡为第一章
+	self.Elite.CurChapter = 1 //! 初始化精英副本关卡为第一章
 
 	//! 名将副本
 	chapters := gamedata.GetFamousChapterCount()
-	copym.Famous.Chapter = make([]TFamousChapterData, chapters+1)
+	self.Famous.Chapter = make([]TFamousChapter, chapters+1)
 
 	for i, v := range gamedata.GT_DailyResTypeList {
-		copym.Daily.CopyInfo[i].ResID = v
-		copym.Daily.CopyInfo[i].IsChallenge = false
+		self.Daily.CopyLst[i].ResID = v
+		self.Daily.CopyLst[i].IsChallenge = false
 	}
 
-	mongodb.InsertToDB( "PlayerCopy", copym)
+	mongodb.InsertToDB("PlayerCopy", self)
 }
 
 //玩家对象销毁
-func (copym *TCopyMoudle) OnDestroy(playerid int32) {
+func (self *TCopyMoudle) OnDestroy(playerid int32) {
 
 }
 
 //玩家进入游戏
-func (copym *TCopyMoudle) OnPlayerOnline(playerid int32) {
+func (self *TCopyMoudle) OnPlayerOnline(playerid int32) {
 	//
 }
 
 //玩家离开游戏
-func (copym *TCopyMoudle) OnPlayerOffline(playerid int32) {
+func (self *TCopyMoudle) OnPlayerOffline(playerid int32) {
 	//
 	return
 }
 
 //玩家数据从数据库加载
-func (copym *TCopyMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
-	//
+func (self *TCopyMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	err := s.DB(appconfig.GameDbName).C("PlayerCopy").Find(&bson.M{"_id": playerid}).One(copym)
+	err := s.DB(appconfig.GameDbName).C("PlayerCopy").Find(&bson.M{"_id": playerid}).One(self)
 	if err != nil {
 		gamelog.Error("PlayerCopy Load Error :%s， PlayerID: %d", err.Error(), playerid)
 	}
@@ -155,26 +145,23 @@ func (copym *TCopyMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 	if wg != nil {
 		wg.Done()
 	}
-	copym.PlayerID = playerid
+	self.PlayerID = playerid
 	return
 }
 
 //! 玩家通过主线关卡
-func (main_copy *TCopyMoudle) PlayerPassMainLevels(copyID int, chapter int, star int) {
-
-	//! 设置当前关卡
-	if copyID > main_copy.Main.CurCopyID {
-		main_copy.Main.CurCopyID = copyID
+func (self *TCopyMoudle) PlayerPassMainLevels(copyID int, chapter int, star int) {
+	if copyID > self.Main.CurID {
+		self.Main.CurID = copyID
 	}
 
-	//! 设置当前章节
-	if chapter > main_copy.Main.CurChapter {
-		main_copy.Main.CurChapter = chapter
+	if chapter > self.Main.CurChapter {
+		self.Main.CurChapter = chapter
 	}
 
 	isExist := false
-	for i := 0; i < len(main_copy.Main.Chapter); i++ {
-		if main_copy.Main.Chapter[i].Chapter == chapter {
+	for i := 0; i < len(self.Main.Chapter); i++ {
+		if self.Main.Chapter[i].Chapter == chapter {
 			isExist = true
 		}
 	}
@@ -183,25 +170,25 @@ func (main_copy *TCopyMoudle) PlayerPassMainLevels(copyID int, chapter int, star
 		//! 添加章节信息
 		var chapterInfo TMainChapter
 		chapterInfo.Chapter = chapter
-		main_copy.Main.Chapter = append(main_copy.Main.Chapter, chapterInfo)
-		main_copy.DB_AddMainChapterInfo(chapterInfo)
+		self.Main.Chapter = append(self.Main.Chapter, chapterInfo)
+		self.DB_AddMainChapterInfo(chapterInfo)
 	}
 
 	isExist = false
-	for i := 0; i < len(main_copy.Main.CopyInfo); i++ {
-		if main_copy.Main.CopyInfo[i].CopyID == copyID {
-			main_copy.Main.CopyInfo[i].BattleTimes += 1
+	for i := 0; i < len(self.Main.CopyLst); i++ {
+		if self.Main.CopyLst[i].ID == copyID {
+			self.Main.CopyLst[i].Times += 1
 
 			//! 设置挑战星数
-			if star > main_copy.Main.CopyInfo[i].StarNum {
+			if star > self.Main.CopyLst[i].StarNum {
 				//! 成就任务总星数更新
-				main_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_MAINCOPY_STAR, star-main_copy.Main.CopyInfo[i].StarNum)
+				self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_MAINCOPY_STAR, star-self.Main.CopyLst[i].StarNum)
 
-				main_copy.Main.CopyInfo[i].StarNum = star
+				self.Main.CopyLst[i].StarNum = star
 			}
 
 			isExist = true
-			main_copy.DB_UpdateMainCopyAt(i)
+			self.DB_UpdateMainCopyAt(i)
 			break
 		}
 	}
@@ -209,37 +196,37 @@ func (main_copy *TCopyMoudle) PlayerPassMainLevels(copyID int, chapter int, star
 	//! 如果该关卡不存在,则为新挑战关卡,存储关卡信息
 	if isExist == false {
 		var mainCopy TMainCopy
-		mainCopy.CopyID = copyID
-		mainCopy.BattleTimes = 1
+		mainCopy.ID = copyID
+		mainCopy.Times = 1
 		mainCopy.StarNum = star
-		main_copy.Main.CopyInfo = append(main_copy.Main.CopyInfo, mainCopy)
+		self.Main.CopyLst = append(self.Main.CopyLst, mainCopy)
 
 		//! 成就任务总星数更新
-		main_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_MAINCOPY_STAR, star)
+		self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_MAINCOPY_STAR, star)
 
-		main_copy.DB_AddMainCopyInfo(mainCopy)
+		self.DB_AddMainCopyInfo(mainCopy)
 	}
 
 	//! 日常任务进度加一
-	main_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_MAINCOPY_CHALLENGE, 1)
+	self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_MAINCOPY_CHALLENGE, 1)
 }
 
 //! 玩家通关精英副本
-func (elite_copy *TCopyMoudle) PlayerPassEliteLevels(copyID int, chapter int, star int) {
+func (self *TCopyMoudle) PlayerPassEliteLevels(copyID int, chapter int, star int) {
 
 	//! 设置关卡
-	if copyID > elite_copy.Elite.CurCopyID {
-		elite_copy.Elite.CurCopyID = copyID
+	if copyID > self.Elite.CurID {
+		self.Elite.CurID = copyID
 	}
 
 	//! 设置当前章节
-	if chapter > elite_copy.Elite.CurChapter {
-		elite_copy.Elite.CurChapter = chapter
+	if chapter > self.Elite.CurChapter {
+		self.Elite.CurChapter = chapter
 	}
 
 	isExist := false
-	for i := 0; i < len(elite_copy.Elite.Chapter); i++ {
-		if elite_copy.Elite.Chapter[i].Chapter == chapter {
+	for i := 0; i < len(self.Elite.Chapter); i++ {
+		if self.Elite.Chapter[i].Chapter == chapter {
 			isExist = true
 		}
 	}
@@ -248,25 +235,25 @@ func (elite_copy *TCopyMoudle) PlayerPassEliteLevels(copyID int, chapter int, st
 		//! 添加章节信息
 		var chapterInfo TEliteChapter
 		chapterInfo.Chapter = chapter
-		elite_copy.Elite.Chapter = append(elite_copy.Elite.Chapter, chapterInfo)
-		elite_copy.DB_AddEliteChapterInfo(chapterInfo)
+		self.Elite.Chapter = append(self.Elite.Chapter, chapterInfo)
+		self.DB_AddEliteChapterInfo(chapterInfo)
 	}
 
 	isExist = false
-	for i := 0; i < len(elite_copy.Elite.CopyInfo); i++ {
-		if elite_copy.Elite.CopyInfo[i].CopyID == copyID {
-			elite_copy.Elite.CopyInfo[i].BattleTimes += 1
+	for i := 0; i < len(self.Elite.CopyLst); i++ {
+		if self.Elite.CopyLst[i].ID == copyID {
+			self.Elite.CopyLst[i].Times += 1
 
 			//! 设置挑战星数
-			if star > elite_copy.Elite.CopyInfo[i].StarNum {
+			if star > self.Elite.CopyLst[i].StarNum {
 				//! 成就任务总星数更新
-				elite_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ELITECOPY_STAR, star-elite_copy.Elite.CopyInfo[i].StarNum)
+				self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ELITECOPY_STAR, star-self.Elite.CopyLst[i].StarNum)
 
-				elite_copy.Elite.CopyInfo[i].StarNum = star
+				self.Elite.CopyLst[i].StarNum = star
 			}
 
 			isExist = true
-			elite_copy.DB_UpdateEliteCopyAt(i)
+			self.DB_UpdateEliteCopyAt(i)
 			break
 		}
 	}
@@ -274,19 +261,19 @@ func (elite_copy *TCopyMoudle) PlayerPassEliteLevels(copyID int, chapter int, st
 	//! 如果该关卡不存在,则为新挑战关卡,存储关卡信息
 	if isExist == false {
 		var eliteCopy TEliteCopy
-		eliteCopy.CopyID = copyID
-		eliteCopy.BattleTimes = 1
+		eliteCopy.ID = copyID
+		eliteCopy.Times = 1
 		eliteCopy.StarNum = star
-		elite_copy.Elite.CopyInfo = append(elite_copy.Elite.CopyInfo, eliteCopy)
+		self.Elite.CopyLst = append(self.Elite.CopyLst, eliteCopy)
 
 		//! 成就任务总星数更新
-		elite_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ELITECOPY_STAR, star)
+		self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ELITECOPY_STAR, star)
 
-		elite_copy.DB_AddEliteCopyInfo(eliteCopy)
+		self.DB_AddEliteCopyInfo(eliteCopy)
 	}
 
 	//! 日常任务进度加一
-	elite_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ELITECOPY_CHALLENGE, 1)
+	self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ELITECOPY_CHALLENGE, 1)
 }
 
 //! 玩家通过日常副本
@@ -295,9 +282,9 @@ func (daily_copy *TCopyMoudle) PlayerPassDailyLevels(copyID int) {
 	//! 设置通关标记
 	dailyCopy := gamedata.GetDailyCopyData(copyID)
 
-	for i := 0; i < len(daily_copy.Daily.CopyInfo); i++ {
-		if daily_copy.Daily.CopyInfo[i].ResID == dailyCopy.ResType {
-			daily_copy.Daily.CopyInfo[i].IsChallenge = true
+	for i := 0; i < len(daily_copy.Daily.CopyLst); i++ {
+		if daily_copy.Daily.CopyLst[i].ResID == dailyCopy.ResType {
+			daily_copy.Daily.CopyLst[i].IsChallenge = true
 
 			daily_copy.DB_UpdateDailyCopyMask(i, true)
 		}
@@ -308,64 +295,42 @@ func (daily_copy *TCopyMoudle) PlayerPassDailyLevels(copyID int) {
 }
 
 //! 玩家通过名将副本
-func (famous_copy *TCopyMoudle) PlayerPassFamousLevels(copyID int, curChapter int) bool {
-	//! 挑战次数+1
-	famous_copy.Famous.BattleTimes += 1
-	famous_copy.DB_UpdateFamousCopyTotalBattleTimes()
-
-	//! 赋值通过关卡ID
-	if copyID > famous_copy.Famous.CurCopyID {
-		famous_copy.Famous.CurCopyID = copyID
-		famous_copy.DB_UpdateFamousCopyCurCopyID()
-	}
-
-	chapterInfo := gamedata.GetFamousChapterInfo(curChapter)
-	if chapterInfo.SerialID == copyID {
-		famous_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_EPIC_COPY, curChapter)
-	}
-
-	//! 不存在则为首胜
+func (self *TCopyMoudle) PlayerPassFamousCopy(curChapter int, copyID int) bool {
 	isFirstVictory := false
-	isExist := false
-	battleTimes := 0
-	copyIndex := 0
-
-	for i := 0; i < len(famous_copy.Famous.Chapter[curChapter].PassedCopy); i++ {
-		if famous_copy.Famous.Chapter[curChapter].PassedCopy[i].CopyID == copyID {
-			isExist = true
-			famous_copy.Famous.Chapter[curChapter].PassedCopy[i].BattleTimes += 1
-			battleTimes = famous_copy.Famous.Chapter[curChapter].PassedCopy[i].BattleTimes
-			copyIndex = i
-			break
-		}
-	}
-
-	if isExist == false {
-		isFirstVictory = true
-		var famousCopy TFamousCopy
-		famousCopy.CopyID = copyID
-		famousCopy.BattleTimes = 1
-		battleTimes = 1
-		famous_copy.Famous.Chapter[curChapter].PassedCopy = append(famous_copy.Famous.Chapter[curChapter].PassedCopy, famousCopy)
-		famous_copy.DB_IncFamousCopy(curChapter, famousCopy)
+	if true == gamedata.IsSerialCopy(curChapter, copyID) {
+		self.Famous.Chapter[curChapter].Extra = true
+		self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PASS_EPIC_COPY, curChapter)
+		self.DB_UpdateFamousExtra(curChapter)
 	} else {
-		famous_copy.DB_UpdateFamousCopyBattleTimes(curChapter, copyIndex, battleTimes)
+		self.Famous.Times += 1
+		//! 赋值通过关卡ID
+		if copyID > self.Famous.CurID {
+			self.Famous.CurID = copyID
+			self.Famous.CurChapter = curChapter
+			isFirstVictory = true
+		}
+
+		if self.Famous.Chapter[curChapter].PassedCopy.IsExist(copyID) < 0 {
+			self.Famous.Chapter[curChapter].PassedCopy = append(self.Famous.Chapter[curChapter].PassedCopy, copyID)
+			self.DB_AddFamousPassCopy(curChapter, copyID)
+		}
+
+		self.DB_UpdateFamousCopyData()
 	}
 
-	famous_copy.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FAMOUSCOPY_CHALLENGE, 1)
-
+	self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_FAMOUSCOPY_CHALLENGE, 1)
 	return isFirstVictory
 }
 
 //! 获取玩家章节总星数
-func (main_copy *TCopyMoudle) GetMainChapterStarNumber(chapter int) int {
+func (self *TCopyMoudle) GetMainChapterStarNumber(chapter int) int {
 	starNum := 0
 
 	chapterInfo := gamedata.GetMainChapterInfo(chapter)
 	for n := chapterInfo.StartID; n <= chapterInfo.EndID; n++ {
 		isChange := false
-		for _, v := range main_copy.Main.CopyInfo {
-			if v.CopyID == n {
+		for _, v := range self.Main.CopyLst {
+			if v.ID == n {
 				//! 有变动的关卡
 				starNum += v.StarNum
 				isChange = true
@@ -382,14 +347,14 @@ func (main_copy *TCopyMoudle) GetMainChapterStarNumber(chapter int) int {
 }
 
 //! 获取玩家精英关卡章节总星数
-func (elite_copy *TCopyMoudle) GetEliteChapterStarNumber(chapter int) int {
+func (self *TCopyMoudle) GetEliteChapterStarNumber(chapter int) int {
 	starNum := 0
 
 	chapterInfo := gamedata.GetEliteChapterInfo(chapter)
 	for n := chapterInfo.StartID; n <= chapterInfo.EndID; n++ {
 		isChange := false
-		for _, v := range elite_copy.Elite.CopyInfo {
-			if v.CopyID == n {
+		for _, v := range self.Elite.CopyLst {
+			if v.ID == n {
 				//! 有变动的关卡
 				starNum += v.StarNum
 				isChange = true
@@ -406,25 +371,25 @@ func (elite_copy *TCopyMoudle) GetEliteChapterStarNumber(chapter int) int {
 }
 
 //! 查询玩家主线副本是否有可领取的章节奖励
-func (main_copy *TCopyMoudle) IsHaveNotReceiveAward(chapter int) bool {
+func (self *TCopyMoudle) IsHaveNotReceiveAward(chapter int) bool {
 
-	for _, v := range main_copy.Main.Chapter {
+	for _, v := range self.Main.Chapter {
 		if v.Chapter == chapter {
 			for i := 0; i < 3; i++ {
-				if v.SceneAward[i] == false {
+				if v.SceneAward.Get(i+1) == false {
 					chapterData := gamedata.GetMainChapterInfo(v.Chapter)
 					needCopyID := chapterData.SceneAwards[i].Levels
 
-					if needCopyID <= main_copy.Main.CurCopyID {
+					if needCopyID <= self.Main.CurID {
 						return true
 					}
 				}
 
-				if v.StarAward[i] == false {
+				if v.StarAward.Get(i+1) == false {
 					chapterData := gamedata.GetMainChapterInfo(v.Chapter)
 					needStarNum := chapterData.StarAwards[i].StarNum
 
-					if needStarNum <= main_copy.GetMainChapterStarNumber(v.Chapter) {
+					if needStarNum <= self.GetMainChapterStarNumber(v.Chapter) {
 						return true
 					}
 				}
@@ -436,25 +401,25 @@ func (main_copy *TCopyMoudle) IsHaveNotReceiveAward(chapter int) bool {
 }
 
 //! 查询玩家精英副本是否有可领取的章节奖励
-func (elite_copy *TCopyMoudle) EliteIsHaveNotReceiveAward(chapter int) bool {
+func (self *TCopyMoudle) EliteIsHaveNotReceiveAward(chapter int) bool {
 
-	for _, v := range elite_copy.Elite.Chapter {
+	for _, v := range self.Elite.Chapter {
 		if v.Chapter == chapter {
 			for i := 0; i < 3; i++ {
 				if v.SceneAward == false {
 					chapterData := gamedata.GetEliteChapterInfo(v.Chapter)
 					needCopyID := chapterData.SceneAwards.Levels
 
-					if needCopyID <= elite_copy.Elite.CurCopyID {
+					if needCopyID <= self.Elite.CurID {
 						return true
 					}
 				}
 
-				if v.StarAward[i] == false {
+				if v.StarAward.Get(i+1) == false {
 					chapterData := gamedata.GetEliteChapterInfo(v.Chapter)
 					needStarNum := chapterData.StarAwards[i].StarNum
 
-					if needStarNum <= elite_copy.GetEliteChapterStarNumber(v.Chapter) {
+					if needStarNum <= self.GetEliteChapterStarNumber(v.Chapter) {
 						return true
 					}
 				}
@@ -471,72 +436,72 @@ const (
 	MAIN_AWARD_TYPE_SCENE = 2
 )
 
-func (main_copy *TCopyMoudle) PaymentMainAward(chapter int, award int, awardtype int) {
+func (self *TCopyMoudle) PaymentMainAward(chapter int, award int, awardtype int) {
 	chapterData := gamedata.GetMainChapterInfo(chapter)
 	awardID := 0
 	index := 0
 	if awardtype == MAIN_AWARD_TYPE_STAR {
 		awardID = chapterData.StarAwards[award].AwardID
 
-		for i, v := range main_copy.Main.Chapter {
+		for i, v := range self.Main.Chapter {
 			if v.Chapter == chapter {
-				main_copy.Main.Chapter[i].StarAward[award] = true
+				self.Main.Chapter[i].StarAward.Set(award + 1)
 				index = i
 			}
 		}
 
 	} else if awardtype == MAIN_AWARD_TYPE_SCENE {
 		awardID = chapterData.SceneAwards[award].AwardID
-		for i, v := range main_copy.Main.Chapter {
+		for i, v := range self.Main.Chapter {
 			if v.Chapter == chapter {
-				main_copy.Main.Chapter[i].SceneAward[award] = true
+				self.Main.Chapter[i].SceneAward.Set(award + 1)
 				index = i
 			}
 		}
 	}
 
 	awardItem := gamedata.GetItemsFromAwardID(awardID)
-	main_copy.ownplayer.BagMoudle.AddAwardItems(awardItem)
-	main_copy.DB_UpdateMainAward(index)
+	self.ownplayer.BagMoudle.AddAwardItems(awardItem)
+	self.DB_UpdateMainAward(index)
 }
 
-func (elite_copy *TCopyMoudle) PaymentEliteAward(chapter int, award int, awardtype int) {
+func (self *TCopyMoudle) PaymentEliteAward(chapter int, award int, awardtype int) {
 	chapterData := gamedata.GetEliteChapterInfo(chapter)
 	awardID := 0
 	index := 0
 	if awardtype == MAIN_AWARD_TYPE_STAR {
 		awardID = chapterData.StarAwards[award].AwardID
 
-		for i, v := range elite_copy.Elite.Chapter {
+		for i, v := range self.Elite.Chapter {
 			if v.Chapter == chapter {
-				elite_copy.Elite.Chapter[i].StarAward[award] = true
+				self.Elite.Chapter[i].StarAward.Set(award + 1)
 				index = i
 			}
 		}
 
 	} else if awardtype == MAIN_AWARD_TYPE_SCENE {
 		awardID = chapterData.SceneAwards.AwardID
-		for i, v := range elite_copy.Elite.Chapter {
+		for i, v := range self.Elite.Chapter {
 			if v.Chapter == chapter {
-				elite_copy.Elite.Chapter[i].SceneAward = true
+				self.Elite.Chapter[i].SceneAward = true
 				index = i
 			}
 		}
 	}
 
 	awardItem := gamedata.GetItemsFromAwardID(awardID)
-	elite_copy.ownplayer.BagMoudle.AddAwardItems(awardItem)
-	elite_copy.DB_UpdateEliteAward(index)
+	self.ownplayer.BagMoudle.AddAwardItems(awardItem)
+	self.DB_UpdateEliteAward(index)
 }
 
 //! 获取未有入侵的精英副本章节数
-func (elite_copy *TCopyMoudle) GetNoInvadeEliteCount() int {
+func (self *TCopyMoudle) GetNoInvadeEliteCount() int {
 	//! 获取已通关关卡数目
-	chapterCount := elite_copy.GetPassEliteChapter()
+	chapterCount := self.GetPassEliteChapter()
 	invadeCount := 0
 
 	for i := 1; i <= chapterCount; i++ {
-		for _, v := range elite_copy.Elite.InvadeChapter {
+		for _, v := range self.Elite.InvadeChapter {
 			if v == i {
 				invadeCount += 1
 			}
@@ -546,18 +511,18 @@ func (elite_copy *TCopyMoudle) GetNoInvadeEliteCount() int {
 }
 
 //! 获取已通过精英副本章节数
-func (elite_copy *TCopyMoudle) GetPassEliteChapter() int {
-	isEnd := gamedata.IsChapterEnd(elite_copy.Elite.CurCopyID, elite_copy.Elite.CurChapter, gamedata.COPY_TYPE_Elite)
+func (self *TCopyMoudle) GetPassEliteChapter() int {
+	isEnd := gamedata.IsChapterEnd(self.Elite.CurID, self.Elite.CurChapter, gamedata.COPY_TYPE_Elite)
 
-	chapterCount := elite_copy.Elite.CurChapter
+	chapterCount := self.Elite.CurChapter
 	if isEnd == false {
 		chapterCount -= 1
 	}
 	return chapterCount
 }
 
-func (elite_copy *TCopyMoudle) IsHaveInvade(chapter int) bool {
-	for _, v := range elite_copy.Elite.InvadeChapter {
+func (self *TCopyMoudle) IsHaveInvade(chapter int) bool {
+	for _, v := range self.Elite.InvadeChapter {
 		if v == chapter {
 			return true
 		}
@@ -566,29 +531,29 @@ func (elite_copy *TCopyMoudle) IsHaveInvade(chapter int) bool {
 	return false
 }
 
-func (elite_copy *TCopyMoudle) RemoveInvade(chapter int) bool {
+func (self *TCopyMoudle) RemoveInvade(chapter int) bool {
 	pos := 0
-	for i, v := range elite_copy.Elite.InvadeChapter {
+	for i, v := range self.Elite.InvadeChapter {
 		if v == chapter {
 			pos = i
 		}
 	}
 
 	if pos == 0 {
-		elite_copy.Elite.InvadeChapter = elite_copy.Elite.InvadeChapter[1:]
-	} else if (pos + 1) == len(elite_copy.Elite.InvadeChapter) {
-		elite_copy.Elite.InvadeChapter = elite_copy.Elite.InvadeChapter[:pos]
+		self.Elite.InvadeChapter = self.Elite.InvadeChapter[1:]
+	} else if (pos + 1) == len(self.Elite.InvadeChapter) {
+		self.Elite.InvadeChapter = self.Elite.InvadeChapter[:pos]
 	} else {
-		elite_copy.Elite.InvadeChapter = append(elite_copy.Elite.InvadeChapter[:pos], elite_copy.Elite.InvadeChapter[pos+1:]...)
+		self.Elite.InvadeChapter = append(self.Elite.InvadeChapter[:pos], self.Elite.InvadeChapter[pos+1:]...)
 	}
 
-	elite_copy.DB_RemoveEliteInvade(chapter)
+	self.DB_RemoveEliteInvade(chapter)
 	return true
 }
 
 //! 随机无入侵精英副本章节
-func (elite_copy *TCopyMoudle) RandNoInvadeEliteChapter(num int) IntLst {
-	if elite_copy.GetPassEliteChapter() == 0 {
+func (self *TCopyMoudle) RandNoInvadeEliteChapter(num int) IntLst {
+	if self.GetPassEliteChapter() == 0 {
 		return []int{}
 	}
 
@@ -597,18 +562,18 @@ func (elite_copy *TCopyMoudle) RandNoInvadeEliteChapter(num int) IntLst {
 
 	var chapter IntLst
 	for {
-		randChapter := r.Intn(elite_copy.GetPassEliteChapter()) + 1
-		if elite_copy.IsHaveInvade(randChapter) == false {
-			elite_copy.Elite.InvadeChapter = append(elite_copy.Elite.InvadeChapter, randChapter)
+		randChapter := r.Intn(self.GetPassEliteChapter()) + 1
+		if self.IsHaveInvade(randChapter) == false {
+			self.Elite.InvadeChapter = append(self.Elite.InvadeChapter, randChapter)
 			chapter.Add(randChapter)
-			elite_copy.DB_AddEliteInvade(randChapter)
+			self.DB_AddEliteInvade(randChapter)
 		}
 
 		if chapter.Len() == num {
 			break
 		}
 
-		if elite_copy.GetNoInvadeEliteCount() < num {
+		if self.GetNoInvadeEliteCount() < num {
 			break
 		}
 	}
@@ -617,76 +582,34 @@ func (elite_copy *TCopyMoudle) RandNoInvadeEliteChapter(num int) IntLst {
 }
 
 //! 产生入侵
-func (elite_copy *TCopyMoudle) CheckEliteInvade() {
-	//! 获取入侵时间
-	invadeTime := Int64Lst{int64(gamedata.EliteInvadeTime1), int64(gamedata.EliteInvadeTime2),
-		int64(gamedata.EliteInvadeTime3), int64(gamedata.EliteInvadeTime4)}
-
-	//! 获取入侵个数
-	invadeNum := []int{gamedata.EliteInvadeNum1, gamedata.EliteInvadeNum2,
-		gamedata.EliteInvadeNum3, gamedata.EliteInvadeNum4}
-
+func (self *TCopyMoudle) CheckEliteInvade() {
 	//! 获取今日凌晨时间
-	todayTime := GetTodayTime()
+	todayTime := utility.GetTodayTime()
 
 	//! 获取当期按时间
-	now := time.Now().Unix()
-	for i := 0; i < len(invadeTime); i++ {
-		invadeTime[i] = invadeTime[i]*60*60 + todayTime
+	now := utility.GetCurTime()
+	for i := 0; i < len(gamedata.EliteInvadeTime); i++ {
+		invadeTime := int32(gamedata.EliteInvadeTime[i]*60*60) + todayTime
 
-		if elite_copy.LastInvadeTime > invadeTime[i] {
+		if self.LastInvadeTime > invadeTime {
 			//! 去除已刷新个数
 			continue
 		}
 
 		//! 刷新入侵
-		if now >= invadeTime[i] {
+		if now >= invadeTime {
 			//! 获取刷新个数
-			number := invadeNum[i]
+			number := gamedata.EliteInvadeNum[i]
 
 			//! 随机两个没有叛军的章节
-			elite_copy.RandNoInvadeEliteChapter(number)
+			self.RandNoInvadeEliteChapter(number)
 
 			//! 重置上次刷新时间
-			elite_copy.LastInvadeTime = invadeTime[i]
+			self.LastInvadeTime = invadeTime
 		}
 	}
-	elite_copy.DB_UpdateEliteInvadeTime()
+	self.DB_UpdateEliteInvadeTime()
 }
-
-//! 检查扫荡体力是否足够
-// func (main_copy *TCopyMoudle) CheckSweepMainAction(times int, copyID int, chapter int) (bool, int) {
-// 	baseData := gamedata.GetCopyBaseInfo(copyID)
-
-// 	//! 检查体力
-// 	ret := main_copy.ownplayer.RoleMoudle.CheckActionEnough(baseData.ActionType, baseData.ActionValue*times)
-// 	if ret == false {
-// 		gamelog.Error("Hand_BattleResult error : Not Enough Action")
-// 		return false, msg.RE_STRENGTH_NOT_ENOUGH //! 体力不足
-// 	}
-
-// 	//! 检查挑战次数
-// 	chapterInfo := main_copy.Main.Chapter[chapter]
-// 	isExist := false
-// 	for _, v := range chapterInfo.CopyInfo {
-// 		if v.CopyID == copyID {
-// 			isExist = true
-// 			if v.BattleTimes+times > 10 {
-// 				return false, msg.RE_CHALLENGE_TIMES_NOT_ENOUGH //! 挑战次数不足
-// 			}
-
-// 			if v.StarNum != 3 {
-// 				return false, msg.RE_NEED_THREE_STAR //! 必须三星才能够扫荡
-// 			}
-// 		}
-// 	}
-
-// 	if isExist == false {
-// 		return false, msg.RE_COPY_NOT_PASS //! 关卡未通过
-// 	}
-
-// 	return true, msg.RE_SUCCESS
-// }
 
 func (self *TCopyMoudle) CheckReset() {
 	if utility.IsSameDay(self.ResetDay) == true {
@@ -697,37 +620,36 @@ func (self *TCopyMoudle) CheckReset() {
 }
 
 func (self *TCopyMoudle) OnNewDay(newday uint32) {
-	self.UpdateMainReset()
-	self.UpdateFamousReset()
-	self.UpdateDailyReset()
-	self.UpdateEliteReset()
-
+	self.MainReset()
+	self.FamousReset()
+	self.DailyReset()
+	self.EliteReset()
 	self.ResetDay = utility.GetCurDay()
 	self.DB_UpdateCopy()
 }
 
-func (main_copy *TCopyMoudle) UpdateMainReset() {
+func (self *TCopyMoudle) MainReset() {
 	//! 刪除已三星通关的信息
 	copyLst := []TMainCopy{}
-	for _, v := range main_copy.Main.CopyInfo {
+	for _, v := range self.Main.CopyLst {
 		if v.StarNum != 3 {
 
 			var copyInfo TMainCopy
-			copyInfo.CopyID = v.CopyID
-			copyInfo.BattleTimes = v.BattleTimes
-			copyInfo.ResetCount = v.ResetCount
+			copyInfo.ID = v.ID
+			copyInfo.Times = v.Times
+			copyInfo.ResetCnt = v.ResetCnt
 			copyInfo.StarNum = v.StarNum
 			copyLst = append(copyLst, copyInfo)
 		}
 	}
 
-	main_copy.Main.CopyInfo = copyLst
+	self.Main.CopyLst = copyLst
 
 	//! 删除章节奖励已领取关卡
 	chapterLst := []TMainChapter{}
-	for _, v := range main_copy.Main.Chapter {
-		if v.SceneAward[0] == false || v.SceneAward[1] == false || v.SceneAward[2] == false ||
-			v.StarAward[0] == false || v.StarAward[1] == false || v.StarAward[2] == false {
+	for _, v := range self.Main.Chapter {
+		if v.SceneAward.Get(1) == false || v.SceneAward.Get(2) == false || v.SceneAward.Get(3) == false ||
+			v.StarAward.Get(1) == false || v.StarAward.Get(2) == false || v.StarAward.Get(3) == false {
 			var chapterInfo TMainChapter
 			chapterInfo.Chapter = v.Chapter
 			chapterInfo.SceneAward = v.SceneAward
@@ -736,31 +658,31 @@ func (main_copy *TCopyMoudle) UpdateMainReset() {
 		}
 	}
 
-	main_copy.Main.Chapter = chapterLst
+	self.Main.Chapter = chapterLst
 }
 
 //! 精英副本重置
-func (elite_copy *TCopyMoudle) UpdateEliteReset() {
+func (self *TCopyMoudle) EliteReset() {
 	//! 刪除已三星通关的信息
 	copyLst := []TEliteCopy{}
-	for _, v := range elite_copy.Elite.CopyInfo {
+	for _, v := range self.Elite.CopyLst {
 		if v.StarNum != 3 {
 
 			var copyInfo TEliteCopy
-			copyInfo.CopyID = v.CopyID
-			copyInfo.BattleTimes = v.BattleTimes
-			copyInfo.ResetCount = v.ResetCount
+			copyInfo.ID = v.ID
+			copyInfo.Times = v.Times
+			copyInfo.ResetCnt = v.ResetCnt
 			copyInfo.StarNum = v.StarNum
 			copyLst = append(copyLst, copyInfo)
 		}
 	}
-	elite_copy.Elite.CopyInfo = copyLst
+	self.Elite.CopyLst = copyLst
 
 	//! 删除章节奖励已领取关卡
 	chapterLst := []TEliteChapter{}
-	for _, v := range elite_copy.Elite.Chapter {
+	for _, v := range self.Elite.Chapter {
 		if v.SceneAward == false ||
-			v.StarAward[0] == false || v.StarAward[1] == false || v.StarAward[2] == false {
+			v.StarAward.Get(1) == false || v.StarAward.Get(2) == false || v.StarAward.Get(3) == false {
 			var chapterInfo TEliteChapter
 			chapterInfo.Chapter = v.Chapter
 			chapterInfo.SceneAward = v.SceneAward
@@ -769,26 +691,23 @@ func (elite_copy *TCopyMoudle) UpdateEliteReset() {
 		}
 	}
 
-	elite_copy.Elite.Chapter = chapterLst
+	self.Elite.Chapter = chapterLst
 }
 
-func (daily_copy *TCopyMoudle) UpdateDailyReset() {
+func (daily_copy *TCopyMoudle) DailyReset() {
 
 	//! 刷新各种数据
-	for i, _ := range daily_copy.Daily.CopyInfo {
-		daily_copy.Daily.CopyInfo[i].IsChallenge = false
+	for i, _ := range daily_copy.Daily.CopyLst {
+		daily_copy.Daily.CopyLst[i].IsChallenge = false
 	}
 }
 
-func (famous_copy *TCopyMoudle) UpdateFamousReset() {
+func (self *TCopyMoudle) FamousReset() {
 
 	//! 刷新各种数据
-	famous_copy.Famous.BattleTimes = 0
-
-	for j, v := range famous_copy.Famous.Chapter {
-		for i, _ := range v.PassedCopy {
-			famous_copy.Famous.Chapter[j].PassedCopy[i].BattleTimes = 0
-		}
+	self.Famous.Times = 0
+	for i := 0; i < len(self.Famous.Chapter); i++ {
+		self.Famous.Chapter[i].PassedCopy = IntLst{}
 	}
 }
 
@@ -826,14 +745,4 @@ func (daily_copy *TCopyMoudle) GetTodayDailyCopy() []int {
 	}
 
 	return openRes
-}
-
-func (famous_copy *TCopyMoudle) GetFamousCopyInfo(copyID int, chapter int) *TFamousCopy {
-	for i, v := range famous_copy.Famous.Chapter[chapter].PassedCopy {
-		if v.CopyID == copyID {
-			return &famous_copy.Famous.Chapter[chapter].PassedCopy[i]
-		}
-	}
-
-	return nil
 }

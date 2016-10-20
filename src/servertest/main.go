@@ -8,13 +8,16 @@ import (
 	"utility"
 )
 
+var (
+	accountip string = "http://192.168.0.222:8081"
+)
+
 func main() {
-	// appconfig.LoadConfig()
-	gamelog.InitLogger("httptest")
+	gamelog.InitLogger("httptest", 10)
 	RegTcpMsgHandler()
 
 	InitPlayerMgr()
-	for i := 1; i < 10000; i++ {
+	for i := 199; i < 200; i++ {
 		CreatePlayer(i)
 	}
 
@@ -49,7 +52,11 @@ func Hand_Connect(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 		return
 	}
 
-	player.userEnterRoom()
+	if pClient.ConType == tcpclient.CON_TYPE_BATSVR {
+		player.userEnterRoom()
+	} else {
+		player.userCheckIn()
+	}
 
 	return
 }

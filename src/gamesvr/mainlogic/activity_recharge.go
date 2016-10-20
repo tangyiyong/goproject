@@ -10,9 +10,9 @@ import (
 
 //! 充值活动数据
 type TActivityRecharge struct {
-	ActivityID     int              //! 活动ID
+	ActivityID     int32            //! 活动ID
 	RechargeValue  int              //! 活动期间累积充值数额
-	AwardMark      Mark             //! 累积充值领取标记 (索引)
+	AwardMark      BitsType         //! 累积充值领取标记 (索引)
 	VersionCode    int32            //! 版本号
 	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
@@ -25,7 +25,7 @@ func (self *TActivityRecharge) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityRecharge) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityRecharge) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -75,7 +75,7 @@ func (self *TActivityRecharge) RedTip() bool {
 	}
 
 	for _, v := range recvLst {
-		if self.AwardMark.Get(uint32(v)) == false {
+		if self.AwardMark.Get(v) == false {
 			return true
 		}
 	}

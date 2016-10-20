@@ -6,7 +6,7 @@ import (
 	"gamesvr/gamedata"
 	"msg"
 	"net/http"
-	"time"
+	"utility"
 )
 
 //! 玩家请求当前领地状态
@@ -50,7 +50,7 @@ func Hand_GetTerritoryStatus(w http.ResponseWriter, r *http.Request) {
 	for _, v := range player.TerritoryModule.TerritoryLst {
 		var territory msg.MSG_TerritoryInfo
 		territory.ID = v.ID
-		territory.PatrolBeginTime = v.PatrolEndTime - int64(v.PatrolTime)
+		territory.PatrolBeginTime = v.PatrolEndTime - int32(v.PatrolTime)
 		territory.PatrolEndTime = v.PatrolEndTime
 		territory.SkillLevel = v.SkillLevel
 		territory.HeroID = v.HeroID
@@ -83,11 +83,14 @@ func Hand_ChallengeTerritory(w http.ResponseWriter, r *http.Request) {
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
-	//! 解析消息
+	if false == utility.MsgDataCheck(buffer, G_XorCode) {
+		//存在作弊的可能
+		gamelog.Error("Hand_ChallengeTerritory : Message Data Check Error!!!!")
+		return
+	}
 	var req msg.MSG_ChallengeTerritory_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_ChallengeTerritory Unmarshal fail. Error: %s", err.Error())
+	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
+		gamelog.Error("Hand_ChallengeTerritory : Unmarshal error!!!!")
 		return
 	}
 
@@ -105,6 +108,12 @@ func Hand_ChallengeTerritory(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	if gamedata.IsFuncOpen(gamedata.FUNC_TERRITORY, player.GetLevel(), player.GetVipLevel()) == false {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
@@ -173,7 +182,7 @@ func Hand_PatrolTerritory(w http.ResponseWriter, r *http.Request) {
 
 	//! 判断领地是否已经有武将巡逻
 	territory, _ := player.TerritoryModule.GetTerritory(req.TerritoryID)
-	if territory.PatrolEndTime > time.Now().Unix() {
+	if territory.PatrolEndTime > utility.GetCurTime() {
 		response.RetCode = msg.RE_ALEADY_HAVE_HERO
 		return
 	}
@@ -206,7 +215,7 @@ func Hand_PatrolTerritory(w http.ResponseWriter, r *http.Request) {
 	//! 开始巡逻
 	player.TerritoryModule.PatrolTerritory(req.TerritoryID, req.HeroID, patrolInfo, awardTime)
 	response.RetCode = msg.RE_SUCCESS
-	response.PatrolBeginTime = time.Now().Unix()
+	response.PatrolBeginTime = utility.GetCurTime()
 	territory, _ = player.TerritoryModule.GetTerritory(req.TerritoryID)
 	for _, v := range territory.AwardItem {
 		var award msg.MSG_ItemData
@@ -228,55 +237,6 @@ func Hand_PatrolTerritory(w http.ResponseWriter, r *http.Request) {
 
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_TERRITORY_HUNT, 1)
 }
-
-//! 玩家获取领地奖励列表
-// func Hand_GetTerritoryAwardLst(w http.ResponseWriter, r *http.Request) {
-// 	gamelog.Info("message: %s", r.URL.String())
-
-// 	//! 接收消息
-// 	buffer := make([]byte, r.ContentLength)
-// 	r.Body.Read(buffer)
-
-// 	//! 解析消息
-// 	var req msg.MSG_TerritoryAwardLst_Req
-// 	err := json.Unmarshal(buffer, &req)
-// 	if err != nil {
-// 		gamelog.Error("Hand_GetTerritoryAwardLst Unmarshal fail. Error: %s", err.Error())
-// 		return
-// 	}
-
-// 	//! 创建回复
-// 	var response msg.MSG_TerritoryAwardLst_Ack
-// 	response.RetCode = msg.RE_UNKNOWN_ERR
-// 	defer func() {
-// 		b, _ := json.Marshal(&response)
-// 		w.Write(b)
-// 	}()
-
-// 	//! 常规检测
-// 	var player *TPlayer = nil
-// 	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-// 	if player == nil {
-// 		return
-// 	}
-
-// 	if gamedata.IsFuncOpen(gamedata.FUNC_TERRITORY, player.GetMainHeroLevel(), player.GetVipLevel()) == false {
-// 		response.RetCode = msg.RE_FUNC_NOT_OPEN
-// 		return
-// 	}
-
-// 	//! 获取奖励列表
-// 	territory, _ := player.TerritoryModule.GetTerritory(req.TerritoryID)
-// 	for _, v := range territory.AwardItem {
-// 		var award msg.MSG_ItemData
-// 		award.ID = v.ItemID
-// 		award.Num = v.ItemNum
-// 		response.AwardItem = append(response.AwardItem, award)
-// 	}
-
-// 	response.HeroID = territory.HeroID
-// 	response.RetCode = msg.RE_SUCCESS
-// }
 
 //! 玩家请求查询领地暴动信息
 func Hand_GetTerritoryRiotInfo(w http.ResponseWriter, r *http.Request) {
@@ -364,7 +324,7 @@ func Hand_GetTerritoryAward(w http.ResponseWriter, r *http.Request) {
 
 	//! 判断是否巡逻结束
 	territory, _ := player.TerritoryModule.GetTerritory(req.TerritoryID)
-	if territory.PatrolEndTime > time.Now().Unix() {
+	if territory.PatrolEndTime > utility.GetCurTime() {
 		//! 尚未结束
 		response.RetCode = msg.RE_PATROL_NOT_END
 		return
@@ -409,7 +369,6 @@ func Hand_TerritorySkillLevelUp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if gamedata.IsFuncOpen(gamedata.FUNC_TERRITORY, player.GetLevel(), player.GetVipLevel()) == false {
-		gamelog.Error("Hand_TerritorySkillLevelUp Error: Func not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -654,7 +613,7 @@ func Hand_SuppressRiot(w http.ResponseWriter, r *http.Request) {
 	//! 检查当前是否还有镇压暴动次数
 	totalTimes := gamedata.GetFuncVipValue(gamedata.FUNC_SUPPRESS_TERRITORY, player.GetVipLevel())
 	if player.TerritoryModule.SuppressRiotTimes >= totalTimes {
-		response.RetCode = msg.RE_SUPPRESS_TIMES_NOT_ENOUGH
+		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 		return
 	}
 
@@ -666,11 +625,11 @@ func Hand_SuppressRiot(w http.ResponseWriter, r *http.Request) {
 	//! 设置领地信息暴动信息
 	for i, n := range territoryInfo.RiotInfo {
 		//! 判断暴动
-		if time.Now().Unix() >= n.BeginTime &&
-			time.Now().Unix() < n.BeginTime+int64(gamedata.RiotTime) &&
+		if utility.GetCurTime() >= n.BeginTime &&
+			utility.GetCurTime() < n.BeginTime+int32(gamedata.RiotTime) &&
 			n.IsRoit == true {
 			territoryInfo.RiotInfo[i].IsRoit = false
-			territoryInfo.RiotInfo[i].DealTime = time.Now().Unix()
+			territoryInfo.RiotInfo[i].DealTime = utility.GetCurTime()
 			territoryInfo.RiotInfo[i].HelperName = friendPlayerInfo.Name
 			friendTerritory.DB_UpdateRiotInfo(index, i, territoryInfo.RiotInfo[i])
 		}

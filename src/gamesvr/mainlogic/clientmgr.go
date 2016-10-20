@@ -82,26 +82,3 @@ func SendGameSvrNotify(playerid int32, funcid int) bool {
 	buffer, _ := json.Marshal(&req)
 	return SendMessageToClient(playerid, msg.MSG_GAME_SERVER_NOTIFY, 0, buffer)
 }
-
-func SendLogNotify(playerid int32, eventid int32, param1, param2, param3, param4 int32) bool {
-	if G_LogClient.TcpConn == nil {
-		gamelog.Error("SendLogNotify Error: G_LogClient.TcpConn is nullptr!!!")
-		return false
-	}
-
-	var req msg.MSG_SvrLogData
-	req.SvrID = int32(appconfig.GameSvrID)
-	req.EventID = eventid
-	req.PlayerID = playerid
-	req.Param[0] = param1
-	req.Param[1] = param2
-	req.Param[2] = param3
-	req.Param[3] = param4
-
-	var writer msg.PacketWriter
-	writer.BeginWrite(msg.MSG_SVR_LOGDATA, int16(req.SvrID))
-	req.Write(&writer)
-	writer.EndWrite()
-
-	return G_LogClient.TcpConn.WriteMsgData(writer.GetDataPtr())
-}

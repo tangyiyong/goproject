@@ -13,7 +13,7 @@ type MSG_RebelInfo struct {
 	Level      int    //! 叛军等级
 	CurLife    int    //! 叛军当前血量
 	FindName   string //! 发现者名称
-	EscapeTime int64  //! 剩余逃走时间
+	EscapeTime int32  //! 剩余逃走时间
 	IsShare    bool   //! 是否分享 0->不分享 1->分享
 }
 
@@ -43,7 +43,7 @@ type MSG_Attack_Rebel_Ack struct {
 	ExploitRank int   //! 功勋排行榜 若为0则未进榜
 	ActionID    int   //! 精力ID
 	ActionValue int   //! 用户精力
-	ActionTime  int64 //! 下次恢复精力时间
+	ActionTime  int32 //! 下次恢复精力时间
 }
 
 //! 玩家请求分享叛军

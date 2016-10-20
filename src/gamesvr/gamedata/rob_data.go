@@ -5,11 +5,6 @@ import (
 	"gamelog"
 )
 
-type RobPlayer struct {
-	level       int
-	Probability int
-}
-
 //! 夺宝配置表
 type ST_RobConfig struct {
 	CopyID int //! 副本基本信息

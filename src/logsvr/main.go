@@ -14,8 +14,7 @@ func main() {
 	appconfig.LoadConfig()
 
 	//初始化日志系统
-	gamelog.InitLogger("logsvr")
-	gamelog.SetLevel(appconfig.LogSvrLogLevel)
+	gamelog.InitLogger("logsvr", appconfig.LogSvrLogLevel)
 
 	//开启控制台窗口，可以接受一些调试命令
 	utility.StartConsole()

@@ -4,11 +4,11 @@ import (
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"strconv"
 	"time"
-
-	"gopkg.in/mgo.v2/bson"
+	"utility"
 )
 
 const (
@@ -25,10 +25,10 @@ const (
 
 var G_Timer Timer
 
-type DealFunc func(now int64) bool
+type DealFunc func(now int32) bool
 type TimerFunc struct {
 	FuncID    int
-	ResetTime int64
+	ResetTime int32
 	CDTime    int
 	deal      DealFunc
 	IsOpen    bool
@@ -39,12 +39,6 @@ type Timer struct {
 	FuncLst []TimerFunc
 }
 
-func GetTodayTime() int64 {
-	now := time.Now()
-	todayTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
-	return todayTime.Unix()
-}
-
 func (self *Timer) Init() {
 	self.ID = 1
 	if self.LoadTimer() == false {
@@ -53,29 +47,29 @@ func (self *Timer) Init() {
 
 	//! 加入各种模块功能
 	//! 竞技场
-	resetTime := GetTodayTime() + int64(gamedata.ArenaRankAwardCalcTime*60*60)
+	resetTime := utility.GetTodayTime() + int32(gamedata.ArenaRankAwardCalcTime*60*60)
 	self.AddTimeFunc(Timer_Func_Arena, resetTime, 24*60*60, self.ArenaFunc, true)
 
 	//! 围剿叛军
-	resetTime = GetTodayTime() + int64(24*60*60)
+	resetTime = utility.GetTodayTime() + int32(24*60*60)
 	self.AddTimeFunc(Timer_Func_Rebel, resetTime, 24*60*60, self.RebelFunc, true)
 
 	//! 粮草战
-	resetTime = GetTodayTime() + int64(gamedata.FoodWarEndTime)
+	resetTime = utility.GetTodayTime() + int32(gamedata.FoodWarEndTime)
 	self.AddTimeFunc(Timer_Func_FoodWar, resetTime, 24*60*60, self.FoodWarFunc, true)
 
 	//! 活动
-	resetTime = GetTodayTime() + 24*60*60
+	resetTime = utility.GetTodayTime() + 24*60*60
 	self.AddTimeFunc(Timer_Func_Activity, resetTime, 24*60*60, ActivityTimerFunc, true)
 
-	resetTime = GetTodayTime() + 24*60*60
+	resetTime = utility.GetTodayTime() + 24*60*60
 	self.AddTimeFunc(Timer_Func_NewDay, resetTime, 24*60*60, self.OnNewDayFunc, true)
 
 	go self.OnTimer()
 }
 
 //! 结算排行奖励
-func (self *Timer) ArenaFunc(now int64) bool {
+func (self *Timer) ArenaFunc(now int32) bool {
 	gamelog.Info("Timer: ArenaFunc")
 	//! 获取竞技场排行榜配置
 	arenaConfig := gamedata.GetArenaConfig()
@@ -106,7 +100,7 @@ func (self *Timer) ArenaFunc(now int64) bool {
 	return true
 }
 
-func (self *Timer) OnNewDayFunc(nowUnix int64) bool {
+func (self *Timer) OnNewDayFunc(nowUnix int32) bool {
 	gamelog.Info("Timer: OnNewDayFunc")
 	//先发今日击杀
 	for i := 0; i < len(G_CampBat_TodayKill.List); i++ {
@@ -200,7 +194,7 @@ func (self *Timer) OnNewDayFunc(nowUnix int64) bool {
 }
 
 //! 结算夺粮战排行奖励
-func (self *Timer) FoodWarFunc(nowUnix int64) bool {
+func (self *Timer) FoodWarFunc(nowUnix int32) bool {
 	gamelog.Info("Timer: FoodWarFunc")
 	isOpen := false
 	now := time.Now()
@@ -232,7 +226,7 @@ func (self *Timer) FoodWarFunc(nowUnix int64) bool {
 
 	var awardData TAwardData
 	awardData.TextType = Text_FoodWar_Rank
-	awardData.Time = time.Now().Unix()
+	awardData.Time = utility.GetCurTime()
 	for i, v := range G_FoodWarRanker.List {
 		if v.RankID <= 0 {
 			break
@@ -251,12 +245,12 @@ func (self *Timer) FoodWarFunc(nowUnix int64) bool {
 }
 
 //! 结算排行奖励
-func (self *Timer) RebelFunc(now int64) bool {
+func (self *Timer) RebelFunc(now int32) bool {
 	gamelog.Info("Timer: RebelFunc")
 	//! 开始结算奖励
 	var awardData TAwardData
 	awardData.TextType = Text_Rebel_Damage
-	awardData.Time = time.Now().Unix()
+	awardData.Time = utility.GetCurTime()
 	for i, v := range G_RebelExploitRanker.List {
 		if v.RankID == 0 {
 			continue
@@ -283,7 +277,7 @@ func (self *Timer) RebelFunc(now int64) bool {
 	return true
 }
 
-func (self *Timer) AddTimeFunc(funcID int, resetTime int64, cdTime int, deal func(int64) bool, isOpen bool) {
+func (self *Timer) AddTimeFunc(funcID int, resetTime int32, cdTime int, deal func(int32) bool, isOpen bool) {
 	for i, v := range self.FuncLst {
 		if v.FuncID == funcID {
 			//! 已有对应功能
@@ -304,7 +298,7 @@ func (self *Timer) OnTimer() {
 	for {
 		select {
 		case <-timer.C:
-			now := time.Now().Unix()
+			now := utility.GetCurTime()
 			self.OnTimerFunc(now)
 			timer.Reset(time.Second)
 		}
@@ -312,7 +306,7 @@ func (self *Timer) OnTimer() {
 }
 
 //! 计时器处理函数
-func (self *Timer) OnTimerFunc(now int64) {
+func (self *Timer) OnTimerFunc(now int32) {
 	for i, v := range self.FuncLst {
 		if now >= self.FuncLst[i].ResetTime && self.FuncLst[i].IsOpen == true {
 			if self.FuncLst[i].deal == nil {
@@ -325,7 +319,7 @@ func (self *Timer) OnTimerFunc(now int64) {
 				self.FuncLst[i].IsOpen = false
 			}
 
-			self.FuncLst[i].ResetTime += int64(v.CDTime)
+			self.FuncLst[i].ResetTime += int32(v.CDTime)
 			self.SaveTimer()
 		}
 	}

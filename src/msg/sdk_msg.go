@@ -26,7 +26,7 @@ type SDKMsg_GamesvrAddr_Ack struct {
 	RetCode int
 }
 type SDKMsg_create_recharge_order_Req struct { // 消息：/create_recharge_order
-	GamesvrID    int
+	GamesvrID    int32
 	PlayerID     int32
 	OrderID      string
 	Channel      string //渠道名

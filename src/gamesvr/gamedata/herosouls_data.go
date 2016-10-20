@@ -183,7 +183,7 @@ type ST_HeroSoulsProperty struct {
 
 type ST_HeroSouls struct {
 	ID       int
-	HeroID   [3]int
+	HeroIDs  [3]int
 	Property [2]ST_HeroSoulsProperty
 }
 
@@ -200,7 +200,7 @@ func ParseHeroSoulsRecord(rs *RecordSet) {
 
 	for i := 0; i < 3; i++ {
 		filedName := fmt.Sprintf("itemid%d", i+1)
-		GT_HeroSoulsLst[id].HeroID[i] = rs.GetFieldInt(filedName)
+		GT_HeroSoulsLst[id].HeroIDs[i] = rs.GetFieldInt(filedName)
 	}
 
 	for i := 0; i < 2; i++ {

@@ -64,7 +64,8 @@ func Hand_GetFestivalTask(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < length; i++ {
 		var exchange msg.MSG_FestivalExchange
 		exchange.ID = exchangeLst[i].ID
-		exchange.Award = exchangeLst[i].Award
+		exchange.ItemID = exchangeLst[i].ItemID
+		exchange.ItemNum = exchangeLst[i].ItemNum
 		exchange.NeedItemID = exchangeLst[i].NeedItemID
 		exchange.NeedItemNum = exchangeLst[i].NeedItemNum
 		exchange.Times = exchangeLst[i].ExchangeTimes
@@ -221,15 +222,9 @@ func Hand_ExchangeFestivalAward(w http.ResponseWriter, r *http.Request) {
 	player.ActivityModule.Festival.DB_UpdateExchangeTimes(index, exchange.Times)
 
 	//! 给予兑换奖励
-	awardLst := gamedata.GetItemsFromAwardID(exchangeInfo.Award)
-	response.AwardLst = []msg.MSG_ItemData{}
-	for _, v := range awardLst {
-		var item msg.MSG_ItemData
-		item.ID = v.ItemID
-		item.Num = v.ItemNum
-		response.AwardLst = append(response.AwardLst, item)
-	}
-
+	response.ItemID = exchangeInfo.ItemID
+	response.ItemNum = exchangeInfo.ItemNum
+	player.BagMoudle.AddAwardItem(response.ItemID, response.ItemNum)
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -304,7 +299,7 @@ func Hand_BuyFestivalSaleItem(w http.ResponseWriter, r *http.Request) {
 	response.ItemID, response.ItemNum = itemInfo.ItemID, itemInfo.ItemNum
 
 	//! 增加次数
-	saleInfo.BuyTimes++
+	saleInfo.BuyTimes = saleInfo.BuyTimes + 1
 	player.ActivityModule.Festival.DB_UpdateBuyTimes(saleInfo)
 
 	//! 返回成功

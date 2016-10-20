@@ -8,6 +8,7 @@ import (
 	"msg"
 	"net/http"
 	"time"
+	"utility"
 )
 
 //! 玩家请求查询召唤刷新状态
@@ -46,19 +47,19 @@ func Hand_GetSummonStatus(w http.ResponseWriter, r *http.Request) {
 
 	response.NormalSummon.SummonCounts = gamedata.NormalSummonFreeTimes - player.SummonModule.Normal.SummonCounts
 
-	summonTime := player.SummonModule.Normal.SummonTime - time.Now().Unix()
-	if summonTime < 0 {
-		summonTime = 0
+	if player.SummonModule.Normal.SummonTime < utility.GetCurTime() {
+		response.NormalSummon.SummonTime = 0
+	} else {
+		response.NormalSummon.SummonTime = player.SummonModule.Normal.SummonTime - utility.GetCurTime()
 	}
 
-	response.NormalSummon.SummonTime = summonTime
 	response.SeniorSummon.Point = player.SummonModule.Senior.SummonPoint
 
-	summonTime = player.SummonModule.Senior.SummonTime - time.Now().Unix()
-	if summonTime < 0 {
-		summonTime = 0
+	if player.SummonModule.Normal.SummonTime < utility.GetCurTime() {
+		response.SeniorSummon.SummonTime = 0
+	} else {
+		response.SeniorSummon.SummonTime = player.SummonModule.Senior.SummonTime - utility.GetCurTime()
 	}
-	response.SeniorSummon.SummonTime = summonTime
 
 	response.SeniorSummon.OrangeCount = 10 - player.SummonModule.Senior.OrangeCount
 	response.Discount = gamedata.TenSummonDiscount
@@ -124,31 +125,30 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 	summonConfig := gamedata.GetSummonConfig(req.SummonType)
 	if summonConfig == nil {
 		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_GetSummon error: invalid summonType: %d  PlayerID: %d", req.SummonType, player.playerid)
 		return
 	}
 
 	//! 根据召唤种类分别判断
 	if req.SummonType == gamedata.Summon_Normal { //! 普通召唤
 		if req.NumberType == 0 { //! 单抽逻辑处理
-
 			//! 检测免费次数
 			hasFree := false
-			if time.Now().Unix() >= player.SummonModule.Normal.SummonTime &&
+			if utility.GetCurTime() >= player.SummonModule.Normal.SummonTime &&
 				player.SummonModule.Normal.SummonCounts < gamedata.NormalSummonFreeTimes {
 				hasFree = true
-
 				response.IsFree = true
 
 				//! 修改标记
 				player.SummonModule.Normal.SummonCounts += 1
-				player.SummonModule.Normal.SummonTime = time.Now().Unix() + int64(gamedata.NormalSummonFreeCDTime)
+				player.SummonModule.Normal.SummonTime = utility.GetCurTime() + int32(gamedata.NormalSummonFreeCDTime)
 				player.SummonModule.DB_UpdateNormalSummon()
 			}
 
 			if hasFree == false {
 				//! 检测道具数量
 				if !player.BagMoudle.IsItemEnough(summonConfig.CostItemID, summonConfig.CostItemNum) {
-					response.RetCode = msg.RE_NOT_ENOUGH_SUMMON_ITEM
+					response.RetCode = msg.RE_NOT_ENOUGH_ITEM
 					return
 				}
 
@@ -158,9 +158,8 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 
 			//! 随机英雄
 			heroLst := gamedata.GetSummonInfoRandom(gamedata.Summon_Normal, 1)
-			heroID := heroLst[0]
+			heroID := heroLst[0].ItemID
 			if player.SummonModule.IsFirst == true {
-
 				if player.HeroMoudle.CurHeros[0].ID == 3 { //! 女主人公
 					heroID = 407
 					player.SummonModule.IsFirst = false
@@ -172,7 +171,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 				}
 
 			}
-			player.BagMoudle.AddHeroByID(heroID, 1)
+			player.BagMoudle.AddHeroByID(heroID, 1, 1)
 			response.HeroID = append(response.HeroID, heroID)
 			response.RetCode = msg.RE_SUCCESS
 
@@ -180,8 +179,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 			player.SummonModule.UpdateSummonStatus()
 
 			response.NormalSummon.SummonCounts = gamedata.NormalSummonFreeTimes - player.SummonModule.Normal.SummonCounts
-
-			summonTime := player.SummonModule.Normal.SummonTime - time.Now().Unix()
+			summonTime := player.SummonModule.Normal.SummonTime - utility.GetCurTime()
 			if summonTime < 0 {
 				summonTime = 0
 			}
@@ -189,22 +187,19 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 			response.NormalSummon.SummonTime = summonTime
 			response.SeniorSummon.Point = player.SummonModule.Senior.SummonPoint
 
-			summonTime = player.SummonModule.Senior.SummonTime - time.Now().Unix()
+			summonTime = player.SummonModule.Senior.SummonTime - utility.GetCurTime()
 			if summonTime < 0 {
 				summonTime = 0
 			}
 
 			response.SeniorSummon.SummonTime = summonTime
-
 			response.SeniorSummon.OrangeCount = 10 - player.SummonModule.Senior.OrangeCount
-
 			return
-
 		} else if req.NumberType == 1 { //! 十连抽逻辑处理`1
 			//! 检测道具数量是否足够
 			bEnough := player.BagMoudle.IsItemEnough(summonConfig.CostItemID, summonConfig.CostItemNum*10)
 			if !bEnough {
-				response.RetCode = msg.RE_NOT_ENOUGH_SUMMON_ITEM
+				response.RetCode = msg.RE_NOT_ENOUGH_ITEM
 				return
 			}
 
@@ -214,8 +209,8 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 			//! 随机英雄
 			heroLst := gamedata.GetSummonInfoRandom(gamedata.Summon_Normal, 10)
 			for _, v := range heroLst {
-				player.BagMoudle.AddHeroByID(v, 1)
-				response.HeroID = append(response.HeroID, v)
+				player.BagMoudle.AddHeroByID(v.ItemID, 1, 1)
+				response.HeroID = append(response.HeroID, v.ItemID)
 			}
 
 			response.RetCode = msg.RE_SUCCESS
@@ -225,7 +220,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 
 			response.NormalSummon.SummonCounts = gamedata.NormalSummonFreeTimes - player.SummonModule.Normal.SummonCounts
 
-			summonTime := player.SummonModule.Normal.SummonTime - time.Now().Unix()
+			summonTime := player.SummonModule.Normal.SummonTime - utility.GetCurTime()
 			if summonTime < 0 {
 				summonTime = 0
 			}
@@ -233,12 +228,11 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 			response.NormalSummon.SummonTime = summonTime
 			response.SeniorSummon.Point = player.SummonModule.Senior.SummonPoint
 
-			summonTime = player.SummonModule.Senior.SummonTime - time.Now().Unix()
+			summonTime = player.SummonModule.Senior.SummonTime - utility.GetCurTime()
 			if summonTime < 0 {
 				summonTime = 0
 			}
 			response.SeniorSummon.SummonTime = summonTime
-
 			response.SeniorSummon.OrangeCount = 10 - player.SummonModule.Senior.OrangeCount
 			return
 		}
@@ -247,13 +241,13 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 		if req.NumberType == 0 { //! 单抽逻辑处理
 			//! 检测免费次数
 			hasFree := false
-			if time.Now().Unix() >= player.SummonModule.Senior.SummonTime {
+			if utility.GetCurTime() >= player.SummonModule.Senior.SummonTime {
 				hasFree = true
 
 				response.IsFree = true
 
 				//! 修改标记
-				player.SummonModule.Senior.SummonTime = time.Now().Unix() + int64(gamedata.SeniorSummonFreeCDTime)
+				player.SummonModule.Senior.SummonTime = utility.GetCurTime() + int32(gamedata.SeniorSummonFreeCDTime)
 				player.SummonModule.DB_UpdateSeniorSummon()
 			}
 
@@ -304,10 +298,10 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 
-				heroID = heroLst[0]
+				heroID = heroLst[0].ItemID
 			}
 
-			player.BagMoudle.AddHeroByID(heroID, 1)
+			player.BagMoudle.AddHeroByID(heroID, 1, 1)
 			response.HeroID = append(response.HeroID, heroID)
 			response.RetCode = msg.RE_SUCCESS
 
@@ -318,7 +312,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 
 			response.NormalSummon.SummonCounts = gamedata.NormalSummonFreeTimes - player.SummonModule.Normal.SummonCounts
 
-			summonTime := player.SummonModule.Normal.SummonTime - time.Now().Unix()
+			summonTime := player.SummonModule.Normal.SummonTime - utility.GetCurTime()
 			if summonTime < 0 {
 				summonTime = 0
 			}
@@ -326,7 +320,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 			response.NormalSummon.SummonTime = summonTime
 			response.SeniorSummon.Point = player.SummonModule.Senior.SummonPoint
 
-			summonTime = player.SummonModule.Senior.SummonTime - time.Now().Unix()
+			summonTime = player.SummonModule.Senior.SummonTime - utility.GetCurTime()
 			if summonTime < 0 {
 				summonTime = 0
 			}
@@ -358,38 +352,24 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 				player.BagMoudle.RemoveNormalItem(summonConfig.CostItemID, summonConfig.CostItemNum*10)
 			}
 
-			orangeTimes := 10 - player.SummonModule.Senior.OrangeCount
-
 			//! 随机英雄
-			heroLst := gamedata.GetSummonInfoRandom(gamedata.Summon_Senior, orangeTimes-1)
+			heroLst := gamedata.GetSummonInfoRandom(gamedata.Summon_Senior, 10)
 			orange := gamedata.GetSummonInfoOrangeRandom()
-			heroLst = append(heroLst, gamedata.GetSummonInfoRandom(gamedata.Summon_Senior, 10-orangeTimes)...)
-
 			random := rand.New(rand.NewSource(time.Now().UnixNano()))
 			index := random.Intn(len(heroLst))
-			newLst := IntLst{}
 			for i := 0; i < len(heroLst); i++ {
-				if gamedata.GetHeroInfo(heroLst[i]).Quality == 5 {
+				if gamedata.GetHeroInfo(heroLst[i].ItemID).Quality == 5 {
 					//! 同时存在两个橙将,则去除这个替换成普通
-					for {
-						heroid := gamedata.GetSummonInfoRandom(gamedata.Summon_Senior, 1)
-						if gamedata.GetHeroInfo(heroid[0]).Quality != 5 {
-							newLst.Add(heroid[0])
-							break
-						}
-					}
-
-					continue
-				}
-
-				newLst.Add(heroLst[i])
-				if index == i {
-					newLst.Add(orange)
+					NormalID := gamedata.GetSummonInfoRandom(gamedata.Summon_Normal, 1)
+					heroLst[i].ItemID = NormalID[0].ItemID
 				}
 			}
-			for _, v := range newLst {
-				player.BagMoudle.AddHeroByID(v, 1)
-				response.HeroID = append(response.HeroID, v)
+
+			heroLst[index].ItemID = orange
+
+			for _, v := range heroLst {
+				player.BagMoudle.AddHeroByID(v.ItemID, 1, 1)
+				response.HeroID = append(response.HeroID, v.ItemID)
 			}
 
 			//! 增加积分
@@ -406,7 +386,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 
 			response.NormalSummon.SummonCounts = gamedata.NormalSummonFreeTimes - player.SummonModule.Normal.SummonCounts
 
-			summonTime := player.SummonModule.Normal.SummonTime - time.Now().Unix()
+			summonTime := player.SummonModule.Normal.SummonTime - utility.GetCurTime()
 			if summonTime < 0 {
 				summonTime = 0
 			}
@@ -414,7 +394,7 @@ func Hand_GetSummon(w http.ResponseWriter, r *http.Request) {
 			response.NormalSummon.SummonTime = summonTime
 			response.SeniorSummon.Point = player.SummonModule.Senior.SummonPoint
 
-			summonTime = player.SummonModule.Senior.SummonTime - time.Now().Unix()
+			summonTime = player.SummonModule.Senior.SummonTime - utility.GetCurTime()
 			if summonTime < 0 {
 				summonTime = 0
 			}
@@ -477,7 +457,7 @@ func Hand_ExchangeHero(w http.ResponseWriter, r *http.Request) {
 
 	//! 检测积分是否足够
 	if player.SummonModule.Senior.SummonPoint < summonConfig.NeedPoint {
-		response.RetCode = msg.RE_NOT_ENOUGH_POINT
+		response.RetCode = msg.RE_SCORE_NOT_ENOUGH
 		return
 	}
 
@@ -508,7 +488,7 @@ func Hand_ExchangeHero(w http.ResponseWriter, r *http.Request) {
 	player.SummonModule.Senior.SummonPoint -= summonConfig.NeedPoint
 
 	//! 赐予英雄
-	player.BagMoudle.AddHeroByID(req.HeroID, 1)
+	player.BagMoudle.AddHeroByID(req.HeroID, 1, 1)
 
 	//! 存储数据
 	player.SummonModule.DB_UpdateSeniorSummon()

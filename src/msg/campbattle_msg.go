@@ -35,7 +35,7 @@ type MSG_GetCampBatData_Ack struct {
 	RetCode   int    //返回码
 	KillNum   int    //我的击杀数
 	MyRank    int    //我的排名
-	LeftTimes int    //剩余搬动次数
+	LeftTimes int32  //剩余搬动次数
 	CampKill  [3]int //排行数据
 }
 
@@ -63,7 +63,7 @@ type MSG_GetCampbatStoreState_Req struct {
 type MSG_GetCampbatStoreState_Ack struct {
 	RetCode    int           //返回码
 	ItemLst    []MSG_BuyData //购买物品次数
-	AwardIndex []int         //奖励商店的索引
+	AwardIndex []int32       //奖励商店的索引
 }
 
 //! 玩家请求购买积分商店道具
@@ -71,8 +71,8 @@ type MSG_GetCampbatStoreState_Ack struct {
 type MSG_BuyCampbatStoreItem_Req struct {
 	PlayerID   int32
 	SessionKey string
-	StoreID    int //商店道具ID
-	Num        int //购买数量
+	StoreID    int32 //商店道具ID
+	Num        int   //购买数量
 }
 
 type MSG_BuyCampbatStoreItem_Ack struct {

@@ -4,7 +4,6 @@ import (
 	"appconfig"
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"gamelog"
 	"msg"
 	"net/http"
@@ -14,17 +13,17 @@ import (
 
 func RegisterToSvr() {
 	//注册到账号服
-	go RegisterToAccountRoutine()
+	go RegisterToAccountSvr()
 
 	//注册到跨服服
-	go RegisterToCrossRoutine()
+	go RegisterToCrossSvr()
 
 	//注册到SDK服
 	//go RegisterToSdkSvr()
 }
 
 //注册到账号服务器
-func RegisterToAccountRoutine() {
+func RegisterToAccountSvr() {
 	var registerReq msg.MSG_RegToAccountSvr_Req
 	registerReq.SvrID = int32(appconfig.GameSvrID)
 	registerReq.SvrName = appconfig.GameSvrName
@@ -43,13 +42,12 @@ func RegisterToAccountRoutine() {
 
 		response.Body.Close()
 		return
-		//time.Sleep(60 * time.Second)
 	}
 
 }
 
 //注册到跨服服务器
-func RegisterToCrossRoutine() {
+func RegisterToCrossSvr() {
 	var registerReq msg.MSG_RegToCrossSvr_Req
 	registerReq.SvrID = int32(appconfig.GameSvrID)
 	registerReq.SvrName = appconfig.GameSvrName
@@ -68,19 +66,19 @@ func RegisterToCrossRoutine() {
 
 		response.Body.Close()
 		return
-		//time.Sleep(60 * time.Second)
 	}
 }
 
 func RegisterToSdkSvr() {
-	PorstUrl := fmt.Sprintf("http://%s:%d/reg_gamesvr_addr", appconfig.SdkSvrInnerIp, appconfig.SdkSvrPort)
-	var req msg.SDKMsg_GamesvrAddr_Req
-	req.GamesvrID = appconfig.GameSvrID
-	req.Url = fmt.Sprintf("http://%s:%d/", appconfig.GameSvrInnerIp, appconfig.GameSvrPort)
+	var req msg.MSG_RegToSdkSvr_Req
+	req.SvrID = int32(appconfig.GameSvrID)
+	req.SvrInnerAddr = appconfig.GameSvrInnerIp
+	req.SvrOuterAddr = appconfig.GameSvrOuterIp
+	req.SvrName = appconfig.GameSvrName
 	b, _ := json.Marshal(req)
 	for {
 		http.DefaultClient.Timeout = 2 * time.Second
-		response, err := http.Post(PorstUrl, "text/HTML", bytes.NewReader(b))
+		response, err := http.Post(appconfig.RegToSdkSvrUrl, "text/HTML", bytes.NewReader(b))
 		if err != nil {
 			gamelog.Error("Register to SDK Server failed, err : %s !!!!", err.Error())
 			time.Sleep(1 * time.Second)

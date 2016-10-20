@@ -12,13 +12,13 @@ const (
 
 //! 三国志
 type ST_SanGuoZhiInfo struct {
-	ID       int  //! 唯一标识
-	Index    int  //! 星宿
-	Type     int  //! 提升种类
-	AttrID   int  //! 属性ID
-	Value    int8 //! 提升数量
-	CostType int  //! 花费道具ID
-	CostNum  int  //! 花费道具数量
+	ID       int   //! 唯一标识
+	Index    int   //! 星宿
+	Type     int   //! 提升种类
+	AttrID   int   //! 属性ID
+	Value    int32 //! 提升数量
+	CostType int   //! 花费道具ID
+	CostNum  int   //! 花费道具数量
 }
 
 var GT_SanGuoZhiList []ST_SanGuoZhiInfo
@@ -32,12 +32,11 @@ func InitSanGuoZhiParser(total int) bool {
 //! 分析CSV
 func ParseSanGuoZhiRecord(rs *RecordSet) {
 	id := CheckAtoi(rs.Values[0], 0)
-
 	GT_SanGuoZhiList[id].ID = id
 	GT_SanGuoZhiList[id].Index = rs.GetFieldInt("index")
 	GT_SanGuoZhiList[id].Type = rs.GetFieldInt("type")
 	GT_SanGuoZhiList[id].AttrID = rs.GetFieldInt("attrid")
-	GT_SanGuoZhiList[id].Value = int8(rs.GetFieldInt("value"))
+	GT_SanGuoZhiList[id].Value = int32(rs.GetFieldInt("value"))
 	GT_SanGuoZhiList[id].CostType = rs.GetFieldInt("costtype")
 	GT_SanGuoZhiList[id].CostNum = rs.GetFieldInt("costnum")
 }
@@ -58,23 +57,3 @@ func IsStarEnd(starID int) bool {
 	return false
 }
 
-//! 获取星宿数量
-func GetSanGoIndexNumber() int {
-	indexLst := []int{}
-
-	for _, v := range GT_SanGuoZhiList {
-		isExist := false
-		for _, b := range indexLst {
-			if b == v.Index {
-				isExist = true
-				break
-			}
-		}
-
-		if isExist == false {
-			indexLst = append(indexLst, v.Index)
-		}
-	}
-
-	return len(indexLst)
-}

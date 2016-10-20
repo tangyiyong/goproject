@@ -31,7 +31,8 @@ func (self *THeroMoudle) DB_SaveTitleInfo() {
 //保存称号信息
 func (self *THeroMoudle) DB_SaveFashionInfo() {
 	mongodb.UpdateToDB("PlayerHero", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{"fashionid": self.FashionID,
-		"fashionlvl": self.FashionLvl}})
+		"fashionlvl":  self.FashionLvl,
+		"fashionmelt": self.FashionMelt}})
 }
 
 //保存上阵宠物信息

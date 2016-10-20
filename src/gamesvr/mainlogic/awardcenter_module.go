@@ -4,11 +4,10 @@ import (
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"sync"
-	"time"
-
-	"gopkg.in/mgo.v2/bson"
+	"utility"
 )
 
 //! 奖励信息
@@ -17,7 +16,7 @@ type TAwardData struct {
 	TextType int                    //!
 	Value    []string               //! 参数
 	ItemLst  []gamedata.ST_ItemData //! 奖励内容
-	Time     int64                  //! 发放奖励时间戳
+	Time     int32                  //! 发放奖励时间戳
 }
 
 //! 领奖中心模块
@@ -88,7 +87,7 @@ func SendAwardMail(playerID int32, textType int, awardLst []gamedata.ST_ItemData
 	var awardData TAwardData
 	awardData.TextType = textType
 	awardData.ItemLst = awardLst
-	awardData.Time = time.Now().Unix()
+	awardData.Time = utility.GetCurTime()
 	awardData.Value = value
 	SendAwardToPlayer(playerID, &awardData)
 }
@@ -106,7 +105,7 @@ func SendAwardToPlayer(playerid int32, pAwardData *TAwardData) {
 	}
 
 	//如果玩家不在线，并且己经离线超过7天时间，则不发邮件
-	if pSimpleInfo.isOnline == false && (time.Now().Unix()-pSimpleInfo.LogoffTime) > 604800 && pSimpleInfo.LogoffTime != 0 {
+	if pSimpleInfo.isOnline == false && (utility.GetCurTime()-pSimpleInfo.LogoffTime) > 604800 && pSimpleInfo.LogoffTime != 0 {
 		return
 	}
 

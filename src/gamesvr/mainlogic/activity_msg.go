@@ -12,12 +12,8 @@ import (
 //! 获取今日活动
 func Hand_GetActivity(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
-
-	//! 接收消息
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
-
-	//! 解析消息
 	var req msg.MSG_GetActivity_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
@@ -42,7 +38,7 @@ func Hand_GetActivity(w http.ResponseWriter, r *http.Request) {
 	player.ActivityModule.CheckReset()
 
 	response.RetCode = msg.RE_SUCCESS
-
+	openday := GetOpenServerDay()
 	for _, v := range G_GlobalVariables.ActivityLst {
 		var activity msg.MSG_ActivityInfo
 		if G_GlobalVariables.IsActivityOpen(v.ActivityID) == false {
@@ -51,7 +47,6 @@ func Hand_GetActivity(w http.ResponseWriter, r *http.Request) {
 
 		activity.ID = v.ActivityID
 		activityInfo := gamedata.GetActivityInfo(v.ActivityID)
-		openday := GetOpenServerDay()
 		if activityInfo == nil {
 			gamelog.Error("GetActivityType Fail: type: %d", v.activityType)
 			continue
@@ -62,8 +57,8 @@ func Hand_GetActivity(w http.ResponseWriter, r *http.Request) {
 		activity.Name = activityInfo.Name
 		activity.AwardType = v.award
 		activity.BeginTime = v.beginTime
-		activity.EndTime = v.endTime
-		activity.AwardTime = int(v.endTime)
+		activity.EndTime = v.actEndTime
+		activity.AwardTime = v.endTime
 		activity.IsInside = activityInfo.Inside
 
 		pActivity, ok := player.ActivityModule.activityPtrs[v.ActivityID]
@@ -71,17 +66,17 @@ func Hand_GetActivity(w http.ResponseWriter, r *http.Request) {
 			activity.RedTip = pActivity.RedTip()
 		}
 
-		if (player.ActivityModule.FirstRecharge.FirstRechargeAward == 2 &&
+		if (player.ActivityModule.FirstCharge.FirstAward == 2 &&
 			activity.Type == gamedata.Activity_First_Recharge && activity.ID == 1) ||
-			(player.ActivityModule.FirstRecharge.NextRechargeAward == 2 &&
+			(player.ActivityModule.FirstCharge.NextAward == 2 &&
 				activity.Type == gamedata.Activity_First_Recharge && activity.ID != 1) {
 			//! 已领取首充/次充则不放入列表
 			continue
 		}
 
 		//! 次充必须在首充结束后出现
-		if player.ActivityModule.FirstRecharge.NextRechargeAward != 2 && activity.Type == gamedata.Activity_First_Recharge && activity.ID != 1 {
-			if player.ActivityModule.FirstRecharge.FirstRechargeAward != 2 {
+		if player.ActivityModule.FirstCharge.NextAward != 2 && activity.Type == gamedata.Activity_First_Recharge && activity.ID != 1 {
+			if player.ActivityModule.FirstCharge.FirstAward != 2 {
 				continue
 			}
 		}
@@ -103,7 +98,7 @@ func HuntTreasureRankAward(awardType int, player *TPlayer, indexToday int) (awar
 	info := &player.ActivityModule.HuntTreasure
 	if awardType == 1 { //! 昨日榜
 		//! 判断标记
-		if player.ActivityModule.HuntTreasure.IsRecvTodayRankAward == true {
+		if player.ActivityModule.HuntTreasure.RankAward[0] == 1 {
 			gamelog.Error("Hand_GetHuntRankAward Error: TodayRankAward Aleady received")
 			retCode = msg.RE_ALREADY_RECEIVED
 			return awardItem, retCode
@@ -126,19 +121,19 @@ func HuntTreasureRankAward(awardType int, player *TPlayer, indexToday int) (awar
 			awardItem = append(awardItem, gamedata.GetItemsFromAwardID(rankAward.TodayEliteRankAward)...)
 		}
 
-		player.ActivityModule.HuntTreasure.IsRecvTodayRankAward = true
-		player.ActivityModule.HuntTreasure.DB_UpdateHuntTodayRankAward()
+		player.ActivityModule.HuntTreasure.RankAward[0] = 1
+		player.ActivityModule.HuntTreasure.DB_UpdateHuntRankAward()
 
 	} else if awardType == 2 { //! 总榜
 		//! 判断时间
-		isActivityTime, _ := G_GlobalVariables.IsActivityTime(activityID)
+		isActivityTime := G_GlobalVariables.IsActivityTime(activityID)
 		if G_GlobalVariables.IsActivityOpen(activityID) == false || isActivityTime == true {
 			retCode = msg.RE_ACTIVITY_NOT_OVER
 			return awardItem, retCode
 		}
 
 		//! 判断标记
-		if player.ActivityModule.HuntTreasure.IsRecvTotalRankAward == true {
+		if player.ActivityModule.HuntTreasure.RankAward[1] == 1 {
 			gamelog.Error("Hand_GetHuntRankAward Error: TotalRankAward Aleady received")
 			retCode = msg.RE_ALREADY_RECEIVED
 			return awardItem, retCode
@@ -161,10 +156,10 @@ func HuntTreasureRankAward(awardType int, player *TPlayer, indexToday int) (awar
 			awardItem = append(awardItem, gamedata.GetItemsFromAwardID(rankAward.TotalEliteRankAward)...)
 		}
 
-		player.ActivityModule.HuntTreasure.IsRecvTotalRankAward = true
-		player.ActivityModule.HuntTreasure.DB_UpdateHuntTotalRankAward()
+		player.ActivityModule.HuntTreasure.RankAward[1] = 1
+		player.ActivityModule.HuntTreasure.DB_UpdateHuntRankAward()
 	} else {
-		gamelog.Error("Hand_GetActivityRankAward Error: Invalid Param AwardType: %d", awardType)
+		gamelog.Error("Hand_GetHuntRankAward Error: Invalid Param AwardType: %d", awardType)
 		retCode = msg.RE_INVALID_PARAM
 		return awardItem, retCode
 	}
@@ -179,8 +174,8 @@ func LuckyWheelRankAward(awardType int, player *TPlayer, indexToday int) (awardI
 	info := &player.ActivityModule.LuckyWheel
 	if awardType == 1 { //! 昨日榜
 		//! 判断标记
-		if player.ActivityModule.LuckyWheel.IsRecvTodayRankAward == true {
-			gamelog.Error("Hand_GetHuntRankAward Error: TodayRankAward Aleady received")
+		if player.ActivityModule.LuckyWheel.RankAward[0] == 1 {
+			gamelog.Error("LuckyWheelRankAward Error: TodayRankAward Aleady received")
 			retCode = msg.RE_ALREADY_RECEIVED
 			return awardItem, retCode
 		}
@@ -192,7 +187,12 @@ func LuckyWheelRankAward(awardType int, player *TPlayer, indexToday int) (awardI
 			return awardItem, retCode
 		}
 
-		rankAward := gamedata.GetOperationalRankAwardFromRank(gamedata.Activity_Hunt_Treasure, activityInfo.AwardType, yesterdayRank)
+		rankAward := gamedata.GetOperationalRankAwardFromRank(gamedata.Activity_Luckly_Wheel, activityInfo.AwardType, yesterdayRank)
+		if rankAward == nil {
+			gamelog.Error("Not have rank award: Activity_Luckly_Wheel  awardType: %d  yesterdayRank: %d", activityInfo.AwardType, yesterdayRank)
+			retCode = msg.RE_NOT_ENOUGH_RANK
+			return awardItem, retCode
+		}
 
 		if rankAward.TodayNormalRankAward != 0 {
 			awardItem = gamedata.GetItemsFromAwardID(rankAward.TodayNormalRankAward)
@@ -202,20 +202,20 @@ func LuckyWheelRankAward(awardType int, player *TPlayer, indexToday int) (awardI
 			awardItem = append(awardItem, gamedata.GetItemsFromAwardID(rankAward.TodayEliteRankAward)...)
 		}
 
-		player.ActivityModule.LuckyWheel.IsRecvTodayRankAward = true
-		player.ActivityModule.LuckyWheel.DB_UpdateWheelTodayRankAward()
+		player.ActivityModule.LuckyWheel.RankAward[0] = 1
+		player.ActivityModule.LuckyWheel.DB_UpdateWheelRankAward()
 
 	} else if awardType == 2 { //! 总榜
 		//! 判断时间
-		isActivityTime, _ := G_GlobalVariables.IsActivityTime(activityID)
+		isActivityTime := G_GlobalVariables.IsActivityTime(activityID)
 		if G_GlobalVariables.IsActivityOpen(activityID) == false || isActivityTime == false {
 			retCode = msg.RE_ACTIVITY_NOT_OVER
 			return awardItem, retCode
 		}
 
 		//! 判断标记
-		if player.ActivityModule.LuckyWheel.IsRecvTotalRankAward == true {
-			gamelog.Error("Hand_GetHuntRankAward Error: TotalRankAward Aleady received")
+		if player.ActivityModule.LuckyWheel.RankAward[1] == 1 {
+			gamelog.Error("LuckyWheelRankAward Error: TotalRankAward Aleady received")
 			retCode = msg.RE_ALREADY_RECEIVED
 			return awardItem, retCode
 		}
@@ -227,7 +227,13 @@ func LuckyWheelRankAward(awardType int, player *TPlayer, indexToday int) (awardI
 			return awardItem, retCode
 		}
 
-		rankAward := gamedata.GetOperationalRankAwardFromRank(gamedata.Activity_Hunt_Treasure, activityInfo.AwardType, totalRank)
+		rankAward := gamedata.GetOperationalRankAwardFromRank(gamedata.Activity_Luckly_Wheel, activityInfo.AwardType, totalRank)
+		if rankAward == nil {
+			gamelog.Error("Not have rank award: Activity_Luckly_Wheel  awardType: %d  yesterdayRank: %d", activityInfo.AwardType, totalRank)
+			retCode = msg.RE_NOT_ENOUGH_RANK
+			return awardItem, retCode
+		}
+
 		if rankAward.TotalNormalRankAward != 0 {
 			awardItem = gamedata.GetItemsFromAwardID(rankAward.TotalNormalRankAward)
 		}
@@ -236,10 +242,10 @@ func LuckyWheelRankAward(awardType int, player *TPlayer, indexToday int) (awardI
 			awardItem = append(awardItem, gamedata.GetItemsFromAwardID(rankAward.TotalEliteRankAward)...)
 		}
 
-		player.ActivityModule.LuckyWheel.IsRecvTotalRankAward = true
-		player.ActivityModule.LuckyWheel.DB_UpdateWheelTotalRankAward()
+		player.ActivityModule.LuckyWheel.RankAward[1] = 1
+		player.ActivityModule.LuckyWheel.DB_UpdateWheelRankAward()
 	} else {
-		gamelog.Error("Hand_GetActivityRankAward Error: Invalid Param AwardType: %d", awardType)
+		gamelog.Error("LuckyWheelRankAward Error: Invalid Param AwardType: %d", awardType)
 		retCode = msg.RE_INVALID_PARAM
 		return awardItem, retCode
 	}
@@ -358,8 +364,8 @@ func Hand_GetActivityRank(w http.ResponseWriter, r *http.Request) {
 		{
 			module := &player.ActivityModule.HuntTreasure
 			response.EliteScore = gamedata.EliteHuntRankNeedScore
-			response.IsRecvTodayRankAward = module.IsRecvTodayRankAward
-			response.IsRecvTotalRankAward = module.IsRecvTotalRankAward
+			response.IsRecvToday = module.RankAward[0]
+			response.IsRecvTotal = module.RankAward[1]
 
 			MakeMsgRankInfo(req.PlayerID, &response, &G_HuntTreasureTodayRanker, &G_HuntTreasureYesterdayRanker, &G_HuntTreasureTotalRanker, module)
 		}
@@ -367,8 +373,8 @@ func Hand_GetActivityRank(w http.ResponseWriter, r *http.Request) {
 		{
 			module := &player.ActivityModule.LuckyWheel
 			response.EliteScore = gamedata.EliteHuntRankNeedScore
-			response.IsRecvTodayRankAward = module.IsRecvTodayRankAward
-			response.IsRecvTotalRankAward = module.IsRecvTotalRankAward
+			response.IsRecvToday = module.RankAward[0]
+			response.IsRecvTotal = module.RankAward[1]
 
 			MakeMsgRankInfo(req.PlayerID, &response, &G_LuckyWheelTodayRanker, &G_LuckyWheelYesterdayRanker, &G_LuckyWheelTotalRanker, module)
 		}
@@ -376,8 +382,8 @@ func Hand_GetActivityRank(w http.ResponseWriter, r *http.Request) {
 		{
 			module := &player.ActivityModule.CardMaster
 			response.EliteScore = gamedata.CardMaster_TotalRank_Limit
-			response.IsRecvTodayRankAward = module.IsGetTodayRankAward
-			response.IsRecvTotalRankAward = module.IsGetTotalRankAward
+			response.IsRecvToday = module.RankAward[0]
+			response.IsRecvTotal = module.RankAward[1]
 
 			MakeMsgRankInfo(req.PlayerID, &response, &G_CardMasterTodayRanker, &G_CardMasterYesterdayRanker, &G_CardMasterTotalRanker, module)
 		}
@@ -385,8 +391,8 @@ func Hand_GetActivityRank(w http.ResponseWriter, r *http.Request) {
 		{
 			module := &player.ActivityModule.BeachBaby
 			response.EliteScore = gamedata.BeachBaby_TotalRank_Limit
-			response.IsRecvTodayRankAward = module.IsGetTodayRankAward
-			response.IsRecvTotalRankAward = module.IsGetTotalRankAward
+			response.IsRecvToday = module.RankAward[0]
+			response.IsRecvTotal = module.RankAward[1]
 
 			MakeMsgRankInfo(req.PlayerID, &response, &G_BeachBabyTodayRanker, &G_BeachBabyYesterdayRanker, &G_BeachBabyTotalRanker, module)
 		}

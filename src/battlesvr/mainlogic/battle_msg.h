@@ -281,10 +281,14 @@ struct MSG_PlayerData  {
 //游戏服务器的运营数据
 struct MSG_SvrLogData  {
 	INT32 SvrID     //服务器ID
+	INT32 PlatID    //渠道ID
 	INT32 PlayerID  //玩家角色ID
 	INT32 EventID; 	//事件ID
+	INT32 SrcID;    //来源ID
 	INT32 Time; 	//事件发生时间
-	INT32 Param[4]; //事件的参数
+	INT32 Level;    //角色等级
+	INT8 VipLvl;   //角色VIP等级
+	INT32 Param[2]; //事件的参数
 }
 
 //游戏服务器的心跳消息//(Client)

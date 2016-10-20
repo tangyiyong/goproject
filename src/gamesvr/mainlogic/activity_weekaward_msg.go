@@ -100,7 +100,7 @@ func Hand_GetWeekAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检查是否领取
-	if player.ActivityModule.WeekAward.AwardMark.Get(uint32(req.Index)) != false {
+	if player.ActivityModule.WeekAward.AwardMark.Get(req.Index) != false {
 		gamelog.Error("Hand_GetWeekAward Error: Aleady received")
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
@@ -141,7 +141,7 @@ func Hand_GetWeekAward(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	player.ActivityModule.WeekAward.AwardMark.Set(uint32(req.Index))
+	player.ActivityModule.WeekAward.AwardMark.Set(req.Index)
 	player.ActivityModule.WeekAward.DB_UpdateAwardMark()
 
 	response.RetCode = msg.RE_SUCCESS

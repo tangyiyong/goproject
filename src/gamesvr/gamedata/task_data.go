@@ -98,7 +98,7 @@ type ST_TaskInfo struct {
 	NeedMaxLevel int //! 需求最大等级
 }
 
-type ST_TaskAchievementInfo struct {
+type ST_AchievementInfo struct {
 	TaskID    int //! 任务唯一标识
 	Type      int //! 任务类型
 	Count     int //! 次数
@@ -130,7 +130,7 @@ type ST_TaskSevenActivityStore struct {
 
 var GT_TaskType_Lst [][]int = nil
 var GT_Task_List []ST_TaskInfo = nil
-var GT_Achievement_Lst []ST_TaskAchievementInfo = nil
+var GT_Achievement_Lst []ST_AchievementInfo = nil
 var GT_SevenActivity_Lst []ST_TaskSevenActivityInfo = nil
 var GT_SevenActivityStore_Lst []ST_TaskSevenActivityStore = nil
 
@@ -159,7 +159,6 @@ func InitTaskParser(total int) bool {
 }
 
 func GetTaskSubType(taskType int) []int {
-
 	if taskType > len(GT_TaskType_Lst)-1 {
 		gamelog.Error("GetTaskSubType fail. invalid taskType: %d", taskType)
 		return []int{}
@@ -179,7 +178,7 @@ func ParseTaskRecord(rs *RecordSet) {
 }
 
 func InitAchievementParser(total int) bool {
-	GT_Achievement_Lst = make([]ST_TaskAchievementInfo, total+1)
+	GT_Achievement_Lst = make([]ST_AchievementInfo, total+1)
 
 	return true
 }
@@ -234,7 +233,7 @@ func GetTaskInfo(taskid int) *ST_TaskInfo {
 	return &GT_Task_List[taskid]
 }
 
-func GetAchievementTaskInfo(taskid int) *ST_TaskAchievementInfo {
+func GetAchievementInfo(taskid int) *ST_AchievementInfo {
 	if taskid >= len(GT_Achievement_Lst) || taskid <= 0 {
 		gamelog.Error("GetAchievementTaskInfo Error: invalid taskid %d", taskid)
 		return nil
@@ -263,43 +262,15 @@ func GetSevenTaskInfo(taskid int) *ST_TaskSevenActivityInfo {
 	return &GT_SevenActivity_Lst[taskid]
 }
 
-//! 获取对应等级的日常任务
-func GetDailyTask(level int) (taskLst []ST_TaskInfo) {
-	for _, v := range GT_Task_List {
-		if level >= v.NeedMinLevel && level < v.NeedMaxLevel {
-			if v.TaskID == 0 {
-				continue
-			}
-
-			taskLst = append(taskLst, v)
-		}
-	}
-	return taskLst
-}
-
-//! 获取对应等级的成就任务
-func GetAchievementTask(level int) (taskLst []ST_TaskAchievementInfo) {
-	for _, v := range GT_Achievement_Lst {
-		if v.TaskID == 0 {
-			continue
-		}
-
-		if level >= v.NeedLevel && v.FrontID == 0 {
-			taskLst = append(taskLst, v)
-		}
-	}
-	return taskLst
-}
-
 //! 获取七日活动任务
 func GetSevenDayTask() []ST_TaskSevenActivityInfo {
 	return GT_SevenActivity_Lst
 }
 
 //! 获取完成前置的成就任务
-func GetAchievementTaskFromFrontTask(taskID int) *ST_TaskAchievementInfo {
-	for i, v := range GT_Achievement_Lst {
-		if v.FrontID == taskID {
+func GetNextAchievement(taskID int) *ST_AchievementInfo {
+	for i := 0; i < len(GT_Achievement_Lst); i++ {
+		if GT_Achievement_Lst[i].FrontID == taskID {
 			return &GT_Achievement_Lst[i]
 		}
 	}

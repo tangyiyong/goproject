@@ -7,7 +7,6 @@ import (
 	"mongodb"
 	"msg"
 	"sync"
-	"time"
 	"utility"
 
 	"gopkg.in/mgo.v2/bson"
@@ -17,7 +16,7 @@ import (
 type THangUpMoudle struct {
 	PlayerID    int32          `bson:"_id"` //玩家ID
 	CurBossID   int            //当前的BossID
-	StartTime   int64          //挂机开始时间
+	StartTime   int32          //挂机开始时间
 	GridNum     int            //格子数
 	ExpItems    []int          //经验丹
 	QuickTime   int            //快速战斗次数
@@ -44,7 +43,7 @@ func (hang *THangUpMoudle) OnCreate(playerid int32) {
 	hang.ResetDay = utility.GetCurDay()
 
 	//创建数据库记录
-	mongodb.InsertToDB( "PlayerHang", hang)
+	mongodb.InsertToDB("PlayerHang", hang)
 }
 
 //玩家对象销毁
@@ -120,8 +119,8 @@ func (hang *THangUpMoudle) ReceiveHangUpProduce() bool {
 	}
 
 	var produce bool = false
-	for int(time.Now().Unix()-hang.StartTime) > pHangUpInfo.CDTime {
-		hang.StartTime = hang.StartTime + int64(pHangUpInfo.CDTime)
+	for int(utility.GetCurTime()-hang.StartTime) > pHangUpInfo.CDTime {
+		hang.StartTime = hang.StartTime + int32(pHangUpInfo.CDTime)
 		if utility.Rand() < hang.CalcHangUpRatio(hang.ownplayer.GetFightValue(), pHangUpInfo.FightValue) {
 			for j := 0; j < pHangUpInfo.ProduceNum; j++ {
 				if len(hang.ExpItems) < hang.GridNum {

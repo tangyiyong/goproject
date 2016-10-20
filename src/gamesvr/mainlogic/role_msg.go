@@ -73,10 +73,10 @@ func Hand_GetRoleData(w http.ResponseWriter, r *http.Request) {
 	response.Moneys = player.RoleMoudle.Moneys
 	response.BatCamp = player.CamBattleModule.BattleCamp
 	response.Actions = make([]int, len(player.RoleMoudle.Actions))
-	response.ActionTime = make([]int64, len(player.RoleMoudle.Actions))
+	response.ActionTime = make([]int32, len(player.RoleMoudle.Actions))
 	for i := 0; i < len(player.RoleMoudle.Actions); i++ {
 		response.Actions[i] = player.RoleMoudle.Actions[i].Value
-		response.ActionTime[i] = player.RoleMoudle.Actions[i].StartTime
+		response.ActionTime[i] = player.RoleMoudle.Actions[i].Time
 	}
 	response.VipLevel = player.GetVipLevel()
 	response.VipExp = player.GetVipExp()
@@ -240,7 +240,7 @@ func Hand_GetMainUITip(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Hand_SanGuoZhiInfo(w http.ResponseWriter, r *http.Request) {
+func Hand_SanGuoZhiData(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收消息
@@ -318,13 +318,13 @@ func Hand_SetSanGuoZhi(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if gamedata.IsStarEnd(player.RoleMoudle.CurStarID) == true {
+	if gamedata.IsStarEnd(int(player.RoleMoudle.CurStarID)) == true {
 		response.RetCode = msg.RE_MAX_STAR
 		return
 	}
 
 	//! 检测命星材料是否足够
-	info := gamedata.GetSanGuoZhiInfo(player.RoleMoudle.CurStarID + 1)
+	info := gamedata.GetSanGuoZhiInfo(int(player.RoleMoudle.CurStarID + 1))
 	if info == nil {
 		//! 无法获取该星信息
 		response.RetCode = msg.RE_INVALID_PARAM
@@ -333,7 +333,7 @@ func Hand_SetSanGuoZhi(w http.ResponseWriter, r *http.Request) {
 
 	bEnough := player.BagMoudle.IsItemEnough(info.CostType, info.CostNum)
 	if !bEnough {
-		response.RetCode = msg.RE_SANGUOZHI_ITEM_NOT_ENOUGH
+		response.RetCode = msg.RE_NOT_ENOUGH_ITEM
 		return
 	}
 
@@ -345,7 +345,7 @@ func Hand_SetSanGuoZhi(w http.ResponseWriter, r *http.Request) {
 
 	if info.Type == gamedata.Sanguo_Add_Attr {
 		//! 全队增加指定属性
-		player.HeroMoudle.AddExtraProperty(info.AttrID, int32(info.Value), false, 0)
+		player.HeroMoudle.AddExtraProperty(info.AttrID, info.Value, false, 0)
 		player.HeroMoudle.DB_SaveExtraProperty()
 	} else if info.Type == gamedata.Sanguo_Give_Item {
 		//! 给予道具
@@ -353,7 +353,7 @@ func Hand_SetSanGuoZhi(w http.ResponseWriter, r *http.Request) {
 		response.AwardItem = msg.MSG_ItemData{info.AttrID, int(info.Value)}
 	} else if info.Type == gamedata.Sanguo_Main_Hero_Up {
 		//! 提升主角品质
-		player.HeroMoudle.ChangeMainQuality(info.Value)
+		player.HeroMoudle.ChangeMainQuality(int8(info.Value))
 		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_HERO_QUALITY, int(info.Value))
 	}
 

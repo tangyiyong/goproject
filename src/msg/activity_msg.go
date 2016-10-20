@@ -13,22 +13,22 @@ type TActivityDiscount struct {
 }
 
 type MSG_ActivityInfo struct {
-	ID        int
+	ID        int32
 	Icon      int    //! 活动图标
 	Name      string //! 活动名字
 	Type      int    //! 活动套用模板
 	AwardType int    //! 活动套用奖励
 	RedTip    bool   //! 是否存在操作提示
-	BeginTime int64  //! 开始时间
-	EndTime   int64  //! 结束时间
-	AwardTime int    //! 领奖时间
+	BeginTime int32  //! 开始时间
+	EndTime   int32  //! 结束时间
+	AwardTime int32  //! 领奖时间
 	IsInside  int    //! 是否在里面
 }
 
 type MSG_GetActivity_Ack struct {
 	RetCode            int
 	ActivityLst        []MSG_ActivityInfo
-	RemoveActivityIcon []int //! 需删除的图标
+	RemoveActivityIcon []int32 //! 需删除的图标
 }
 
 //! 查询累计登录活动信息
@@ -36,16 +36,16 @@ type MSG_GetActivity_Ack struct {
 type MSG_QueryActivity_Login_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ActivityID int //! 活动ID
+	ActivityID int32 //! 活动ID
 }
 
 type MSG_QueryActivity_Login_Ack struct {
 	//! 登录活动信息
 	RetCode    int
-	ActivityID int //! 活动ID
-	AwardType  int //! 活动奖励
-	LoginDay   int //! 可领取天数
-	AwardMark  int //! 进行位运算判断领取标记
+	ActivityID int32 //! 活动ID
+	AwardType  int   //! 活动奖励
+	LoginDay   int   //! 可领取天数
+	AwardMark  int   //! 进行位运算判断领取标记
 }
 
 //! 查询首冲活动信息
@@ -70,12 +70,10 @@ type MSG_QueryActivity_Action_Req struct {
 }
 
 type MSG_QueryActivity_Action_Ack struct {
-	//! 领体力
 	RetCode                 int
-	RecvAction              int //! 进行位运算
-	NextAwardTime           int
-	RetroactiveCostMoneyID  int //! 补签消耗货币
-	RetroactiveCostMoneyNum int
+	RecvAction              uint32 //! 进行位运算
+	RetroactiveCostMoneyID  int    //! 补签消耗货币
+	RetroactiveCostMoneyNum int    //! 补签消耗货币数量
 }
 
 //! 查询充值回馈活动信息(累计充值)
@@ -83,13 +81,12 @@ type MSG_QueryActivity_Action_Ack struct {
 type MSG_QueryActivity_TotalRecharge_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ActivityID int //! 活动ID
+	ActivityID int32 //! 活动ID
 }
 
 type MSG_QueryActivity_TotalRecharge_Ack struct {
-	//! 充值回馈
 	RetCode     int
-	ActivityID  int
+	ActivityID  int32
 	AwardType   int
 	RechargeNum int //! 活动期间累积充值数额
 	AwardMark   int //! 累积充值领取标记 (索引 按位运算)
@@ -113,13 +110,12 @@ type MSG_QueryActivity_MonthCard_Ack struct {
 type MSG_QueryActivity_SingleRecharge_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ActivityID int
+	ActivityID int32
 }
 
 type MSG_QueryActivity_SingleRecharge_Ack struct {
-	//! 单笔充值情况
 	RetCode           int
-	ActivityID        int
+	ActivityID        int32
 	AwardType         int
 	SingleRechargeLst []MSG_SingleRecharge
 }
@@ -135,9 +131,9 @@ type MSG_SingleRecharge struct {
 type MSG_GetActivity_LoginAward_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ActivityID int //! 任务ID
-	Index      int //! 奖励索引 从1开始
-	Choice     int //! 若为三选一奖励,则该字段用于发送选择奖励索引
+	ActivityID int32 //! 任务ID
+	Index      int   //! 奖励索引 从1开始
+	Choice     int   //! 若为三选一奖励,则该字段用于发送选择奖励索引
 }
 
 type MSG_GetActivity_LoginAward_Ack struct {
@@ -164,16 +160,16 @@ type MSG_GetActivity_FirstRecharge_Ack struct {
 type MSG_GetActivity_Action_Req struct {
 	PlayerID   int32
 	SessionKey string
+	Index      int //! 从1开始
 }
 
 type MSG_GetActivity_Action_Ack struct {
-	RetCode       int
-	AwardItem     []MSG_ItemData
-	RecvAction    int   //! 领取体力标记
-	ActionValue   int   //! 行动力值
-	ActionTime    int64 //! 行动力恢复起始时间
-	NextAwardTime int   //! 下次领取倒计时
-	Index         int
+	RetCode     int
+	AwardItem   []MSG_ItemData
+	RecvAction  uint32 //! 领取体力标记
+	ActionValue int    //! 行动力值
+	ActionTime  int32  //! 行动力恢复起始时间
+	Index       int
 }
 
 //! 领取体力补签协议
@@ -187,10 +183,10 @@ type MSG_GetAction_Retroactive_Req struct {
 type MSG_GetAction_Retroactive_Ack struct {
 	RetCode       int
 	AwardItem     []MSG_ItemData
-	RecvAction    int   //! 领取体力标记
-	ActionValue   int   //! 行动力值
-	ActionTime    int64 //! 行动力恢复起始时间
-	NextAwardTime int   //! 下次领取倒计时
+	RecvAction    uint32 //! 领取体力标记
+	ActionValue   int    //! 行动力值
+	ActionTime    int32  //! 行动力恢复起始时间
+	NextAwardTime int    //! 下次领取倒计时
 	CostItem      []MSG_ItemData
 	Index         int
 }
@@ -207,7 +203,7 @@ type MSG_QueryActivity_MoneyGod_Ack struct {
 	RetCode         int
 	CurrentTimes    int   //! 当前剩余领取次数
 	TotalMoney      int   //! 累积银币
-	NextTime        int64 //! 下次迎财神时间
+	NextTime        int32 //! 下次迎财神时间
 	CumulativeTimes int   //! 累积连续领取次数
 }
 
@@ -221,7 +217,7 @@ type MSG_WelcomeMoneyGod_Req struct {
 type MSG_WelcomeMoneyGod_Ack struct {
 	RetCode    int
 	TotalMoney int   //! 累积金钱
-	NextTime   int64 //! 下次可迎财神时间
+	NextTime   int32 //! 下次可迎财神时间
 	ExAwardID  int   //! 若此ID不为零,则表示获取了额外的物品奖励
 	ExAwardNum int
 	MoneyID    int //! 获取的银币
@@ -246,13 +242,13 @@ type MSG_GetMoneyGodTotalAward_Ack struct {
 type MSG_QueryActivity_DisountSale_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ActivityID int //! 活动ID
+	ActivityID int32 //! 活动ID
 }
 
 type MSG_QueryActivity_DisountSale_Ack struct {
 	//! 折扣贩售
 	RetCode    int
-	ActivityID int
+	ActivityID int32
 	AwardType  int
 	ShopLst    []TActivityDiscount //! 已购买物品信息
 }
@@ -262,15 +258,15 @@ type MSG_QueryActivity_DisountSale_Ack struct {
 type MSG_BuyDiscountItem_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ActivityID int //! 活动ID
-	Index      int //! 商品索引,从1开始
-	Choice     int //! 若为多选一奖励,则该字段用于发送选择奖励索引
-	Count      int //! 购买数量
+	ActivityID int32 //! 活动ID
+	Index      int   //! 商品索引,从1开始
+	Choice     int   //! 若为多选一奖励,则该字段用于发送选择奖励索引
+	Count      int   //! 购买数量
 }
 
 type MSG_BuyDiscountItem_Ack struct {
 	RetCode    int
-	ActivityID int
+	ActivityID int32
 	MoneyID    int
 	MoneyNum   int
 	AwardItem  []MSG_ItemData
@@ -283,7 +279,7 @@ type MSG_BuyDiscountItem_Ack struct {
 type MSG_GetRechargeAward_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ActivityID int //! 活动ID  避免存在多个充值回馈活动
+	ActivityID int32 //! 活动ID  避免存在多个充值回馈活动
 	Index      int
 }
 
@@ -298,7 +294,7 @@ type MSG_GetRechargeAward_Ack struct {
 type MSG_GetSingleAward_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ActivityID int //! 活动ID 避免存在多个单笔充值
+	ActivityID int32 //! 活动ID 避免存在多个单笔充值
 	Index      int
 }
 
@@ -309,12 +305,12 @@ type MSG_GetSingleAward_Ack struct {
 
 //! 玩家获取签到信息
 //! 消息:/get_sign
-type MSG_GetSignInfo_Req struct {
+type MSG_GetSignData_Req struct {
 	PlayerID   int32
 	SessionKey string
 }
 
-type MSG_GetSignInfo_Ack struct {
+type MSG_GetSignData_Ack struct {
 	RetCode        int
 	SignDay        int  //! 当前签到天数
 	IsSign         bool //! 普通签到状态 false -> 未签  true -> 已签
@@ -418,7 +414,7 @@ type MSG_ReceiveFundLevelAward_Ack struct {
 type MSG_GetLimitDailyTask_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ActivityID int
+	ActivityID int32
 }
 
 //! 限时日常任务类型
@@ -438,7 +434,7 @@ type MSG_GetLimitDailyTask_Ack struct {
 type MSG_GetLimitDailyAward_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ActivityID int
+	ActivityID int32
 	Index      int //! 从0开始
 	Select     int //! 若is_select字段不为0, 则只能从奖励中选取其中之一, 下标从1开始
 }
@@ -455,7 +451,7 @@ type MSG_CardMaster_CardList_Req struct { // 消息：/act_card_master_card_list
 }
 type MSG_CardMaster_CardList_Ack struct {
 	RetCode       int
-	FreeTimes     byte
+	FreeTimes     int8
 	Score         int
 	Point         int
 	Cards         []MSG_ItemData
@@ -683,9 +679,9 @@ type MSG_GetLevelGiftInfo_Req struct {
 }
 
 type MSG_LevelGiftInfo struct {
-	ID       int
+	ID       int32 //! 礼包ID
 	BuyTimes int   //! 当前可购买次数
-	DeadLine int64 //! 过期时间
+	DeadLine int32 //! 过期时间
 }
 
 type MSG_GetLevelGiftInfo_Ack struct {
@@ -698,7 +694,8 @@ type MSG_GetLevelGiftInfo_Ack struct {
 type MSG_BuyLevelGift_Req struct {
 	PlayerID   int32
 	SessionKey string
-	GiftID     int
+	GiftID     int32 //礼包ID
+	Times      int   //购买次数
 }
 
 type MSG_BuyLevelGift_Ack struct {
@@ -743,7 +740,7 @@ type MSG_GetRankGiftInfo_Req struct {
 }
 
 type MSG_RankGiftInfo struct {
-	ID       int
+	ID       int32
 	BuyTimes int //! 当前可购买次数
 }
 
@@ -758,7 +755,7 @@ type MSG_GetRankGiftInfo_Ack struct {
 type MSG_BuyRankGift_Req struct {
 	PlayerID   int32
 	SessionKey string
-	GiftID     int
+	GiftID     int32
 }
 
 type MSG_BuyRankGift_Ack struct {

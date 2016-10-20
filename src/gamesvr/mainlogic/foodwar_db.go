@@ -7,16 +7,16 @@ import (
 
 func (self *TFoodWarModule) DB_Reset() {
 	mongodb.UpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"resetday":        self.ResetDay,
-		"attacktimes":     self.AttackTimes,
-		"revengetimes":    self.RevengeTimes,
-		"nexttime":        self.NextTime,
-		"totalfood":       self.TotalFood,
-		"fixedfood":       self.FixedFood,
-		"revengelst":      self.RevengeLst,
-		"buyattacktimes":  self.BuyAttackTimes,
-		"buyrevengetimes": self.BuyRevengeTimes,
-		"awardrecvlst":    self.AwardRecvLst}})
+		"resetday":     self.ResetDay,
+		"attacktimes":  self.AttackTimes,
+		"revengetimes": self.RevengeTimes,
+		"nexttime":     self.NextTime,
+		"totalfood":    self.TotalFood,
+		"fixedfood":    self.FixedFood,
+		"revengelst":   self.RevengeLst,
+		"buytimes":     self.BuyTimes,
+		"buyrevtimes":  self.BuyRevTimes,
+		"awardrecvlst": self.AwardRecvLst}})
 }
 
 func (self *TFoodWarModule) DB_AddAwardRecvRecord(id int) {
@@ -57,12 +57,12 @@ func (self *TFoodWarModule) DB_RemoveRevengeLst(player TRevengeInfo) {
 
 func (self *TFoodWarModule) DB_SaveBuyAttackTimes() {
 	mongodb.UpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"buyattacktimes": self.BuyAttackTimes,
-		"attacktimes":    self.AttackTimes}})
+		"buytimes":    self.BuyTimes,
+		"attacktimes": self.AttackTimes}})
 }
 
 func (self *TFoodWarModule) DB_SaveBuyRevengeTimes() {
 	mongodb.UpdateToDB("PlayerFoodWar", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"revengetimes":    self.RevengeTimes,
-		"buyrevengetimes": self.BuyRevengeTimes}})
+		"revengetimes": self.RevengeTimes,
+		"buyrevtimes":  self.BuyRevTimes}})
 }

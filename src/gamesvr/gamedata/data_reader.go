@@ -217,18 +217,15 @@ func LoadOneFile(file *os.File) {
 	}
 
 	tblname := strings.TrimSuffix(fstate.Name(), path.Ext(file.Name()))
-	var reflectParser interface{}
+
 	DataParser, ok := G_DataParserMap[tblname]
 	if !ok {
-		reflectParser, ok = G_ReflectParserMap[tblname]
-		if !ok {
-			gamelog.Error("table: %-30s need a parser!!", tblname)
-			return
-		}
+		gamelog.Error("table: %-30s need a parser!!", tblname)
+		return
 	}
 
 	//明确表示不需要解析的表
-	if DataParser.OnInit == nil && reflectParser == nil {
+	if DataParser.OnInit == nil {
 		return
 	}
 
@@ -243,11 +240,7 @@ func LoadOneFile(file *os.File) {
 		return
 	}
 
-	if reflectParser != nil {
-		ParseRefCsv(records, reflectParser)
-	} else {
-		ParserDataCsv(tblname, records, &DataParser)
-	}
+	ParserDataCsv(tblname, records, &DataParser)
 }
 
 func ParserDataCsv(tblname string, records [][]string, parser *TDataParser) {

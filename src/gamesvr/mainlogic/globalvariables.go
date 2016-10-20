@@ -5,26 +5,27 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"mongodb"
-	"time"
-
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
+	"mongodb"
+	"time"
+	"utility"
 )
 
 var G_GlobalVariables TGlobalVariables
 
-type TActivityLst []TActivityData
-
 type TActivityData struct {
-	ActivityID   int   //! 唯一活动ID
-	activityType int   //! 活动所用类型模板
-	beginTime    int64 //! 活动开启时间
-	endTime      int64 //! 活动结束时间
-	award        int   //! 当前活动使用奖励版本
-	Status       int   //! 状态: 1:有效活动，0:无效活动。
-	VersionCode  int32 //! 活动刷新版本号
-	ResetCode    int32 //! 活动迭代版本号
+	ActivityID  int32 //! 唯一活动ID
+	VersionCode int32 //! 活动刷新版本号
+	ResetCode   int32 //! 活动迭代版本号
+
+	activityType int //! 活动所用类型模板
+	award        int //! 当前活动使用奖励版本
+	Status       int //! 状态: 1:有效活动，0:无效活动。
+
+	beginTime  int32 //! 活动开启时间
+	actEndTime int32 //! 活动操作结束时间
+	endTime    int32 //! 领奖结束时间
 }
 
 type TGroupPurchaseInfo struct {
@@ -33,7 +34,7 @@ type TGroupPurchaseInfo struct {
 }
 
 type TSevenDayBuyInfo struct {
-	ActivityID int
+	ActivityID int32
 	LimitBuy   [7]int
 }
 
@@ -45,16 +46,13 @@ type TGlobalVariables struct {
 	SevenDayLimit    []TSevenDayBuyInfo   //! 七日活动已购买限购的人数列表
 	LimitSaleNum     int                  //! 限时特惠道具购买人次
 
-	ActivityLst TActivityLst //! 活动列表
-
-	SvrAwardIncID int // 自增ID
+	ActivityLst   []TActivityData //! 活动列表
+	SvrAwardIncID int             // 自增ID
 	SvrAwardList  []TAwardData
 }
 
 func (self *TGlobalVariables) Init() {
 	if self.DB_LoadGlobalVariables() == false {
-		//! 未找到数据则初始化
-
 		self.ID = 1
 		self.NormalMoneyPoor = 0
 		self.ExcitedMoneyPoor = 0
@@ -62,15 +60,13 @@ func (self *TGlobalVariables) Init() {
 		//! 初始化七天活动限购
 		self.InitSevenDayBuyLst()
 
-		//! 获取今日开启活动
-		openDay := GetOpenServerDay()
 		for _, v := range gamedata.GT_ActivityLst {
 			if v.ID == 0 {
 				gamelog.Error("TGlobalVariables::Init Error Invalid ActivityID:%d", v.ID)
 				continue
 			}
 
-			if v.ActivityType == gamedata.Activity_Seven {
+			if v.ActType == gamedata.Activity_Seven {
 				seven := TSevenDayBuyInfo{}
 				seven.ActivityID = v.ID
 				self.SevenDayLimit = append(self.SevenDayLimit, seven)
@@ -78,11 +74,7 @@ func (self *TGlobalVariables) Init() {
 
 			var activity TActivityData
 			activity.ActivityID = v.ID
-			activity.activityType = v.ActivityType
-			activity.award = v.AwardType
-			activity.beginTime, activity.endTime = gamedata.GetActivityEndTime(v.ID, openDay)
-			activity.VersionCode = 0
-			activity.ResetCode = 0
+			activity.activityType = v.ActType
 			activity.Status = v.Status
 			self.ActivityLst = append(self.ActivityLst, activity)
 		}
@@ -90,19 +82,77 @@ func (self *TGlobalVariables) Init() {
 		mongodb.InsertToDB("GlobalVariables", self)
 	}
 
-	//! 检测新加活动select
-	CheckActivityAdd()
+	self.CheckActivityNew()
 
-	//! 计算活动状态
-	self.CalcActivityTime()
+	self.UpdateActivity()
+}
 
-	//! 赋值活动奖励模板
-	self.SetActivityAwardType()
+func (self *TGlobalVariables) CheckActivityNew() {
+	for _, v := range gamedata.GT_ActivityLst {
+		if v.ID == 0 {
+			gamelog.Error("CheckActivityAdd Error: Invalid ActivityID:%d", v.ID)
+			continue
+		}
 
+		isExist := false
+		for _, n := range G_GlobalVariables.ActivityLst {
+			if n.ActivityID == v.ID {
+				isExist = true
+				break
+			}
+		}
+
+		if isExist == true {
+			continue
+		}
+
+		if v.ActType == gamedata.Activity_Seven {
+			seven := TSevenDayBuyInfo{}
+			seven.ActivityID = v.ID
+			G_GlobalVariables.SevenDayLimit = append(G_GlobalVariables.SevenDayLimit, seven)
+			G_GlobalVariables.DB_AddSevenDayBuyInfo(seven)
+		}
+
+		var activity TActivityData
+		activity.ActivityID = v.ID
+		activity.Status = v.Status
+		G_GlobalVariables.ActivityLst = append(G_GlobalVariables.ActivityLst, activity)
+		G_GlobalVariables.DB_AddNewActivity(activity)
+	}
+}
+
+func (self *TGlobalVariables) UpdateActivity() bool {
+	openday := GetOpenServerDay()
+	for i := 0; i < len(self.ActivityLst); i++ {
+		pActInfo := gamedata.GetActivityInfo(self.ActivityLst[i].ActivityID)
+		if pActInfo == nil {
+			gamelog.Error("UpdateActivity Error : Invalid activityID:%d", self.ActivityLst[i].ActivityID)
+			return false
+		}
+
+		self.ActivityLst[i].activityType = pActInfo.ActType
+		self.ActivityLst[i].award = pActInfo.AwardType
+		self.ActivityLst[i].beginTime, self.ActivityLst[i].actEndTime, self.ActivityLst[i].endTime = CalcActivityTime(self.ActivityLst[i].ActivityID, openday)
+	}
+
+	return true
 }
 
 //! 获取活动奖励
-func (self *TGlobalVariables) GetActivityAwardType(activityID int) int {
+func (self *TGlobalVariables) GetActivityData(activityID int32) *TActivityData {
+	//! 根据活动模板获取对应ID
+	for i := 0; i < len(self.ActivityLst); i++ {
+		if self.ActivityLst[i].ActivityID == activityID {
+			return &self.ActivityLst[i]
+		}
+	}
+
+	gamelog.Error("GetActivityData Error : Invalid activityID:%d", activityID)
+	return nil
+}
+
+//! 获取活动奖励
+func (self *TGlobalVariables) GetActivityAwardType(activityID int32) int {
 	//! 根据活动模板获取对应ID
 	for i := 0; i < len(self.ActivityLst); i++ {
 		if self.ActivityLst[i].ActivityID == activityID {
@@ -115,26 +165,54 @@ func (self *TGlobalVariables) GetActivityAwardType(activityID int) int {
 }
 
 //! 判断活动是否开启
-func (self *TGlobalVariables) IsActivityOpen(activityID int) bool {
-	now := time.Now().Unix()
-	length := len(self.ActivityLst)
-
+func (self *TGlobalVariables) IsActivityOpen(activityID int32) bool {
+	nowTime := utility.GetCurTime()
 	openday := GetOpenServerDay()
-	for i := 0; i < length; i++ {
-		data := &self.ActivityLst[i]
-		if activityID == data.ActivityID &&
-			data.Status == 1 &&
-			((data.beginTime <= now && now <= data.endTime) || (data.beginTime == 0 && data.endTime == 0)) {
 
-			//! 判断公服期
-			activityData := gamedata.GetActivityInfo(data.ActivityID)
-			publicDay := gamedata.GetNewServerTypeActivityEndTime(activityData)
-			if openday <= publicDay && activityData.ServerType == 2 {
-				return false
-			}
-
-			return true
+	var pActData *TActivityData = nil
+	for i := 0; i < len(self.ActivityLst); i++ {
+		if activityID == self.ActivityLst[i].ActivityID {
+			pActData = &self.ActivityLst[i]
+			break
 		}
+	}
+
+	if pActData == nil {
+		gamelog.Error3("IsActivityOpen Error : Invalid activityID:%d", activityID)
+		return false
+	}
+
+	if pActData.Status != 1 {
+		return false
+	}
+
+	pActivityInfo := gamedata.GetActivityInfo(activityID)
+	if pActivityInfo == nil {
+		gamelog.Error("IsActivityOpen Error: pActivityInfo:nil")
+		return false
+	}
+
+	if pActivityInfo.TimeType == gamedata.Time_NewSvr {
+		if openday > 30 {
+			return false
+		}
+
+	} else if pActivityInfo.TimeType == gamedata.Time_PublicSvr {
+		if openday <= 30 {
+			return false
+		}
+
+	} else if pActivityInfo.TimeType != gamedata.Time_AllSvr {
+		gamelog.Error("IsActivityOpen Error: Invalid TimeType:%d", pActivityInfo.TimeType)
+		return false
+	}
+
+	if pActivityInfo.CycleType == gamedata.CyCle_All {
+		return true
+	}
+
+	if pActData.beginTime <= nowTime && nowTime < pActData.endTime {
+		return true
 	}
 
 	return false
@@ -142,64 +220,152 @@ func (self *TGlobalVariables) IsActivityOpen(activityID int) bool {
 
 //! 判断当前是否为活动时间
 //! 返回: 是否在活动操作期(有的专门设置了领奖期)    结束倒计时
-func (self *TGlobalVariables) IsActivityTime(activityID int) (bool, int) {
-	var endCountDown int = -1
-	now := time.Now()
-	for _, v := range G_GlobalVariables.ActivityLst {
-		activityInfo := gamedata.GetActivityInfo(v.ActivityID)
-		if G_GlobalVariables.IsActivityOpen(v.ActivityID) == true && activityID == v.ActivityID {
-			if v.beginTime == 0 && v.endTime == 0 {
-				return true, 0 //! 永久开启
-			}
-
-			endCountDown = int(v.endTime) - activityInfo.AwardTime*24*60*60
-
-			// gamelog.Info("EndTime: %v    endCountDown: %v", v.endTime, endCountDown)
+func (self *TGlobalVariables) IsActivityTime(activityID int32) (bOk bool) {
+	bOk = false
+	nowTime := utility.GetCurTime()
+	openday := GetOpenServerDay()
+	var pActData *TActivityData = nil
+	for i := 0; i < len(self.ActivityLst); i++ {
+		if activityID == self.ActivityLst[i].ActivityID {
+			pActData = &self.ActivityLst[i]
 			break
 		}
 	}
 
-	if int64(endCountDown) <= now.Unix() {
-		return false, 0
+	if pActData == nil {
+		gamelog.Error("IsActivityTime Error : Invalid activityID:%d", activityID)
+		return
 	}
 
-	return true, endCountDown
-}
+	if pActData.Status != 1 {
+		return
+	}
 
-//! 判断活动是否为有效活动
-func (self *TGlobalVariables) IsActivityValid(activityID int) bool {
-	for _, v := range self.ActivityLst {
-		if (activityID == v.ActivityID) && (v.Status == 1) {
-			return true
+	pActivityInfo := gamedata.GetActivityInfo(activityID)
+	if pActivityInfo == nil {
+		gamelog.Error("IsActivityTime Error: pActivityInfo:nil")
+		return
+	}
+
+	if pActivityInfo.TimeType == gamedata.Time_NewSvr {
+		if openday > 30 {
+			return
 		}
+
+	} else if pActivityInfo.TimeType == gamedata.Time_PublicSvr {
+		if openday <= 30 {
+			return
+		}
+
+	} else if pActivityInfo.TimeType != gamedata.Time_AllSvr {
+		gamelog.Error("IsActivityTime Error: Invalid TimeType:%d", pActivityInfo.TimeType)
+		return
 	}
 
-	return false
-}
-
-func (self *TGlobalVariables) SetActivityAwardType() {
-	for i, v := range self.ActivityLst {
-		activityInfo := gamedata.GetActivityInfo(v.ActivityID)
-		self.ActivityLst[i].award = activityInfo.AwardType
-		self.ActivityLst[i].activityType = activityInfo.ActivityType
+	if pActivityInfo.CycleType != gamedata.CyCle_All {
+		bOk = true
+		return
 	}
+
+	if pActData.beginTime > nowTime || nowTime > pActData.actEndTime {
+		return
+	}
+
+	bOk = true
+	return
 }
 
 //! 计算开启时间与关闭时间
-func (self *TGlobalVariables) CalcActivityTime() {
-	openDay := GetOpenServerDay()
-	for i, v := range self.ActivityLst {
-		if v.ActivityID == 0 {
-			gamelog.Error("CalcActivityTime Error Invalid ActivityID:%d", v.ActivityID)
-			continue
-		}
-		self.ActivityLst[i].beginTime, self.ActivityLst[i].endTime = gamedata.GetActivityEndTime(v.ActivityID, openDay)
-
-		// gamelog.Info("ActivityID: %v, BeginTime: %v  EndTime: %v", self.ActivityLst[i].ActivityID,
-		// 	self.ActivityLst[i].beginTime,
-		// 	self.ActivityLst[i].endTime)
-
+func CalcActivityTime(activityID int32, openDay int) (beginTime int32, actEndTime int32, endTime int32) {
+	pActInfo := gamedata.GetActivityInfo(activityID)
+	if pActInfo == nil {
+		gamelog.Error("CalcActivityTime Error : Invalid activityid:%d", activityID)
+		return
 	}
+
+	if pActInfo.CycleType == gamedata.CyCle_All {
+		return
+	}
+
+	nowTime := time.Now()
+	if pActInfo.CycleType == gamedata.Cycle_Month { //! 按照月计算
+		beginDate := time.Date(nowTime.Year(), nowTime.Month(), pActInfo.BeginTime, 0, 0, 0, 0, nowTime.Location())
+		endDate := time.Date(nowTime.Year(), nowTime.Month(), pActInfo.EndTime, 23, 59, 59, 59, nowTime.Location())
+		if endDate.Unix() <= nowTime.Unix() {
+			beginDate = beginDate.AddDate(0, 1, 0)
+			endDate = endDate.AddDate(0, 1, 0)
+		}
+
+		beginTime = int32(beginDate.Unix())
+		actEndTime = int32(endDate.Unix()) - int32(pActInfo.AwardTime*86400)
+		endTime = int32(endDate.Unix())
+	} else if pActInfo.CycleType == gamedata.Cycle_Week { //! 按照周计算
+		weekDay := int(nowTime.Weekday())
+		if weekDay == 0 { //! 特殊处理周末
+			weekDay = 7
+		}
+
+		beginDate := time.Date(nowTime.Year(), nowTime.Month(), nowTime.Day(), 0, 0, 0, 0, nowTime.Location())
+		beginDate = beginDate.AddDate(0, 0, pActInfo.BeginTime-weekDay)
+		endDate := time.Date(nowTime.Year(), nowTime.Month(), nowTime.Day(), 23, 59, 59, 59, nowTime.Location())
+		endDate = endDate.AddDate(0, 0, pActInfo.EndTime-weekDay)
+
+		if endDate.Unix() <= nowTime.Unix() {
+			beginDate = beginDate.AddDate(0, 0, 7)
+			endDate = endDate.AddDate(0, 0, 7)
+		}
+
+		endTime = int32(endDate.Unix())
+		actEndTime = int32(endDate.Unix()) - int32(pActInfo.AwardTime*86400)
+		beginTime = int32(beginDate.Unix())
+	} else if pActInfo.CycleType == gamedata.Cycle_OpenDay {
+		beginDate := time.Date(nowTime.Year(), nowTime.Month(), nowTime.Day(), 0, 0, 0, 0, nowTime.Location())
+		beginDate = beginDate.AddDate(0, 0, -1*openDay)
+		beginDate = beginDate.AddDate(0, 0, pActInfo.BeginTime)
+		endDate := time.Date(nowTime.Year(), nowTime.Month(), nowTime.Day(), 23, 59, 59, 59, nowTime.Location())
+		endDate = endDate.AddDate(0, 0, pActInfo.EndTime-openDay)
+
+		if endDate.Unix() <= nowTime.Unix() {
+			beginTime = 0xFFFFFFF
+			actEndTime = 0xFFFFFFF
+			endTime = 0xFFFFFFF
+		} else {
+			beginTime = int32(beginDate.Unix())
+			actEndTime = int32(endDate.Unix()) - int32(pActInfo.AwardTime*86400)
+			endTime = int32(endDate.Unix())
+		}
+
+	} else if pActInfo.CycleType == gamedata.Cycle_FixDay {
+		day := pActInfo.BeginTime % 100
+		month := (pActInfo.BeginTime - day) / 100
+		if day < 1 || day > 31 || month < 1 || month > 12 {
+			gamelog.Error("CalcActivityTime Error : Invalid Activity BeginTime: %d", pActInfo.BeginTime)
+			return
+		}
+
+		beginDate := time.Date(nowTime.Year(), time.Month(month), day, 0, 0, 0, 0, nowTime.Location())
+
+		day = pActInfo.EndTime % 100
+		month = (pActInfo.EndTime - day) / 100
+		if day < 1 || day > 31 || month < 1 || month > 12 {
+			gamelog.Error("CalcActivityTime Error :  Invalid Activity EndTime: %d", pActInfo.EndTime)
+			return
+		}
+
+		endDate := time.Date(nowTime.Year(), time.Month(month), day, 23, 59, 59, 59, nowTime.Location())
+
+		if endDate.Unix() <= nowTime.Unix() {
+			beginTime = 0xFFFFFFF
+			actEndTime = 0xFFFFFFF
+			endTime = 0xFFFFFFF
+		} else {
+			beginTime = int32(beginDate.Unix())
+			actEndTime = int32(endDate.Unix()) - int32(pActInfo.AwardTime*86400)
+			endTime = int32(endDate.Unix())
+		}
+	}
+
+	return
 }
 
 func (self *TGlobalVariables) GetGroupPurchaseItemInfo(itemID int) (*TGroupPurchaseInfo, int) {
@@ -220,7 +386,7 @@ func (self *TGlobalVariables) GetGroupPurchaseItemInfo(itemID int) (*TGroupPurch
 	return &self.GroupPurchaseLst[length], length
 }
 
-func (self *TGlobalVariables) GetSevenDayLimit(activityID int) *TSevenDayBuyInfo {
+func (self *TGlobalVariables) GetSevenDayLimit(activityID int32) *TSevenDayBuyInfo {
 	for i := 0; i < len(G_GlobalVariables.SevenDayLimit); i++ {
 		if G_GlobalVariables.SevenDayLimit[i].ActivityID == activityID {
 			return &G_GlobalVariables.SevenDayLimit[i]
@@ -230,7 +396,7 @@ func (self *TGlobalVariables) GetSevenDayLimit(activityID int) *TSevenDayBuyInfo
 	return nil
 }
 
-func (self *TGlobalVariables) AddSevenDayLimit(activityID int, index int) {
+func (self *TGlobalVariables) AddSevenDayLimit(activityID int32, index int) {
 	for i := 0; i < len(G_GlobalVariables.SevenDayLimit); i++ {
 		if G_GlobalVariables.SevenDayLimit[i].ActivityID == activityID {
 			G_GlobalVariables.SevenDayLimit[i].LimitBuy[index] += 1
@@ -343,7 +509,7 @@ func (self *TGlobalVariables) DB_AddSevenDayBuyInfo(seven TSevenDayBuyInfo) {
 	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$push": bson.M{"sevendaylimit": seven}})
 }
 
-func (self *TGlobalVariables) DB_CleanSevenDayInfo(activityID int) {
+func (self *TGlobalVariables) DB_CleanSevenDayInfo(activityID int32) {
 	index := -1
 	for i := 0; i < len(self.SevenDayLimit); i++ {
 		if self.SevenDayLimit[i].ActivityID == activityID {
@@ -366,7 +532,7 @@ func (self *TGlobalVariables) DB_SaveSevenDayLimit(index int) {
 	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{filedName: self.SevenDayLimit[index]}})
 }
 
-func (self *TGlobalVariables) DB_UpdateActivityInfo(index int) {
+func (self *TGlobalVariables) DB_UpdateActivityStatus(index int) {
 	filedName := fmt.Sprintf("activitylst.%d.status", index)
 	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{
 		filedName: self.ActivityLst[index].Status}})
@@ -376,7 +542,7 @@ func (self *TGlobalVariables) DB_UpdateActivityInfo(index int) {
 func (self *TGlobalVariables) AddSvrAward(pAwardData *TAwardData) {
 	self.SvrAwardIncID += 1
 	pAwardData.ID = self.SvrAwardIncID
-	pAwardData.Time = time.Now().Unix()
+	pAwardData.Time = utility.GetCurTime()
 	self.SvrAwardList = append(self.SvrAwardList, *pAwardData)
 	self.DB_AddAward(pAwardData)
 	self.DB_SaveIncrementID()

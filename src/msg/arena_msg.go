@@ -16,6 +16,8 @@ type MSG_ArenaResult_Ack struct {
 	ExtraAward  MSG_ItemData   //! 额外元宝奖励
 	HistoryRank int            //! 历史排名
 	SelfRank    int            //! 自己的排名
+	ActionValue int            //! 行动力值
+	ActionTime  int32          //! 行动力恢复起始时间
 }
 
 type MSG_ArenaPlayerInfo struct {
@@ -38,13 +40,15 @@ type MSG_ArenaBattle_Req struct {
 }
 
 type MSG_ArenaBattle_Ack struct {
-	RetCode   int
-	IsVictory bool
-	ItemID    int
-	ItemNum   int
-	Exp       int
-	Money     int //! 银币
-	Money2    int //! 声望
+	RetCode     int
+	IsVictory   bool
+	ItemID      int
+	ItemNum     int
+	Exp         int
+	Money       int   //! 银币
+	Money2      int   //! 声望
+	ActionValue int   //! 行动力值
+	ActionTime  int32 //! 行动力恢复起始时间
 }
 
 //! 玩家请求竞技场信息
@@ -57,9 +61,9 @@ type MSG_GetArenaInfo_Req struct {
 type MSG_GetArenaInfo_Ack struct {
 	RetCode     int
 	PlayerLst   []MSG_ArenaPlayerInfo
-	SelfRank    int   //! 自己的排名
-	HistoryRank int   //! 历史排名
-	IDLst       []int //! 已购买物品列表
+	SelfRank    int     //! 自己的排名
+	HistoryRank int     //! 历史排名
+	IDLst       []int32 //! 已购买物品列表
 }
 
 //! 玩家请求声望商店购买商品
@@ -84,7 +88,7 @@ type MSG_QueryArenaStoreAward_Req struct {
 
 type MSG_QueryArenaStoreAward_Ack struct {
 	RetCode int
-	IDLst   []int
+	IDLst   []int32
 }
 
 //! 玩家竞技场挑战检测

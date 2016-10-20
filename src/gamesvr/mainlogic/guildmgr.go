@@ -8,7 +8,6 @@ import (
 	"mongodb"
 	"sort"
 	"sync"
-	"time"
 	"utility"
 
 	"gopkg.in/mgo.v2"
@@ -24,9 +23,9 @@ const (
 
 type TMember struct {
 	PlayerID     int32 //! ID
-	Pose         int   //! 位置
+	Role         int   //! 角色
 	Contribute   int   //! 军团贡献
-	EnterTime    int64 //! 加入时间
+	EnterTime    int32 //! 加入时间
 	BattleTimes  int   //! 攻打军团副本次数
 	BattleDamage int64 //! 攻打军团副本最高伤害
 }
@@ -41,20 +40,20 @@ const (
 )
 
 type GuildEvent struct {
-	PlayerID   int32
-	PlayerName string
-	Type       int //! 祭天->类型
-	Value      int //! 祭天->经验  升级->等级  职位->新职位
-	Action     int //!
-	Time       int64
+	ID     int32
+	Name   string
+	Type   int //! 祭天->类型
+	Value  int //! 祭天->经验  升级->等级  职位->新职位
+	Action int //!
+	Time   int32
 }
 
 type GuildCopyTreasure struct {
-	CopyID     int
-	Index      int
-	AwardID    int
-	PlayerID   int32
-	PlayerName string
+	CopyID   int
+	Index    int
+	AwardID  int
+	PlayerID int32
+	Name     string
 }
 
 type GuildCopyTreasureLst []GuildCopyTreasure
@@ -73,18 +72,18 @@ func (self *GuildCopyTreasureLst) GetNum(ID int) int {
 type PassAwardChapter struct {
 	PassChapter int32
 	CopyID      int
-	PassTime    int64
-	PlayerName  string
+	PassTime    int32
+	Name        string
 }
 
 //! 公会留言板
 type TGuildMsgBoard struct {
-	PlayerID int32
-	Message  string
-	Time     int64
+	ID      int32
+	Message string
+	Time    int32
 }
 
-type TGuildCopyLifeInfo struct {
+type TCopyLifeData struct {
 	CopyID int
 	Life   int64
 }
@@ -112,36 +111,30 @@ func (self MemberLst) Swap(i int, j int) {
 
 //公会表结构
 type TGuild struct {
-	GuildID     int32     `bson:"_id"` //! 军团ID
-	Name        string    //! 军团名字
-	bossName    string    //! 军团长姓名
-	Icon        int       //! 军团Icon
-	Notice      string    //! 军团公告
-	Declaration string    //! 军团宣言
-	Level       int       //! 军团等级
-	CurExp      int       //! 军团经验
-	MemberList  MemberLst //! 军团成员列表
-	fightVaule  int64     //! 公会战力值
+	GuildID           int32                `bson:"_id"` //! 军团ID
+	Name              string               //! 军团名字
+	Icon              int                  //! 军团Icon
+	Notice            string               //! 军团公告
+	Declaration       string               //! 军团宣言
+	Level             int                  //! 军团等级
+	CurExp            int                  //! 军团经验
+	MemberList        MemberLst            //! 军团成员列表
+	fightVaule        int64                //! 公会战力值
+	ApplyList         []int32              //! 申请列表
+	EventLst          []GuildEvent         //! 军团动态
+	Sacrifice         int                  //! 工会祭天人数
+	SacrificeSchedule int                  //! 公会祭天进度
+	SkillLst          [9]int               //! 工会技能信息
+	HisChapter        int32                //! 公会副本历史通关
+	PassChapter       int32                //! 当天公会挑战章节
+	CampLife          [4]TCopyLifeData     //! 副本四大势力对应血量
+	IsBack            bool                 //! 是否回退
+	CopyTreasure      GuildCopyTreasureLst //! 副本奖励
+	AwardChapterLst   []PassAwardChapter   //! 通关章节时间记录
+	MsgBoard          []TGuildMsgBoard     //! 公会留言板
+	ResetDay          uint32               //! 重置天数
 
-	ApplyList []int32 //! 申请列表
-
-	EventLst []GuildEvent //! 军团动态
-
-	Sacrifice         int //! 工会祭天人数
-	SacrificeSchedule int //! 公会祭天进度
-
-	SkillLst [9]int //! 工会技能信息
-
-	HistoryPassChapter int32                 //! 公会副本历史通关
-	PassChapter        int32                 //! 当天公会挑战章节
-	CampLife           [4]TGuildCopyLifeInfo //! 副本四大势力对应血量
-	IsBack             bool                  //! 是否回退
-	CopyTreasure       GuildCopyTreasureLst  //! 副本奖励
-	AwardChapterLst    []PassAwardChapter    //! 通关章节时间记录
-
-	MsgBoard []TGuildMsgBoard //! 公会留言板
-
-	ResetDay uint32 //! 重置天数
+	boss string //! 军团长姓名
 }
 
 type GuildMap map[int32]*TGuild
@@ -226,13 +219,7 @@ func InitGuildMgr() bool {
 			//! 初始化排行榜与公会会长姓名
 			bossInfo := n.GetGuildLeader()
 			player := G_SimpleMgr.GetSimpleInfoByID(bossInfo.PlayerID)
-			if player == nil {
-				player := GetPlayerByID(bossInfo.PlayerID)
-				guildLst[i].bossName = player.RoleMoudle.Name
-			} else {
-				guildLst[i].bossName = player.Name
-			}
-
+			guildLst[i].boss = player.Name
 			G_Guild_List[n.GuildID] = &guildLst[i]
 			G_Guild_Key_List = append(G_Guild_Key_List, n.GuildID)
 		}
@@ -250,16 +237,16 @@ func CreateNewGuild(playerid int32, name string, icon int) *TGuild {
 	newGuild.GuildID = G_CurGuildID
 	newGuild.MemberList = make([]TMember, 1)
 	newGuild.MemberList[0].PlayerID = playerid
-	newGuild.MemberList[0].Pose = Pose_Boss
+	newGuild.MemberList[0].Role = Pose_Boss
 	newGuild.MemberList[0].Contribute = 0
-	newGuild.MemberList[0].EnterTime = time.Now().Unix()
+	newGuild.MemberList[0].EnterTime = utility.GetCurTime()
 	newGuild.Level = 1
 	newGuild.CurExp = 0
 	newGuild.Notice = ""
 	newGuild.Declaration = ""
 	newGuild.Name = name
 	newGuild.Icon = icon
-	newGuild.HistoryPassChapter = 1
+	newGuild.HisChapter = 1
 	newGuild.PassChapter = 1
 	newGuild.ResetDay = utility.GetCurDay()
 
@@ -277,7 +264,7 @@ func CreateNewGuild(playerid int32, name string, icon int) *TGuild {
 	G_Guild_Key_List = append(G_Guild_Key_List, newGuild.GuildID)
 	G_CurGuildID += 1
 
-	G_GuildCopyRanker.SetRankItem(newGuild.GuildID, int(newGuild.HistoryPassChapter))
+	G_GuildCopyRanker.SetRankItem(newGuild.GuildID, int(newGuild.HisChapter))
 	G_GuildLevelRanker.SetRankItem(newGuild.GuildID, newGuild.Level)
 
 	//! 插入数据库
@@ -308,21 +295,6 @@ func RemoveGuild(guildID int32) {
 	}
 
 	DB_RemoveGuild(guildID)
-}
-
-//! 排序公会列表
-func SortGuild() {
-	Guild_Map_Mutex.Lock()
-	defer Guild_Map_Mutex.Unlock()
-	//! 计算战力
-	for i, _ := range G_Guild_List {
-		G_Guild_List[i].fightVaule = 0
-		for _, v := range G_Guild_List[i].MemberList {
-			G_Guild_List[i].fightVaule += int64(G_SimpleMgr.Get_FightValue(v.PlayerID))
-		}
-	}
-
-	sort.Sort(sort.Reverse(&G_Guild_Key_List))
 }
 
 //! 排序公会输出
@@ -455,7 +427,7 @@ func (pGuild *TGuild) GetGuildLeader() *TMember {
 	defer Guild_Map_Mutex.Unlock()
 
 	for i := 0; i < len(pGuild.MemberList); i++ {
-		if pGuild.MemberList[i].Pose == Pose_Boss {
+		if pGuild.MemberList[i].Role == Pose_Boss {
 			return &pGuild.MemberList[i]
 		}
 	}
@@ -472,8 +444,8 @@ func (pGuild *TGuild) AddGuildMember(playerid int32) bool {
 	var newMember TMember
 	newMember.PlayerID = playerid
 	newMember.Contribute = 0
-	newMember.Pose = Pose_Member
-	newMember.EnterTime = time.Now().Unix()
+	newMember.Role = Pose_Member
+	newMember.EnterTime = utility.GetCurTime()
 
 	pGuild.MemberList = append(pGuild.MemberList, newMember)
 
@@ -583,19 +555,19 @@ func (pGuild *TGuild) RemoveGuildMember(playerid int32) bool {
 	}
 
 	//! 修改数据库
-	DB_GuildRemoveMember(pGuild.GuildID, &removeMember)
+	DB_GuildRemoveMember(pGuild.GuildID, removeMember.PlayerID)
 
 	return true
 }
 
 //! 获取公会角色数量
-func (self *TGuild) GetPoseNumber(role int) int {
+func (self *TGuild) GetRoleNum(role int) int {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
 	number := 0
 	for _, v := range self.MemberList {
-		if v.Pose == role {
+		if v.Role == role {
 			number += 1
 		}
 	}
@@ -610,7 +582,7 @@ func (pGuild *TGuild) UpdateGuildMemeber(playerid int32, pose int, contribute in
 
 	for i := 0; i < len(pGuild.MemberList); i++ {
 		if pGuild.MemberList[i].PlayerID == playerid {
-			pGuild.MemberList[i].Pose = pose
+			pGuild.MemberList[i].Role = pose
 			pGuild.MemberList[i].Contribute = contribute
 			DB_GuildUpdateMember(pGuild.GuildID, &pGuild.MemberList[i], i)
 		}
@@ -670,11 +642,11 @@ func (self *TGuild) AddGuildEvent(playerid int32, action int, value int, value2 
 
 	//! 构建事件动态
 	event := GuildEvent{}
-	event.PlayerID = playerid
+	event.ID = playerid
 	event.Action = action
 	event.Type = value2
 	event.Value = value
-	event.Time = time.Now().Unix()
+	event.Time = utility.GetCurTime()
 
 	self.EventLst = append(self.EventLst, event)
 	self.DB_AddGuildEvent(event)
@@ -699,8 +671,8 @@ func (self *TGuild) SubCampLife(copyID int, damage int64, playerName string) (bo
 		var passChapter PassAwardChapter
 		passChapter.PassChapter = self.PassChapter
 		passChapter.CopyID = copyID
-		passChapter.PassTime = time.Now().Unix()
-		passChapter.PlayerName = playerName
+		passChapter.PassTime = utility.GetCurTime()
+		passChapter.Name = playerName
 		self.AwardChapterLst = append(self.AwardChapterLst, passChapter)
 		self.DB_AddPassChapter(passChapter)
 
@@ -724,7 +696,7 @@ func (self *TGuild) NextChapter() {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
-	self.HistoryPassChapter = self.PassChapter
+	self.HisChapter = self.PassChapter
 	self.PassChapter += 1
 
 	if self.PassChapter > gamedata.GetGuildChapterCount() {
@@ -752,7 +724,7 @@ func (self *TGuild) PlayerRecvAward(playerid int32, playerName string, copyID in
 	treasure.AwardID = awardID
 	treasure.Index = index
 	treasure.PlayerID = playerid
-	treasure.PlayerName = playerName
+	treasure.Name = playerName
 	self.CopyTreasure = append(self.CopyTreasure, treasure)
 
 	self.DB_AddRecvRecord(treasure)
@@ -786,9 +758,9 @@ func (self *TGuild) AddMsgBoard(playerid int32, message string) {
 	}
 
 	var msg TGuildMsgBoard
-	msg.PlayerID = playerid
+	msg.ID = playerid
 	msg.Message = message
-	msg.Time = time.Now().Unix()
+	msg.Time = utility.GetCurTime()
 
 	self.MsgBoard = append(self.MsgBoard, msg)
 
@@ -796,14 +768,14 @@ func (self *TGuild) AddMsgBoard(playerid int32, message string) {
 }
 
 //! 删除留言板留言
-func (self *TGuild) RemoveMsgBoard(playerid int32, time int64) {
+func (self *TGuild) RemoveMsgBoard(playerid int32, time int32) {
 	Guild_Map_Mutex.Lock()
 	defer Guild_Map_Mutex.Unlock()
 
 	removePos := -1
 	removeMsg := TGuildMsgBoard{}
 	for i, v := range self.MsgBoard {
-		if v.PlayerID == playerid && v.Time == time {
+		if v.ID == playerid && v.Time == time {
 			removePos = i
 			removeMsg = v
 			break
@@ -823,4 +795,32 @@ func (self *TGuild) RemoveMsgBoard(playerid int32, time int64) {
 	}
 
 	self.DB_RemoveGuildMsgBoard(removeMsg)
+}
+
+//! 获取公会列表
+func GetGuildLst(index int) (guildLst []*TGuild) {
+
+	//! 排序公会
+	Guild_Map_Mutex.Lock()
+	defer Guild_Map_Mutex.Unlock()
+	//! 计算战力
+	for i, _ := range G_Guild_List {
+		G_Guild_List[i].fightVaule = 0
+		for _, v := range G_Guild_List[i].MemberList {
+			G_Guild_List[i].fightVaule += int64(G_SimpleMgr.Get_FightValue(v.PlayerID))
+		}
+	}
+
+	sort.Sort(sort.Reverse(&G_Guild_Key_List))
+
+	//! 获取公会列表
+	for i := index; i < index+5; i++ {
+		if i >= len(G_Guild_Key_List) {
+			break
+		}
+
+		guildLst = append(guildLst, G_Guild_List[G_Guild_Key_List[i]])
+	}
+
+	return guildLst
 }

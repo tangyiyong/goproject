@@ -6,7 +6,6 @@ import (
 	"gamesvr/gamedata"
 	"gamesvr/tcpclient"
 	"msg"
-	"time"
 	"utility"
 )
 
@@ -95,7 +94,7 @@ func Hand_PlayerQueryReq(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte)
 	//如果己经开始搬运
 	if player.CamBattleModule.EndTime > 0 {
 		//如果己经超时，则搬运置为停止
-		if int(time.Now().Unix()) > player.CamBattleModule.EndTime {
+		if utility.GetCurTime() > player.CamBattleModule.EndTime {
 			player.CamBattleModule.EndTime = 0
 			player.CamBattleModule.CrystalID = utility.Rand()%2 + 1
 		} else {
@@ -244,19 +243,19 @@ func Hand_StartCarryReq(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) 
 		return
 	}
 
-	if int(time.Now().Unix()) < player.CamBattleModule.EndTime {
+	if utility.GetCurTime() < player.CamBattleModule.EndTime {
 		gamelog.Error("Hand_StartCarryReq : Still On Moving!!!!")
 		return
 	}
 
 	player.CamBattleModule.LeftTimes = player.CamBattleModule.LeftTimes - 1
-	player.CamBattleModule.EndTime = int(time.Now().Unix()) + gamedata.Campbat_MaxMoveTime
+	player.CamBattleModule.EndTime = utility.GetCurTime() + int32(gamedata.Campbat_MaxMoveTime)
 
 	var response msg.MSG_StartCarry_Ack
 	response.PlayerID = req.PlayerID
-	response.EndTime = int32(player.CamBattleModule.EndTime)
+	response.EndTime = player.CamBattleModule.EndTime
 	response.RetCode = msg.RE_SUCCESS
-	response.LeftTimes = int32(player.CamBattleModule.LeftTimes)
+	response.LeftTimes = player.CamBattleModule.LeftTimes
 
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_START_CARRY_ACK, extra)
@@ -288,7 +287,7 @@ func Hand_FinishCarryReq(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte)
 		return
 	}
 
-	if int(time.Now().Unix()) > player.CamBattleModule.EndTime {
+	if utility.GetCurTime() > player.CamBattleModule.EndTime {
 		gamelog.Error("Hand_FinishCarryReq : Has already out of time!!!!")
 		return
 	}
@@ -356,11 +355,11 @@ func Hand_LoadCampBatInfo(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte
 	response.KillNum = int32(player.CamBattleModule.Kill)
 	response.KillHonor = int32(player.CamBattleModule.KillHonor)
 	response.PlayerID = player.playerid
-	if int(time.Now().Unix()) > player.CamBattleModule.EndTime {
+	if utility.GetCurTime() > player.CamBattleModule.EndTime {
 		player.CamBattleModule.EndTime = 0
 	}
 
-	response.MoveEndTime = int32(player.CamBattleModule.EndTime)
+	response.MoveEndTime = player.CamBattleModule.EndTime
 	response.RetCode = msg.RE_SUCCESS
 
 	if response.Level <= int32(gamedata.CampBat_RoomMatchLvl) {

@@ -270,7 +270,7 @@ func Hand_RobTreasure(w http.ResponseWriter, r *http.Request) {
 	var req msg.MSG_RobTreasure_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
-		gamelog.Error("Hand_RobTreasure Unmarshal fail. Error: %s", err.Error())
+		gamelog.Error("Hand_RobTreasure Error: Unmarshal fail. %s", err.Error())
 		return
 	}
 
@@ -305,7 +305,7 @@ func Hand_RobTreasure(w http.ResponseWriter, r *http.Request) {
 	//! 检查玩家精力是否足够
 	config := gamedata.GetRobConfig()
 	if config == nil {
-		gamelog.Error("GetRobConfig nil.")
+		gamelog.Error("Hand_RobTreasure Error : GetRobConfig nil.")
 		return
 	}
 
@@ -316,7 +316,7 @@ func Hand_RobTreasure(w http.ResponseWriter, r *http.Request) {
 	//! 获取副本基本信息
 	copyInfo := gamedata.GetCopyBaseInfo(config.CopyID)
 	if copyInfo == nil {
-		gamelog.Error("GetCopyBaseInfo fail. CopyID: %d", config.CopyID)
+		gamelog.Error("Hand_RobTreasure Error : Invalid CopyID: %d", config.CopyID)
 		return
 	}
 
@@ -334,9 +334,9 @@ func Hand_RobTreasure(w http.ResponseWriter, r *http.Request) {
 	level := 0
 
 	if req.IsRobot == 1 {
-		response.RobSuccess = player.RobModule.RobNPC(req.TreasureID)
-		if response.RobSuccess == true { //! 抢夺成功则给予碎片
+		if player.RobModule.RobNPC(req.TreasureID) == true { //! 抢夺成功则给予碎片
 			player.BagMoudle.AddAwardItem(req.TreasureID, 1)
+			response.GemChipID = req.TreasureID
 		}
 	} else {
 
@@ -354,14 +354,15 @@ func Hand_RobTreasure(w http.ResponseWriter, r *http.Request) {
 		}
 
 		level = robPlayer.GetLevel()
-		response.RobSuccess = player.RobModule.RobPlayer(level)
-		if response.RobSuccess == true { //! 抢夺成功则给予碎片
+
+		if player.RobModule.RobPlayer(level) == true { //! 抢夺成功则给予碎片
 			robPlayer.BagMoudle.RemoveGemPiece(req.TreasureID, 1)
 			player.BagMoudle.AddAwardItem(req.TreasureID, 1)
+			response.GemChipID = req.TreasureID
 		}
 	}
 
-	dropItem := gamedata.GetItemsFromAwardIDEx(copyInfo.AwardID)
+	dropItem := gamedata.GetItemsFromAwardID(copyInfo.AwardID)
 	if len(dropItem) != 3 {
 		gamelog.Error("Hand_RobTreasure GetItemsFromAwardIDEx fail. AwardID: %d", copyInfo.AwardID)
 		return
@@ -390,15 +391,117 @@ func Hand_RobTreasure(w http.ResponseWriter, r *http.Request) {
 	response.MoneyID = copyInfo.MoneyID
 	response.MoneyNum = copyInfo.MoneyNum * player.GetLevel()
 	response.RetCode = msg.RE_SUCCESS
-	response.FreeWarTime = player.RobModule.FreeWarTime
+	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(copyInfo.ActionType)
+	//! 限时日常相关
+	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ROB_TIMES, 1)
 
+}
+
+//! 玩家请求抢劫
+func Hand_RobGemOnekey(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+	var req msg.MSG_RobGemOneKey_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_RobGemOnekey Error: Unmarshal fail. %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_RobGemOneKey_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	//! 常规检查
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	//! 检测功能是否开启
+	if gamedata.IsFuncOpen(gamedata.FUNC_ROB_GEM_ONE_KEY, player.GetLevel(), player.GetVipLevel()) == false {
+		response.RetCode = msg.RE_FUNC_NOT_OPEN
+		return
+	}
+
+	//! 检测参数
+	if req.GemChipID <= 0 {
+		gamelog.Error("Hand_RobGemOnekey Error: invalid req.GetChipID :%d", req.GemChipID)
+		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
+	//! 检查玩家精力是否足够
+	config := gamedata.GetRobConfig()
+	if config == nil {
+		gamelog.Error("Hand_RobGemOnekey Error : GetRobConfig nil.")
+		return
+	}
+
+	if player.RobModule.FreeWarTime != 0 { //! 主动抢夺, 则免战时间归零
+		player.RobModule.FreeWarTime = 0
+	}
+
+	//! 获取副本基本信息
+	copyInfo := gamedata.GetCopyBaseInfo(config.CopyID)
+	if copyInfo == nil {
+		gamelog.Error("Hand_RobGemOnekey Error : Invalid CopyID: %d", config.CopyID)
+		return
+	}
+
+	bRet := player.RoleMoudle.CheckActionEnough(copyInfo.ActionType, copyInfo.ActionValue)
+	if bRet == false {
+		gamelog.Error("Hand_RobGemOnekey CheckActionEnough not enough")
+		response.RetCode = msg.RE_NOT_ENOUGH_ACTION
+		return
+	}
+
+	//! 扣除精力
+	player.RoleMoudle.CostAction(copyInfo.ActionType, copyInfo.ActionValue)
+	if player.RobModule.RobNPC(req.GemChipID) == true { //! 抢夺成功则给予碎片
+		player.BagMoudle.AddAwardItem(req.GemChipID, 1)
+		response.GemChipID = req.GemChipID
+	}
+
+	dropItem := gamedata.GetItemsFromAwardID(copyInfo.AwardID)
+	if len(dropItem) != 3 {
+		gamelog.Error("Hand_RobTreasure GetItemsFromAwardIDEx fail. AwardID: %d", copyInfo.AwardID)
+		return
+	}
+
+	player.BagMoudle.AddAwardItem(dropItem[0].ItemID, dropItem[0].ItemNum)
+	response.ItemID = dropItem[0].ItemID
+
+	//! 增加玩家经验
+	response.Exp = copyInfo.Experience * player.GetLevel()
+	//! 工会技能经验加成
+	if player.HeroMoudle.GuildSkiLvl[8] > 0 {
+		expInc := gamedata.GetGuildSkillExpValue(player.HeroMoudle.GuildSkiLvl[8])
+		response.Exp += response.Exp * expInc / 1000
+	}
+
+	player.HeroMoudle.AddMainHeroExp(response.Exp)
+
+	//! 给予货币
+	player.RoleMoudle.AddMoney(copyInfo.MoneyID, copyInfo.MoneyNum*player.GetLevel())
+
+	response.MoneyID = copyInfo.MoneyID
+	response.MoneyNum = copyInfo.MoneyNum * player.GetLevel()
+	response.RetCode = msg.RE_SUCCESS
+	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(copyInfo.ActionType)
 	//! 限时日常相关
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ROB_TIMES, 1)
 
 }
 
 //! 玩家请求合成宝物
-func Hand_TreasureComposed(w http.ResponseWriter, r *http.Request) {
+func Hand_ComposedGem(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收消息
@@ -406,7 +509,7 @@ func Hand_TreasureComposed(w http.ResponseWriter, r *http.Request) {
 	r.Body.Read(buffer)
 
 	//! 解析消息
-	var req msg.MSG_TreasureComposed_Req
+	var req msg.MSG_ComposedGem_Req
 	err := json.Unmarshal(buffer, &req)
 	if err != nil {
 		gamelog.Error("Hand_TreasureComposed Unmarshal fail. Error: %s", err.Error())
@@ -414,7 +517,7 @@ func Hand_TreasureComposed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 创建回复
-	var response msg.MSG_TreasureComposed_Ack
+	var response msg.MSG_ComposedGem_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	defer func() {
 		b, _ := json.Marshal(&response)
@@ -544,126 +647,4 @@ func Hand_TreasureMelting(w http.ResponseWriter, r *http.Request) {
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
-}
-
-//! 一键抢夺
-func Hand_OneKeyRob(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message: %s", r.URL.String())
-
-	//! 接收消息
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-
-	//! 解析消息
-	var req msg.MSG_OneKeyRob_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_OneKeyRob Unmarshal fail. Error: %s", err.Error())
-		return
-	}
-
-	//! 创建回复
-	var response msg.MSG_OneKeyRob_Ack
-	response.RetCode = msg.RE_UNKNOWN_ERR
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-	}()
-
-	//! 常规检查
-	var player *TPlayer = nil
-	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
-	if player == nil {
-		return
-	}
-
-	//! 读取抢夺配置
-	config := gamedata.GetRobConfig()
-	if config == nil {
-		gamelog.Error("GetRobConfig nil.")
-		return
-	}
-
-	if player.RobModule.FreeWarTime != 0 { //! 主动抢夺, 则免战时间归零
-		player.RobModule.FreeWarTime = 0
-	}
-
-	//! 获取副本基本信息
-	copyInfo := gamedata.GetCopyBaseInfo(config.CopyID)
-	if copyInfo == nil {
-		gamelog.Error("GetCopyBaseInfo fail. CopyID: %d", config.CopyID)
-		return
-	}
-
-	gemInfo := gamedata.GetGemInfo(req.GemID)
-	if gemInfo == nil {
-		gamelog.Error("Hand_OneKeyRob Error: GetGemInfo nil id: %d", req.GemID)
-		response.RetCode = msg.RE_INVALID_PARAM
-		return
-	}
-
-	if req.IsUseItem == 1 {
-		if player.BagMoudle.GetNormalItemCount(101) <= 0 {
-			gamelog.Error("Hand_OneKeyRob Error:Add action item not enough")
-			response.RetCode = msg.RE_ITEM_NOT_ENOUGH
-			return
-		}
-
-		itemInfo := gamedata.GetItemInfo(101)
-
-		player.RoleMoudle.AddAction(copyInfo.ActionType, itemInfo.Data2)
-	}
-
-	for i := 0; i < len(gemInfo.PieceIDs); i++ {
-		response.PieceID = gemInfo.PieceIDs[i]
-		if player.BagMoudle.GetGemPieceCount(response.PieceID) > 0 {
-			continue //! 已有碎片跳过
-		}
-
-		if player.RoleMoudle.CheckActionEnough(copyInfo.ActionType, copyInfo.ActionValue) == false {
-			gamelog.Error("Hand_ArenaBattle Error: Action not enough")
-			response.RetCode = msg.RE_NOT_ENOUGH_ACTION
-			return
-		}
-
-		player.RoleMoudle.CostAction(copyInfo.ActionType, copyInfo.ActionValue)
-
-		response.RobSuccess = player.RobModule.RobNPC(response.PieceID)
-		if response.RobSuccess == true { //! 抢夺成功则给予碎片
-			player.BagMoudle.AddAwardItem(response.PieceID, 1)
-		}
-
-		//! 掉落物品
-		dropItem := gamedata.GetItemsFromAwardIDEx(copyInfo.AwardID)
-		if len(dropItem) != 3 {
-			gamelog.Error("Hand_RobTreasure GetItemsFromAwardIDEx fail. AwardID: %d", copyInfo.AwardID)
-			return
-		}
-
-		player.BagMoudle.AddAwardItem(dropItem[0].ItemID, dropItem[0].ItemNum)
-		response.ItemID, response.ItemNum = dropItem[0].ItemID, dropItem[0].ItemNum
-
-		//! 增加玩家经验
-		response.Exp = copyInfo.Experience * player.GetLevel()
-		//! 工会技能经验加成
-		if player.HeroMoudle.GuildSkiLvl[8] > 0 {
-			expInc := gamedata.GetGuildSkillExpValue(player.HeroMoudle.GuildSkiLvl[8])
-			response.Exp += response.Exp * expInc / 1000
-		}
-
-		player.HeroMoudle.AddMainHeroExp(response.Exp)
-
-		//! 给予货币
-		player.RoleMoudle.AddMoney(copyInfo.MoneyID, copyInfo.MoneyNum*player.GetLevel())
-
-		response.MoneyID = copyInfo.MoneyID
-		response.MoneyNum = copyInfo.MoneyNum * player.GetLevel()
-		response.RetCode = msg.RE_SUCCESS
-
-		break
-	}
-
-	//! 限时日常相关
-	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ROB_TIMES, 1)
-
 }

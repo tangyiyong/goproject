@@ -2,7 +2,11 @@ package utility
 
 import (
 	"crypto/md5"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/csv"
+	"encoding/hex"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,6 +40,7 @@ func GetCurrPath() string {
 
 	return G_CurPath
 }
+
 func GetCurrCsvPath() string {
 	if len(G_CurCsvPath) <= 0 {
 		file, _ := exec.LookPath(os.Args[0])
@@ -45,6 +50,7 @@ func GetCurrCsvPath() string {
 	}
 	return G_CurCsvPath
 }
+
 func GetCurrPath2() string {
 	file, _ := exec.LookPath(os.Args[0])
 	path, _ := filepath.Abs(file)
@@ -65,6 +71,7 @@ func IsDirExists(path string) bool {
 
 	return true
 }
+
 func LoadCsv(path string) ([][]string, error) {
 	file, err := os.Open(path)
 	defer file.Close()
@@ -87,6 +94,7 @@ func LoadCsv(path string) ([][]string, error) {
 	}
 	return records, nil
 }
+
 func UpdateCsv(path string, records [][]string) error {
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	defer file.Close()
@@ -106,6 +114,7 @@ func UpdateCsv(path string, records [][]string) error {
 	csvWriter.UseCRLF = true
 	return csvWriter.WriteAll(records)
 }
+
 func AppendCsv(path string, record []string) error {
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND, os.ModePerm)
 	defer file.Close()
@@ -141,11 +150,20 @@ func GetCurDay() uint32 {
 	return curday
 }
 
+func GetCurTime() int32 {
+	return int32(time.Now().Unix())
+}
+
+func GetTodayTime() int32 {
+	now := time.Now()
+	todayTime := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+	return int32(todayTime.Unix())
+}
+
 // Activity系统中：
 // 今天是奇数则 data[0]昨日积分、data[1]今日积分；偶数反之
 func GetCurDayMod() int {
 	day := time.Now().Unix() / 86400
-
 	return int(day % 2)
 }
 
@@ -178,11 +196,16 @@ func SetBit(value int, nPos uint8) int {
 	return value
 }
 
-func MsgDataCheck(buffer []byte) bool {
+func MsgDataCheck(buffer []byte, xorcode [4]byte) bool {
 	Lenth := len(buffer)
 	if Lenth <= 16 {
 		return false
 	}
+
+	for i := 0; i < Lenth; i++ {
+		buffer[i] ^= xorcode[i%4]
+	}
+
 	retmd5 := md5.Sum(buffer[:Lenth-16])
 	Lenth -= 16
 	for i := 0; i < 16; i++ {
@@ -197,4 +220,22 @@ func MsgDataCheck(buffer []byte) bool {
 func GetCurDayByUnix() uint32 {
 	day := time.Now().Unix() / 86400
 	return uint32(day)
+}
+
+//! 生成32位md5字串
+func GetMd5String(s string) string {
+	h := md5.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
+}
+
+//! 生成Guid字串
+func GetGuid() string {
+	b := make([]byte, 48)
+
+	if _, err := io.ReadFull(rand.Reader, b); err != nil {
+		return ""
+	}
+
+	return GetMd5String(base64.URLEncoding.EncodeToString(b))
 }

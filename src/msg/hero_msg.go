@@ -61,6 +61,20 @@ type MSG_ChangeBackHero_Ack struct {
 	FightValue int32 //战力
 }
 
+//玩家取下援军英雄
+//消息:/unset_backhero
+type MSG_UnsetBackHero_Req struct {
+	PlayerID   int32  //玩家ID
+	SessionKey string //Sessionkey
+	HeroID     int    //目标英雄ID
+	HeroPos    int    //目标位置
+}
+
+type MSG_UnsetBackHero_Ack struct {
+	RetCode    int   //返回码
+	FightValue int32 //战力
+}
+
 //玩家英雄突破
 //消息:/breakout_hero
 type MSG_BreakOut_Req struct {
@@ -146,7 +160,7 @@ type MSG_LevelUpNotify_Req struct {
 type MSG_LevelUpNotify_Ack struct {
 	RetCode    int   //返回码
 	Level      int   //新的等级
-	CurSvrTime int64 //当前的服务器时间
+	CurSvrTime int32 //当前的服务器时间
 	CurExp     int   //当前的经验值
 	FightValue int32 //战力
 }
@@ -154,17 +168,19 @@ type MSG_LevelUpNotify_Ack struct {
 //玩家设置觉醒道具
 //消息:/set_wake_item
 type MSG_SetWakeItem_Req struct {
-	PlayerID      int32       //玩家ID
-	SessionKey    string      //Sessionkey
-	TargetHero    Target_Hero //目标英雄
-	TargetItemPos int         //目标位置
-	SourceItemID  int         //觉醒道具ID
+	PlayerID   int32       //玩家ID
+	SessionKey string      //Sessionkey
+	TargetHero Target_Hero //目标英雄
+	Pos        int         //目标位置
+	ID         int         //觉醒道具ID
 
 }
 
 type MSG_SetWakeItem_Ack struct {
 	RetCode    int   //返回码
 	FightValue int32 //战力
+	Pos        int   //目标位置
+	ID         int   //觉醒道具ID
 }
 
 //玩家觉醒等级

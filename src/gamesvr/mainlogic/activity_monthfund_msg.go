@@ -46,14 +46,12 @@ func Hand_GetMonthFundStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, countDown := G_GlobalVariables.IsActivityTime(player.ActivityModule.MonthFund.ActivityID)
-
 	awardType := G_GlobalVariables.GetActivityAwardType(player.ActivityModule.MonthFund.ActivityID)
 	awardCount := gamedata.GetMonthFundAwardCount(awardType)
 
-	response.CountDown = countDown
+	response.CountDown = int(G_GlobalVariables.GetActivityData(player.ActivityModule.MonthFund.ActivityID).actEndTime)
 	response.Day = player.ActivityModule.MonthFund.Day
-	response.IsReceived = player.ActivityModule.MonthFund.AwardMark.Get(uint32(awardCount - response.Day + 1))
+	response.IsReceived = player.ActivityModule.MonthFund.AwardMark.Get(awardCount - response.Day + 1)
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -101,13 +99,13 @@ func Hand_ReceiveMonthFund(w http.ResponseWriter, r *http.Request) {
 	day := player.ActivityModule.MonthFund.Day
 	award := gamedata.GetMonthFundAward(awardType, awardCount-day+1)
 
-	if player.ActivityModule.MonthFund.AwardMark.Get(uint32(awardCount-day+1)) == true {
+	if player.ActivityModule.MonthFund.AwardMark.Get(awardCount-day+1) == true {
 		gamelog.Error("Hand_ReceiveMonthFund Error: Aleady receive award")
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
 	}
 
-	player.ActivityModule.MonthFund.AwardMark.Set(uint32(awardCount - day + 1))
+	player.ActivityModule.MonthFund.AwardMark.Set(int(awardCount - day + 1))
 	player.ActivityModule.MonthFund.DB_UpdateAwardMark()
 
 	player.BagMoudle.AddAwardItem(award.ItemID, award.ItemNum)

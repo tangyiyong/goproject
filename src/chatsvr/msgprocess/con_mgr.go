@@ -34,8 +34,8 @@ func Init() bool {
 	return true
 }
 
-func (guild *TGuildConns) Init(guildid int32) {
-	guild.connMap = make(map[int32]*tcpserver.TCPConn, 30)
+func (self *TGuildConns) Init(guildid int32) {
+	self.connMap = make(map[int32]*tcpserver.TCPConn, 30)
 }
 
 func GetConnByID(playerid int32) *tcpserver.TCPConn {
@@ -138,12 +138,12 @@ func SendMessageByID(playerid int32, msgid int16, extra int16, msgdata []byte) b
 	return pConn.WriteMsg(msgid, extra, msgdata)
 }
 
-func SendMessageByName(playername string, msgid int16, extra int16, msgdata []byte) bool {
+func SendMessageByName(name string, msgid int16, extra int16, msgdata []byte) bool {
 	G_ConnsMutex.Lock()
-	pConn, ok := G_NameConns[playername]
+	pConn, ok := G_NameConns[name]
 	if !ok {
 		G_ConnsMutex.Unlock()
-		gamelog.Error("SendMessageByName Invalid name : %s", playername)
+		gamelog.Error("SendMessageByName Invalid name : %s", name)
 		return false
 	}
 	G_ConnsMutex.Unlock()

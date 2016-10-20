@@ -4,14 +4,13 @@ import (
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"math/rand"
 	"mongodb"
 	"msg"
 	"sync"
 	"time"
 	"utility"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type TSangokuMusouAttrData struct {
@@ -73,7 +72,7 @@ func (self *TSangokuMusouModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerSangokuMusou", self)
+	mongodb.InsertToDB("PlayerSangokuMusou", self)
 }
 
 func (self *TSangokuMusouModule) CheckReset() {
@@ -93,7 +92,7 @@ func (self *TSangokuMusouModule) OnNewDay(newday uint32) {
 
 	//! 刷新物品购买次数
 	for i, v := range self.BuyRecord {
-		item := gamedata.GetSangokumusouStoreInfo(v.ID)
+		item := gamedata.GetSangokumusouStoreInfo(int(v.ID))
 		if item.ItemType != 4 && item.BuyTimes != 0 {
 			self.BuyRecord[i].Times = 0
 		}
@@ -136,7 +135,7 @@ func (self *TSangokuMusouModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup
 //! 获取物品购买次数
 func (self *TSangokuMusouModule) GetItemBuyTimes(id int) int {
 	for _, v := range self.BuyRecord {
-		if v.ID == id {
+		if int(v.ID) == id {
 			return v.Times
 		}
 	}
@@ -170,7 +169,7 @@ func (self *TSangokuMusouModule) RedTip() bool {
 		if v.ItemType == 4 && self.HistoryStar >= v.NeedStar && self.ownplayer.GetLevel() >= v.NeedLevel {
 			isExist := false
 			for _, n := range self.BuyRecord {
-				if n.ID == v.ID {
+				if int(n.ID) == v.ID {
 					isExist = true
 					break
 				}
@@ -413,7 +412,7 @@ func (self *TSangokuMusouModule) ResetCopy() {
 
 func (self *TSangokuMusouModule) IsShoppingInfoExist(id int) bool {
 	for _, v := range self.BuyRecord {
-		if v.ID == id {
+		if int(v.ID) == id {
 			return true
 		}
 	}

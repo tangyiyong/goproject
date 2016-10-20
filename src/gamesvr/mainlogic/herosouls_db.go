@@ -2,8 +2,10 @@ package mainlogic
 
 import (
 	"fmt"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+	"msg"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 func (self *THeroSoulsModule) DB_SaveHeroSoulsLst() {
@@ -19,7 +21,7 @@ func (self *THeroSoulsModule) DB_SaveHeroSoulsStoreLst() {
 
 func (self *THeroSoulsModule) DB_SaveHeroSoulsRefreshMark() {
 	mongodb.UpdateToDB("PlayerHeroSouls", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"refreshstoretimemark": self.RefreshStoreTimeMark}})
+		"storemark": self.StoreMark}})
 }
 
 func (self *THeroSoulsModule) DB_UpdateHeroSoulsMark(index int) {
@@ -28,7 +30,7 @@ func (self *THeroSoulsModule) DB_UpdateHeroSoulsMark(index int) {
 		filedName: false}})
 }
 
-func (self *THeroSoulsModule) DB_AddHeroSoulsLink(link THeroSoulsLink) {
+func (self *THeroSoulsModule) DB_AddHeroSoulsLink(link msg.MSG_HeroSoulsLink) {
 	mongodb.UpdateToDB("PlayerHeroSouls", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"herosoulslink": link}})
 }
 
@@ -55,21 +57,21 @@ func (self *THeroSoulsModule) DB_UpdateTargetIndex() {
 
 func (self *THeroSoulsModule) DB_Reset() {
 	mongodb.UpdateToDB("PlayerHeroSouls", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"buychallengetimes":    self.BuyChallengeTimes,
-		"refreshstoretimemark": self.RefreshStoreTimeMark,
-		"challengetimes":       self.ChallengeTimes,
-		"resetday":             self.ResetDay}})
+		"buytimes":  self.BuyTimes,
+		"storemark": self.StoreMark,
+		"lefttimes": self.LeftTimes,
+		"resetday":  self.ResetDay}})
 }
 
 func (self *THeroSoulsModule) DB_UpdateChallengeHeroSoulsTimes() {
 	mongodb.UpdateToDB("PlayerHeroSouls", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"challengetimes": self.ChallengeTimes}})
+		"lefttimes": self.LeftTimes}})
 }
 
 func (self *THeroSoulsModule) DB_BuyChallengeHeroSoulsTimes() {
 	mongodb.UpdateToDB("PlayerHeroSouls", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"buychallengetimes": self.BuyChallengeTimes,
-		"challengetimes":    self.ChallengeTimes}})
+		"buytimes":  self.BuyTimes,
+		"lefttimes": self.LeftTimes}})
 }
 
 func (self *THeroSoulsModule) DB_UpdateStoreGoodsStatus(index int, status bool) {

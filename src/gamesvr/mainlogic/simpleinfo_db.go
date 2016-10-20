@@ -15,7 +15,7 @@ func (simple *TSimpleInfoMgr) DB_SetPlayerName(playerid int32, name string) {
 	return
 }
 
-func (simple *TSimpleInfoMgr) DB_SetLogoffTime(playerid int32, time int64) {
+func (simple *TSimpleInfoMgr) DB_SetLogoffTime(playerid int32, time int32) {
 	mongodb.UpdateToDB("PlayerSimple", &bson.M{"_id": playerid}, &bson.M{"$set": bson.M{"logofftime": time}})
 	return
 }

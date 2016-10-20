@@ -18,7 +18,7 @@ type TVipWeekItem struct {
 
 //! VIP礼包活动
 type TActivityVipGift struct {
-	ActivityID int //! 活动ID
+	ActivityID int32 //! 活动ID
 
 	IsRecvWelfare bool           //! 是否领取日常礼包
 	WeekGift      []TVipWeekItem //! VIP每周礼包
@@ -36,7 +36,7 @@ func (self *TActivityVipGift) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityVipGift) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityVipGift) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.VersionCode = vercode

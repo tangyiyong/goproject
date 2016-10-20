@@ -8,7 +8,7 @@ type MSG_FriendInfo struct {
 	GuildName  string //军团名字
 	FightValue int32  //战力
 	Level      int    //等级
-	OffTime    int64  //离线时间 >0表示离线，==0表示在线
+	OffTime    int32  //离线时间 >0表示离线，==0表示在线
 	IsGive     int    //0:表示未赠送, 1:表示己赠送
 	HasAct     int    //0:表没有未领取， 1:表示有未领取
 }
@@ -103,7 +103,7 @@ type MSG_ReceiveAction_Req struct {
 type MSG_ReceiveAction_Ack struct {
 	RetCode     int
 	ActionValue int              //! 行动力值
-	ActionTime  int64            //! 行动力恢复起始时间
+	ActionTime  int32            //! 行动力恢复起始时间
 	RcvNum      int              //己领个数
 	FriendLst   []MSG_FriendInfo //好友列表
 }

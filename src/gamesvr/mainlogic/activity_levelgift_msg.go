@@ -58,7 +58,7 @@ func Hand_GetLevelGiftInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 因为查看了购买列表, 将新商品标记置位false
-	player.ActivityModule.LevelGift.IsHaveNewItem = false
+	player.ActivityModule.LevelGift.HaveNew = false
 	player.ActivityModule.LevelGift.DB_UpdateNewItemMark()
 
 	response.RetCode = msg.RE_SUCCESS
@@ -106,15 +106,15 @@ func Hand_BuyLevelGift(w http.ResponseWriter, r *http.Request) {
 	awardType := G_GlobalVariables.GetActivityAwardType(player.ActivityModule.LevelGift.ActivityID)
 
 	//! 获取等级礼包信息
-	levelGift := player.ActivityModule.LevelGift.GetLevelGiftInfo(req.GiftID)
+	levelGift := player.ActivityModule.LevelGift.GetLevelGift(req.GiftID)
 	if levelGift == nil {
 		gamelog.Error("Hand_BuyLevelGift Error: Not find gift info. id: %d", req.GiftID)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
 
-	if levelGift.BuyTimes <= 0 {
-		gamelog.Error("Hand_BuyLevelGift Error: BuyTimes not enough")
+	if levelGift.BuyTimes < req.Times {
+		gamelog.Error("Hand_BuyLevelGift Error: BuyTimes not enough, left:%d, req:%d", levelGift.BuyTimes, req.Times)
 		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 		return
 	}
@@ -129,29 +129,30 @@ func Hand_BuyLevelGift(w http.ResponseWriter, r *http.Request) {
 	if levelGiftInfo.MoneyID != 0 {
 		//! 收费领取
 		//! 检测货币是否足够
-		if player.RoleMoudle.CheckMoneyEnough(levelGiftInfo.MoneyID, levelGiftInfo.MoneyNum) == false {
+		if player.RoleMoudle.CheckMoneyEnough(levelGiftInfo.MoneyID, levelGiftInfo.MoneyNum*req.Times) == false {
 			gamelog.Error("Hand_BuyLevelGift Error: Not enough money ID: %d", req.GiftID)
 			response.RetCode = msg.RE_NOT_ENOUGH_MONEY
 			return
 		}
 
 		//! 扣除货币
-		player.RoleMoudle.CostMoney(levelGiftInfo.MoneyID, levelGiftInfo.MoneyNum)
+		player.RoleMoudle.CostMoney(levelGiftInfo.MoneyID, levelGiftInfo.MoneyNum*req.Times)
 		response.CostMoneyID = levelGiftInfo.MoneyID
 		response.CostMoneyNum = levelGiftInfo.MoneyNum
 	}
 
-	levelGift.BuyTimes -= 1
+	levelGift.BuyTimes -= req.Times
 	player.ActivityModule.LevelGift.DB_UpdateBuyTimes(levelGift.GiftID, levelGift.BuyTimes)
 	response.BuyTimes = levelGift.BuyTimes
 
 	//! 给予商品
 	awardLst := gamedata.GetItemsFromAwardID(levelGiftInfo.Award)
-	player.BagMoudle.AddAwardItems(awardLst)
-
-	for _, v := range awardLst {
-		response.AwardItem = append(response.AwardItem,
-			msg.MSG_ItemData{v.ItemID, v.ItemNum})
+	for t := 0; t < req.Times; t++ {
+		player.BagMoudle.AddAwardItems(awardLst)
+		for _, v := range awardLst {
+			response.AwardItem = append(response.AwardItem,
+				msg.MSG_ItemData{v.ItemID, v.ItemNum})
+		}
 	}
 
 	response.RetCode = msg.RE_SUCCESS

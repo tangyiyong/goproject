@@ -37,9 +37,9 @@ func GetRandNum(num int) int {
 
 //! 挖矿元素表
 type ST_MiningElement struct {
-	Element     int //! 元素
-	Probability int //! 随机概率
-	ItemID      int //! 物品ID
+	Element     int32 //! 元素
+	Probability int   //! 随机概率
+	ItemID      int   //! 物品ID
 }
 
 //! 精炼石随机表
@@ -54,9 +54,9 @@ type ST_MiningStoneNumberRandom struct {
 //! 怪物随机表
 type ST_MiningMonster struct {
 	ID          int
-	Event       int //! 事件ID
-	CopyID      int //! 战斗副本ID
-	MinLevel    int //! 等级区间取值
+	Event       int32 //! 事件ID
+	CopyID      int   //! 战斗副本ID
+	MinLevel    int   //! 等级区间取值
 	MaxLevel    int
 	MonsterLife int //! 怪物血量
 }
@@ -116,7 +116,7 @@ func InitMiningElementParser(total int) bool {
 
 func ParseMiningElementRecord(rs *RecordSet) {
 	element := CheckAtoi(rs.Values[0], 0)
-	GT_MiningElementLst[element].Element = element
+	GT_MiningElementLst[element].Element = int32(element)
 	GT_MiningElementLst[element].Probability = rs.GetFieldInt("probability")
 	GT_MiningElementLst[element].ItemID = rs.GetFieldInt("itemid")
 }
@@ -133,7 +133,7 @@ func GetMiningElementInfo(id int) (element *ST_MiningElement) {
 }
 
 //! 随机一个元素
-func RandMiningElement() (element int) {
+func RandMiningElement() (element int32) {
 	randValue := GetRandNum(1000)
 	curPro := 0
 	for _, v := range GT_MiningElementLst {
@@ -148,10 +148,10 @@ func RandMiningElement() (element int) {
 
 //! 挖矿事件表
 type ST_MiningEvent struct {
-	Event       int //! 事件
-	Probability int //! 随机概率
-	Value1      int //! 配置值
-	Value2      int //! 配置值  扫描 -> Value1 = 长 Value2 = 宽
+	Event       int32 //! 事件
+	Probability int   //! 随机概率
+	Value1      int   //! 配置值
+	Value2      int   //! 配置值  扫描 -> Value1 = 长 Value2 = 宽
 }
 
 func InitMiningEventParser(total int) bool {
@@ -161,18 +161,17 @@ func InitMiningEventParser(total int) bool {
 
 func ParserMiningEventRecord(rs *RecordSet) {
 	event := CheckAtoi(rs.Values[0], 0)
-	GT_MiningEventLst[event].Event = event
+	GT_MiningEventLst[event].Event = int32(event)
 	GT_MiningEventLst[event].Probability = rs.GetFieldInt("probability")
 	GT_MiningEventLst[event].Value1 = rs.GetFieldInt("value1")
 	GT_MiningEventLst[event].Value2 = rs.GetFieldInt("value2")
 }
 
 //! 获取矿洞事件信息
-func GetMiningEventInfo(id int) (event *ST_MiningEvent) {
-
+func GetMiningEventInfo(id int32) (event *ST_MiningEvent) {
 	id = id - MiningElement_Event
-	if id > len(GT_MiningEventLst)-1 {
-		gamelog.Error("GetMiningEventInfoLst fail. Invalid id: %d", id)
+	if int(id) > len(GT_MiningEventLst)-1 {
+		gamelog.Error("GetMiningEventInfo fail. Invalid id: %d", id)
 		return nil
 	}
 	event = &GT_MiningEventLst[id]
@@ -180,7 +179,7 @@ func GetMiningEventInfo(id int) (event *ST_MiningEvent) {
 }
 
 //! 随机一个事件
-func RandMimingEvent() int {
+func RandMimingEvent() int32 {
 	randValue := GetRandNum(1000)
 	curPro := 0
 	for _, v := range GT_MiningEventLst {
@@ -373,7 +372,7 @@ func InitMiningEventMonsterPerser(total int) bool {
 func ParseMiningEventMonsterRecord(rs *RecordSet) {
 	id := CheckAtoi(rs.Values[0], 0)
 	GT_MiningMonsterLst[id].ID = id
-	GT_MiningMonsterLst[id].Event = rs.GetFieldInt("event")
+	GT_MiningMonsterLst[id].Event = int32(rs.GetFieldInt("event"))
 	GT_MiningMonsterLst[id].CopyID = rs.GetFieldInt("copyid")
 	GT_MiningMonsterLst[id].MonsterLife = rs.GetFieldInt("life")
 	GT_MiningMonsterLst[id].MaxLevel = rs.GetFieldInt("maxlevel")
@@ -381,7 +380,7 @@ func ParseMiningEventMonsterRecord(rs *RecordSet) {
 }
 
 //! 随机矿洞怪物
-func RandMiningMonster(event int, level int) int {
+func RandMiningMonster(event int32, level int) int {
 	for _, v := range GT_MiningMonsterLst {
 		if v.Event == event {
 			if level >= v.MinLevel && level <= v.MaxLevel {

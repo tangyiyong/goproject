@@ -28,7 +28,7 @@ type TFestivalSale struct {
 
 //! 节日欢庆
 type TActivityFestival struct {
-	ActivityID int //! 活动ID
+	ActivityID int32 //! 活动ID
 
 	TaskLst     []TFestivalTask           //! 任务链
 	ExchangeLst []TFestivalExchangeRecord //! 兑换记录
@@ -46,7 +46,7 @@ func (self *TActivityFestival) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityFestival) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityFestival) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr

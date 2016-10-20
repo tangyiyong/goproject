@@ -8,14 +8,11 @@ import (
 
 //! 月基金
 type TActivityMonthFund struct {
-	ActivityID int //! 活动ID
-
-	Day       int  //! 基金领取天数
-	AwardMark Mark //! 基金领取标记
-
-	VersionCode int32 //! 版本号
-	ResetCode   int32 //! 迭代号
-
+	ActivityID     int32            //! 活动ID
+	Day            int              //! 基金领取天数
+	AwardMark      BitsType         //! 基金领取标记
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 
@@ -26,13 +23,11 @@ func (self *TActivityMonthFund) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityMonthFund) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityMonthFund) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
-
 	self.Day = 0
-
 	self.activityModule.activityPtrs[activityID] = self
 	self.VersionCode = vercode
 	self.ResetCode = resetcode
@@ -83,7 +78,7 @@ func (self *TActivityMonthFund) RedTip() bool {
 	awardType := G_GlobalVariables.GetActivityAwardType(self.ActivityID)
 	awardCount := gamedata.GetMonthFundAwardCount(awardType)
 
-	if self.AwardMark.Get(uint32(awardCount-self.Day+1)) == false { //! 今日奖励未领取
+	if self.AwardMark.Get(awardCount-self.Day+1) == false { //! 今日奖励未领取
 		return true
 	}
 
@@ -100,12 +95,7 @@ func (self *TActivityMonthFund) SetMonthFund(rmb int) {
 		return //! 活动尚未开启
 	}
 
-	if len(self.activityModule.MonthCard.CardDays) < 3 {
-		return
-	}
-
-	if self.activityModule.MonthCard.CardDays[1] == 0 ||
-		self.activityModule.MonthCard.CardDays[2] == 0 {
+	if self.activityModule.MonthCard.CardDays[0] == 0 || self.activityModule.MonthCard.CardDays[1] == 0 {
 		//! 必须激活双月卡
 		return
 	}
@@ -126,7 +116,7 @@ func (self *TActivityMonthFund) AwardRetroactive() {
 
 	awardLst := []gamedata.ST_ItemData{}
 	for i := 1; i <= awardCount; i++ {
-		if self.AwardMark.Get(uint32(i)) == false {
+		if self.AwardMark.Get(i) == false {
 			//! 加入补发奖励名单
 			fundInfo := gamedata.GetMonthFundAward(awardType, i)
 			awardLst = append(awardLst, gamedata.ST_ItemData{fundInfo.ItemID, fundInfo.ItemNum})

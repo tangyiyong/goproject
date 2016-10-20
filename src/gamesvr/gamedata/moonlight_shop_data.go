@@ -6,39 +6,42 @@ import (
 )
 
 //！ 月光币兑换表
-type TMoonlightShopExchangeCsv struct {
-	ID         int
-	GetToken   int
-	CostType   int
-	CostNum    int
-	DailyTimes byte
+type ST_MoonShopExchangeInfo struct {
+	ID          int
+	ItemID      int
+	ItemNum     int
+	CostMoneyID int
+	CostNum     int
+	DailyTimes  byte
 }
 
-var G_MoonlightShopExchangeCsv []TMoonlightShopExchangeCsv
+var G_MoonShopExchg_List []ST_MoonShopExchangeInfo
+var MoonShop_Money_ID = 0
 
-func InitMoonlightShopExchangeCsv(total int) bool {
-	G_MoonlightShopExchangeCsv = make([]TMoonlightShopExchangeCsv, total+1)
+func InitMoonShopExchgParser(total int) bool {
+	G_MoonShopExchg_List = make([]ST_MoonShopExchangeInfo, total+1)
 	return true
 }
-func ParseMoonlightShopExchangeCsv(rs *RecordSet) {
+func ParseMoontShopExchgRecord(rs *RecordSet) {
 	id := CheckAtoi(rs.Values[0], 0)
-	data := &G_MoonlightShopExchangeCsv[id]
-	data.ID = id
-	data.GetToken = rs.GetFieldInt("get_token")
-	data.CostType = rs.GetFieldInt("cost_type")
-	data.CostNum = rs.GetFieldInt("cost_num")
-	data.DailyTimes = byte(rs.GetFieldInt("daily_times"))
+	G_MoonShopExchg_List[id].ID = id
+	G_MoonShopExchg_List[id].ItemID = rs.GetFieldInt("item_id")
+	G_MoonShopExchg_List[id].ItemNum = rs.GetFieldInt("item_num")
+	G_MoonShopExchg_List[id].CostMoneyID = rs.GetFieldInt("cost_money_id")
+	G_MoonShopExchg_List[id].CostNum = rs.GetFieldInt("cost_num")
+	G_MoonShopExchg_List[id].DailyTimes = byte(rs.GetFieldInt("daily_times"))
+	MoonShop_Money_ID = G_MoonShopExchg_List[id].ItemID
 }
-func GetMoonlightShopExchangeCsv(id int) *TMoonlightShopExchangeCsv {
-	if id <= 0 || id >= len(G_MoonlightShopExchangeCsv) {
-		gamelog.Error("GetMoonlightShopExchangeCsv Error: Invalid ID:%d", id)
+func GetMoonShopExchgInfo(id int) *ST_MoonShopExchangeInfo {
+	if id <= 0 || id >= len(G_MoonShopExchg_List) {
+		gamelog.Error("GetMoonShopExchgInfo Error: Invalid ID:%d", id)
 		return nil
 	}
-	return &G_MoonlightShopExchangeCsv[id]
+	return &G_MoonShopExchg_List[id]
 }
 
 //！ 商品表
-type TMoonlightGoodsCsv struct {
+type ST_MoonGoodsInfo struct {
 	ID          int
 	AwardType   int
 	ItemID      int
@@ -51,17 +54,17 @@ type TMoonlightGoodsCsv struct {
 	isSelected  bool // 做随机用的填充变量
 }
 
-var G_MoonlightGoodsCsv []TMoonlightGoodsCsv
-var G_MoonlightGoods_Type map[int][]*TMoonlightGoodsCsv // [活动AwardType] = 商品列表
+var G_MoonGoods_List []ST_MoonGoodsInfo
+var G_MoonlightGoods_Type map[int][]*ST_MoonGoodsInfo // [活动AwardType] = 商品列表
 
-func InitMoonlightGoodsCsv(total int) bool {
-	G_MoonlightGoodsCsv = make([]TMoonlightGoodsCsv, total+1)
-	G_MoonlightGoods_Type = make(map[int][]*TMoonlightGoodsCsv)
+func InitMoonGoodsParser(total int) bool {
+	G_MoonGoods_List = make([]ST_MoonGoodsInfo, total+1)
+	G_MoonlightGoods_Type = make(map[int][]*ST_MoonGoodsInfo)
 	return true
 }
-func ParseMoonlightGoodsCsv(rs *RecordSet) {
+func ParseMoonGoodsRecord(rs *RecordSet) {
 	id := CheckAtoi(rs.Values[0], 0)
-	data := &G_MoonlightGoodsCsv[id]
+	data := &G_MoonGoods_List[id]
 	data.ID = id
 	data.AwardType = rs.GetFieldInt("award_type")
 	data.ItemID = rs.GetFieldInt("itemid")
@@ -74,14 +77,14 @@ func ParseMoonlightGoodsCsv(rs *RecordSet) {
 
 	G_MoonlightGoods_Type[data.AwardType] = append(G_MoonlightGoods_Type[data.AwardType], data)
 }
-func GetMoonlightGoodsCsv(id int) *TMoonlightGoodsCsv {
-	if id <= 0 || id >= len(G_MoonlightGoodsCsv) {
-		gamelog.Error("GetMoonlightGoodsCsv Error: Invalid ID:%d", id)
+func GetMoonGoodsInfo(id int) *ST_MoonGoodsInfo {
+	if id <= 0 || id >= len(G_MoonGoods_List) {
+		gamelog.Error("v Error: Invalid ID:%d", id)
 		return nil
 	}
-	return &G_MoonlightGoodsCsv[id]
+	return &G_MoonGoods_List[id]
 }
-func RandSelect_MoonlightGoods(activityID int, selectCnt int) (ret []int) {
+func RandSelect_MoonlightGoods(activityID int32, selectCnt int) (ret []int) {
 	csv := GetActivityInfo(activityID)
 	if csv == nil {
 		gamelog.Error("RandSelect_MoonlightGoods GetActivityInfo() Error: ActivityID:%d", activityID)
@@ -120,7 +123,7 @@ func RandSelect_MoonlightGoods(activityID int, selectCnt int) (ret []int) {
 }
 
 //! 积分奖励表
-type TMoonlightAwardCsv struct {
+type ST_MoonAwardInfo struct {
 	ID        int
 	AwardType int
 	ItemID    int
@@ -128,30 +131,25 @@ type TMoonlightAwardCsv struct {
 	NeedScore int
 }
 
-var G_MoonlightAwardCsv []TMoonlightAwardCsv
+var G_MoonAward_List []ST_MoonAwardInfo
 
-func InitMoonlightShopAwardCsv(total int) bool {
-	total++
-	if total >= 64 {
-		gamelog.Error("MoonlightShopAward Init Error: length must less then 64") // 使用位标记，记录领奖情况
-	}
-
-	G_MoonlightAwardCsv = make([]TMoonlightAwardCsv, total)
+func InitMoonShopAwardParser(total int) bool {
+	G_MoonAward_List = make([]ST_MoonAwardInfo, total+1)
 	return true
 }
-func ParseMoonlightShopAwardCsv(rs *RecordSet) {
+func ParseMoonShopAwardRecord(rs *RecordSet) {
 	id := CheckAtoi(rs.Values[0], 0)
-	data := &G_MoonlightAwardCsv[id]
+	data := &G_MoonAward_List[id]
 	data.ID = id
 	data.AwardType = rs.GetFieldInt("award_type")
 	data.ItemID = rs.GetFieldInt("itemid")
 	data.ItemNum = rs.GetFieldInt("itemnum")
 	data.NeedScore = rs.GetFieldInt("need_score")
 }
-func GetMoonlightShopAwardCsv(id int) *TMoonlightAwardCsv {
-	if id <= 0 || id >= len(G_MoonlightAwardCsv) {
-		gamelog.Error("GetMoonlightShopAwardCsv Error: Invalid ID:%d", id)
+func GetMoonShopAwardInfo(id int) *ST_MoonAwardInfo {
+	if id <= 0 || id >= len(G_MoonAward_List) {
+		gamelog.Error("GetMoonShopAwardInfo Error: Invalid ID:%d", id)
 		return nil
 	}
-	return &G_MoonlightAwardCsv[id]
+	return &G_MoonAward_List[id]
 }

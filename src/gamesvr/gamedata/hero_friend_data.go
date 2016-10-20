@@ -37,10 +37,12 @@ func GetHeroFriendInfo(level int) (pInfo *ST_HeroFriendInfo) {
 		gamelog.Error("GetHeroFriendInfo Error: Invalid level:%d", level)
 		return
 	}
+
 	pInfo = nil
 	for i := 0; i < len(GT_HeroFriend_List); i++ {
-		pInfo = &GT_HeroFriend_List[i]
-		if level < GT_HeroFriend_List[i].Level {
+		if level > GT_HeroFriend_List[i].Level {
+			pInfo = &GT_HeroFriend_List[i]
+		} else {
 			break
 		}
 	}

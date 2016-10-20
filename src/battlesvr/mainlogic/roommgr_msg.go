@@ -216,7 +216,7 @@ func (self *TRoomMgr) Hand_Disconnect(pTcpConn *tcpserver.TCPConn, pdata []byte)
 
 	var tmsg TMessage
 	tmsg.MsgID = msg.MSG_LEAVE_BY_DISCONNT
-	tmsg.MsgData = make([]byte, 4)
+	tmsg.MsgData = make([]byte, 0, 4)
 	tmsg.MsgData = append(tmsg.MsgData, byte(pTcpConn.ConnID), byte(pTcpConn.ConnID>>8), byte(pTcpConn.ConnID>>16), byte(pTcpConn.ConnID>>24))
 	pRoom.MsgList <- tmsg
 	return

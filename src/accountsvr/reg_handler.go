@@ -19,7 +19,7 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/bind_tourist", mainlogic.Handle_BindTourist)
 
 	//玩家请求服务器列表
-	http.HandleFunc("/serverlist", mainlogic.Handle_ServerList)
+	http.HandleFunc("/get_serverlist", mainlogic.Handle_GetServerList)
 
 	//游戏服务器查询用户是否己登录
 	http.HandleFunc("/verifyuserlogin", mainlogic.Handle_VerifyUserLogin)
@@ -27,10 +27,20 @@ func RegHttpMsgHandler() {
 	//游戏服务器注册
 	http.HandleFunc("/reggameserver", mainlogic.Handle_RegisterGameSvr)
 
+	//获取游戏公告
+	http.HandleFunc("/get_game_public", mainlogic.Handle_GetGamePublic)
+
+	//游戏服查询激活码状态并领取激活码
+	http.HandleFunc("/gamesvr_giftcode", mainlogic.Handle_GameSvrGiftCode)
+
 	//以下是GM后台的指令
-	http.HandleFunc("/set_gamesvr_flag", mainlogic.Handle_SetGamesvrFlag)
-	http.HandleFunc("/get_server_list", mainlogic.Handle_GetServerList)
+	http.HandleFunc("/gm_set_svrstate", mainlogic.Handle_SetGameSvrState)
+	http.HandleFunc("/gm_server_list", mainlogic.Handle_GmServerList)
 	http.HandleFunc("/gm_login", mainlogic.Handle_GmLogin)
+	http.HandleFunc("/gm_enable_account", mainlogic.Handle_GmEnableAccount)
+	http.HandleFunc("/gm_add_giftaward", mainlogic.Handle_AddGiftAward)
+	http.HandleFunc("/gm_make_giftcode", mainlogic.Handle_MakeGiftCode)
+	http.HandleFunc("/get_account_info", mainlogic.Handle_GetPlayerInfo)
 }
 
 //注册TCP处理消息

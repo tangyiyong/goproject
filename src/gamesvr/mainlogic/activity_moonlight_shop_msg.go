@@ -15,14 +15,14 @@ type MSG_MoonlightShop_GetInfo_Ack struct {
 }
 type MSG_MoonlightShop_RefreshShop_Buy_Ack struct {
 	RetCode int
-	Goods   [MoonlightShop_Goods_Num]TMoonlightGoods
+	Goods   [MoonShop_Num]TMoonlightGoods
 }
 type MSG_MoonlightShop_RefreshShop_Auto_Ack struct {
 	RetCode int
-	Goods   [MoonlightShop_Goods_Num]TMoonlightGoods
+	Goods   [MoonShop_Num]TMoonlightGoods
 }
 
-func Hand_MoonlightShop_GetInfo(w http.ResponseWriter, r *http.Request) {
+func Hand_GetMoonhopData(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收信息
@@ -54,7 +54,7 @@ func Hand_MoonlightShop_GetInfo(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
-	info := &player.ActivityModule.MoonlightShop
+	info := &player.ActivityModule.MoonShop
 
 	//! 检测当前是否有此活动
 	if G_GlobalVariables.IsActivityOpen(info.ActivityID) == false {
@@ -67,7 +67,7 @@ func Hand_MoonlightShop_GetInfo(w http.ResponseWriter, r *http.Request) {
 	response.Shop = *info.GetShopDtad()
 	response.RetCode = msg.RE_SUCCESS
 }
-func Hand_MoonlightShop_ExchangeToken(w http.ResponseWriter, r *http.Request) {
+func Hand_MoonShop_Exchange(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收信息
@@ -99,19 +99,17 @@ func Hand_MoonlightShop_ExchangeToken(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
-	info := &player.ActivityModule.MoonlightShop
-
 	//! 检测当前是否有此活动
-	if G_GlobalVariables.IsActivityOpen(info.ActivityID) == false {
+	if G_GlobalVariables.IsActivityOpen(player.ActivityModule.MoonShop.ActivityID) == false {
 		response.RetCode = msg.RE_ACTIVITY_NOT_OPEN
 		return
 	}
 
-	if info.ExchangeToken(player, req.ExchangeID) {
+	if player.ActivityModule.MoonShop.ExchangeMoonMoney(player, req.ExchangeID) {
 		response.RetCode = msg.RE_SUCCESS
 	}
 }
-func Hand_MoonlightShop_ReduceDiscount(w http.ResponseWriter, r *http.Request) {
+func Hand_MoonShop_ReduceDiscount(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收信息
@@ -143,7 +141,7 @@ func Hand_MoonlightShop_ReduceDiscount(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
-	info := &player.ActivityModule.MoonlightShop
+	info := &player.ActivityModule.MoonShop
 
 	//! 检测当前是否有此活动
 	if G_GlobalVariables.IsActivityOpen(info.ActivityID) == false {
@@ -157,7 +155,7 @@ func Hand_MoonlightShop_ReduceDiscount(w http.ResponseWriter, r *http.Request) {
 		response.RetCode = msg.RE_SUCCESS
 	}
 }
-func Hand_MoonlightShop_RefreshShop_Buy(w http.ResponseWriter, r *http.Request) {
+func Hand_MoonShop_RefreshShop_Buy(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收信息
@@ -189,7 +187,7 @@ func Hand_MoonlightShop_RefreshShop_Buy(w http.ResponseWriter, r *http.Request) 
 
 	player.ActivityModule.CheckReset()
 
-	shop := &player.ActivityModule.MoonlightShop
+	shop := &player.ActivityModule.MoonShop
 
 	//! 检测当前是否有此活动
 	if G_GlobalVariables.IsActivityOpen(shop.ActivityID) == false {
@@ -204,7 +202,7 @@ func Hand_MoonlightShop_RefreshShop_Buy(w http.ResponseWriter, r *http.Request) 
 	}
 	response.Goods = shop.Goods
 }
-func Hand_MoonlightShop_RefreshShop_Auto(w http.ResponseWriter, r *http.Request) {
+func Hand_MoonShop_RefreshShop(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收信息
@@ -236,7 +234,7 @@ func Hand_MoonlightShop_RefreshShop_Auto(w http.ResponseWriter, r *http.Request)
 
 	player.ActivityModule.CheckReset()
 
-	shop := &player.ActivityModule.MoonlightShop
+	shop := &player.ActivityModule.MoonShop
 
 	//! 检测当前是否有此活动
 	if G_GlobalVariables.IsActivityOpen(shop.ActivityID) == false {
@@ -249,7 +247,7 @@ func Hand_MoonlightShop_RefreshShop_Auto(w http.ResponseWriter, r *http.Request)
 	}
 	response.Goods = shop.Goods
 }
-func Hand_MoonlightShop_BuyGoods(w http.ResponseWriter, r *http.Request) {
+func Hand_MoonShop_BuyGoods(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收信息
@@ -281,7 +279,7 @@ func Hand_MoonlightShop_BuyGoods(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
-	shop := &player.ActivityModule.MoonlightShop
+	shop := &player.ActivityModule.MoonShop
 
 	//! 检测当前是否有此活动
 	if G_GlobalVariables.IsActivityOpen(shop.ActivityID) == false {
@@ -293,7 +291,7 @@ func Hand_MoonlightShop_BuyGoods(w http.ResponseWriter, r *http.Request) {
 		response.RetCode = msg.RE_SUCCESS
 	}
 }
-func Hand_MoonlightShop_GetScoreAward(w http.ResponseWriter, r *http.Request) {
+func Hand_MoonShop_GetScoreAward(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收信息
@@ -325,7 +323,7 @@ func Hand_MoonlightShop_GetScoreAward(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
-	shop := &player.ActivityModule.MoonlightShop
+	shop := &player.ActivityModule.MoonShop
 
 	//! 检测当前是否有此活动
 	if G_GlobalVariables.IsActivityOpen(shop.ActivityID) == false {

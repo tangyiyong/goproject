@@ -6,14 +6,14 @@ import (
 	"gamesvr/gamedata"
 	"mongodb"
 	"sync"
-	"time"
+	"utility"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
 type TAction struct {
-	Value     int
-	StartTime int64
+	Value int
+	Time  int32
 }
 
 //角色基本数据表结构
@@ -26,7 +26,7 @@ type TRoleMoudle struct {
 	NewWizard   string    //新手向导
 	TodayCharge int32     //今天的充值额度
 	TotalCharge int32     //总的充值额度
-	CurStarID   int       //三国志ID
+	CurStarID   int32     //三国志ID
 	ownplayer   *TPlayer  //父player指针
 }
 
@@ -48,13 +48,13 @@ func (self *TRoleMoudle) OnCreate(playerid int32) {
 		}
 
 		self.Actions[i].Value = pActionInfo.Max
-		self.Actions[i].StartTime = 0
+		self.Actions[i].Time = 0
 	}
 
 	self.Moneys = make([]int, gamedata.GetMoneyCount())
 
 	//创建数据库记录
-	mongodb.InsertToDB( "PlayerRole", self)
+	mongodb.InsertToDB("PlayerRole", self)
 }
 
 //玩家对象销毁
@@ -85,7 +85,7 @@ func (self *TRoleMoudle) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) bool {
 		pActionInfo := gamedata.GetActionInfo(i + 1)
 		if pActionInfo != nil {
 			if self.Actions[i].Value >= pActionInfo.Max {
-				self.Actions[i].StartTime = 0
+				self.Actions[i].Time = 0
 			}
 		}
 	}
@@ -197,11 +197,11 @@ func (self *TRoleMoudle) CostAction(actionID int, actionNum int) bool {
 	self.Actions[actionID-1].Value -= actionNum
 
 	if self.Actions[actionID-1].Value < pActionInfo.Max {
-		if self.Actions[actionID-1].StartTime <= 0 {
-			self.Actions[actionID-1].StartTime = time.Now().Unix()
+		if self.Actions[actionID-1].Time <= 0 {
+			self.Actions[actionID-1].Time = utility.GetCurTime()
 		}
 	} else {
-		self.Actions[actionID-1].StartTime = 0
+		self.Actions[actionID-1].Time = 0
 	}
 
 	self.DB_SaveActionsAt(actionID)
@@ -235,13 +235,13 @@ func (self *TRoleMoudle) CheckActionEnough(actionID int, actionNum int) bool {
 	return true
 }
 
-func (self *TRoleMoudle) GetActionData(actionID int) (int, int64) {
+func (self *TRoleMoudle) GetActionData(actionID int) (int, int32) {
 	if (actionID <= 0) || (actionID > len(self.Actions)) {
 		gamelog.Error("GetAction Error: Inavlid actionID :%d", actionID)
 		return 0, 0
 	}
 
-	return self.Actions[actionID-1].Value, self.Actions[actionID-1].StartTime
+	return self.Actions[actionID-1].Value, self.Actions[actionID-1].Time
 }
 
 func (self *TRoleMoudle) GetAction(actionID int) int {
@@ -274,7 +274,7 @@ func (self *TRoleMoudle) AddAction(actionID int, actionNum int) int {
 	}
 
 	if self.Actions[actionID-1].Value >= pActionInfo.Max {
-		self.Actions[actionID-1].StartTime = 0
+		self.Actions[actionID-1].Time = 0
 	}
 
 	self.DB_SaveActionsAt(actionID)
@@ -290,20 +290,20 @@ func (self *TRoleMoudle) UpdateAction(actionID int) bool {
 	}
 
 	if self.Actions[actionID-1].Value >= pActionInfo.Max {
-		if self.Actions[actionID-1].StartTime > 0 {
+		if self.Actions[actionID-1].Time > 0 {
 			gamelog.Error("UpdateAction error  StartTime is not 0")
 		}
-		self.Actions[actionID-1].StartTime = 0
+		self.Actions[actionID-1].Time = 0
 		return false
 	}
 
-	if self.Actions[actionID-1].StartTime <= 0 {
+	if self.Actions[actionID-1].Time <= 0 {
 		gamelog.Error("UpdateAction error  action not max, but starttime is 0")
 	}
 
-	timeElapse := time.Now().Unix() - self.Actions[actionID-1].StartTime
+	timeElapse := utility.GetCurTime() - self.Actions[actionID-1].Time
 
-	if timeElapse < int64(pActionInfo.UnitTime) {
+	if timeElapse < int32(pActionInfo.UnitTime) {
 		return false
 	}
 
@@ -312,9 +312,9 @@ func (self *TRoleMoudle) UpdateAction(actionID int) bool {
 
 	if self.Actions[actionID-1].Value >= pActionInfo.Max {
 		self.Actions[actionID-1].Value = pActionInfo.Max
-		self.Actions[actionID-1].StartTime = 0
+		self.Actions[actionID-1].Time = 0
 	} else {
-		self.Actions[actionID-1].StartTime = self.Actions[actionID-1].StartTime + int64(ActionNum*pActionInfo.UnitTime)
+		self.Actions[actionID-1].Time = self.Actions[actionID-1].Time + int32(ActionNum*pActionInfo.UnitTime)
 	}
 
 	return true
@@ -348,7 +348,7 @@ func (self *TRoleMoudle) AddVipExp(exp int) {
 
 func (self *TRoleMoudle) RedTip() bool {
 	//! 判断升星材料是否足够
-	info := gamedata.GetSanGuoZhiInfo(self.CurStarID)
+	info := gamedata.GetSanGuoZhiInfo(int(self.CurStarID))
 	if info == nil {
 		return false
 	}

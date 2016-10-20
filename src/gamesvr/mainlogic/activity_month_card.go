@@ -1,19 +1,15 @@
 package mainlogic
 
 import (
-	"fmt"
-	"gamesvr/gamedata"
 	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 )
 
 //! 月卡活动
 type TActivityMonthCard struct {
-	ActivityID int //! 活动ID
-
-	CardDays   []int  //! 月卡状态表
-	CardStatus []bool //! 月卡领取状态
-
+	ActivityID     int32            //! 活动ID
+	CardDays       [2]int           //! 月卡状态表
+	CardStatus     [2]bool          //! 月卡领取状态
 	VersionCode    int32            //! 版本号
 	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
@@ -26,14 +22,10 @@ func (self *TActivityMonthCard) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityMonthCard) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityMonthCard) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
-
-	count := gamedata.GetMonthCardCount()
-	self.CardDays = make([]int, count)
-	self.CardStatus = make([]bool, count)
 	self.activityModule.activityPtrs[self.ActivityID] = self
 	self.VersionCode = vercode
 	self.ResetCode = resetcode
@@ -41,8 +33,8 @@ func (self *TActivityMonthCard) Init(activityID int, mPtr *TActivityModule, verc
 
 //! 刷新数据
 func (self *TActivityMonthCard) Refresh(versionCode int32) {
-	for i, v := range self.CardStatus {
-		if v == true {
+	for i := 0; i < 2; i++ {
+		if self.CardStatus[i] == true {
 			self.CardStatus[i] = false
 		}
 
@@ -106,11 +98,4 @@ func (self *TActivityMonthCard) DB_UpdateCardStatus() {
 	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
 		"monthcard.carddays":   self.CardDays,
 		"monthcard.cardstatus": self.CardStatus}})
-}
-
-//! 更新月卡天数
-func (self *TActivityMonthCard) DB_UpdateCardDays(index int, days int) {
-	filedName := fmt.Sprintf("monthcard.carddays.%d", index)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
-		filedName: days}})
 }

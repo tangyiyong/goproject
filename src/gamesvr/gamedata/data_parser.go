@@ -117,6 +117,7 @@ var G_DataParserMap = map[string]TDataParser{
 	"type_activity_month_fund":        {InitActivityMonthFundParser, ParseActivityMonthFundRecord, nil},
 	"type_activity_limitsale":         {InitLimitSaleItemParser, ParseLimitSaleItemRecord, nil},
 	"type_activity_limitsale_award":   {InitLimitSaleAllAwardParser, ParseLimitSaleAllAwardRecord, nil},
+	"type_activity_beach_goods":       {InitBeachBabyParser, ParseBeachBabyRecord, nil},
 
 	//公会配置表
 	"type_guild_base":            {InitGuildParser, ParseGuildBaseRecord, nil},
@@ -228,9 +229,9 @@ var G_DataParserMap = map[string]TDataParser{
 	"type_activity_card":          {InitCardCsvParser, ParseCardCsvRecord, nil},
 
 	//月光集市
-	"type_activity_moonlight_exch":  {InitMoonlightShopExchangeCsv, ParseMoonlightShopExchangeCsv, nil},
-	"type_activity_moonlight_goods": {InitMoonlightGoodsCsv, ParseMoonlightGoodsCsv, nil},
-	"type_activity_moonlight_award": {InitMoonlightShopAwardCsv, ParseMoonlightShopAwardCsv, nil},
+	"type_activity_moonlight_exch":  {InitMoonShopExchgParser, ParseMoontShopExchgRecord, nil},
+	"type_activity_moonlight_goods": {InitMoonGoodsParser, ParseMoonGoodsRecord, nil},
+	"type_activity_moonlight_award": {InitMoonShopAwardParser, ParseMoonShopAwardRecord, nil},
 
 	//阵营战
 	"type_crystal":       {InitCrystalParser, ParseCrystalRecord, nil},
@@ -293,8 +294,4 @@ var G_DataParserMap = map[string]TDataParser{
 		var G_MapCsv = make(map[int]*TTestCsv)  // map结构读表，将【&G_MapCsv】注册进G_ReflectParserMap即可自动读取
 		var G_SliceCsv []TTestCsv = nil 		// 数组结构读表，注册【&G_SliceCsv】
 */
-var G_ReflectParserMap = map[string]interface{}{
-	// "test_name": &G_MapCsv,
-	// "test_name": &G_SliceCsv,
-	"type_activity_beach_goods": &G_BeachBabyGoodsCsv,
-}
+var G_ReflectParserMap = map[string]interface{}{}

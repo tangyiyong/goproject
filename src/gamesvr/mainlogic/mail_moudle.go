@@ -3,12 +3,11 @@ package mainlogic
 import (
 	"appconfig"
 	"gamelog"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"strconv"
 	"sync"
-	"time"
-
-	"gopkg.in/mgo.v2/bson"
+	"utility"
 )
 
 const (
@@ -34,6 +33,7 @@ const (
 	TextCampBatCampKill       = 20 //阵营战阵营击杀排名奖励邮件
 	TextCampBatCampDestroy    = 21 //阵营战阵营团灭排名奖励邮件
 	Text_Group_Purchase       = 22 //团购差价补齐
+	Text_Private_mail         = 23 //私人邮件
 
 	TextCampBatHorseLamp = 101 //阵营战连杀跑马灯
 
@@ -41,7 +41,7 @@ const (
 
 type TMailInfo struct {
 	TextType   int
-	MailTime   int64
+	MailTime   int32
 	MailParams []string
 }
 
@@ -50,7 +50,7 @@ type TScoreReport struct {
 	HeroID     int    //英雄ID
 	Quality    int8   //品质
 	FightValue int    //战力
-	Time       int64  //时间点
+	Time       int32  //时间点
 	Score      int    //积分
 	Attack     bool   //是攻击还是防守
 	win        bool   //胜负
@@ -74,7 +74,7 @@ func (playermail *TMailMoudle) OnCreate(playerid int32) {
 	playermail.PlayerID = playerid
 	//创建数据库记录
 	playermail.MailList = make([]TMailInfo, 0)
-	mongodb.InsertToDB( "PlayerMail", playermail)
+	mongodb.InsertToDB("PlayerMail", playermail)
 }
 
 //玩家对象销毁
@@ -128,7 +128,7 @@ func SendMailToPlayer(playerid int32, pMailInfo *TMailInfo) {
 
 	pSimpleInfo := G_SimpleMgr.GetSimpleInfoByID(playerid)
 	//如果玩家不在线，并且己经离线超过7天时间，则不发邮件
-	if pSimpleInfo.isOnline == false && (time.Now().Unix()-pSimpleInfo.LogoffTime) > 604800 {
+	if pSimpleInfo.isOnline == false && (utility.GetCurTime()-pSimpleInfo.LogoffTime) > 604800 {
 		return
 	}
 
@@ -162,21 +162,21 @@ func SendArenaMail(playerid int32, targetname string, rank int, win int, isChang
 	var mail TMailInfo
 	if win == 0 {
 		mail.TextType = Text_Arean_Def_SUCCESS
-		mail.MailTime = time.Now().Unix()
+		mail.MailTime = utility.GetCurTime()
 		mail.MailParams = make([]string, 1)
 		mail.MailParams[0] = targetname
 		SendMailToPlayer(playerid, &mail)
 	} else {
 		if isChangeRank == true {
 			mail.TextType = Text_Arean_Def_Fail_Drop
-			mail.MailTime = time.Now().Unix()
+			mail.MailTime = utility.GetCurTime()
 			mail.MailParams = make([]string, 2)
 			mail.MailParams[0] = targetname
 			mail.MailParams[1] = strconv.Itoa(rank)
 			SendMailToPlayer(playerid, &mail)
 		} else {
 			mail.TextType = Text_Arean_Def_Fail
-			mail.MailTime = time.Now().Unix()
+			mail.MailTime = utility.GetCurTime()
 			mail.MailParams = make([]string, 1)
 			mail.MailParams[0] = targetname
 			SendMailToPlayer(playerid, &mail)
@@ -188,7 +188,7 @@ func SendArenaMail(playerid int32, targetname string, rank int, win int, isChang
 func SendRechargeMail(playerid int32, money int) {
 	var mail TMailInfo
 	mail.TextType = Text_Recharge
-	mail.MailTime = time.Now().Unix()
+	mail.MailTime = utility.GetCurTime()
 	mail.MailParams = make([]string, 1)
 	mail.MailParams[0] = strconv.Itoa(money)
 	SendMailToPlayer(playerid, &mail)
@@ -204,7 +204,7 @@ func SendScoreResultMail(playerid int32, name string, fight int, heroid int, qua
 	result.Score = score
 	result.win = win
 	result.Quality = quaity
-	result.Time = time.Now().Unix()
+	result.Time = utility.GetCurTime()
 	player := GetPlayerByID(playerid)
 	if player != nil {
 		player.MailMoudle.Reports = append(player.MailMoudle.Reports, result)

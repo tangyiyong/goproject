@@ -147,6 +147,7 @@ func Hand_GetServerInfo(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	var response msg.MSG_GetServerInfo_Ack
+	response.RetCode = msg.RE_SUCCESS
 	response.SvrID = int32(appconfig.GameSvrID)
 	response.SvrName = appconfig.GameSvrName
 	response.OnlineCnt = G_OnlineCnt
@@ -160,6 +161,7 @@ func Hand_GetServerInfo(w http.ResponseWriter, r *http.Request) {
 	//	response.MenObjNum = ms.HeapObjects
 
 	ret, _ := json.Marshal(&response)
+
 	w.Write(ret)
 	return
 
@@ -183,7 +185,88 @@ func Hand_SaveClientInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	clientlog.Write(buffer)
+	return
+}
+
+func Hand_QueryAccountID(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+	var req msg.MSG_QueryAccountID_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_QueryAccountID unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_QueryAccountID_Ack
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	response.AccountID = G_SimpleMgr.GetPlayerIDByName(req.Name)
 
 	return
+}
 
+func Hand_QueryPlayerInfo(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	var req msg.MSG_QueryPlayerInfo_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_QueryPlayerInfo unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_QueryPlayerInfo_Ack
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	if req.PlayerID == 0 {
+		response.PlayerID = G_SimpleMgr.GetPlayerIDByName(req.PlayerName)
+		if response.PlayerID == 0 {
+			gamelog.Error("Hand_QueryPlayerInfo Error: Player not exist id: %d  name: %s", req.PlayerID, req.PlayerName)
+			response.RetCode = msg.RE_ACCOUNT_NOT_EXIST
+			return
+		}
+	} else {
+		response.PlayerID = req.PlayerID
+	}
+
+	simpleInfo := G_SimpleMgr.GetSimpleInfoByID(response.PlayerID)
+	if simpleInfo == nil {
+		gamelog.Error("Hand_QueryPlayerInfo Error: Player not exist id: %d  name: %s", req.PlayerID, req.PlayerName)
+		response.RetCode = msg.RE_ACCOUNT_NOT_EXIST
+		return
+	}
+
+	player := GetPlayerByID(response.PlayerID)
+	if player == nil {
+		player = LoadPlayerFromDB(response.PlayerID)
+	}
+
+	response.PlayerName = simpleInfo.Name
+	response.Level = simpleInfo.Level
+	response.VIPLevel = simpleInfo.VipLevel
+	response.LastLogoffTime = simpleInfo.LogoffTime
+	response.IsOnline = simpleInfo.isOnline
+	response.FightValue = simpleInfo.FightValue
+	response.Charge = player.RoleMoudle.TotalCharge
+
+	for i := 0; i < 14; i++ {
+		response.Money[i] = player.RoleMoudle.GetMoney(i + 1)
+	}
+
+	response.Strength = player.RoleMoudle.GetAction(1)
+	response.Action = player.RoleMoudle.GetAction(2)
+	response.AttackTimes = player.RoleMoudle.GetAction(3)
+	response.RetCode = msg.RE_SUCCESS
 }

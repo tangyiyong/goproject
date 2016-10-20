@@ -8,6 +8,7 @@ import (
 	"msg"
 	"net/http"
 	"time"
+	"utility"
 )
 
 //! 激活/升级将灵
@@ -43,8 +44,8 @@ func Hand_ActivateHeroSouls(w http.ResponseWriter, r *http.Request) {
 	player.HeroSoulsModule.CheckReset()
 
 	//! 获取链接信息
-	heroSouls := gamedata.GetHeroSoulsInfo(req.ID)
-	if heroSouls == nil {
+	pHeroSoulInfo := gamedata.GetHeroSoulsInfo(req.ID)
+	if pHeroSoulInfo == nil {
 		gamelog.Error("Hand_ActivateHeroSouls Error: Invalid id %d", req.ID)
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
@@ -63,7 +64,7 @@ func Hand_ActivateHeroSouls(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测将灵背包是否有足够该将灵
-	for _, v := range heroSouls.HeroID {
+	for _, v := range pHeroSoulInfo.HeroIDs {
 		if v == 0 {
 			continue
 		}
@@ -94,7 +95,7 @@ func Hand_ActivateHeroSouls(w http.ResponseWriter, r *http.Request) {
 
 	//! 扣除将灵
 	awardsouls := 0
-	for _, v := range heroSouls.HeroID {
+	for _, v := range pHeroSoulInfo.HeroIDs {
 		if v == 0 {
 			continue
 		}
@@ -113,7 +114,7 @@ func Hand_ActivateHeroSouls(w http.ResponseWriter, r *http.Request) {
 			player.HeroSoulsModule.HeroSoulsLink[i].Level += 1
 			player.HeroSoulsModule.DB_UpdateHeroSoulsLinkLevel(i, player.HeroSoulsModule.HeroSoulsLink[i].Level)
 
-			for _, n := range heroSouls.Property {
+			for _, n := range pHeroSoulInfo.Property {
 				if n.PropertyID != 0 {
 					player.HeroMoudle.AddExtraProperty(n.PropertyID, int32(n.LevelUp), n.Is_Percent, n.Camp)
 					player.HeroSoulsModule.AddTempProperty(n.PropertyID, n.LevelUp, n.Is_Percent, n.Camp)
@@ -131,10 +132,10 @@ func Hand_ActivateHeroSouls(w http.ResponseWriter, r *http.Request) {
 		player.HeroSoulsModule.DB_UpdateSoulMapValue()
 
 		//! 激活将灵
-		player.HeroSoulsModule.HeroSoulsLink = append(player.HeroSoulsModule.HeroSoulsLink, THeroSoulsLink{req.ID, 1})
-		player.HeroSoulsModule.DB_AddHeroSoulsLink(THeroSoulsLink{req.ID, 1})
+		player.HeroSoulsModule.HeroSoulsLink = append(player.HeroSoulsModule.HeroSoulsLink, msg.MSG_HeroSoulsLink{req.ID, 1})
+		player.HeroSoulsModule.DB_AddHeroSoulsLink(msg.MSG_HeroSoulsLink{req.ID, 1})
 
-		for _, n := range heroSouls.Property {
+		for _, n := range pHeroSoulInfo.Property {
 			if n.PropertyID != 0 {
 				player.HeroMoudle.AddExtraProperty(n.PropertyID, int32(n.PropertyValue), n.Is_Percent, n.Camp)
 				player.HeroSoulsModule.AddTempProperty(n.PropertyID, n.PropertyValue, n.Is_Percent, n.Camp)
@@ -209,13 +210,7 @@ func Hand_QueryChapterHeroSoulsDetail(w http.ResponseWriter, r *http.Request) {
 
 	player.HeroSoulsModule.CheckReset()
 
-	for _, v := range player.HeroSoulsModule.HeroSoulsLink {
-		var link msg.THeroSoulsLink
-		link.ID = v.ID
-		link.Level = v.Level
-		response.HeroSouls = append(response.HeroSouls, link)
-	}
-
+	response.HeroSouls = player.HeroSoulsModule.HeroSoulsLink
 	response.UnLockChapter = player.HeroSoulsModule.UnLockChapter
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -263,8 +258,8 @@ func Hand_GetHeroSoulsLst(w http.ResponseWriter, r *http.Request) {
 	//! 返回成功
 	response.CountDown = player.HeroSoulsModule.CheckStoreRefresh()
 	response.TargetIndex = player.HeroSoulsModule.TargetIndex
-	response.ChallengeTimes = player.HeroSoulsModule.ChallengeTimes
-	response.BuyChallengeTimes = player.HeroSoulsModule.BuyChallengeTimes
+	response.ChallengeTimes = player.HeroSoulsModule.LeftTimes
+	response.BuyChallengeTimes = player.HeroSoulsModule.BuyTimes
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -353,15 +348,17 @@ func Hand_RefreshHeroSoulsLst(w http.ResponseWriter, r *http.Request) {
 //! 挑战将灵
 func Hand_ChallengeHeroSouls(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
-
-	//! 读取消息
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
-	//! 解析消息
+	if false == utility.MsgDataCheck(buffer, G_XorCode) {
+		//存在作弊的可能
+		gamelog.Error("Hand_ChallengeHeroSouls : Message Data Check Error!!!!")
+		return
+	}
 	var req msg.MSG_ChallengeHeroSouls_Req
-	if json.Unmarshal(buffer, &req) != nil {
-		gamelog.Error("Hand_ChallengeHeroSouls Error: Unmarshal fail")
+	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
+		gamelog.Error("Hand_ChallengeHeroSouls : Unmarshal error!!!!")
 		return
 	}
 
@@ -380,6 +377,12 @@ func Hand_ChallengeHeroSouls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	player.HeroSoulsModule.CheckReset()
 
 	//! 检测当前指向将灵是否存在
@@ -391,14 +394,14 @@ func Hand_ChallengeHeroSouls(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测挑战次数是否超过
-	if player.HeroSoulsModule.ChallengeTimes <= 0 {
+	if player.HeroSoulsModule.LeftTimes <= 0 {
 		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 		gamelog.Error("Hand_ChallengeHeroSouls Error: ChallengeTimes not enough")
 		return
 	}
 
 	//! 扣除挑战次数
-	player.HeroSoulsModule.ChallengeTimes -= 1
+	player.HeroSoulsModule.LeftTimes -= 1
 	player.HeroSoulsModule.DB_UpdateChallengeHeroSoulsTimes()
 
 	//! 设置将灵状态
@@ -407,9 +410,24 @@ func Hand_ChallengeHeroSouls(w http.ResponseWriter, r *http.Request) {
 
 	//! 获取英灵
 	player.BagMoudle.AddHeroSoul(heroSouls.HeroID, 1)
-
-	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
+
+	existCount := 0
+	randArray := IntLst{}
+	for i, v := range player.HeroSoulsModule.HeroSoulsLst {
+		if v.IsExist == true {
+			randArray.Add(i)
+			existCount++
+		}
+	}
+
+	if existCount <= 0 {
+		return
+	}
+
+	random := rand.New(rand.NewSource(time.Now().UnixNano()))
+	player.HeroSoulsModule.TargetIndex = randArray[random.Intn(len(randArray))]
+	player.HeroSoulsModule.DB_UpdateTargetIndex()
 }
 
 //! 购买挑战英灵次数
@@ -446,7 +464,7 @@ func Hand_BuyChallengeHeroSoulsTimes(w http.ResponseWriter, r *http.Request) {
 
 	//! 检测购买次数是否超过
 	buyTimesLimit := gamedata.GetFuncVipValue(gamedata.FUNC_HEROSOULS_TIMES, player.GetVipLevel())
-	if buyTimesLimit < player.HeroSoulsModule.BuyChallengeTimes+req.Times {
+	if buyTimesLimit < player.HeroSoulsModule.BuyTimes+req.Times {
 		response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 		gamelog.Error("Hand_BuyChallengeHeroSoulsTimes Error: Buy times not enough")
 		return
@@ -456,7 +474,7 @@ func Hand_BuyChallengeHeroSoulsTimes(w http.ResponseWriter, r *http.Request) {
 
 	//! 计算花费
 	for i := 1; i <= req.Times; i++ {
-		times := player.HeroSoulsModule.ChallengeTimes + i
+		times := player.HeroSoulsModule.LeftTimes + i
 		costMoneyNum += gamedata.GetFuncTimeCost(gamedata.FUNC_HEROSOULS_TIMES, times)
 	}
 
@@ -471,8 +489,8 @@ func Hand_BuyChallengeHeroSoulsTimes(w http.ResponseWriter, r *http.Request) {
 	player.RoleMoudle.CostMoney(gamedata.BuyChallengeTimesMoneyID, costMoneyNum)
 
 	//! 增加次数
-	player.HeroSoulsModule.BuyChallengeTimes += req.Times
-	player.HeroSoulsModule.ChallengeTimes += req.Times
+	player.HeroSoulsModule.BuyTimes += req.Times
+	player.HeroSoulsModule.LeftTimes += req.Times
 	player.HeroSoulsModule.DB_BuyChallengeHeroSoulsTimes()
 
 	//! 返回成功

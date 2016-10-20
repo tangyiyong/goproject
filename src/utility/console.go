@@ -40,10 +40,8 @@ func consoleroutine() {
 		switch string(Args[0]) {
 		case "cpus":
 			fmt.Println(runtime.NumCPU(), " cpus and ", runtime.GOMAXPROCS(0), " in use")
-
 		case "routines":
 			fmt.Println("Current number of goroutines: ", runtime.NumGoroutine())
-
 		case "setcpus":
 			n, _ := strconv.Atoi(Args[1])
 			runtime.GOMAXPROCS(n)
@@ -53,6 +51,10 @@ func consoleroutine() {
 		case "startgc":
 			runtime.GC()
 			fmt.Println("gc finished")
+		case "lscmd":
+			for key, _ := range HandlerMap {
+				fmt.Println(key)
+			}
 		default:
 			fmt.Println("Command error, try again.")
 		}

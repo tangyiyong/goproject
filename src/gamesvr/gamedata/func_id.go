@@ -1,18 +1,18 @@
 package gamedata
 
 const (
-	FUNC_BEGIN_ID                       = 0   //!功能ID开始标记
-	FUNC_DOUBLE_POWER_UP                = 1   //! 强化打造两倍暴击
-	FUNC_TRIPLE_POWER_UP                = 2   //! 强化打造三倍暴击
-	FUNC_SUPPRESS_TERRITORY             = 3   //! 解决领地暴动次数
-	FUNC_MAIN_COPY_RESET                = 4   //! 主线副本每日重置次数
-	FUNC_HERO_BAG_CAPACITY              = 5   //! 武将背包额外增加容量
-	FUNC_GEM_BAG_CAPACITY               = 6   //! 宝物背包额外增加容量
-	FUNC_SANGUOWUSHUANG_RESET           = 7   //! 三国无双每日重置次数
-	FUNC_HERO_STORE_RESET               = 8   //! 神将商店每日重置次数
-	FUNC_AWAKEN_STORE_RESET             = 9   //! 觉醒商店每日重置次数
-	FUNC_BATTLE_PET_STORE_RESET         = 10  //! 战宠商店每日重置次数
-	FUNC_SERVER_BATTLE_BUY_TIMES        = 11  //! 跨服演武每日可购买挑战次数
+	FUNC_BEGIN_ID               = 0  //!功能ID开始标记
+	FUNC_DOUBLE_POWER_UP        = 1  //! 强化打造两倍暴击
+	FUNC_TRIPLE_POWER_UP        = 2  //! 强化打造三倍暴击
+	FUNC_SUPPRESS_TERRITORY     = 3  //! 解决领地暴动次数
+	FUNC_MAIN_COPY_RESET        = 4  //! 主线副本每日重置次数
+	FUNC_HERO_BAG_CAPACITY      = 5  //! 武将背包额外增加容量
+	FUNC_GEM_BAG_CAPACITY       = 6  //! 宝物背包额外增加容量
+	FUNC_SANGUOWUSHUANG_RESET   = 7  //! 三国无双每日重置次数
+	FUNC_HERO_STORE_RESET       = 8  //! 神将商店每日重置次数
+	FUNC_AWAKEN_STORE_RESET     = 9  //! 觉醒商店每日重置次数
+	FUNC_BATTLE_PET_STORE_RESET = 10 //! 战宠商店每日重置次数
+	//FUNC_SERVER_BATTLE_BUY_TIMES        = 11  //! 跨服演武每日可购买挑战次数
 	FUNC_BUY_SANGUOWUSHUANG_ELITE_TIMES = 12  //! 每日可购买三国无双精英挑战次数
 	FUNC_FAMOUS_COPY_CHALLENGE_TIMES    = 13  //! 名将副本每日可攻略次数
 	FUNC_RESET_EXPERIENCED_TIMES        = 14  //! 重置百战沙场次数
@@ -34,7 +34,7 @@ const (
 	FUNC_CULTURE_TEN_TIMES              = 30  //! 培养十次功能
 	FUNC_ARENA_FIVE_CHALLENGE           = 31  //! 竞技场连战五次
 	FUNC_REBEL_SIEGE_SKIP               = 32  //! 围剿叛军跳过功能
-	FUNC_ROB_TREASURE_ONE_KEY           = 33  //! 一键夺宝功能
+	FUNC_ROB_GEM_ONE_KEY                = 33  //! 一键夺宝功能
 	FUNC_TERRITORY_PATROL_SENIOR        = 34  //! 高级领地巡逻功能
 	FUNC_MINING                         = 35  //! 挖矿功能 预留
 	FUNC_GUAJI                          = 36  //! 挂机功能 预留
@@ -133,5 +133,5 @@ const (
 	FUNC_HOLY_MELTING                   = 142 //! 圣物融合
 
 	//功能ID结束标记
-	FUNC_END_ID = 139 //!功能ID结束标记
+	FUNC_END_ID = 150 //!功能ID结束标记
 )

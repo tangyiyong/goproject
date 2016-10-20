@@ -4,19 +4,20 @@ import (
 	"appconfig"
 	//"fmt"
 	"gamelog"
+	"math/rand"
 	"mongodb"
 	"sync"
+	"time"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
 var (
-	G_Player_Mutex sync.Mutex
-	G_Players      map[int32]*TPlayer //玩家集
-
-	G_SelectPlayers  []*TPlayer //用来选择用的玩家表
-	G_CurSelectIndex int        //当前选择索引
-
+	G_Player_Mutex   sync.Mutex
+	G_Players        map[int32]*TPlayer //玩家集
+	G_SelectPlayers  []*TPlayer         //用来选择用的玩家表
+	G_CurSelectIndex int                //当前选择索引
+	G_XorCode        [4]byte
 )
 
 func GetPlayerByID(playerid int32) *TPlayer {
@@ -143,4 +144,20 @@ func GetSelectPlayer(selectfunc func(p *TPlayer, value int) bool, selectvalue in
 	}
 
 	return nil
+}
+
+func InitPlayerMgr() bool {
+	G_Players = make(map[int32]*TPlayer, 1)
+	G_SelectPlayers = make([]*TPlayer, 0, 10000)
+	return true
+}
+
+func CreateXorCode() {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+
+	xorCode := r.Int31()
+	G_XorCode[0] = byte(xorCode >> 24)
+	G_XorCode[1] = byte((xorCode & 0x00FF0000) >> 16)
+	G_XorCode[2] = byte((xorCode & 0x0000FF00) >> 8)
+	G_XorCode[3] = byte(xorCode & 0x000000FF)
 }

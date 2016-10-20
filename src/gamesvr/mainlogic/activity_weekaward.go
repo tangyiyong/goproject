@@ -8,15 +8,12 @@ import (
 
 //! 周周盈
 type TActivityWeekAward struct {
-	ActivityID int //! 活动ID
-
-	LoginDay    int  //! 登录天数
-	RechargeNum int  //! 充值数目
-	AwardMark   Mark //! 奖励标记 位运算
-
-	VersionCode int32 //! 版本号
-	ResetCode   int32 //! 迭代号
-
+	ActivityID     int32            //! 活动ID
+	LoginDay       int              //! 登录天数
+	RechargeNum    int              //! 充值数目
+	AwardMark      BitsType         //! 奖励标记 位运算
+	VersionCode    int32            //! 版本号
+	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
 }
 
@@ -27,7 +24,7 @@ func (self *TActivityWeekAward) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityWeekAward) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityWeekAward) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -75,13 +72,13 @@ func (self *TActivityWeekAward) RedTip() bool {
 
 	awardType := G_GlobalVariables.GetActivityAwardType(self.ActivityID)
 	awardLst := gamedata.GetWeekAwardInfoLst(awardType)
-	if self.LoginDay == 1 && self.AwardMark.Get(uint32(1)) == false {
+	if self.LoginDay == 1 && self.AwardMark.Get(1) == false {
 		return true //! 免费奖励未领取
 	}
 
 	for i := 1; i <= 7; i++ {
 		awardInfo := awardLst[i]
-		if self.AwardMark.Get(uint32(i+1)) == false &&
+		if self.AwardMark.Get(i+1) == false &&
 			self.LoginDay >= i &&
 			self.RechargeNum >= awardInfo.RechargeNum {
 			return true
@@ -92,7 +89,7 @@ func (self *TActivityWeekAward) RedTip() bool {
 }
 
 func (self *TActivityWeekAward) AddRechargeNum(rechargeNum int) {
-	isEnd, _ := G_GlobalVariables.IsActivityTime(self.ActivityID)
+	isEnd:= G_GlobalVariables.IsActivityTime(self.ActivityID)
 	if isEnd == false {
 		return
 	}

@@ -45,7 +45,7 @@ func (self *TActivityModule) DB_AddNewRechargeActivity(activity TActivityRecharg
 	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"recharge": activity}})
 }
 
-func (self *TActivityModule) DB_AddNewDiscountActivity(activity TActivityDiscountSale) {
+func (self *TActivityModule) DB_AddNewDiscountActivity(activity TActivityDiscount) {
 	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"discountsale": activity}})
 }
 

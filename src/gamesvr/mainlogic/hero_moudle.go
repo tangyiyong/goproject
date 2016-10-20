@@ -26,8 +26,9 @@ type THeroMoudle struct {
 	CurPets     [BATTLE_NUM]TPetData  //上阵宠物
 	GuildSkiLvl [9]int8               //公会技能等级
 	TitleID     int                   //称号ID
-	FashionID   int                   //时装ID
-	FashionLvl  int                   //时装等级
+	FashionID   int32                 //时装ID
+	FashionLvl  int32                 //时装等级
+	FashionMelt int32                 //时装当前熔炼值
 
 	//其它系统添加的固定增加属性
 	//宠物图鉴,  时装图鉴， 将灵， 阵图
@@ -55,7 +56,7 @@ func (self *THeroMoudle) OnCreate(playerid int32) {
 	self.CurHeros[0].Level = 1
 	self.CurHeros[0].CurExp = 0
 	self.CurHeros[0].Quality = gamedata.GetHeroQuality(self.CurHeros[0].ID)
-	mongodb.InsertToDB( "PlayerHero", self)
+	mongodb.InsertToDB("PlayerHero", self)
 }
 
 //OnDestroy player销毁
@@ -112,35 +113,41 @@ func (self *THeroMoudle) CalcGem(HeroResults []THeroResult, heroIndex int) bool 
 	for i := begin; i < end; i++ {
 		var pGemData = &self.CurGems[i]
 		if pGemData.ID == 0 {
+			minStengthLevel = 0
+			minRefineLevel = 0
 			continue
 		}
 
 		pGemInfo := gamedata.GetGemInfo(pGemData.ID)
 		pStrengthenInfo := gamedata.GetStrengthInfo(pGemInfo.Quality)
 
-		//计算宝物强化影响
-		pid1 := pGemInfo.StrengthPropertys[0]
-		pid2 := pGemInfo.StrengthPropertys[1]
-		pid1StrengthInc := int32(pStrengthenInfo.PropertyInc[pGemInfo.Position-1][0]*pGemData.StrengLevel + pGemInfo.BasePropertys[0])
-		pid2StrengthInc := int32(pStrengthenInfo.PropertyInc[pGemInfo.Position-1][1]*pGemData.StrengLevel + pGemInfo.BasePropertys[1])
-		if pid1 == gamedata.AttackPropertyID {
-			HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += pid1StrengthInc
-			HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += pid1StrengthInc
-		} else if pid1 == gamedata.DefencePropertyID {
-			HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += pid1StrengthInc
-			HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += pid1StrengthInc
-		} else {
-			HeroResults[heroIndex].PropertyValues[pid1-1] += pid1StrengthInc
-		}
+		var pid1, pid2 int
 
-		if pid2 == gamedata.AttackPropertyID {
-			HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += pid2StrengthInc
-			HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += pid2StrengthInc
-		} else if pid2 == gamedata.DefencePropertyID {
-			HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += pid2StrengthInc
-			HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += pid2StrengthInc
-		} else {
-			HeroResults[heroIndex].PropertyValues[pid2-1] += pid2StrengthInc
+		if pGemData.StrengLevel >= 1 {
+			//计算宝物强化影响
+			pid1 := pGemInfo.StrengthPropertys[0]
+			pid2 := pGemInfo.StrengthPropertys[1]
+			pid1StrengthInc := int32(pStrengthenInfo.PropertyInc[pGemInfo.Position-1][0]*(pGemData.StrengLevel-1) + pGemInfo.BasePropertys[0])
+			pid2StrengthInc := int32(pStrengthenInfo.PropertyInc[pGemInfo.Position-1][1]*(pGemData.StrengLevel-1) + pGemInfo.BasePropertys[1])
+			if pid1 == gamedata.AttackPropertyID {
+				HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += pid1StrengthInc
+				HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += pid1StrengthInc
+			} else if pid1 == gamedata.DefencePropertyID {
+				HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += pid1StrengthInc
+				HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += pid1StrengthInc
+			} else {
+				HeroResults[heroIndex].PropertyValues[pid1-1] += pid1StrengthInc
+			}
+
+			if pid2 == gamedata.AttackPropertyID {
+				HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += pid2StrengthInc
+				HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += pid2StrengthInc
+			} else if pid2 == gamedata.DefencePropertyID {
+				HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += pid2StrengthInc
+				HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += pid2StrengthInc
+			} else {
+				HeroResults[heroIndex].PropertyValues[pid2-1] += pid2StrengthInc
+			}
 		}
 
 		//计算宝物精炼影响
@@ -153,14 +160,15 @@ func (self *THeroMoudle) CalcGem(HeroResults []THeroResult, heroIndex int) bool 
 		pid2 = pGemInfo.RefinePropertys[1]
 		pid1RefineInc := int32(pRefineInfo.PropertyInc[pGemInfo.Position-1][0] * pGemData.RefineLevel)
 		pid2RefineInc := int32(pRefineInfo.PropertyInc[pGemInfo.Position-1][1] * pGemData.RefineLevel)
+
 		if pid1 == gamedata.AttackPropertyID {
-			HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += pid1RefineInc
-			HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += pid1RefineInc
+			HeroResults[heroIndex].PropertyPercents[gamedata.AttackMagicID-1] += pid1RefineInc
+			HeroResults[heroIndex].PropertyPercents[gamedata.AttackPhysicID-1] += pid1RefineInc
 		} else if pid1 == gamedata.DefencePropertyID {
-			HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += pid1RefineInc
-			HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += pid1RefineInc
+			HeroResults[heroIndex].PropertyPercents[gamedata.DefenceMagicID-1] += pid1RefineInc
+			HeroResults[heroIndex].PropertyPercents[gamedata.DefencePhysicID-1] += pid1RefineInc
 		} else {
-			HeroResults[heroIndex].PropertyValues[pid1-1] += pid1RefineInc
+			HeroResults[heroIndex].PropertyPercents[pid1-1] += pid1RefineInc
 		}
 
 		if pid2 == gamedata.AttackPropertyID {
@@ -180,18 +188,51 @@ func (self *THeroMoudle) CalcGem(HeroResults []THeroResult, heroIndex int) bool 
 		if pGemData.StrengLevel < minStengthLevel {
 			minStengthLevel = pGemData.StrengLevel
 		}
+
+		//计算神兵属性
+		if pGemInfo.Quality >= 6 {
+			pShenBin := gamedata.GetShenBinInfo(pGemInfo.Position, pGemData.RefineLevel)
+			if pShenBin != nil {
+				if pShenBin.Propertyid == gamedata.AttackPropertyID {
+					HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += int32(pShenBin.PropertyV)
+					HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += int32(pShenBin.PropertyV)
+				} else if pShenBin.Propertyid == gamedata.DefencePropertyID {
+					HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += int32(pShenBin.PropertyV)
+					HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += int32(pShenBin.PropertyV)
+				} else {
+					HeroResults[heroIndex].PropertyValues[pShenBin.Propertyid-1] += int32(pShenBin.PropertyV)
+				}
+			}
+		}
+
 	}
 
-	//计算装备大师影响
+	//计算宝物大师影响
 	//先计算宝物强化大师
 	masterPropertys := gamedata.GetMasterInfo(gamedata.MTYPE_Gem_Strength, minStengthLevel)
 	for _, m := range masterPropertys {
-		HeroResults[heroIndex].PropertyValues[m.PropertyID-1] += int32(m.PropertyInc)
+		if m.PropertyID == gamedata.AttackPropertyID {
+			HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += int32(m.PropertyInc)
+			HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += int32(m.PropertyInc)
+		} else if m.PropertyID == gamedata.DefencePropertyID {
+			HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += int32(m.PropertyInc)
+			HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += int32(m.PropertyInc)
+		} else if m.PropertyID > 0 && m.PropertyID <= 11 {
+			HeroResults[heroIndex].PropertyValues[m.PropertyID-1] += int32(m.PropertyInc)
+		}
 	}
 	//再计算宝物精炼大师
 	masterPropertys = gamedata.GetMasterInfo(gamedata.MTYPE_Gem_Refine, minRefineLevel)
 	for _, m := range masterPropertys {
-		HeroResults[heroIndex].PropertyValues[m.PropertyID-1] += int32(m.PropertyInc)
+		if m.PropertyID == gamedata.AttackPropertyID {
+			HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += int32(m.PropertyInc)
+			HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += int32(m.PropertyInc)
+		} else if m.PropertyID == gamedata.DefencePropertyID {
+			HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += int32(m.PropertyInc)
+			HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += int32(m.PropertyInc)
+		} else if m.PropertyID > 0 && m.PropertyID <= 11 {
+			HeroResults[heroIndex].PropertyValues[m.PropertyID-1] += int32(m.PropertyInc)
+		}
 	}
 
 	return true
@@ -222,7 +263,8 @@ func (self *THeroMoudle) CalcPet(HeroResults []THeroResult, heroIndex int) bool 
 	}
 
 	for i, v := range pPetLevelInfo.Propertys {
-		HeroResults[heroIndex].PropertyValues[i] += int32(v * pPetStarInfo.PropertyTrans / 1000)
+		temp := (v + pPetInfo.BasePtys[i]) * (1000 + pPetStarInfo.Inc_percent) / 1000
+		HeroResults[heroIndex].PropertyValues[i] += int32(temp * pPetStarInfo.PropertyTrans / 1000)
 	}
 
 	pPetGodInfo := gamedata.GetPetGodInfo(pPetData.ID, pPetData.God)
@@ -272,21 +314,25 @@ func (self *THeroMoudle) CalcEquip(HeroResults []THeroResult, heroIndex int) boo
 	for i := begin; i < end; i++ {
 		var pEquipData = &self.CurEquips[i]
 		if pEquipData.ID == 0 {
+			minStengthLevel = 0
+			minRefineLevel = 0
 			continue
 		}
 
 		pEquipInfo := gamedata.GetEquipmentInfo(pEquipData.ID)
-		pStrengthenInfo := gamedata.GetStrengthInfo(pEquipInfo.Quality)
-		nStrengInc := int32(pStrengthenInfo.PropertyInc[pEquipInfo.Position-1][0]*pEquipData.StrengLevel + pEquipInfo.BaseProperty)
-		//计算装备强化影响
-		if pEquipInfo.StrengthProperty == gamedata.AttackPropertyID {
-			HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += nStrengInc
-			HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += nStrengInc
-		} else if pEquipInfo.StrengthProperty == gamedata.DefencePropertyID {
-			HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += nStrengInc
-			HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += nStrengInc
-		} else {
-			HeroResults[heroIndex].PropertyValues[pEquipInfo.StrengthProperty-1] += nStrengInc
+		if pEquipData.StrengLevel >= 1 {
+			pStrengthenInfo := gamedata.GetStrengthInfo(pEquipInfo.Quality)
+			nStrengInc := int32(pStrengthenInfo.PropertyInc[pEquipInfo.Position-1][0]*(pEquipData.StrengLevel-1) + pEquipInfo.BaseProperty)
+			//计算装备强化影响
+			if pEquipInfo.StrengthProperty == gamedata.AttackPropertyID {
+				HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += nStrengInc
+				HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += nStrengInc
+			} else if pEquipInfo.StrengthProperty == gamedata.DefencePropertyID {
+				HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += nStrengInc
+				HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += nStrengInc
+			} else {
+				HeroResults[heroIndex].PropertyValues[pEquipInfo.StrengthProperty-1] += nStrengInc
+			}
 		}
 
 		//计算装备精炼影响
@@ -320,19 +366,40 @@ func (self *THeroMoudle) CalcEquip(HeroResults []THeroResult, heroIndex int) boo
 		}
 
 		//计算装备升星影响
-		pEquipStarInfo := gamedata.GetEquipStarInfo(pEquipInfo.Quality, pEquipInfo.Position, pEquipData.Star)
-		if pEquipStarInfo != nil {
-			var StarProInc = int32(pEquipStarInfo.NeedExp/pEquipStarInfo.AddExp*pEquipStarInfo.AddProperty + pEquipStarInfo.SumProperty)
-			if pEquipStarInfo.PropertyID == gamedata.AttackPropertyID {
-				HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += StarProInc
-				HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += StarProInc
-			} else if pEquipStarInfo.PropertyID == gamedata.DefencePropertyID {
-				HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += StarProInc
-				HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += StarProInc
-			} else {
-				HeroResults[heroIndex].PropertyValues[pEquipStarInfo.PropertyID-1] += StarProInc
-			}
+		if pEquipData.Star > 0 || pEquipData.StarExp > 0 {
+			pEquipStarInfo := gamedata.GetEquipStarInfo(pEquipInfo.Quality, pEquipInfo.Position, pEquipData.Star)
+			if pEquipStarInfo != nil {
+				var StarProInc = int32(pEquipStarInfo.BaseProperty)
+				if pEquipStarInfo.AddExp > 0 {
+					StarProInc = StarProInc + int32(pEquipData.StarExp/pEquipStarInfo.AddExp*pEquipStarInfo.AddProperty)
+				}
 
+				if pEquipStarInfo.PropertyID == gamedata.AttackPropertyID {
+					HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += StarProInc
+					HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += StarProInc
+				} else if pEquipStarInfo.PropertyID == gamedata.DefencePropertyID {
+					HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += StarProInc
+					HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += StarProInc
+				} else {
+					HeroResults[heroIndex].PropertyValues[pEquipStarInfo.PropertyID-1] += StarProInc
+				}
+			}
+		}
+
+		//计算神兵属性
+		if pEquipInfo.Quality >= 6 {
+			pShenBin := gamedata.GetShenBinInfo(pEquipInfo.Position, pEquipData.RefineLevel)
+			if pShenBin != nil {
+				if pShenBin.Propertyid == gamedata.AttackPropertyID {
+					HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += int32(pShenBin.PropertyV)
+					HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += int32(pShenBin.PropertyV)
+				} else if pShenBin.Propertyid == gamedata.DefencePropertyID {
+					HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += int32(pShenBin.PropertyV)
+					HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += int32(pShenBin.PropertyV)
+				} else {
+					HeroResults[heroIndex].PropertyValues[pShenBin.Propertyid-1] += int32(pShenBin.PropertyV)
+				}
+			}
 		}
 
 		//统计套装数目
@@ -367,14 +434,32 @@ func (self *THeroMoudle) CalcEquip(HeroResults []THeroResult, heroIndex int) boo
 	//先计算装备强化大师
 	masterPropertys := gamedata.GetMasterInfo(gamedata.MTYPE_Equip_Strength, minStengthLevel)
 	for _, m := range masterPropertys {
-		HeroResults[heroIndex].PropertyValues[m.PropertyID-1] += int32(m.PropertyInc)
+		if m.PropertyID == gamedata.AttackPropertyID {
+			HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += int32(m.PropertyInc)
+			HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += int32(m.PropertyInc)
+		} else if m.PropertyID == gamedata.DefencePropertyID {
+			HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += int32(m.PropertyInc)
+			HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += int32(m.PropertyInc)
+		} else if m.PropertyID > 0 && m.PropertyID <= 11 {
+			HeroResults[heroIndex].PropertyValues[m.PropertyID-1] += int32(m.PropertyInc)
+		}
+
 	}
 
 	//再计算装备精炼大师
 	masterPropertys = gamedata.GetMasterInfo(gamedata.MTYPE_Equip_Refine, minRefineLevel)
 	for _, m := range masterPropertys {
-		HeroResults[heroIndex].PropertyValues[m.PropertyID-1] += int32(m.PropertyInc)
+		if m.PropertyID == gamedata.AttackPropertyID {
+			HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += int32(m.PropertyInc)
+			HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += int32(m.PropertyInc)
+		} else if m.PropertyID == gamedata.DefencePropertyID {
+			HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += int32(m.PropertyInc)
+			HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += int32(m.PropertyInc)
+		} else if m.PropertyID > 0 && m.PropertyID <= 11 {
+			HeroResults[heroIndex].PropertyValues[m.PropertyID-1] += int32(m.PropertyInc)
+		}
 	}
+
 	return true
 }
 
@@ -551,17 +636,23 @@ func (self *THeroMoudle) IsRelationMatch(pRelationItem *gamedata.ST_RelationItem
 
 	if pRelationItem.RelationType == gamedata.RTYPE_HERO {
 		for _, heroid := range pRelationItem.TargetIDs {
+			bFind := false
 			for j := 0; j < BATTLE_NUM; j++ {
 				if heroid == self.CurHeros[j].ID {
+					bFind = true
 					break
 				}
 			}
 			for j := 0; j < BACK_NUM; j++ {
 				if heroid == self.BackHeros[j].ID {
+					bFind = true
 					break
 				}
 			}
-			return false
+
+			if bFind == false {
+				return false
+			}
 		}
 	} else if pRelationItem.RelationType == gamedata.RTYPE_EQIUP {
 		var begin = heroIndex * 4
@@ -588,7 +679,7 @@ func (self *THeroMoudle) IsRelationMatch(pRelationItem *gamedata.ST_RelationItem
 	return true
 }
 
-//计算英灵的战力影响
+//计算额外系统的战力影响
 func (self *THeroMoudle) CalcExtraProperty(HeroResults []THeroResult) bool {
 	for k := 0; k < BATTLE_NUM; k++ {
 		if HeroResults[k].HeroID == 0 {
@@ -615,16 +706,14 @@ func (self *THeroMoudle) CalcFashion(HeroResults []THeroResult) bool {
 		return false
 	}
 
-	for k := 0; k < BATTLE_NUM; k++ {
-		if HeroResults[k].HeroID == 0 {
-			continue
-		}
-
-		for pid := 0; pid < 5; pid++ {
-			HeroResults[k].PropertyValues[pid] += int32(pFashionLvlInfo.PropertyValues[pid])
-			HeroResults[k].PropertyPercents[pid] += int32(pFashionLvlInfo.PropertyPercents[pid])
-		}
+	for pid := 0; pid < 5; pid++ {
+		HeroResults[0].PropertyValues[pid] += int32(pFashionLvlInfo.PropertyValues[pid])
 	}
+
+	if pFashionLvlInfo.ExtraID > 0 {
+		HeroResults[0].PropertyPercents[pFashionLvlInfo.ExtraID-1] += int32(pFashionLvlInfo.ExtraPro)
+	}
+
 	return true
 }
 
@@ -652,10 +741,11 @@ func (self *THeroMoudle) CalcHeroFriend(HeroResults []THeroResult) bool {
 		}
 
 		for pid := 0; pid < 5; pid++ {
-			HeroResults[k].PropertyPercents[pid] += int32(pHeroFriendInfo.Propertys[pid][1])
 			HeroResults[k].PropertyValues[pid] += int32(pHeroFriendInfo.Propertys[pid][0])
+			HeroResults[k].PropertyPercents[pid] += int32(pHeroFriendInfo.Propertys[pid][1])
 		}
 	}
+
 	return true
 }
 
@@ -783,7 +873,7 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int32 {
 		pBreakInfo := gamedata.GetHeroBreakInfo(pCurHeroData.BreakLevel)
 		if pBreakInfo != nil {
 			for pid := 0; pid < 5; pid++ {
-				HeroResults[heroIndex].PropertyValues[pid] = HeroResults[heroIndex].PropertyValues[pid] * int32((pBreakInfo.IncPercent+1000)/1000) //突破加的都是百分比
+				HeroResults[heroIndex].PropertyValues[pid] += int32((pHeroLevelInfo.Propertys[pid] + pHeroInfo.BasePropertys[pid]) * pBreakInfo.IncPercent / 1000) //突破加的都是百分比
 			}
 		}
 
@@ -832,6 +922,12 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int32 {
 			HeroResults[heroIndex].PropertyPercents[2] += lastProInc
 			HeroResults[heroIndex].PropertyPercents[3] += lastProInc
 			HeroResults[heroIndex].PropertyPercents[4] += lastProInc
+		} else if DestinyIndex == 0 {
+			HeroResults[heroIndex].PropertyPercents[0] += lastProInc
+			HeroResults[heroIndex].PropertyPercents[1] += lastProInc
+			HeroResults[heroIndex].PropertyPercents[2] += lastProInc
+			HeroResults[heroIndex].PropertyPercents[3] += lastProInc
+			HeroResults[heroIndex].PropertyPercents[4] += lastProInc
 		}
 
 		///计算觉醒影响  (培养加的都是值)
@@ -851,10 +947,28 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int32 {
 		}
 
 		if pCurHeroData.WakeLevel >= 1 {
-			pWakeLevelInfo := gamedata.GetWakeLevelItem(pCurHeroData.WakeLevel - 1)
+			pWakeLevelLast := gamedata.GetWakeLevelItem(pCurHeroData.WakeLevel - 1)
 			for pid := 0; pid < 11; pid++ {
-				HeroResults[heroIndex].PropertyValues[pid] += int32(pWakeLevelInfo.PropertyValues[pid])
-				HeroResults[heroIndex].PropertyPercents[pid] += int32(pWakeLevelInfo.PropertyPercents[pid])
+				HeroResults[heroIndex].PropertyValues[pid] += int32(pWakeLevelLast.PropertyValues[pid])
+				HeroResults[heroIndex].PropertyPercents[pid] += int32(pWakeLevelLast.PropertyPercents[pid])
+			}
+
+			pWakeLevelCur := gamedata.GetWakeLevelItem(pCurHeroData.WakeLevel)
+
+			if pWakeLevelCur.ExtraProperty == gamedata.AllPropertyID {
+				HeroResults[heroIndex].PropertyPercents[0] += int32(pWakeLevelCur.ExtraValue)
+				HeroResults[heroIndex].PropertyPercents[1] += int32(pWakeLevelCur.ExtraValue)
+				HeroResults[heroIndex].PropertyPercents[2] += int32(pWakeLevelCur.ExtraValue)
+				HeroResults[heroIndex].PropertyPercents[3] += int32(pWakeLevelCur.ExtraValue)
+				HeroResults[heroIndex].PropertyPercents[4] += int32(pWakeLevelCur.ExtraValue)
+			} else if pWakeLevelCur.ExtraProperty == gamedata.AttackPropertyID {
+				HeroResults[heroIndex].PropertyValues[gamedata.AttackMagicID-1] += int32(pWakeLevelCur.ExtraValue)
+				HeroResults[heroIndex].PropertyValues[gamedata.AttackPhysicID-1] += int32(pWakeLevelCur.ExtraValue)
+			} else if pWakeLevelCur.ExtraProperty == gamedata.DefencePropertyID {
+				HeroResults[heroIndex].PropertyValues[gamedata.DefenceMagicID-1] += int32(pWakeLevelCur.ExtraValue)
+				HeroResults[heroIndex].PropertyValues[gamedata.DefencePhysicID-1] += int32(pWakeLevelCur.ExtraValue)
+			} else if pWakeLevelCur.ExtraProperty > 0 && pWakeLevelCur.ExtraProperty <= 11 {
+				HeroResults[heroIndex].PropertyValues[pWakeLevelCur.ExtraProperty-1] += int32(pWakeLevelCur.ExtraValue)
 			}
 		}
 
@@ -924,24 +1038,24 @@ func (self *THeroMoudle) CalcFightValue(HeroResults []THeroResult) int32 {
 					proID := gamedata.GetGuildSkillPropertyID(i + 1)
 					proValue := gamedata.GetGuildSkillValue(int(self.GuildSkiLvl[i]), i+1)
 					if proID == gamedata.AttackPropertyID {
-						HeroResults[k].PropertyPercents[gamedata.AttackMagicID-1] += int32(proValue)
-						HeroResults[k].PropertyPercents[gamedata.AttackPhysicID-1] += int32(proValue)
+						HeroResults[k].PropertyValues[gamedata.AttackMagicID-1] += int32(proValue)
+						HeroResults[k].PropertyValues[gamedata.AttackPhysicID-1] += int32(proValue)
 					} else if proID == gamedata.DefencePropertyID {
-						HeroResults[k].PropertyPercents[gamedata.DefenceMagicID-1] += int32(proValue)
-						HeroResults[k].PropertyPercents[gamedata.DefenceMagicID-1] += int32(proValue)
+						HeroResults[k].PropertyValues[gamedata.DefenceMagicID-1] += int32(proValue)
+						HeroResults[k].PropertyValues[gamedata.DefenceMagicID-1] += int32(proValue)
 					} else {
-						HeroResults[k].PropertyPercents[proID-1] += int32(proValue)
+						HeroResults[k].PropertyValues[proID-1] += int32(proValue)
 					}
 				}
 			}
 		}
 	}
 
-	//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+	//*************************************************************************
 	//**
 	//**               以下是计算最终战力
 	//**
-	//<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	//*************************************************************************
 	for k := 0; k < BATTLE_NUM; k++ {
 		if HeroResults[k].HeroID != 0 {
 			for p := 0; p < 7; p++ {
@@ -1040,13 +1154,13 @@ func (self *THeroMoudle) ChangeMainQuality(value int8) bool {
 
 //给其它的英雄增加经验
 func (self *THeroMoudle) AddHeroExp(postype int, heroindex int, exp int) bool {
-	if heroindex <= 0 {
-		gamelog.Error("AddHeroExp Error: Invalid heroIndex :%d", heroindex)
-		return false
-	}
-
 	var pHeroData *THeroData
 	if postype == POSTYPE_BATTLE {
+		if heroindex <= 0 {
+			gamelog.Error("AddHeroExp Error: Invalid heroIndex :%d", heroindex)
+			return false
+		}
+
 		pHeroData = &self.CurHeros[heroindex]
 	} else if postype == POSTYPE_BAG {
 		pHeroData = &self.ownplayer.BagMoudle.HeroBag.Heros[heroindex]
@@ -1106,11 +1220,6 @@ func (self *THeroMoudle) SetBackHeroByPos(pos int, pHero *THeroData) bool {
 }
 
 func (self *THeroMoudle) AddExtraProperty(pid int, pvalue int32, percent bool, camp int) {
-	if pid <= 0 || pid > 11 {
-		gamelog.Error("AddExtraProperty Error : Invalid Pid:%d", pid)
-		return
-	}
-
 	if camp <= 0 {
 		if percent == true {
 			if pid == gamedata.AttackPropertyID {

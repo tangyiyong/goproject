@@ -25,7 +25,8 @@ type ST_HeroInfo struct {
 }
 
 var (
-	GT_Hero_List []ST_HeroInfo = nil
+	GT_Hero_List    []ST_HeroInfo = nil
+	G_Hero_Cmap_Cnt               = 0 //最大英雄阵营数
 )
 
 func InitHeroParser(total int) bool {
@@ -65,6 +66,10 @@ func ParseHeroRecord(rs *RecordSet) {
 	GT_Hero_List[HeroID].Skills[3] = rs.GetFieldInt("skill_4")
 	GT_Hero_List[HeroID].Skills[4] = rs.GetFieldInt("skill_5")
 
+	if GT_Hero_List[HeroID].Camp == 1 {
+		G_Hero_Cmap_Cnt = G_Hero_Cmap_Cnt + 1
+	}
+
 	if GT_Hero_List[HeroID].HeroExp <= 0 {
 		panic("field experience should not be zero!")
 	}
@@ -90,23 +95,6 @@ func GetHeroInfo(heroid int) *ST_HeroInfo {
 	}
 
 	return &GT_Hero_List[heroid]
-}
-
-func GetCampHeroCount() []int {
-	campHeroCount := []int{0, 0, 0, 0}
-	for _, v := range GT_Hero_List {
-		if v.Camp == 1 {
-			campHeroCount[0]++
-		} else if v.Camp == 2 {
-			campHeroCount[1]++
-		} else if v.Camp == 3 {
-			campHeroCount[2]++
-		} else if v.Camp == 4 {
-			campHeroCount[3]++
-		}
-	}
-
-	return campHeroCount
 }
 
 func GetHeroQuality(heroid int) int8 {

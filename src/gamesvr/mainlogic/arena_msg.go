@@ -8,6 +8,7 @@ import (
 	"msg"
 	"net/http"
 	"time"
+	"utility"
 )
 
 //! 玩家请求竞技场信息
@@ -44,7 +45,6 @@ func Hand_GetArenaInfo(w http.ResponseWriter, r *http.Request) {
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_ARENA, player.GetLevel(), player.GetVipLevel())
 	if isFuncOpen == false {
-		gamelog.Error("Hand_GetArenaInfo Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -91,7 +91,7 @@ func Hand_GetArenaInfo(w http.ResponseWriter, r *http.Request) {
 		}
 
 	}
-	response.IDLst = []int{}
+	response.IDLst = Int32Lst{}
 	response.IDLst = append(response.IDLst, player.ArenaModule.StoreAward...)
 	response.HistoryRank = player.ArenaModule.HistoryRank
 	response.RetCode = msg.RE_SUCCESS
@@ -129,7 +129,6 @@ func Hand_ArenaCheck(w http.ResponseWriter, r *http.Request) {
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_ARENA, player.GetLevel(), player.GetVipLevel())
 	if isFuncOpen == false {
-		gamelog.Error("Hand_ArenaCheck Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -265,7 +264,7 @@ func Hand_ArenaBattle(w http.ResponseWriter, r *http.Request) {
 	if req.IsUseItem == 1 {
 		if player.BagMoudle.IsItemEnough(JingLiDanID, 1) == false {
 			gamelog.Error("Hand_ArenaBattle Error: Item not enough")
-			response.RetCode = msg.RE_ITEM_NOT_ENOUGH
+			response.RetCode = msg.RE_NOT_ENOUGH_ITEM
 			return
 		}
 
@@ -288,7 +287,7 @@ func Hand_ArenaBattle(w http.ResponseWriter, r *http.Request) {
 	response.IsVictory = (randValue.Intn(1000)+1 < gamedata.ArenaBattleVictoryPercent)
 	if response.IsVictory == true {
 		//! 获胜的翻牌随机奖励
-		awardLst := gamedata.GetItemsFromAwardIDEx(copyInfo.AwardID)
+		awardLst := gamedata.GetItemsFromAwardID(copyInfo.AwardID)
 		if len(awardLst) != 3 {
 			gamelog.Error("GetItemsFromAwardIDEx error: %v  awardID: %d", awardLst, copyInfo.AwardID)
 			return
@@ -318,7 +317,12 @@ func Hand_ArenaBattle(w http.ResponseWriter, r *http.Request) {
 
 	player.HeroMoudle.AddMainHeroExp(exp)
 	player.RoleMoudle.AddMoney(copyInfo.MoneyID, response.Money)
-	player.BagMoudle.AddAwardItem(response.ItemID, response.ItemNum)
+
+	if response.ItemID != 0 {
+		player.BagMoudle.AddAwardItem(response.ItemID, response.ItemNum)
+	}
+
+	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(copyInfo.ActionType)
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -330,11 +334,15 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
-	//! 解析消息
+	//MD5消息验证
+	if false == utility.MsgDataCheck(buffer, G_XorCode) {
+		//存在作弊的可能
+		gamelog.Error("Hand_ChallengeArenaResult : Message Data Check Error!!!!")
+		return
+	}
 	var req msg.MSG_ArenaResult_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_ChallengeArenaResult Unmarshal fail. Error: %s", err.Error())
+	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
+		gamelog.Error("Hand_ChallengeArenaResult : Unmarshal error!!!!")
 		return
 	}
 
@@ -353,10 +361,15 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_ARENA, player.GetLevel(), player.GetVipLevel())
 	if isFuncOpen == false {
-		gamelog.Error("Hand_ChallengeArenaResult Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -392,7 +405,7 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 
 	//! 扣除行动力
 	player.RoleMoudle.CostAction(copyInfo.ActionType, copyInfo.ActionValue)
-
+	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(copyInfo.ActionType)
 	//! 经验银币奖励
 	player.RoleMoudle.AddMoney(copyInfo.MoneyID, copyInfo.MoneyNum*player.GetLevel())
 
@@ -409,7 +422,7 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 
 	if req.IsVictory == 1 {
 		//! 获胜的翻牌随机奖励
-		awardLst := gamedata.GetItemsFromAwardIDEx(copyInfo.AwardID)
+		awardLst := gamedata.GetItemsFromAwardID(copyInfo.AwardID)
 		if len(awardLst) != 3 {
 			gamelog.Error("GetItemsFromAwardIDEx error: %v  awardID: %d", awardLst, copyInfo.AwardID)
 			return
@@ -516,80 +529,6 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_ARENA_RANK, player.ArenaModule.HistoryRank)
 }
 
-/*
-type FightObject struct {
-	ObjectID int
-	Propertys [11]int
-	buffers int
-	size int
-	HeroID int
-	TargetObjectID int
-	posx, posy int
-	speed
-}
-
-type Move struct {
-	time  int
-	ObjectID int
-	TargetPosx, posy int
-}
-
-type Attack struct {
-	time  int
-	ObjectID int
-	ObjectID2 int
-	Skill int
-	Blood int
-}
-
-func Fight(f1 THeroMoudle, f2 THeroMoudle){
-	var SideOne [6]FightObject
-
-	for i:=0; i < 600; i++ {
-		if SideOne[j].TargetObjectID == 0 {
-			id = findTarget()
-			if id == 0 {
-				moveforward()
-			}else{
-				canattack()
-				attack();
-			}
-		}
-
-		if SideOne[j].TargetObjectID.is Alive() {
-		 	Attack(i)
-		}
-
-
-
-	}
-
-}
-
-func FightBoss(f1 THeroMoudle, boos){
-	var SideOne [6]FightObject
-
-	for i:=0; i < 600; i++ {
-		if SideOne[j].TargetObjectID == 0 {
-			id = findTarget()
-			if id == 0 {
-				moveforward()
-			}else{
-				canattack()
-				attack();
-			}
-		}
-
-		if SideOne[j].TargetObjectID.is Alive() {
-		 	Attack(i)
-		}
-
-
-
-	}
-}
-*/
-
 //! 玩家请求购买声望商店已购买奖励ID
 func Hand_GetArenaStoreAleadyBuyAwardLst(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
@@ -624,12 +563,11 @@ func Hand_GetArenaStoreAleadyBuyAwardLst(w http.ResponseWriter, r *http.Request)
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_ARENA, player.GetLevel(), player.GetVipLevel())
 	if isFuncOpen == false {
-		gamelog.Error("Hand_GetArenaStoreAleadyBuyAwardLst Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
 
-	response.IDLst = []int{}
+	response.IDLst = Int32Lst{}
 	response.IDLst = append(response.IDLst, player.ArenaModule.StoreAward...)
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -668,7 +606,6 @@ func Hand_BuyArenaStoreItem(w http.ResponseWriter, r *http.Request) {
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_ARENA, player.GetLevel(), player.GetVipLevel())
 	if isFuncOpen == false {
-		gamelog.Error("Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -702,7 +639,7 @@ func Hand_BuyArenaStoreItem(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//! 判断是否已经购买
-		if player.ArenaModule.StoreAward.IsExist(item.ID) >= 0 {
+		if player.ArenaModule.StoreAward.IsExist(int32(item.ID)) >= 0 {
 			response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 			return
 		}
@@ -732,7 +669,7 @@ func Hand_BuyArenaStoreItem(w http.ResponseWriter, r *http.Request) {
 
 	//! 记录购买
 	if item.Type == 2 {
-		player.ArenaModule.StoreAward = append(player.ArenaModule.StoreAward, item.ID)
+		player.ArenaModule.StoreAward = append(player.ArenaModule.StoreAward, int32(item.ID))
 		player.ArenaModule.DB_UpdateStoreToDatabase()
 	}
 

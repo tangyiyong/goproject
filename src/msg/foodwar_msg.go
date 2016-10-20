@@ -36,12 +36,12 @@ type MSG_FoodWar_GetStatus_Ack struct {
 	RobFood        int
 	TotalFood      int
 	ChallengerLst  []MSG_FoodWar_Challenger
-	AttackTimes    int   //! 剩余抢夺次数
-	BuyAttackTimes int   //! 已购买抢夺次数
-	RecoverTime    int64 //! 下次恢复时间
-	AttackTimesMax int   //! 上限
-	FixFood        int   //! 固定粮草
-	RecoverFood    int   //! 每小时增加固定粮草数
+	AttackTimes    int    //! 剩余抢夺次数
+	BuyAttackTimes int    //! 已购买抢夺次数
+	RecoverTime    uint32 //! 下次恢复时间
+	AttackTimesMax int    //! 上限
+	FixFood        int    //! 固定粮草
+	RecoverFood    int    //! 每小时增加固定粮草数
 }
 
 //! 玩家请求查询复仇状态
@@ -56,7 +56,7 @@ type MSG_FoodWar_RevengeStatus_Ack struct {
 	RevengeTimes    int                      //! 剩余复仇次数
 	BuyRevengeTimes int                      //! 已购买复仇次数
 	RevengeLst      []MSG_FoodWar_Challenger //! 复仇名单
-	RecoverTime     int64                    //! 下次恢复时间
+	RecoverTime     uint32                   //! 下次恢复时间
 }
 
 //! 玩家请求查询次数以及恢复时间
@@ -68,11 +68,11 @@ type MSG_FoodWar_GetFoodWarTime_Req struct {
 
 type MSG_FoodWar_GetFoodWarTime_Ack struct {
 	RetCode         int
-	AttackTimes     int   //! 剩余抢夺次数
-	RevengeTimes    int   //! 剩余复仇次数
-	BuyAttackTimes  int   //! 已购买抢夺次数
-	BuyRevengeTimes int   //! 已购买复仇次数
-	RecoverTime     int64 //! 下次恢复时间
+	AttackTimes     int    //! 剩余抢夺次数
+	RevengeTimes    int    //! 剩余复仇次数
+	BuyAttackTimes  int    //! 已购买抢夺次数
+	BuyRevengeTimes int    //! 已购买复仇次数
+	RecoverTime     uint32 //! 下次恢复时间
 }
 
 //! 玩家请求掠夺粮草

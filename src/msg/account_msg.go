@@ -21,6 +21,7 @@ type MSG_Login_Ack struct {
 type MSG_RegAccount_Req struct {
 	Name     string //账户名
 	Password string //密码
+	Platform int32  //平台ID
 }
 
 type MSG_RegAccount_Ack struct {
@@ -38,7 +39,8 @@ type MSG_ServerList_Req struct {
 type ServerNode struct {
 	SvrID      int32
 	SvrName    string
-	SvrFlag    uint32
+	SvrState   uint32
+	SvrDefault uint32
 	SvrOutAddr string
 }
 
@@ -65,6 +67,7 @@ type MSG_VerifyUserLogin_Ack struct {
 type MSG_TourRegAccount_Req struct {
 	Name     string //账户名
 	Password string //密码
+	Platform int32  //平台ID
 }
 
 type MSG_TourRegAccount_Ack struct {

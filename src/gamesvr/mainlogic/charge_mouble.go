@@ -13,8 +13,7 @@ import (
 type TChargeMoudle struct {
 	PlayerID    int32 `bson:"_id"` //主键 玩家ID
 	ChargeTimes []int
-
-	ownplayer *TPlayer //父player指针
+	ownplayer   *TPlayer //父player指针
 }
 
 //！ 活动框架代码
@@ -65,17 +64,17 @@ func (self *TChargeMoudle) AddChargeTimes(id int) int {
 	return self.ChargeTimes[id]
 }
 
-//! DB相关
-func (self *TChargeMoudle) DB_SaveChargeTimes(nIndex int) {
-	FieldName := fmt.Sprintf("chargetimes.%d", nIndex)
-	mongodb.UpdateToDB("PlayerCharge", &bson.M{"_id": self.PlayerID},
-		&bson.M{"$set": bson.M{FieldName: self.ChargeTimes[nIndex]}})
-}
-
 //! 逻辑代码
 func (self *TChargeMoudle) IsFirstCharge(id int) bool {
 	if id <= 0 || id >= len(self.ChargeTimes) {
 		return false
 	}
 	return self.ChargeTimes[id] == 0
+}
+
+//! DB相关
+func (self *TChargeMoudle) DB_SaveChargeTimes(nIndex int) {
+	FieldName := fmt.Sprintf("chargetimes.%d", nIndex)
+	mongodb.UpdateToDB("PlayerCharge", &bson.M{"_id": self.PlayerID},
+		&bson.M{"$set": bson.M{FieldName: self.ChargeTimes[nIndex]}})
 }

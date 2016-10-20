@@ -2,17 +2,15 @@ package msg
 
 //! 玩家请求公会状态
 //! 消息: /get_guild_status
-type MSG_GetGuildStatus_Req struct {
+type MSG_GetGuildData_Req struct {
 	PlayerID   int32
 	SessionKey string
 }
 
-type MSG_GetGuildStatus_Ack struct {
-	RetCode int
-
-	//! 副本
+type MSG_GetGuildData_Ack struct {
+	RetCode            int
 	ActionTimes        int                     //! 还能攻打次数
-	NextRecoverTime    int64                   //! 下次恢复行动力时间戳
+	NextRecoverTime    int32                   //! 下次恢复行动力时间戳
 	CampLife           []MSG_CampLife          //! 当前攻打副本四个阵营血量
 	IsBack             bool                    //! 是否回退章节
 	CopyTreasure       []MSG_GuildCopyTreasure //! 章节宝藏领取情况
@@ -26,9 +24,9 @@ type MSG_GetGuildStatus_Ack struct {
 	BuyLst []MSG_GuildGoods //! 已购买列表信息
 
 	//! 祭天
-	SacrificeStatus   int //! 祭天状态  0未祭天 1 2 3对应祭天模式
-	SacrificeSchedule int //! 祭天进度
-	SacrificeNum      int //! 当前祭天人数
+	SacrificeStatus   int8 //! 祭天状态  0未祭天 1 2 3对应祭天模式
+	SacrificeSchedule int  //! 祭天进度
+	SacrificeNum      int  //! 当前祭天人数
 	RecvLst           [4]int
 
 	//! 技能
@@ -47,6 +45,8 @@ type MSG_CreateNewGuild_Req struct {
 
 type MSG_CreateNewGuild_Ack struct {
 	RetCode  int
+	CostID   int //花费钱ID
+	CostNum  int //花费钱数量
 	NewGuild MSG_GuildInfo
 }
 
@@ -73,7 +73,7 @@ type MSG_GetGuildInfo_Ack struct {
 	RetCode     int
 	IsHaveGuild bool            //! 是否有公会
 	GuildLst    []MSG_GuildInfo //! 公会列表 如果有公会,则为公会信息, 若没公会,则为前五名公会数据
-	CopyEndTime int64           //! 公会结束时间
+	CopyEndTime int32           //! 公会结束时间
 }
 
 //! 查看更多公会列表
@@ -115,13 +115,13 @@ type MSG_GetApplyGuildList_Ack struct {
 
 //! 撤销申请公会
 //! /cancellation_guild_apply
-type MSG_CancellationGuildApply_Req struct {
+type MSG_CancelGuildApply_Req struct {
 	PlayerID   int32
 	SessionKey string
 	GuildID    int32
 }
 
-type MSG_CancellationGuildApply_Ack struct {
+type MSG_CancelGuildApply_Ack struct {
 	RetCode int
 }
 
@@ -153,7 +153,7 @@ type MSG_MemberInfo struct {
 	Role         int
 	FightValue   int32
 	Contribution int
-	OfflineTime  int64
+	OfflineTime  int32
 	IsOnline     bool
 }
 
@@ -177,9 +177,9 @@ type MSG_GetGuildMemberList_Ack struct {
 //! 接受成员入帮
 //! 消息: /apply_through
 type MSG_ApplyThrough_Req struct {
-	PlayerID       int32
-	SessionKey     string
-	TargetPlayerID int32
+	PlayerID   int32
+	SessionKey string
+	TargetID   int32
 }
 
 type MSG_ApplyThrough_Ack struct {
@@ -206,9 +206,9 @@ type MSG_GetSacrificeStatus_Req struct {
 
 type MSG_GetSacrificeStatus_Ack struct {
 	RetCode           int
-	SacrificeStatus   int //! 祭天状态  0未祭天 1 2 3对应祭天模式
-	SacrificeSchedule int //! 祭天进度
-	SacrificeNum      int //! 当前祭天人数
+	SacrificeStatus   int8 //! 祭天状态  0未祭天 1 2 3对应祭天模式
+	SacrificeSchedule int  //! 祭天进度
+	SacrificeNum      int  //! 当前祭天人数
 	RecvLst           [4]int
 }
 
@@ -217,14 +217,14 @@ type MSG_GetSacrificeStatus_Ack struct {
 type MSG_GuildSacrifice_Req struct {
 	PlayerID    int32
 	SessionKey  string
-	SacrificeID int //! 祭祀方式
+	SacrificeID int8 //! 祭祀方式
 }
 
 type MSG_GuildSacrifice_Ack struct {
 	RetCode           int
 	MoneyID           int //! 获取货币
-	MoneyNum          int
-	CurExp            int
+	MoneyNum          int //! 获取货币数量
+	CurExp            int //! 当前经验
 	GuildLevel        int
 	SacrificeSchedule int //! 祭天进度
 	SacrificeNum      int //! 当前祭天人数
@@ -267,6 +267,7 @@ type MSG_GuildGoods struct {
 
 type MSG_QueryGuildStoreStatus_Ack struct {
 	RetCode int
+	Level   int              //! 公会等级
 	BuyLst  []MSG_GuildGoods //! 已购买列表信息
 }
 
@@ -333,7 +334,7 @@ type MSG_QueryGuildCopyTreasure_Ack struct {
 type MSG_PassAwardChapter struct {
 	PassChapter int32
 	CopyID      int
-	PassTime    int64
+	PassTime    int32
 	PlayerName  string //! 击杀者姓名
 }
 
@@ -350,7 +351,7 @@ type MSG_RecvCopyMark struct {
 type MSG_GetGuildCopyStatus_Ack struct {
 	RetCode            int
 	ActionTimes        int                     //! 还能攻打次数
-	NextRecoverTime    int64                   //! 下次恢复行动力时间戳
+	NextRecoverTime    int32                   //! 下次恢复行动力时间戳
 	CampLife           []MSG_CampLife          //! 当前攻打副本四个阵营血量
 	IsBack             bool                    //! 是否回退章节
 	CopyTreasure       []MSG_GuildCopyTreasure //! 章节宝藏领取情况
@@ -482,7 +483,7 @@ type MSG_RemoveGuildMsgBoard_Req struct {
 	PlayerID       int32
 	SessionKey     string
 	TargetPlayerID int
-	TargetTime     int64
+	TargetTime     int32
 }
 
 type MSG_RemoveGuildMsgBoard_Ack struct {
@@ -500,7 +501,7 @@ type MSG_GuildBoard struct {
 	PlayerID   int32
 	PlayerName string
 	Message    string
-	Time       int64
+	Time       int32
 }
 
 type MSG_QueryGuildMsgBoard_Ack struct {
@@ -588,7 +589,7 @@ type GuildEvent struct {
 	Type       int //! 祭天->类型
 	Value      int //! 祭天->经验  升级->等级  职位->新职位
 	Action     int //!
-	Time       int64
+	Time       int32
 }
 
 type MSG_GetGuildLog_Ack struct {
@@ -599,10 +600,10 @@ type MSG_GetGuildLog_Ack struct {
 //! 修改公会职位
 //! 消息: /change_guild_role
 type MSG_ChangeGuildRole_Req struct {
-	PlayerID       int32
-	SessionKey     string
-	TargetPlayerID int32
-	Role           int
+	PlayerID   int32
+	SessionKey string
+	TargetID   int32
+	Role       int
 }
 
 type MSG_ChangeGuildRole_Ack struct {
@@ -621,7 +622,7 @@ type MSG_BuyGuildCopyAction_Ack struct {
 	RetCode      int
 	CostMoneyID  int
 	CostMoneyNum int
-	ActionTimes  int
+	BuyTimes     int
 }
 
 //! 升级工会

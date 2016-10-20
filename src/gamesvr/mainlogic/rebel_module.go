@@ -4,12 +4,11 @@ import (
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"sync"
 	"time"
 	"utility"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 const (
@@ -19,12 +18,11 @@ const (
 
 //! 围剿叛军模块
 type TRebelModule struct {
-	PlayerID int32 `bson:"_id"`
-
+	PlayerID        int32  `bson:"_id"`
 	RebelID         int    //! 当前叛军ID
 	CurLife         int    //! 当前血量
 	Level           int    //! 叛军等级
-	EscapeTime      int64  //! 逃跑时间
+	EscapeTime      int32  //! 逃跑时间
 	Damage          int    //! 单次伤害
 	Exploit         int    //! 功勋
 	ExploitAwardLst IntLst //! 功勋奖励领取标记
@@ -47,7 +45,7 @@ func (self *TRebelModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerRebel", self)
+	mongodb.InsertToDB("PlayerRebel", self)
 }
 
 //! 玩家销毁角色
@@ -118,7 +116,7 @@ func (self *TRebelModule) RandRebel() {
 	self.RebelID = rebelInfo.CopyID
 	self.CurLife = rebelInfo.LifeValue * 10000 //! 需要根据等级加成
 	self.Level += 1
-	self.EscapeTime = time.Now().Unix() + int64(gamedata.RebelEscapeTime)
+	self.EscapeTime = utility.GetCurTime() + int32(gamedata.RebelEscapeTime)
 	self.IsShare = false
 
 	//! 更新到数据库
@@ -127,7 +125,7 @@ func (self *TRebelModule) RandRebel() {
 
 //! 检测逃跑时间
 func (self *TRebelModule) CheckEscapeTime() {
-	if time.Now().Unix() < self.EscapeTime {
+	if utility.GetCurTime() < self.EscapeTime {
 		return
 	}
 

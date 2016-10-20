@@ -34,7 +34,6 @@ type TScoreMoudle struct {
 	SeriesWin  uint32            //连胜次数+领奖状态高16位是领取状态，低16位
 	ResetDay   uint32            //重置时间标线
 	//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-	rank      int      //自己的排行(不需要存库)
 	ownplayer *TPlayer //父player指针
 }
 
@@ -52,7 +51,7 @@ func (self *TScoreMoudle) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//创建数据库记录
-	mongodb.InsertToDB( "PlayerScore", self)
+	mongodb.InsertToDB("PlayerScore", self)
 }
 
 func (self *TScoreMoudle) CheckReset() {

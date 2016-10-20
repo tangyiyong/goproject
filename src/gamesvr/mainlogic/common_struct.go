@@ -142,13 +142,13 @@ func (self *TPetData) Clear() {
 
 //时装数据
 type TFashionData struct {
-	ID    int //时装ID
-	Level int //时装等级
+	ID    int32 //时装ID
+	Level int32 //时装等级
 }
 
 func (self *TFashionData) Init(id int) {
-	self.ID = id
-	self.Level = 0
+	self.ID = int32(id)
+	self.Level = 1
 }
 
 func (self *TFashionData) Clear() {

@@ -6,7 +6,7 @@ import (
 	"gamesvr/gamedata"
 	"msg"
 	"net/http"
-	"time"
+	"utility"
 )
 
 //! 玩家请求黑市信息
@@ -40,8 +40,8 @@ func Hand_GetBlackMarketInfo(w http.ResponseWriter, r *http.Request) {
 
 	player.BlackMarketModule.CheckReset()
 
-	if player.GetVipLevel() < int8(gamedata.EnterVipLevel) && player.BlackMarketModule.OpenEndTime < time.Now().Unix() {
-		gamelog.Error("BlackMarket not open: vipLevel %d  openEndTime: %d", player.GetVipLevel(), player.BlackMarketModule.OpenEndTime)
+	if player.GetVipLevel() < int8(gamedata.EnterVipLevel) && player.BlackMarketModule.BlackTime < utility.GetCurTime() {
+		gamelog.Error("BlackMarket not open: vipLevel %d  openEndTime: %d", player.GetVipLevel(), player.BlackMarketModule.BlackTime)
 		response.RetCode = msg.RE_BLACK_MARKET_NOT_OPEN
 		return
 	}
@@ -61,7 +61,7 @@ func Hand_GetBlackMarketInfo(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	response.OpenEndTime = player.BlackMarketModule.OpenEndTime
+	response.OpenEndTime = player.BlackMarketModule.BlackTime
 	response.RefreshTime = player.BlackMarketModule.RefreshTime
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -95,7 +95,12 @@ func Hand_BuyBlackMarketGoods(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.GetVipLevel() <= int8(gamedata.EnterVipLevel) && player.BlackMarketModule.OpenEndTime < time.Now().Unix() {
+	if gamedata.IsFuncOpen(gamedata.FUNC_BLACK_STORE, player.GetLevel(), player.GetVipLevel()) == false {
+		response.RetCode = msg.RE_BLACK_MARKET_NOT_OPEN
+		return
+	}
+
+	if player.BlackMarketModule.BlackTime < utility.GetCurTime() {
 		response.RetCode = msg.RE_BLACK_MARKET_NOT_OPEN
 		return
 	}
@@ -169,6 +174,11 @@ func Hand_GetBlackMarketStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.OpenEndTime = player.BlackMarketModule.OpenEndTime
+	if gamedata.IsFuncOpen(gamedata.FUNC_BLACK_STORE, player.GetLevel(), player.GetVipLevel()) == false {
+		response.RetCode = msg.RE_BLACK_MARKET_NOT_OPEN
+		return
+	}
+
+	response.OpenEndTime = player.BlackMarketModule.BlackTime
 	response.RetCode = msg.RE_SUCCESS
 }

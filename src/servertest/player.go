@@ -9,14 +9,7 @@ import (
 	"gamesvr/tcpclient"
 	"msg"
 	"strconv"
-	"time"
-)
-
-var (
-	registerurl string = "http://127.0.0.1:8081/register"
-	loginurl    string = "http://127.0.0.1:8081/login"
-	serverlist  string = "http://127.0.0.1:8081:8081/serverlist"
-	Password    string = "123456"
+	//"time"
 )
 
 type TPlayer struct {
@@ -24,8 +17,11 @@ type TPlayer struct {
 	Password    string
 	AccountID   int32
 
-	PlayerName string
-	PlayerID   int32
+	GameSvrAddr string //游戏服地址
+	ChatSvrAddr string //聊天服务器地址
+	ChatClient  tcpclient.TCPClient
+	PlayerName  string
+	PlayerID    int32
 
 	LoginKey   string
 	SessoinKey string
@@ -33,7 +29,8 @@ type TPlayer struct {
 	BattleSvrAddr string //战场服务器IP地址
 	BatCamp       int8
 	BatClient     tcpclient.TCPClient
-	EnterCode     int32 //进入码
+
+	EnterCode int32 //进入码
 
 	Heros   [6]msg.MSG_HeroObj
 	IsEnter bool
@@ -99,35 +96,33 @@ func (self *TPlayer) TestRoutine() {
 		return
 	}
 
-	self.TestUpLevel()
-	self.TestUpLevel()
-	self.TestUpLevel()
-	self.TestUpLevel()
-	//	self.Create_Recharge_Order_2Gamesvr()
-	//	self.Recharge_Syccess_2SDK()
+	self.GetBagData()
+	self.GetCopyData()
+	self.GetBattleData()
+	self.GetActivitylist()
 
-	if !self.userSetBatCamp() {
-		gamelog.Error("设置阵营失败!!!!")
-		return
-	}
+	//if !self.userSetBatCamp() {
+	//	gamelog.Error("设置阵营失败!!!!")
+	//	return
+	//}
 
-	if !self.userEnterBattle() {
-		gamelog.Error("进入阵营失败!!!!")
-		return
-	}
+	//if !self.userEnterBattle() {
+	//	gamelog.Error("进入阵营失败!!!!")
+	//	return
+	//}
 
 	//if !self.userStartCarry() {
 	//	gamelog.Error("进入阵营失败!!!!")
 	//	return
 	//}
 
-	for {
-		if self.IsEnter == true {
-			self.userMove()
-		}
+	//for {
+	//	if self.IsEnter == true {
+	//		self.userMove()
+	//	}
 
-		time.Sleep(200 * time.Millisecond)
-	}
+	//	time.Sleep(200 * time.Millisecond)
+	//}
 
 }
 
@@ -136,7 +131,7 @@ func (self *TPlayer) userRegister() bool {
 	req.Name = self.AccountName
 	req.Password = self.Password
 	b, _ := json.Marshal(req)
-	buffer, err := PostServerReq(registerurl, bytes.NewReader(b))
+	buffer, err := PostServerReq(accountip+"/register", bytes.NewReader(b))
 	if err != nil {
 		return false
 	}
@@ -151,7 +146,7 @@ func (self *TPlayer) userLogin() bool {
 	req.Name = self.AccountName
 	req.Password = self.Password
 	b, _ := json.Marshal(req)
-	buffer, err := PostServerReq(loginurl, bytes.NewReader(b))
+	buffer, err := PostServerReq(accountip+"/login", bytes.NewReader(b))
 	if err != nil {
 		fmt.Println(err.Error())
 		return false
@@ -167,17 +162,17 @@ func (self *TPlayer) userLogin() bool {
 
 	self.AccountID = ack.AccountID
 	self.LoginKey = ack.LoginKey
+	self.GameSvrAddr = "http://" + ack.LastSvrAddr
 
 	return true
 }
 
 func (self *TPlayer) userLoginGame() bool {
-	reqUrl := "http://127.0.0.1:8082/user_login_game"
 	var req msg.MSG_LoginGameSvr_Req
 	req.AccountID = self.AccountID
 	req.LoginKey = self.LoginKey
 	b, _ := json.Marshal(req)
-	buffer, err := PostServerReq(reqUrl, bytes.NewReader(b))
+	buffer, err := PostServerReq(self.GameSvrAddr+"/user_login_game", bytes.NewReader(b))
 	if err != nil {
 		fmt.Println(err.Error())
 		return false
@@ -196,14 +191,13 @@ func (self *TPlayer) userLoginGame() bool {
 }
 
 func (self *TPlayer) userCreatePlayer() bool {
-	reqUrl := "http://127.0.0.1:8082/create_new_player"
 	var req msg.MSG_CreateNewPlayerReq
 	req.AccountID = self.AccountID
 	req.SessionKey = self.SessoinKey
 	req.PlayerName = self.PlayerName
 	req.HeroID = 3
 	b, _ := json.Marshal(req)
-	buffer, err := PostServerReq(reqUrl, bytes.NewReader(b))
+	buffer, err := PostServerReq(self.GameSvrAddr+"/create_new_player", bytes.NewReader(b))
 	if err != nil {
 		fmt.Println(err.Error())
 		return false
@@ -222,12 +216,11 @@ func (self *TPlayer) userCreatePlayer() bool {
 }
 
 func (self *TPlayer) userEnterGame() bool {
-	reqUrl := "http://127.0.0.1:8082/user_enter_game"
 	var req msg.MSG_EnterGameSvr_Req
 	req.PlayerID = self.PlayerID
 	req.SessionKey = self.SessoinKey
 	b, _ := json.Marshal(req)
-	buffer, err := PostServerReq(reqUrl, bytes.NewReader(b))
+	buffer, err := PostServerReq(self.GameSvrAddr+"/user_enter_game", bytes.NewReader(b))
 	if err != nil {
 		fmt.Println(err.Error())
 		return false
@@ -239,16 +232,43 @@ func (self *TPlayer) userEnterGame() bool {
 		return false
 	}
 
+	self.ChatSvrAddr = ack.ChatSvrAddr
+
+	self.ChatClient.ConType = tcpclient.CON_TYPE_CHAT
+	self.ChatClient.ExtraData = self
+	self.ChatClient.ConnectToSvr(self.ChatSvrAddr, 1)
+
+	return true
+}
+
+func (self *TPlayer) userCheckIn() bool {
+	var req msg.MSG_CheckIn_Req
+	req.PlayerID = self.PlayerID
+	req.GuildID = 0
+	req.PlayerName = self.PlayerName
+	b, _ := json.Marshal(req)
+
+	if self == nil {
+		fmt.Println("userCheckIn failed self == nil:")
+		return false
+	}
+
+	if self.ChatClient.TcpConn == nil {
+		fmt.Println("userCheckIn failed TcpConn == nil:")
+		return false
+	}
+
+	self.ChatClient.TcpConn.WriteMsg(msg.MSG_CHECK_IN_REQ, 0, b)
+
 	return true
 }
 
 func (self *TPlayer) TestUpLevel() {
-	reqUrl := "http://127.0.0.1:8082/test_uplevel_ten"
 	var req msg.MSG_TestUpLevelTen_Req
 	req.SessionKey = self.SessoinKey
 	req.PlayerID = self.PlayerID
 	b, _ := json.Marshal(req)
-	_, err := PostServerReq(reqUrl, bytes.NewReader(b))
+	_, err := PostServerReq(self.GameSvrAddr+"/test_uplevel_ten", bytes.NewReader(b))
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -258,7 +278,6 @@ func (self *TPlayer) TestUpLevel() {
 }
 
 func (self *TPlayer) buyItem() {
-	reqUrl := "http://127.0.0.1:8082/buy_goods"
 	var req msg.MSG_BuyGoods_Req
 	req.ID = 2
 	req.Num = 1
@@ -266,7 +285,7 @@ func (self *TPlayer) buyItem() {
 	req.PlayerID = self.PlayerID
 	b, _ := json.Marshal(req)
 
-	buffer, err := PostServerReq(reqUrl, bytes.NewReader(b))
+	buffer, err := PostServerReq(self.GameSvrAddr+"/buy_goods", bytes.NewReader(b))
 	if err != nil {
 		fmt.Println(err.Error())
 		return
@@ -280,4 +299,76 @@ func (self *TPlayer) buyItem() {
 	}
 
 	return
+}
+
+//消息:/
+type MSG_GetData_Req struct {
+	PlayerID   int32
+	SessionKey string
+}
+
+func (self *TPlayer) GetBagData() bool {
+	var req MSG_GetData_Req
+	req.PlayerID = self.PlayerID
+	req.SessionKey = self.SessoinKey
+	b, _ := json.Marshal(req)
+	_, err := PostServerReq(self.GameSvrAddr+"/get_bag_data", bytes.NewReader(b))
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
+	return true
+}
+
+func (self *TPlayer) GetGiftCode() bool {
+	var req msg.MSG_RecvGiftCode_Req
+	req.PlayerID = self.PlayerID
+	req.SessionKey = self.SessoinKey
+	req.GiftCode = "afdsfasf"
+	b, _ := json.Marshal(req)
+	_, err := PostServerReq(self.GameSvrAddr+"/recv_gift_code", bytes.NewReader(b))
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
+	return true
+}
+
+func (self *TPlayer) GetCopyData() bool {
+	var req MSG_GetData_Req
+	req.PlayerID = self.PlayerID
+	req.SessionKey = self.SessoinKey
+	b, _ := json.Marshal(req)
+	_, err := PostServerReq(self.GameSvrAddr+"/get_copy_data", bytes.NewReader(b))
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
+	return true
+}
+
+func (self *TPlayer) GetBattleData() bool {
+	var req MSG_GetData_Req
+	req.PlayerID = self.PlayerID
+	req.SessionKey = self.SessoinKey
+	b, _ := json.Marshal(req)
+	_, err := PostServerReq(self.GameSvrAddr+"/get_battle_data", bytes.NewReader(b))
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
+	return true
+}
+
+func (self *TPlayer) GetActivitylist() bool {
+	var req MSG_GetData_Req
+	req.PlayerID = self.PlayerID
+	req.SessionKey = self.SessoinKey
+	b, _ := json.Marshal(req)
+	_, err := PostServerReq(self.GameSvrAddr+"/get_activity_list", bytes.NewReader(b))
+	if err != nil {
+		fmt.Println(err.Error())
+		return false
+	}
+	return true
 }

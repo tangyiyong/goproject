@@ -9,7 +9,7 @@ type MSG_GetTitle_Req struct {
 
 type TitleInfo struct {
 	TitleID int   //! 拥有称号ID
-	EndTime int64 //! 结束时间
+	EndTime int32 //! 结束时间
 	Status  int   //! 0->未激活 1->已激活 2->已佩戴
 }
 

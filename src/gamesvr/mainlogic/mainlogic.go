@@ -6,8 +6,9 @@ import (
 )
 
 func Init() bool {
-	G_Players = make(map[int32]*TPlayer, 1)
-	G_SelectPlayers = make([]*TPlayer, 0, 10000)
+
+	//初始化玩家管理器
+	InitPlayerMgr()
 
 	//初始化数据库处理器
 	mongodb.InitDbProcesser(appconfig.GameDbName)
@@ -34,6 +35,9 @@ func Init() bool {
 
 	//初始化定时器管理器
 	G_Timer.Init()
+
+	//生成异或码
+	CreateXorCode()
 
 	return true
 

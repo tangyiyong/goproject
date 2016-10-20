@@ -17,32 +17,29 @@ type TLimitSaleInfo struct {
 
 //! 限时优惠活动
 type TActivityLimitSale struct {
-	ActivityID int //! 活动ID
-
-	Score   int              //! 当前积分
-	ItemLst []TLimitSaleInfo //! 当天优惠物品
-
-	DiscountChargeID int    //! 优惠充值ID
-	RefreshMark      bool   //! 刷新标记
-	AwardMark        Mark   //! 全民奖励领取标记
-	WeekReset        uint32 //! 全民奖励刷新周
-
-	VersionCode    int32            //! 版本号
-	ResetCode      int32            //! 迭代号
-	activityModule *TActivityModule //! 指针
+	ActivityID       int32            //! 活动ID
+	Score            int              //! 当前积分
+	ItemLst          []TLimitSaleInfo //! 当天优惠物品
+	DiscountChargeID int              //! 优惠充值ID
+	RefreshMark      bool             //! 刷新标记
+	AwardMark        BitsType         //! 全民奖励领取标记
+	WeekReset        uint32           //! 全民奖励刷新周
+	VersionCode      int32            //! 版本号
+	ResetCode        int32            //! 迭代号
+	modulePtr        *TActivityModule //! 指针
 }
 
 //! 赋值基础数据
 func (self *TActivityLimitSale) SetModulePtr(mPtr *TActivityModule) {
-	self.activityModule = mPtr
-	self.activityModule.activityPtrs[self.ActivityID] = self
+	self.modulePtr = mPtr
+	self.modulePtr.activityPtrs[self.ActivityID] = self
 }
 
 //! 创建初始化
-func (self *TActivityLimitSale) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityLimitSale) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
-	self.activityModule = mPtr
+	self.modulePtr = mPtr
 
 	self.Score = 0
 	self.ItemLst = []TLimitSaleInfo{}
@@ -50,7 +47,7 @@ func (self *TActivityLimitSale) Init(activityID int, mPtr *TActivityModule, verc
 	self.WeekReset = utility.GetCurDay()
 	self.DiscountChargeID = 0
 
-	self.activityModule.activityPtrs[self.ActivityID] = self
+	self.modulePtr.activityPtrs[self.ActivityID] = self
 	self.VersionCode = vercode
 	self.ResetCode = resetcode
 
@@ -166,34 +163,34 @@ func (self *TActivityLimitSale) DiscountChargeClear() {
 }
 
 func (self *TActivityLimitSale) DB_UpdateDiscountCharge() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.score":            self.Score,
 		"limitsale.discountchargeid": self.DiscountChargeID}})
 }
 
 func (self *TActivityLimitSale) DB_UpdateScore() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.score": self.Score}})
 }
 
 func (self *TActivityLimitSale) DB_UpdateStatus(index int) {
 	filedName := fmt.Sprintf("limitsale.itemlst.%d.status", index)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.ItemLst[index].Status}})
 }
 
 func (self *TActivityLimitSale) DB_SaveRefreshMark() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.refreshmark": self.RefreshMark}})
 }
 
 func (self *TActivityLimitSale) DB_UpdateAwardMark() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.awardmark": self.AwardMark}})
 }
 
 func (self *TActivityLimitSale) DB_Refresh() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.versioncode":      self.VersionCode,
 		"limitsale.refreshmark":      self.RefreshMark,
 		"limitsale.score":            self.Score,
@@ -204,7 +201,7 @@ func (self *TActivityLimitSale) DB_Refresh() {
 }
 
 func (self *TActivityLimitSale) DB_Reset() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		"limitsale.versioncode":      self.VersionCode,
 		"limitsale.resetcode":        self.ResetCode,
 		"limitsale.refreshmark":      self.RefreshMark,

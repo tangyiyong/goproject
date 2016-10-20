@@ -52,6 +52,11 @@ func Rand() int {
 	return GetRandValueInt()
 }
 
+func RandIn(max int) int {
+	nCurIndex = (nCurIndex + 1) % max
+	return int(randValueList[nCurIndex])
+}
+
 func HitRandTest(value int) bool {
 	if value > GetRandValueInt() {
 		return true

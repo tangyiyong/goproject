@@ -15,8 +15,7 @@ const (
 
 //! 登录送礼活动
 type TActivitySign struct {
-	ActivityID int //! 活动ID
-
+	ActivityID     int32                  //! 活动ID
 	SignDay        int                    //! 签到天数
 	IsSign         bool                   //! 签到状态
 	SignPlusAward  []gamedata.ST_ItemData //! 豪华签到奖励
@@ -35,7 +34,7 @@ func (self *TActivitySign) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivitySign) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivitySign) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -74,7 +73,7 @@ func (self *TActivitySign) Refresh(versionCode int32) {
 		self.SignPlusAward = []gamedata.ST_ItemData{}
 	}
 
-	awardLst := gamedata.GetItemsFromAwardIDEx(data.SignAward)
+	awardLst := gamedata.GetItemsFromAwardID(data.SignAward)
 	self.SignPlusAward = append(self.SignPlusAward, awardLst...)
 
 	//! 设置豪华签到状态
@@ -91,6 +90,7 @@ func (self *TActivitySign) End(versionCode int32, resetCode int32) {
 	self.SignPlusAward = []gamedata.ST_ItemData{}
 	self.SignPlusStatus = 0
 	self.VersionCode = versionCode
+	self.ResetCode = resetCode
 
 	self.DB_Reset()
 }
@@ -130,7 +130,7 @@ func (self *TActivitySign) RefreshSignPlusAward(updateDB bool) {
 		self.SignPlusAward = []gamedata.ST_ItemData{}
 	}
 
-	awardLst := gamedata.GetItemsFromAwardIDEx(data.SignAward)
+	awardLst := gamedata.GetItemsFromAwardID(data.SignAward)
 	self.SignPlusAward = append(self.SignPlusAward, awardLst...)
 
 	//! 设置豪华签到状态

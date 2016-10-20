@@ -11,13 +11,13 @@ import (
 )
 
 type TRankGiftInfo struct {
-	GiftID   int //! 礼包ID
-	BuyTimes int //! 当前可购买次数
+	GiftID   int32 //! 礼包ID
+	BuyTimes int   //! 当前可购买次数
 }
 
 //! 等级礼包
 type TActivityRankGift struct {
-	ActivityID int //! 活动ID
+	ActivityID int32 //! 活动ID
 
 	GiftLst       []TRankGiftInfo //! 等级礼包
 	IsHaveNewItem bool            //! 红点显示规则
@@ -35,7 +35,7 @@ func (self *TActivityRankGift) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityRankGift) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityRankGift) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -85,7 +85,7 @@ func (self *TActivityRankGift) RedTip() bool {
 }
 
 //! 获取排名礼包信息
-func (self *TActivityRankGift) GetRankGiftInfo(giftID int) *TRankGiftInfo {
+func (self *TActivityRankGift) GetRankGiftInfo(giftID int32) *TRankGiftInfo {
 	length := len(self.GiftLst)
 	for i := 0; i < length; i++ {
 		if self.GiftLst[i].GiftID == giftID {
@@ -163,7 +163,7 @@ func (self *TActivityRankGift) DB_AddGift(gift *TRankGiftInfo) {
 		"rankgift.ishavenewitem": self.IsHaveNewItem}})
 }
 
-func (self *TActivityRankGift) DB_UpdateBuyTimes(id int, times int) {
+func (self *TActivityRankGift) DB_UpdateBuyTimes(id int32, times int) {
 	index := -1
 	for i, v := range self.GiftLst {
 		if v.GiftID == id {

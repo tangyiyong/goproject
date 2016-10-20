@@ -48,10 +48,10 @@ func LoadBuffs() bool {
 	return true
 }
 
-func (mgr *ST_BuffMgr) GetBuffInfo(id int32) *ST_BuffInfo {
-	i := sort.Search(len(mgr.Buffs), func(i int) bool { return mgr.Buffs[i].ID >= id })
-	if i < len(mgr.Buffs) && mgr.Buffs[i].ID == id {
-		return &mgr.Buffs[i]
+func (self *ST_BuffMgr) GetBuffInfo(id int32) *ST_BuffInfo {
+	i := sort.Search(len(self.Buffs), func(i int) bool { return self.Buffs[i].ID >= id })
+	if i < len(self.Buffs) && self.Buffs[i].ID == id {
+		return &self.Buffs[i]
 	}
 
 	return nil

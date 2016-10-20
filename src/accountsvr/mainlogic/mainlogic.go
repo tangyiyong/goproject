@@ -14,4 +14,7 @@ func Init() {
 
 	//初始化账号管理器
 	InitAccountMgr()
+
+	//初始化礼包码管理器
+	InitGiftCodeMgr()
 }

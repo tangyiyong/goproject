@@ -20,7 +20,7 @@ type TActivityRechargeInfo struct {
 
 //! 充值活动数据
 type TActivitySingleRecharge struct {
-	ActivityID     int                     //! 活动ID
+	ActivityID     int32                   //! 活动ID
 	RechargeRecord []TSingleRechargeRecord //! 活动期间单笔充值记录
 	SingleAwardLst []TActivityRechargeInfo //! 单充奖励领取记录
 	VersionCode    int32                   //! 版本号
@@ -35,7 +35,7 @@ func (self *TActivitySingleRecharge) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivitySingleRecharge) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivitySingleRecharge) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr

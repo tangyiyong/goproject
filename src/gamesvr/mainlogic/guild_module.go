@@ -6,34 +6,15 @@ import (
 	"gamesvr/gamedata"
 	"mongodb"
 	"sync"
-	"time"
 	"utility"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
-type TGuildShopInfo struct {
+type TBuyInfo struct {
 	ID       int
 	Type     int
 	BuyTimes int
-}
-
-type TGuildShopInfoLst []TGuildShopInfo
-
-func (self *TGuildShopInfoLst) Get(id int) *TGuildShopInfo {
-	for i, v := range *self {
-		if v.ID == id {
-			return &(*self)[i]
-		}
-	}
-
-	return nil
-}
-
-func (self *TGuildShopInfoLst) Add(id int, itemType int, times int) int {
-	item := TGuildShopInfo{id, itemType, times}
-	(*self) = append((*self), item)
-	return len((*self)) - 1
 }
 
 type TGuildSkill struct {
@@ -43,26 +24,19 @@ type TGuildSkill struct {
 
 //! 公会模块
 type TGuildModule struct {
-	PlayerID int32 `bson:"_id"`
-
-	SacrificeStatus   int    //! 祭天状态
-	SacrificeAwardLst IntLst //! 祭天奖励领取
-
-	HistoryContribution int //! 历史贡献
-	TodayContribution   int //! 今日贡献
-
-	ApplyGuildList Int32Lst //! 申请帮派列表
-
-	ShoppingLst TGuildShopInfoLst //! 商店购买信息
-
-	ActionBuyTimes    int      //! 行动力购买次数
-	ActionTimes       int      //! 军团副本行动力
-	ActionRecoverTime int64    //! 行动力恢复
-	CopyAwardMark     Int32Lst //! 章节通关奖励
-	ExitGuildTime     int64    //! 退出公会时间
-	ResetDay          uint32   //! 重置天数
-
-	ownplayer *TPlayer
+	PlayerID       int32      `bson:"_id"`
+	JiTian         int8       //! 祭天状态
+	JiTianAwardLst IntLst     //! 祭天奖励领取
+	HisContribute  int        //! 历史贡献
+	ApplyGuildList Int32Lst   //! 申请帮派列表
+	BuyItems       []TBuyInfo //! 商店购买信息
+	ActBuyTimes    int        //! 行动力购买次数
+	ActTimes       int        //! 军团副本战斗次数
+	ActRcrTime     int32      //! 行动力恢复
+	CopyAwardMark  Int32Lst   //! 章节通关奖励
+	QuitTime       int32      //! 退出公会时间
+	ResetDay       uint32     //! 重置天数
+	ownplayer      *TPlayer
 }
 
 func (self *TGuildModule) SetPlayerPtr(playerid int32, player *TPlayer) {
@@ -72,21 +46,13 @@ func (self *TGuildModule) SetPlayerPtr(playerid int32, player *TPlayer) {
 
 func (self *TGuildModule) OnCreate(playerid int32) {
 	//! 初始化各类参数
-	self.ActionBuyTimes = 0
-	self.SacrificeStatus = 0
-	self.ActionTimes = 8
-	hour := gamedata.GuildCopyBattleTimeBegin / 3600
-	min := (gamedata.GuildCopyBattleTimeBegin - hour*3600) / 60
-	sec := gamedata.GuildCopyBattleTimeBegin - hour*3600 - min*60
-
-	beginTime := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), hour, min, sec, 0, time.Now().Location())
-
-	self.ActionRecoverTime = beginTime.Unix() + int64(gamedata.GuildActionRecoverTime)
-
+	self.ActBuyTimes = 0
+	self.JiTian = 0
+	self.ActTimes = gamedata.GuildBattleInitTime
+	self.ActRcrTime = 0
 	self.ResetDay = utility.GetCurDay()
-
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerGuild", self)
+	mongodb.InsertToDB("PlayerGuild", self)
 }
 
 func (self *TGuildModule) OnDestroy(playerid int32) {
@@ -100,24 +66,6 @@ func (self *TGuildModule) OnPlayerOnline(playerid int32) {
 //! 玩家离开游戏
 func (self *TGuildModule) OnPlayerOffline(playerid int32) {
 
-}
-
-//! 获取公会列表
-func (self *TGuildModule) GetGuildLst(index int) (guildLst []TGuild) {
-
-	//! 排序公会
-	SortGuild()
-
-	//! 获取公会列表
-	for i := index; i < index+5; i++ {
-		if i >= len(G_Guild_Key_List) {
-			break
-		}
-
-		guildLst = append(guildLst, *G_Guild_List[G_Guild_Key_List[i]])
-	}
-
-	return guildLst
 }
 
 //! 读取玩家
@@ -147,15 +95,14 @@ func (self *TGuildModule) CheckReset() {
 func (self *TGuildModule) OnNewDay(newday uint32) {
 	//! 重置参数
 	self.ResetDay = newday
-	self.SacrificeStatus = 0
-	self.TodayContribution = 0
-	self.SacrificeAwardLst = IntLst{}
-	self.ActionBuyTimes = 0
-	self.ActionTimes = 8
+	self.JiTian = 0
+	self.JiTianAwardLst = IntLst{}
+	self.ActBuyTimes = 0
+	self.ActTimes = gamedata.GuildBattleInitTime
 
-	for i := 0; i < len(self.ShoppingLst); i++ {
-		if self.ShoppingLst[i].Type == 1 {
-			self.ShoppingLst[i].BuyTimes = 0
+	for i := 0; i < len(self.BuyItems); i++ {
+		if self.BuyItems[i].Type == 1 {
+			self.BuyItems[i].BuyTimes = 0
 		}
 	}
 
@@ -173,7 +120,7 @@ func (self *TGuildModule) CheckGuildLeader() {
 		return
 	}
 
-	if time.Now().Unix()-bossInfo.LogoffTime < 14*24*60*60 {
+	if utility.GetCurTime()-bossInfo.LogoffTime < 14*24*60*60 {
 		return
 	}
 
@@ -182,7 +129,7 @@ func (self *TGuildModule) CheckGuildLeader() {
 
 	role := 0
 	for _, v := range poseLst {
-		num := guild.GetPoseNumber(v)
+		num := guild.GetRoleNum(v)
 		if num != 0 {
 			role = v
 			break
@@ -192,8 +139,8 @@ func (self *TGuildModule) CheckGuildLeader() {
 	if role == 0 {
 		//! 公会空无一人,删除公会
 		RemoveGuild(self.ownplayer.pSimpleInfo.GuildID)
-		self.ActionRecoverTime = 0
-		self.ExitGuildTime = time.Now().Unix()
+		self.ActRcrTime = 0
+		self.QuitTime = utility.GetCurTime()
 		self.DB_ExitGuild()
 		return
 	}
@@ -201,7 +148,7 @@ func (self *TGuildModule) CheckGuildLeader() {
 	//! 获取该职业所有成员
 	memberLst := []TMember{}
 	for _, v := range guild.MemberList {
-		if v.Pose == role {
+		if v.Role == role {
 			memberLst = append(memberLst, v)
 		}
 	}
@@ -216,27 +163,26 @@ func (self *TGuildModule) CheckGuildLeader() {
 	}
 
 	member := guild.GetGuildMember(playerId)
-	member.Pose = Pose_Boss
+	member.Role = Pose_Boss
 	guild.UpdateGuildMemeber(playerId, Pose_Boss, member.Contribute)
 
 	//! 解除现会长身份
-	boss.Pose = Pose_Member
+	boss.Role = Pose_Member
 	guild.UpdateGuildMemeber(boss.PlayerID, Pose_Member, boss.Contribute)
 
 }
 
 //! 增加贡献
 func (self *TGuildModule) AddContribution(contribution int) {
-	self.HistoryContribution += contribution
-	self.TodayContribution += contribution
-	self.DB_AddGuildContribution()
+	self.HisContribute += contribution
+	self.DB_UpdateHisContribution()
 }
 
 //! 刷新限时抢购商品信息
 func (self *TGuildModule) RefreshFalshSale() {
-	for i, v := range self.ShoppingLst {
+	for i, v := range self.BuyItems {
 		if v.Type == 3 {
-			self.ShoppingLst[i].BuyTimes = 0
+			self.BuyItems[i].BuyTimes = 0
 		}
 	}
 
@@ -245,53 +191,47 @@ func (self *TGuildModule) RefreshFalshSale() {
 
 //! 行动力恢复
 func (self *TGuildModule) RecoverAction() {
-	if self.ActionTimes > 8 {
-		self.ActionTimes = 8
-	}
-
-	now := time.Now().Unix()
-	if now < self.ActionRecoverTime {
-		//! 未到恢复时间
-		return
-	}
-
 	if self.ownplayer.pSimpleInfo.GuildID == 0 {
 		//! 玩家不存在公会
 		return
 	}
 
-	if self.ActionRecoverTime == 0 {
+	if self.ActRcrTime == 0 {
 		return
 	}
 
-	action := 1
-	interval := now - self.ActionRecoverTime
-	action += int(interval / int64(gamedata.GuildActionRecoverTime))
+	if self.ActTimes > 8 {
+		self.ActRcrTime = 0
+		return
+	}
 
-	self.ActionRecoverTime = self.ActionRecoverTime + int64(action*gamedata.GuildActionRecoverTime)
-	self.ActionTimes += action
+	action := (utility.GetCurTime() - self.ActRcrTime) / int32(gamedata.GuildBattleRecoverTime)
+	self.ActRcrTime = self.ActRcrTime + action*int32(gamedata.GuildBattleRecoverTime)
+	self.ActTimes += int(action)
 
-	self.DB_UpdateCopyAction()
+	if self.ActTimes > 8 {
+		self.ActTimes = gamedata.GuildBattleInitTime
+		return
+	}
+
+	self.DB_UpdateBattleTimes()
 }
 
 //! 红点提示
 func (self *TGuildModule) RedTip() bool {
-	//! 加入公会
 	if self.ownplayer.pSimpleInfo.GuildID == 0 {
 		return true
 	}
 
 	guild := GetGuildByID(self.ownplayer.pSimpleInfo.GuildID)
-
-	//! 祭天
-	if self.SacrificeStatus == 0 {
+	if self.JiTian == 0 {
 		return true
 	}
 
 	//! 祭天奖励
 	for i := 0; i < len(gamedata.GT_GuildSacrificeAwardLst); i++ {
 		if guild.SacrificeSchedule >= gamedata.GT_GuildSacrificeAwardLst[i].NeedSchedule {
-			if self.SacrificeAwardLst.IsExist(gamedata.GT_GuildSacrificeAwardLst[i].ID) < 0 {
+			if self.JiTianAwardLst.IsExist(gamedata.GT_GuildSacrificeAwardLst[i].ID) < 0 {
 				return true
 			}
 		}

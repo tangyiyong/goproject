@@ -19,7 +19,7 @@ type TSimpleInfo struct {
 	Level         int    //玩家等级
 	VipLevel      int    //玩家的VIP等级
 	FightValue    int32  //玩家的战力
-	LogoffTime    int64  //离线时间
+	LogoffTime    int32  //离线时间
 	AwardCenterID int    //奖励中心ID
 	BatCamp       int8   //阵营战阵营
 	LoginDay      uint32 //登录日期
@@ -59,6 +59,8 @@ func (mgr *TSimpleInfoMgr) Init() bool {
 		mgr.NameIDMap[simplevec[i].Name] = simplevec[i].PlayerID
 	}
 
+	G_RegisterCnt = nCount
+
 	return true
 }
 
@@ -86,7 +88,7 @@ func (mgr *TSimpleInfoMgr) GetPlayerIDByName(name string) int32 {
 	return 0
 }
 
-func (mgr *TSimpleInfoMgr) GetPlayerLogoffTime(playerid int32) int64 {
+func (mgr *TSimpleInfoMgr) GetPlayerLogoffTime(playerid int32) int32 {
 	mgr.SimpleLock.Lock()
 	defer mgr.SimpleLock.Unlock()
 
@@ -167,7 +169,7 @@ func (mgr *TSimpleInfoMgr) Set_PlayerName(playerid int32, name string) {
 	return
 }
 
-func (mgr *TSimpleInfoMgr) Set_LogoffTime(playerid int32, time int64) {
+func (mgr *TSimpleInfoMgr) Set_LogoffTime(playerid int32, time int32) {
 	mgr.SimpleLock.Lock()
 	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
 	mgr.SimpleLock.Unlock()

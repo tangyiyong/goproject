@@ -30,11 +30,11 @@ type TCampBattleModule struct {
 	KillSum    int               //总击杀
 	DestroySum int               //总团灭
 	KillHonor  int               //今日击杀荣誉
-	LeftTimes  int               //搬运水晶次数
+	LeftTimes  int32             //搬运水晶次数
 	CrystalID  int               //搬运水晶的ID
-	EndTime    int               //搬运结束时间,  超时就是搬运失败
+	EndTime    int32             //搬运结束时间,  超时就是搬运失败
 	BuyRecord  []msg.MSG_BuyData //购买商店的次数
-	StoreAward IntLst            //奖励商店的购买ID
+	StoreAward Int32Lst          //奖励商店的购买ID
 	ResetDay   uint32            //重置天
 
 	///////////////以下为临时数据
@@ -51,9 +51,9 @@ func (self *TCampBattleModule) OnCreate(playerid int32) {
 	self.BattleCamp = 0
 	self.ResetDay = utility.GetCurDay()
 	self.CrystalID = 1
-	self.LeftTimes = gamedata.CampBat_MoveTimes
+	self.LeftTimes = int32(gamedata.CampBat_MoveTimes)
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerCampBat", self)
+	mongodb.InsertToDB("PlayerCampBat", self)
 }
 
 func (self *TCampBattleModule) OnDestroy(playerid int32) {
@@ -98,7 +98,7 @@ func (self *TCampBattleModule) OnNewDay(newday uint32) {
 	self.Kill = 0
 	self.Destroy = 0
 	self.KillHonor = 0
-	self.LeftTimes = gamedata.CampBat_MoveTimes
+	self.LeftTimes = int32(gamedata.CampBat_MoveTimes)
 	self.EndTime = 0
 	self.BuyRecord = []msg.MSG_BuyData{}
 	self.DB_Reset()

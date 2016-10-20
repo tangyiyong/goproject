@@ -9,29 +9,27 @@ import (
 
 //! 登录送礼活动
 type TActivityLogin struct {
-	ActivityID int //! 活动ID
-
-	LoginDay   int  //! 登录天数
-	LoginAward Mark //! 登录奖励
-
-	VersionCode    int32            //! 版本号
-	ResetCode      int32            //! 迭代号
-	activityModule *TActivityModule //! 指针
+	ActivityID  int32            //! 活动ID
+	LoginDay    int              //! 登录天数
+	LoginAward  BitsType         //! 登录奖励
+	VersionCode int32            //! 版本号
+	ResetCode   int32            //! 迭代号
+	modulePtr   *TActivityModule //! 指针
 }
 
 //! 赋值基础数据
 func (self *TActivityLogin) SetModulePtr(mPtr *TActivityModule) {
-	self.activityModule = mPtr
-	self.activityModule.activityPtrs[self.ActivityID] = self
+	self.modulePtr = mPtr
+	self.modulePtr.activityPtrs[self.ActivityID] = self
 }
 
 //! 创建初始化
-func (self *TActivityLogin) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityLogin) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
-	self.activityModule = mPtr
+	self.modulePtr = mPtr
 	self.LoginDay = 0
-	self.activityModule.activityPtrs[self.ActivityID] = self
+	self.modulePtr.activityPtrs[self.ActivityID] = self
 	self.VersionCode = vercode
 	self.ResetCode = resetcode
 }
@@ -78,7 +76,7 @@ func (self *TActivityLogin) AddLoginDay(index int) {
 
 func (self *TActivityLogin) DB_Reset() {
 	index := -1
-	for i, v := range self.activityModule.Login {
+	for i, v := range self.modulePtr.Login {
 		if v.ActivityID == self.ActivityID {
 			index = i
 			break
@@ -94,7 +92,7 @@ func (self *TActivityLogin) DB_Reset() {
 	filedName2 := fmt.Sprintf("login.%d.loginaward", index)
 	filedName4 := fmt.Sprintf("login.%d.versioncode", index)
 	filedName5 := fmt.Sprintf("login.%d.resetcode", index)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		filedName1: self.LoginDay,
 		filedName2: self.LoginAward,
 		filedName4: self.VersionCode,
@@ -105,7 +103,7 @@ func (self *TActivityLogin) DB_AddLoginDay(index int) {
 
 	filedName := fmt.Sprintf("login.%d.loginday", index)
 	filedName3 := fmt.Sprintf("login.%d.versioncode", index)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.LoginDay,
 		filedName3: self.VersionCode}})
 
@@ -113,7 +111,7 @@ func (self *TActivityLogin) DB_AddLoginDay(index int) {
 
 func (self *TActivityLogin) DB_Refresh() {
 	index := -1
-	for i, v := range self.activityModule.Login {
+	for i, v := range self.modulePtr.Login {
 		if v.ActivityID == self.ActivityID {
 			index = i
 			break
@@ -127,13 +125,13 @@ func (self *TActivityLogin) DB_Refresh() {
 
 	filedName := fmt.Sprintf("login.%d.loginday", index)
 	filedName3 := fmt.Sprintf("login.%d.versioncode", index)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.LoginDay,
 		filedName3: self.VersionCode}})
 }
 
 func (self *TActivityLogin) DB_UpdateLoginAward(activityIndex int) {
 	filedName := fmt.Sprintf("login.%d.loginaward", activityIndex)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.LoginAward}})
 }

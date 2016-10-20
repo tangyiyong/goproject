@@ -10,7 +10,7 @@ var (
 	g_logDir = utility.GetCurrPath() + "log/"
 )
 
-func InitLogger(name string) {
+func InitLogger(name string, level int) {
 	var err error = nil
 	if !utility.IsDirExists(g_logDir) {
 		err = os.MkdirAll(g_logDir, os.ModePerm)
@@ -23,5 +23,6 @@ func InitLogger(name string) {
 	timeStr := time.Now().Format("20060102_150405")
 	logFileName := g_logDir + name + "_" + timeStr + ".log"
 
-	InitDebugLog(logFileName)
+	InitDebugLog(logFileName, level)
+
 }

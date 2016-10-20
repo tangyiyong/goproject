@@ -57,22 +57,26 @@ func Hand_ChatMsgReq(pTcpConn *tcpserver.TCPConn, extra int16, pdata []byte) {
 	}
 
 	var chatMsgNotify msg.MSG_Chat_Msg_Notify
-	chatMsgNotify.SourceName = req.SourceName
-	chatMsgNotify.SourcePlayerID = pTcpConn.ConnID
-	chatMsgNotify.TargetChannel = req.TargetChannel
-	chatMsgNotify.TargetGuildID = req.TargetGuildID
-	chatMsgNotify.MsgContent = req.MsgContent
+	chatMsgNotify.SrcName = req.SrcName
+	chatMsgNotify.SrcID = pTcpConn.ConnID
+	chatMsgNotify.Channel = req.Channel
+	chatMsgNotify.GuildID = req.GuildID
+	chatMsgNotify.Content = req.Content
 	chatMsgNotify.HeroID = req.HeroID
 	chatMsgNotify.Quality = req.Quality
 
 	buff, _ := json.Marshal(chatMsgNotify)
 
-	if req.TargetChannel == msg.MSG_CHANNEL_PLAYER {
-		SendMessageByName(req.TargetName, msg.MSG_CHATMSG_NOTIFY, 0, buff)
-	} else if req.TargetChannel == msg.MSG_CHANNEL_GUILD {
-		SendMessageToGuild(req.TargetGuildID, msg.MSG_CHATMSG_NOTIFY, buff, chatMsgNotify.SourcePlayerID)
-	} else if req.TargetChannel == msg.MSG_CHANNEL_WORLD {
-		SendMessageToWorld(msg.MSG_CHATMSG_NOTIFY, 0, buff, chatMsgNotify.SourcePlayerID)
+	if req.Channel == msg.MSG_CHANNEL_PLAYER {
+		if req.DstID != 0 {
+			SendMessageByID(req.DstID, msg.MSG_CHATMSG_NOTIFY, 0, buff)
+		} else {
+			SendMessageByName(req.DstName, msg.MSG_CHATMSG_NOTIFY, 0, buff)
+		}
+	} else if req.Channel == msg.MSG_CHANNEL_GUILD {
+		SendMessageToGuild(req.GuildID, msg.MSG_CHATMSG_NOTIFY, buff, chatMsgNotify.SrcID)
+	} else if req.Channel == msg.MSG_CHANNEL_WORLD {
+		SendMessageToWorld(msg.MSG_CHATMSG_NOTIFY, 0, buff, chatMsgNotify.SrcID)
 	}
 
 	response.RetCode = msg.RE_SUCCESS

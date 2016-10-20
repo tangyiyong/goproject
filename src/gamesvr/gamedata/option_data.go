@@ -18,7 +18,6 @@ var (
 	BeachBaby_TodayRank_Limit   int    // 单日榜 特殊奖门槛
 	BeachBaby_TotalRank_Limit   int    // 累计榜 特殊奖门槛
 
-	MoonlightShop_Token_ItemID      int //月光币
 	MoonlightShop_Discount_Cost     []byte
 	MoonlightShop_Discount_OneTiems []byte //一次打折的范围
 	MoonlightShop_Shop_Refresh_CD   byte   //商品刷新间隔：分钟
@@ -104,27 +103,21 @@ var (
 	SeniorAttackRebelNeedActionNum int //高级围剿叛军需求道具数量
 
 	//挖矿系统
-	MiningActionRecoverLimit int //挖矿行动力恢复上限
-	MiningActionRecoverTime  int //挖矿行动力恢复时间
-	MiningAttackBossAction   int //挖矿每次攻击Boss消耗行动力
-	MiningCostActionNum      int //挖矿消耗行动力数量
-	MiningCostActionID       int //挖矿消耗行动力ID
-	MiningMapLength          int //矿洞地图边长
-	MiningMapSlice           int //挖矿地图切分
-	MiningResetMoneyID       int //挖矿重置所需货币ID
-	MiningEnterPointX        int //挖矿入口点坐标X
-	MiningEnterPointY        int //挖矿入口点坐标Y
-	MiningBossValue          int //boss 积分
+	MiningActionRecoverLimit int   //挖矿行动力恢复上限
+	MiningActionRecoverTime  int   //挖矿行动力恢复时间
+	MiningAttackBossAction   int   //挖矿每次攻击Boss消耗行动力
+	MiningCostActionNum      int   //挖矿消耗行动力数量
+	MiningCostActionID       int   //挖矿消耗行动力ID
+	MiningMapLength          int32 //矿洞地图边长
+	MiningMapSlice           int   //挖矿地图切分
+	MiningResetMoneyID       int   //挖矿重置所需货币ID
+	MiningStartPointX        int32 //挖矿入口点坐标X
+	MiningStartPointY        int32 //挖矿入口点坐标Y
+	MiningBossValue          int   //boss 积分
 
 	//精英关卡
-	EliteInvadeTime1 int //! 精英关卡入侵时间
-	EliteInvadeNum1  int //! 精英关卡入侵叛军数量
-	EliteInvadeTime2 int
-	EliteInvadeNum2  int
-	EliteInvadeTime3 int
-	EliteInvadeNum3  int
-	EliteInvadeTime4 int
-	EliteInvadeNum4  int
+	EliteInvadeTime [4]int //! 精英关卡入侵时间
+	EliteInvadeNum  [4]int //! 精英关卡入侵叛军数量
 
 	ChargeMoneyID int //充值货币ID
 	VipExpMoneyID int //VIP经验的货币ID
@@ -144,7 +137,8 @@ var (
 	HangUpBuyGridMoneyID int //开放格子数所使用的货币
 
 	//! 工会系统
-	GuildActionRecoverTime   int //! 公会副本行动力回复时间
+	GuildBattleInitTime      int //! 公会副本初始战斗次数
+	GuildBattleRecoverTime   int //! 公会副本行动力回复时间
 	GuildCopyBattleTimeBegin int //! 公会副本开启时间
 	GuildCopyBattleTimeEnd   int //! 工会副本结束时间
 	CreateGuildMoneyID       int //! 公会需要货币ID
@@ -265,7 +259,7 @@ var (
 
 	//! 卡牌大师
 	CardMaster_CostType          int  // 抽卡消耗的货币类型
-	CardMaster_FreeTimes         byte // 每日免费次数
+	CardMaster_FreeTimes         int8 // 每日免费次数
 	CardMaster_RaffleTicket      int  // 抽奖券ItemID
 	CardMaster_NormalCost        int  // 普通抽奖：钻石消耗
 	CardMaster_NormalJiFen       int  // 普通抽奖：获得积分
@@ -301,8 +295,12 @@ var (
 	MonthFundChargeID int //! 月基金需求ChargeID
 
 	//时装
-	FashionMeltingSum     int //!时装的熔炼总值
-	FashionMeltingAwardID int //!时装熔炼的产出ID
+	FashionMeltingSum      int //!时装的熔炼总值
+	FashionMeltingAwardID  int //!时装熔炼的产出ID
+	FashionRecastMoneyID   int //!时装重铸货币ID
+	FashionRecastMoneyNum  int //!时装重铸货币数量
+	FashionMeltingMoneyID  int //!时装熔炼货币ID
+	FashionMeltingMoneyNum int //!时装熔炼货币数量
 
 	//竞技场
 	ArenaBattleVictoryPercent int //! 竞技场挑战多次胜率
@@ -502,7 +500,7 @@ func ParseOptionRecord(rs *RecordSet) {
 		}
 	case "mining_map_length":
 		{
-			MiningMapLength = CheckAtoiName(rs.Values[2], "mining_map_length")
+			MiningMapLength = int32(CheckAtoiName(rs.Values[2], "mining_map_length"))
 		}
 	case "mining_map_slice":
 		{
@@ -534,35 +532,35 @@ func ParseOptionRecord(rs *RecordSet) {
 		}
 	case "elite_invade_time1":
 		{
-			EliteInvadeTime1 = CheckAtoiName(rs.Values[2], "elite_invade_time1")
+			EliteInvadeTime[0] = CheckAtoiName(rs.Values[2], "elite_invade_time1")
 		}
 	case "elite_invade_num1":
 		{
-			EliteInvadeNum1 = CheckAtoiName(rs.Values[2], "elite_invade_num1")
+			EliteInvadeNum[0] = CheckAtoiName(rs.Values[2], "elite_invade_num1")
 		}
 	case "elite_invade_time2":
 		{
-			EliteInvadeTime2 = CheckAtoiName(rs.Values[2], "elite_invade_time2")
+			EliteInvadeTime[1] = CheckAtoiName(rs.Values[2], "elite_invade_time2")
 		}
 	case "elite_invade_num2":
 		{
-			EliteInvadeNum2 = CheckAtoiName(rs.Values[2], "elite_invade_num2")
+			EliteInvadeNum[1] = CheckAtoiName(rs.Values[2], "elite_invade_num2")
 		}
 	case "elite_invade_time3":
 		{
-			EliteInvadeTime3 = CheckAtoiName(rs.Values[2], "elite_invade_time3")
+			EliteInvadeTime[2] = CheckAtoiName(rs.Values[2], "elite_invade_time3")
 		}
 	case "elite_invade_num3":
 		{
-			EliteInvadeNum3 = CheckAtoiName(rs.Values[2], "elite_invade_num3")
+			EliteInvadeNum[2] = CheckAtoiName(rs.Values[2], "elite_invade_num3")
 		}
 	case "elite_invade_time4":
 		{
-			EliteInvadeTime4 = CheckAtoiName(rs.Values[2], "elite_invade_time4")
+			EliteInvadeTime[3] = CheckAtoiName(rs.Values[2], "elite_invade_time4")
 		}
 	case "elite_invade_num4":
 		{
-			EliteInvadeNum4 = CheckAtoiName(rs.Values[2], "elite_invade_num4")
+			EliteInvadeNum[3] = CheckAtoiName(rs.Values[2], "elite_invade_num4")
 		}
 	case "riot_pro":
 		{
@@ -625,11 +623,11 @@ func ParseOptionRecord(rs *RecordSet) {
 		}
 	case "mining_enter_point_x":
 		{
-			MiningEnterPointX = CheckAtoiName(rs.Values[2], "mining_enter_point_x")
+			MiningStartPointX = int32(CheckAtoiName(rs.Values[2], "mining_enter_point_x"))
 		}
 	case "mining_enter_point_y":
 		{
-			MiningEnterPointY = CheckAtoiName(rs.Values[2], "mining_enter_point_y")
+			MiningStartPointY = int32(CheckAtoiName(rs.Values[2], "mining_enter_point_y"))
 		}
 	case "mining_monster_boss_value":
 		{
@@ -659,9 +657,13 @@ func ParseOptionRecord(rs *RecordSet) {
 		{
 			HangUpBuyGridMoneyID = CheckAtoiName(rs.Values[2], "hangup_buy_grid_money")
 		}
-	case "guild_action_recover_time":
+	case "guild_battle_recover_time":
 		{
-			GuildActionRecoverTime = CheckAtoiName(rs.Values[2], "guild_action_recover_time")
+			GuildBattleRecoverTime = CheckAtoiName(rs.Values[2], "guild_battle_recover_time")
+		}
+	case "guild_battle_init_time":
+		{
+			GuildBattleInitTime = CheckAtoiName(rs.Values[2], "guild_battle_init_time")
 		}
 	case "guild_copy_battle_time_begin":
 		{
@@ -1022,7 +1024,7 @@ func ParseOptionRecord(rs *RecordSet) {
 		}
 	case "act_card_master_free_times":
 		{
-			CardMaster_FreeTimes = byte(CheckAtoiName(rs.Values[2], "act_card_master_free_times"))
+			CardMaster_FreeTimes = int8(CheckAtoiName(rs.Values[2], "act_card_master_free_times"))
 		}
 	case "act_card_master_raffle_ticket":
 		{
@@ -1079,10 +1081,6 @@ func ParseOptionRecord(rs *RecordSet) {
 	case "act_card_master_total_limit_score":
 		{
 			CardMaster_TotalRank_Limit = CheckAtoiName(rs.Values[2], "act_card_master_total_limit_score")
-		}
-	case "moonlight_shop_token_item_id":
-		{
-			MoonlightShop_Token_ItemID = CheckAtoiName(rs.Values[2], "moonlight_shop_token_item_id")
 		}
 	case "moonlight_shop_discount_cost":
 		{
@@ -1221,6 +1219,22 @@ func ParseOptionRecord(rs *RecordSet) {
 	case "fashion_melting_awardid":
 		{
 			FashionMeltingAwardID = CheckAtoiName(rs.Values[2], "fashion_melting_awardid")
+		}
+	case "fashion_recast_money_id":
+		{
+			FashionRecastMoneyID = CheckAtoiName(rs.Values[2], "fashion_recast_money_id")
+		}
+	case "fashion_recast_money_num":
+		{
+			FashionRecastMoneyNum = CheckAtoiName(rs.Values[2], "fashion_recast_money_num")
+		}
+	case "fashion_melting_money_id":
+		{
+			FashionMeltingMoneyID = CheckAtoiName(rs.Values[2], "fashion_melting_money_id")
+		}
+	case "fashion_melting_money_num":
+		{
+			FashionMeltingMoneyNum = CheckAtoiName(rs.Values[2], "fashion_melting_money_num")
 		}
 	case "arena_battle_victory_percent":
 		{

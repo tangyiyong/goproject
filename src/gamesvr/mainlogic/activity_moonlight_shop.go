@@ -6,30 +6,28 @@ import (
 	"gamesvr/gamedata"
 	"gopkg.in/mgo.v2/bson"
 	"mongodb"
-	"time"
 	"utility"
 )
 
 const (
-	MoonlightShop_Goods_Num = 6
+	MoonShop_Num = 6
 )
 
 // 月光集市
-type TMoonlightShop struct {
+type TMoonShop struct {
 	TMoonlightShopData
-
-	ActivityID     int              //! 活动ID
-	VersionCode    int32            //! 版本号
-	ResetCode      int32            //! 迭代号
-	activityModule *TActivityModule //! 指针
+	ActivityID  int32            //! 活动ID
+	VersionCode int32            //! 版本号
+	ResetCode   int32            //! 迭代号
+	modulePtr   *TActivityModule //! 指针
 }
 type TMoonlightShopData struct {
-	ExchangeTimes   []byte
-	Goods           [MoonlightShop_Goods_Num]TMoonlightGoods
-	AutoRefreshTime int64
-	Score           int
-	BuyTimes        int
-	ScoreAwardFlag  int64
+	ExchangeTimes []byte
+	Goods         [MoonShop_Num]TMoonlightGoods
+	RefreshTime   int32
+	Score         int
+	BuyTimes      int
+	ScoreAward    BitsType64
 }
 type TMoonlightGoods struct {
 	ID            int
@@ -39,51 +37,51 @@ type TMoonlightGoods struct {
 }
 
 //！ 活动框架代码
-func (self *TMoonlightShop) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TMoonShop) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
-	self.activityModule = mPtr
+	self.modulePtr = mPtr
 	self.VersionCode = vercode
 	self.ResetCode = resetcode
-	self.activityModule.activityPtrs[self.ActivityID] = self
+	self.modulePtr.activityPtrs[self.ActivityID] = self
 
-	self.Goods = [MoonlightShop_Goods_Num]TMoonlightGoods{}
-	self.ExchangeTimes = make([]byte, len(gamedata.G_MoonlightShopExchangeCsv))
+	self.Goods = [MoonShop_Num]TMoonlightGoods{}
+	self.ExchangeTimes = make([]byte, len(gamedata.G_MoonShopExchg_List))
 }
-func (self *TMoonlightShop) SetModulePtr(mPtr *TActivityModule) {
-	self.activityModule = mPtr
-	self.activityModule.activityPtrs[self.ActivityID] = self
+func (self *TMoonShop) SetModulePtr(mPtr *TActivityModule) {
+	self.modulePtr = mPtr
+	self.modulePtr.activityPtrs[self.ActivityID] = self
 }
-func (self *TMoonlightShop) Refresh(versionCode int32) {
+func (self *TMoonShop) Refresh(versionCode int32) {
 	self.VersionCode = versionCode
 
-	self.ExchangeTimes = make([]byte, len(gamedata.G_MoonlightShopExchangeCsv))
+	self.ExchangeTimes = make([]byte, len(gamedata.G_MoonShopExchg_List))
 
 	self.BuyTimes = 0
 
 	self.DB_Refresh()
 }
-func (self *TMoonlightShop) End(versionCode int32, resetCode int32) {
+func (self *TMoonShop) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
 
-	self.ExchangeTimes = make([]byte, len(gamedata.G_MoonlightShopExchangeCsv))
+	self.ExchangeTimes = make([]byte, len(gamedata.G_MoonShopExchg_List))
 
-	self.Goods = [MoonlightShop_Goods_Num]TMoonlightGoods{}
-	self.AutoRefreshTime = 0
+	self.Goods = [MoonShop_Num]TMoonlightGoods{}
+	self.RefreshTime = 0
 
-	self.ScoreAwardFlag = 0
+	self.ScoreAward = 0
 
 	self.DB_Reset()
 
 }
-func (self *TMoonlightShop) GetRefreshV() int32 {
+func (self *TMoonShop) GetRefreshV() int32 {
 	return self.VersionCode
 }
-func (self *TMoonlightShop) GetResetV() int32 {
+func (self *TMoonShop) GetResetV() int32 {
 	return self.ResetCode
 }
-func (self *TMoonlightShop) RedTip() bool {
+func (self *TMoonShop) RedTip() bool {
 	//! 活动未开启, 不亮起红点
 	if G_GlobalVariables.IsActivityOpen(self.ActivityID) == false {
 		return false
@@ -102,60 +100,60 @@ func (self *TMoonlightShopData) GetShopDtad() *TMoonlightShopData {
 }
 
 //! DB相关
-func (self *TMoonlightShop) DB_SaveExchangeTimes(nIndex int) {
-	FieldName := fmt.Sprintf("moonlightshop.exchangetimes.%d", nIndex)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.ExchangeTimes[nIndex]}})
+func (self *TMoonShop) DB_SaveExchangeTimes(nIndex int) {
+	FieldName := fmt.Sprintf("moonshop.exchangetimes.%d", nIndex)
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.ExchangeTimes[nIndex]}})
 }
-func (self *TMoonlightShop) DB_SaveAllExchangeTimes() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{"moonlightshop.exchangetimes": self.ExchangeTimes}})
+func (self *TMoonShop) DB_SaveAllExchangeTimes() {
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{"moonshop.exchangetimes": self.ExchangeTimes}})
 }
-func (self *TMoonlightShop) DB_SaveGoods(nIndex int) {
-	FieldName := fmt.Sprintf("moonlightshop.goods.%d", nIndex)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.Goods[nIndex]}})
+func (self *TMoonShop) DB_SaveGoods(nIndex int) {
+	FieldName := fmt.Sprintf("moonshop.goods.%d", nIndex)
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{FieldName: self.Goods[nIndex]}})
 }
-func (self *TMoonlightShop) DB_SaveAllGoods() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
-		"moonlightshop.goods":           self.Goods,
-		"moonlightshop.autorefreshtime": self.AutoRefreshTime}})
+func (self *TMoonShop) DB_SaveAllGoods() {
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
+		"moonshop.goods":       self.Goods,
+		"moonshop.refreshtime": self.RefreshTime}})
 }
-func (self *TMoonlightShop) DB_Save_Score_Buytimes() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
-		"moonlightshop.score":    self.Score,
-		"moonlightshop.buytimes": self.BuyTimes}})
+func (self *TMoonShop) DB_Save_Score_Buytimes() {
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
+		"moonshop.score":    self.Score,
+		"moonshop.buytimes": self.BuyTimes}})
 }
-func (self *TMoonlightShop) DB_SaveScoreAwardFlag() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{"moonlightshop.scoreawardflag": self.ScoreAwardFlag}})
+func (self *TMoonShop) DB_SaveScoreAwardFlag() {
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{"moonshop.scoreaward": self.ScoreAward}})
 }
-func (self *TMoonlightShop) DB_Refresh() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
-		"moonlightshop.score":         self.Score,
-		"moonlightshop.buytimes":      self.BuyTimes,
-		"moonlightshop.exchangetimes": self.ExchangeTimes,
-		"moonlightshop.activityid":    self.ActivityID,
-		"moonlightshop.versioncode":   self.VersionCode,
-		"moonlightshop.resetcode":     self.ResetCode}})
+func (self *TMoonShop) DB_Refresh() {
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
+		"moonshop.score":         self.Score,
+		"moonshop.buytimes":      self.BuyTimes,
+		"moonshop.exchangetimes": self.ExchangeTimes,
+		"moonshop.activityid":    self.ActivityID,
+		"moonshop.versioncode":   self.VersionCode,
+		"moonshop.resetcode":     self.ResetCode}})
 }
-func (self *TMoonlightShop) DB_Reset() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
-		"moonlightshop.goods":           self.Goods,
-		"moonlightshop.autorefreshtime": self.AutoRefreshTime,
-		"moonlightshop.scoreawardflag":  self.ScoreAwardFlag,
-		"moonlightshop.exchangetimes":   self.ExchangeTimes,
-		"moonlightshop.activityid":      self.ActivityID,
-		"moonlightshop.versioncode":     self.VersionCode,
-		"moonlightshop.resetcode":       self.ResetCode}})
+func (self *TMoonShop) DB_Reset() {
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
+		"moonshop.goods":         self.Goods,
+		"moonshop.refreshtime":   self.RefreshTime,
+		"moonshop.scoreaward":    self.ScoreAward,
+		"moonshop.exchangetimes": self.ExchangeTimes,
+		"moonshop.activityid":    self.ActivityID,
+		"moonshop.versioncode":   self.VersionCode,
+		"moonshop.resetcode":     self.ResetCode}})
 }
 
 //！ 逻辑代码
 // 兑换月光币
-func (self *TMoonlightShop) ExchangeToken(player *TPlayer, id int) bool {
-	csv := gamedata.GetMoonlightShopExchangeCsv(id)
-	if csv == nil {
+func (self *TMoonShop) ExchangeMoonMoney(player *TPlayer, id int) bool {
+	pExchangeInfo := gamedata.GetMoonShopExchgInfo(id)
+	if pExchangeInfo == nil {
 		return false
 	}
-	if self.ExchangeTimes[id] < csv.DailyTimes {
-		if player.RoleMoudle.CostMoney(csv.CostType, csv.CostNum) {
-			player.BagMoudle.AddNormalItem(gamedata.MoonlightShop_Token_ItemID, csv.GetToken)
+	if self.ExchangeTimes[id] < pExchangeInfo.DailyTimes {
+		if player.RoleMoudle.CostMoney(pExchangeInfo.CostMoneyID, pExchangeInfo.CostNum) {
+			player.BagMoudle.AddNormalItem(pExchangeInfo.ItemID, pExchangeInfo.ItemNum)
 			self.ExchangeTimes[id]++
 			self.DB_SaveExchangeTimes(id)
 			return true
@@ -165,12 +163,12 @@ func (self *TMoonlightShop) ExchangeToken(player *TPlayer, id int) bool {
 }
 
 //商品打折
-func (self *TMoonlightShop) ReduceDiscount(player *TPlayer, goodsID int) (bool, byte) {
-	for i := 0; i < MoonlightShop_Goods_Num; i++ {
+func (self *TMoonShop) ReduceDiscount(player *TPlayer, goodsID int) (bool, byte) {
+	for i := 0; i < MoonShop_Num; i++ {
 		goods := &self.Goods[i]
 		if goods.ID == goodsID {
-			csv := gamedata.GetMoonlightGoodsCsv(goodsID) // 经过上面的判断，此指针不会为nil
-			if goods.Discount > csv.MinDiscount && player.BagMoudle.RemoveNormalItem(gamedata.MoonlightShop_Token_ItemID, goods.getDiscountCost()) {
+			csv := gamedata.GetMoonGoodsInfo(goodsID) // 经过上面的判断，此指针不会为nil
+			if goods.Discount > csv.MinDiscount && player.BagMoudle.RemoveNormalItem(gamedata.MoonShop_Money_ID, goods.getDiscountCost()) {
 				goods.reduceDiscount(csv.MinDiscount)
 				self.DB_SaveGoods(i)
 				return true, goods.Discount
@@ -198,18 +196,18 @@ func (self *TMoonlightGoods) reduceDiscount(min byte) {
 }
 
 //重新生成一批商品
-func (self *TMoonlightShop) RefreshShop_Auto(player *TPlayer) bool {
-	now := time.Now().Unix()
-	if now-self.AutoRefreshTime >= int64(gamedata.MoonlightShop_Shop_Refresh_CD*60) {
-		self.AutoRefreshTime = now
+func (self *TMoonShop) RefreshShop_Auto(player *TPlayer) bool {
+	now := utility.GetCurTime()
+	if now-self.RefreshTime >= int32(gamedata.MoonlightShop_Shop_Refresh_CD*60) {
+		self.RefreshTime = now
 		self.refreshShop()
 		return true
 	}
 	return false
 }
-func (self *TMoonlightShop) RefreshShop_Buy(player *TPlayer) bool {
+func (self *TMoonShop) RefreshShop_Buy(player *TPlayer) bool {
 	cost := int(gamedata.MoonlightShop_Shop_Refresh_Cost)
-	if player.BagMoudle.RemoveNormalItem(gamedata.MoonlightShop_Token_ItemID, cost) {
+	if player.BagMoudle.RemoveNormalItem(gamedata.MoonShop_Money_ID, cost) {
 		self.Score += cost
 		self.DB_Save_Score_Buytimes()
 		self.refreshShop()
@@ -217,33 +215,33 @@ func (self *TMoonlightShop) RefreshShop_Buy(player *TPlayer) bool {
 	}
 	return false
 }
-func (self *TMoonlightShop) refreshShop() {
-	IDList := gamedata.RandSelect_MoonlightGoods(self.ActivityID, MoonlightShop_Goods_Num)
-	for i := 0; i < MoonlightShop_Goods_Num; i++ {
+func (self *TMoonShop) refreshShop() {
+	IDList := gamedata.RandSelect_MoonlightGoods(self.ActivityID, MoonShop_Num)
+	for i := 0; i < MoonShop_Num; i++ {
 		goods := &self.Goods[i]
 		goods.ID = IDList[i]
 		goods.BuyTimes = 0
 		goods.DiscountTimes = 0
-		csv := gamedata.GetMoonlightGoodsCsv(goods.ID)
+		csv := gamedata.GetMoonGoodsInfo(goods.ID)
 		goods.Discount = byte(utility.RandBetween(int(csv.MinDiscount), int(csv.MaxDiscount)))
 	}
 	self.DB_SaveAllGoods()
 }
 
-func (self *TMoonlightShop) BuyGoods(player *TPlayer, goodsID int) bool {
+func (self *TMoonShop) BuyGoods(player *TPlayer, goodsID int) bool {
 	if self.BuyTimes >= gamedata.MoonlightShop_BuyTimes_Max {
 		return false
 	}
-	for i := 0; i < MoonlightShop_Goods_Num; i++ {
+	for i := 0; i < MoonShop_Num; i++ {
 		goods := &self.Goods[i]
 		if goods.ID == goodsID {
-			csv := gamedata.GetMoonlightGoodsCsv(goodsID) // 经过上面的判断，此指针不会为nil
+			csv := gamedata.GetMoonGoodsInfo(goodsID) // 经过上面的判断，此指针不会为nil
 			if goods.BuyTimes >= csv.DailyTimes {
 				return false
 			}
 
 			cost := csv.Price * int(goods.Discount) / 100
-			if player.BagMoudle.RemoveNormalItem(gamedata.MoonlightShop_Token_ItemID, cost) {
+			if player.BagMoudle.RemoveNormalItem(gamedata.MoonShop_Money_ID, cost) {
 				if player.BagMoudle.AddAwardItem(csv.ItemID, csv.ItemNum) {
 					self.BuyTimes++
 					goods.BuyTimes++
@@ -252,44 +250,33 @@ func (self *TMoonlightShop) BuyGoods(player *TPlayer, goodsID int) bool {
 					self.DB_SaveGoods(i)
 				}
 			}
-			gamelog.Error("MoonlightShop BuyGoods Error: ItemID:%d ItemNum:%d cost:%d", csv.ItemID, csv.ItemNum, cost)
+			gamelog.Error("moonshop BuyGoods Error: ItemID:%d ItemNum:%d cost:%d", csv.ItemID, csv.ItemNum, cost)
 			return false
 		}
 	}
 	return false
 }
-func (self *TMoonlightShop) GetScoreAward(player *TPlayer, awardID int) bool {
-	csv := gamedata.GetMoonlightShopAwardCsv(awardID)
-	if csv == nil || self.scoreAwardFlag(awardID) {
+func (self *TMoonShop) GetScoreAward(player *TPlayer, awardID int) bool {
+	pAwardInfo := gamedata.GetMoonShopAwardInfo(awardID)
+	if pAwardInfo == nil || self.ScoreAward.Get(awardID) {
 		return false
 	}
-	if self.Score >= csv.NeedScore {
-		if player.BagMoudle.AddAwardItem(csv.ItemID, csv.ItemNum) {
-			self.setScoreAwardFlag(awardID, true)
+
+	if self.Score >= pAwardInfo.NeedScore {
+		if player.BagMoudle.AddAwardItem(pAwardInfo.ItemID, pAwardInfo.ItemNum) {
+			self.ScoreAward.Set(awardID)
 			self.DB_SaveScoreAwardFlag()
 			return true
 		}
 	}
 	return false
 }
-func (self *TMoonlightShop) CanGetScoreAward() bool {
-	for i := 1; i < len(gamedata.G_MoonlightAwardCsv); i++ {
-		csv := &gamedata.G_MoonlightAwardCsv[i]
-		if !self.scoreAwardFlag(csv.ID) && self.Score >= csv.NeedScore {
+func (self *TMoonShop) CanGetScoreAward() bool {
+	for i := 1; i < len(gamedata.G_MoonAward_List); i++ {
+		csv := &gamedata.G_MoonAward_List[i]
+		if !self.ScoreAward.Get(csv.ID) && self.Score >= csv.NeedScore {
 			return true
 		}
 	}
 	return false
-}
-func (self *TMoonlightShop) scoreAwardFlag(awardID int) bool {
-	var num uint = uint(awardID)
-	return self.ScoreAwardFlag&(1<<num) > 0
-}
-func (self *TMoonlightShop) setScoreAwardFlag(awardID int, flag bool) {
-	var num uint = uint(awardID)
-	if flag {
-		self.ScoreAwardFlag |= (1 << num)
-	} else {
-		self.ScoreAwardFlag &= ^(1 << num)
-	}
 }

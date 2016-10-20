@@ -40,6 +40,12 @@ func Hand_QueryActivityActionInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+	//		return
+	//	}
+
+	//	defer player.FinishMsgProcess()
+
 	player.ActivityModule.CheckReset()
 
 	if G_GlobalVariables.IsActivityOpen(player.ActivityModule.ReceiveAction.ActivityID) == false {
@@ -51,15 +57,13 @@ func Hand_QueryActivityActionInfo(w http.ResponseWriter, r *http.Request) {
 	response.RetCode = msg.RE_SUCCESS
 
 	//! 领取体力
-	response.NextAwardTime = player.ActivityModule.ReceiveAction.GetNextActionAwardTime()
-	response.RecvAction = int(player.ActivityModule.ReceiveAction.RecvAction)
+	response.RecvAction = uint32(player.ActivityModule.ReceiveAction.RecvAction)
 	response.RetroactiveCostMoneyID = gamedata.ActionActivityRetroactiveMoneyID
 	response.RetroactiveCostMoneyNum = gamedata.ActionActivityRetroactiveMoneyNum
 }
 
 //! 玩家请求领取体力
 func Hand_ReceiveActivityAction(w http.ResponseWriter, r *http.Request) {
-
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收消息
@@ -97,55 +101,48 @@ func Hand_ReceiveActivityAction(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	activityInfo := gamedata.GetActivityInfo(player.ActivityModule.ReceiveAction.ActivityID)
-
-	//! 判断当前时间是否为领取体力活动时间
-	index := gamedata.IsRecvActionTime(activityInfo.AwardType)
-	if index < 0 {
-		gamelog.Error("Hand_ReceiveActivityAction Error: Activity not open.")
-		response.RetCode = msg.RE_ACTIVITY_NOT_OPEN
-		return
-	}
-
 	//! 判断玩家是否已经领取
-	if player.ActivityModule.ReceiveAction.RecvAction.Get(uint32(index)) == true {
-		gamelog.Error("Hand_ReceiveActivityAction Error: Aleady recv action")
+	if player.ActivityModule.ReceiveAction.RecvAction.Get(req.Index) == true {
+		gamelog.Error("Hand_ActionRetroactive Error: Aleady received:mark:%d, index:%d", uint32(player.ActivityModule.ReceiveAction.RecvAction), req.Index)
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
 	}
 
 	//! 获取奖励信息
-	awardInfo := gamedata.GetRecvAction(activityInfo.AwardType, index-1)
-	if awardInfo == nil {
+	awardType := G_GlobalVariables.GetActivityAwardType(player.ActivityModule.ReceiveAction.ActivityID)
+	pAtyAction := gamedata.GetActivityAction(awardType)
+	if pAtyAction == nil {
 		gamelog.Error("Hand_ReceiveActivityAction Error: GetRecvAction nil")
 		return
 	}
 
+	if false == pAtyAction.IsTimeOK(req.Index) {
+		gamelog.Error("Hand_ReceiveActivityAction Error: Cur index is not time ok:%d.", req.Index)
+		response.RetCode = msg.RE_ACTIVITY_NOT_OPEN
+		return
+	}
+
 	//! 修改领取标记
-	player.ActivityModule.ReceiveAction.RecvAction.Set(uint32(index))
+	player.ActivityModule.ReceiveAction.RecvAction.Set(req.Index)
 	player.ActivityModule.ReceiveAction.DB_Refresh()
 
-	response.Index = index
+	response.Index = req.Index
 
 	//! 增加玩家体力
-	player.RoleMoudle.AddAction(awardInfo.ActionID, awardInfo.ActionNum)
+	player.RoleMoudle.AddAction(pAtyAction.ActionID, pAtyAction.ActionNum)
 
 	//! 获取用户体力以及下次恢复时间
-	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(awardInfo.ActionID)
+	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(pAtyAction.ActionID)
 
 	//! 随机奖励
 	randValue := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	random := randValue.Intn(1000)
-
-	if random < awardInfo.AwardPro {
-		//! 额外奖励
-		player.RoleMoudle.AddMoney(awardInfo.MoneyID, awardInfo.MoneyNum)
-		response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{awardInfo.MoneyID, awardInfo.MoneyNum})
+	if random < pAtyAction.AwardPro {
+		player.RoleMoudle.AddMoney(pAtyAction.MoneyID, pAtyAction.MoneyNum)
+		response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{pAtyAction.MoneyID, pAtyAction.MoneyNum})
 	}
 
-	response.RecvAction = int(player.ActivityModule.ReceiveAction.RecvAction)
-	response.NextAwardTime = player.ActivityModule.ReceiveAction.GetNextActionAwardTime()
+	response.RecvAction = uint32(player.ActivityModule.ReceiveAction.RecvAction)
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -190,8 +187,8 @@ func Hand_ActionRetroactive(w http.ResponseWriter, r *http.Request) {
 
 	//! 获取领取奖励信息
 	activityInfo := gamedata.GetActivityInfo(player.ActivityModule.ReceiveAction.ActivityID)
-	actionAwardInfo := gamedata.GetRecvAction(activityInfo.AwardType, req.Index-1)
-	if actionAwardInfo == nil {
+	pAtyAction := gamedata.GetActivityAction(activityInfo.AwardType)
+	if pAtyAction == nil {
 		gamelog.Error("Hand_ActionRetroactive Error: Invalid index %d", req.Index)
 		return
 	}
@@ -199,17 +196,16 @@ func Hand_ActionRetroactive(w http.ResponseWriter, r *http.Request) {
 	//! 检测当前时间是否超过最后领取时间
 	now := time.Now()
 	sec := now.Hour()*3600 + now.Minute()*60 + now.Second()
-
-	if sec < actionAwardInfo.Time_End {
+	if sec < pAtyAction.Time_End[req.Index-1] {
 		response.RetCode = msg.RE_INVALID_PARAM
 		gamelog.Error("Hand_ActionRetroactive Error: Time yet")
 		return
 	}
 
 	//! 检测是否已领取该时间段奖励
-	if player.ActivityModule.ReceiveAction.RecvAction.Get(uint32(req.Index)) == true {
+	if player.ActivityModule.ReceiveAction.RecvAction.Get(req.Index) == true {
 		response.RetCode = msg.RE_ALREADY_RECEIVED
-		gamelog.Error("Hand_ActionRetroactive Error: Aleady received")
+		gamelog.Error("Hand_ActionRetroactive Error: Aleady received:mark:%d, index:%d", uint32(player.ActivityModule.ReceiveAction.RecvAction), req.Index)
 		return
 	}
 
@@ -227,26 +223,23 @@ func Hand_ActionRetroactive(w http.ResponseWriter, r *http.Request) {
 	response.CostItem = append(response.CostItem, msg.MSG_ItemData{gamedata.ActionActivityRetroactiveMoneyID, gamedata.ActionActivityRetroactiveMoneyNum})
 
 	//! 修改领取标记
-	player.ActivityModule.ReceiveAction.RecvAction.Set(uint32(req.Index))
+	player.ActivityModule.ReceiveAction.RecvAction.Set(req.Index)
 	player.ActivityModule.ReceiveAction.DB_Refresh()
 
 	//! 增加玩家体力
-	player.RoleMoudle.AddAction(actionAwardInfo.ActionID, actionAwardInfo.ActionNum)
+	player.RoleMoudle.AddAction(pAtyAction.ActionID, pAtyAction.ActionNum)
 
 	//! 获取用户体力以及下次恢复时间
-	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(actionAwardInfo.ActionID)
+	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(pAtyAction.ActionID)
 
 	//! 随机奖励
 	randValue := rand.New(rand.NewSource(time.Now().UnixNano()))
-
 	random := randValue.Intn(1000)
-
-	if random < actionAwardInfo.AwardPro {
-		//! 额外奖励
-		player.RoleMoudle.AddMoney(actionAwardInfo.MoneyID, actionAwardInfo.MoneyNum)
-		response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{actionAwardInfo.MoneyID, actionAwardInfo.MoneyNum})
+	if random < pAtyAction.AwardPro {
+		player.RoleMoudle.AddMoney(pAtyAction.MoneyID, pAtyAction.MoneyNum)
+		response.AwardItem = append(response.AwardItem, msg.MSG_ItemData{pAtyAction.MoneyID, pAtyAction.MoneyNum})
 	}
 
-	response.RecvAction = int(player.ActivityModule.ReceiveAction.RecvAction)
+	response.RecvAction = uint32(player.ActivityModule.ReceiveAction.RecvAction)
 	response.RetCode = msg.RE_SUCCESS
 }

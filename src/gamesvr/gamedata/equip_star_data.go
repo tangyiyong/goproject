@@ -20,7 +20,7 @@ type ST_EquipStarInfo struct {
 	PieceNum      int    //碎片数量
 	Luck          [4]int //幸运值
 	Ratio         [4]int //幸运率
-	SumProperty   int    //当前所有星级属性之和
+	BaseProperty  int    //当前所有星级属性之和
 }
 
 var (
@@ -29,7 +29,7 @@ var (
 )
 
 func InitEquipStarParser(total int) bool {
-	MinStarQuality = 0
+	MinStarQuality = 100
 	return true
 }
 
@@ -38,13 +38,14 @@ func ParseEquipStarRecord(rs *RecordSet) {
 	pos := rs.GetFieldInt("position")
 	starlvl := rs.GetFieldInt("star_lvl")
 
-	if quality > MinStarQuality {
+	if quality < MinStarQuality {
 		MinStarQuality = quality
 	}
 
 	GT_EquipStarList[quality][pos][starlvl].Quality = quality
 	GT_EquipStarList[quality][pos][starlvl].Position = pos
 	GT_EquipStarList[quality][pos][starlvl].StarLvl = starlvl
+	GT_EquipStarList[quality][pos][starlvl].BaseProperty = rs.GetFieldInt("base_property")
 	GT_EquipStarList[quality][pos][starlvl].PropertyID = rs.GetFieldInt("propertyid")
 	GT_EquipStarList[quality][pos][starlvl].TotalProperty = rs.GetFieldInt("total_property")
 	GT_EquipStarList[quality][pos][starlvl].ExtraProperty = rs.GetFieldInt("extra_property")
@@ -67,18 +68,12 @@ func ParseEquipStarRecord(rs *RecordSet) {
 	GT_EquipStarList[quality][pos][starlvl].Ratio[2] = rs.GetFieldInt("success_rate3")
 	GT_EquipStarList[quality][pos][starlvl].Ratio[3] = rs.GetFieldInt("success_rate4")
 
-	if starlvl > 0 {
-		GT_EquipStarList[quality][pos][starlvl].SumProperty = GT_EquipStarList[quality][pos][starlvl-1].SumProperty + GT_EquipStarList[quality][pos][starlvl-1].TotalProperty + GT_EquipStarList[quality][pos][starlvl].ExtraProperty
-	} else {
-		GT_EquipStarList[quality][pos][starlvl].SumProperty = 0
-	}
-
 	return
 }
 
 func GetEquipStarInfo(quality int, pos int, star int) *ST_EquipStarInfo {
-	if quality <= 0 || quality > 10 {
-		gamelog.Error("GetEquipStarInfo  Error: Invalid quality :%d", quality)
+	if quality < MinStarQuality || quality > 10 {
+		gamelog.Error("GetEquipStarInfo  Error: Invalid quality :%d, minQuality:%d", quality, MinStarQuality)
 		return nil
 	}
 	if pos <= 0 || pos > 4 {
@@ -88,10 +83,6 @@ func GetEquipStarInfo(quality int, pos int, star int) *ST_EquipStarInfo {
 
 	if star < 0 || star > 5 {
 		gamelog.Error("GetEquipStarInfo  Error: Invalid star :%d", star)
-		return nil
-	}
-
-	if quality < MinStarQuality {
 		return nil
 	}
 

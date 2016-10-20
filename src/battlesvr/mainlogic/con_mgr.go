@@ -46,25 +46,12 @@ func AddConnByID(playerid int32, pTcpConn *tcpserver.TCPConn) {
 }
 
 func AddTcpConn(playerid int32, roomid int32, pTcpConn *tcpserver.TCPConn) {
-	pTcpConn.Extra = int32(roomid)
+	pTcpConn.Extra = roomid
 	pTcpConn.ConnID = playerid
 	pTcpConn.Cleaned = false
 	AddConnByID(playerid, pTcpConn)
 	return
 }
-
-//func SendMessageToPlayer(playerid int, msgid int16, msgdata []byte) bool {
-//	G_ConnsMutex.Lock()
-//	pConn, ok := G_PlayerConns[playerid]
-//	if !ok {
-//		G_ConnsMutex.Unlock()
-//		gamelog.Error("SendMessageToPlayer Invalid playerid : %d", playerid)
-//		return false
-//	}
-//	G_ConnsMutex.Unlock()
-
-//	return pConn.WriteMsg(msgid, msgdata)
-//}
 
 func SendMessageToPlayer(playerid int32, msgid int16, pmsg msg.TMsg) bool {
 	var writer msg.PacketWriter
@@ -102,7 +89,7 @@ func SendMessageToRoom(playerid int32, roomid int16, msgid int16, pmsg msg.TMsg)
 	writer.EndWrite()
 
 	G_ConnsMutex.Lock()
-	for i := 0; i < max_room_player; i++ {
+	for i := 0; i < room_player_num; i++ {
 		if pRoom.Players[i] != nil && pRoom.Players[i].PlayerID != playerid && pRoom.Players[i].PlayerID > 0 {
 			pConn, ok := G_PlayerConns[pRoom.Players[i].PlayerID]
 			if ok && pConn != nil {
@@ -123,7 +110,7 @@ func SendMessageDataToRoom(playerid int32, roomid int16, msgdata []byte) bool {
 	}
 
 	G_ConnsMutex.Lock()
-	for i := 0; i < max_room_player; i++ {
+	for i := 0; i < room_player_num; i++ {
 		if pRoom.Players[i] != nil && pRoom.Players[i].PlayerID != playerid && pRoom.Players[i].PlayerID > 0 {
 			pConn, ok := G_PlayerConns[pRoom.Players[i].PlayerID]
 			if ok && pConn != nil {

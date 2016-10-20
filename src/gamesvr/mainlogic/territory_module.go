@@ -4,20 +4,19 @@ import (
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"math/rand"
 	"mongodb"
 	"sync"
 	"time"
 	"utility"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 //! 暴动信息
 type TTerritoryRiotData struct {
 	IsRoit     bool   //! 是否暴动
-	BeginTime  int64  //! 开始时间
-	DealTime   int64  //! 处理时间
+	BeginTime  int32  //! 开始时间
+	DealTime   int32  //! 处理时间
 	HelperName string //! 帮忙处理好友姓名
 }
 
@@ -26,7 +25,7 @@ type TTerritoryInfo struct {
 	HeroID        int                    //! 巡逻武将ID
 	PatrolTime    int                    //! 巡逻时间
 	AwardTime     int                    //! 奖励间隔时间
-	PatrolEndTime int64                  //! 巡逻结束时间
+	PatrolEndTime int32                  //! 巡逻结束时间
 	AwardItem     []gamedata.ST_ItemData //! 已获奖励
 	RiotInfo      []TTerritoryRiotData   //! 暴动信息
 	SkillLevel    int                    //! 领地技能等级
@@ -55,7 +54,7 @@ func (self *TTerritoryModule) OnCreate(playerid int32) {
 	self.ResetDay = utility.GetCurDay()
 
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerTerritory", self)
+	mongodb.InsertToDB("PlayerTerritory", self)
 }
 
 //! 玩家销毁角色
@@ -91,7 +90,7 @@ func (self *TTerritoryModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 
 //! 红点
 func (self *TTerritoryModule) RedTip() bool {
-	now := time.Now().Unix()
+	now := utility.GetCurTime()
 	for _, v := range self.TerritoryLst {
 		if v.HeroID != 0 &&
 			v.PatrolEndTime < now {
@@ -160,7 +159,7 @@ func (self *TTerritoryModule) GetTerritory(id int) (*TTerritoryInfo, int) {
 //! 巡逻领地
 func (self *TTerritoryModule) PatrolTerritory(id int, heroID int, patrol *gamedata.ST_TerritoryPatrolType, awardTime int) {
 	//! 获取领地信息
-	now := time.Now().Unix()
+	now := utility.GetCurTime()
 	territory, index := self.GetTerritory(id)
 	if territory == nil {
 		gamelog.Error("GetTerritory fail. ID: %d", id)
@@ -168,7 +167,7 @@ func (self *TTerritoryModule) PatrolTerritory(id int, heroID int, patrol *gameda
 	}
 	territory.HeroID = heroID
 	territory.PatrolTime = patrol.Time
-	territory.PatrolEndTime = now + int64(patrol.Time)
+	territory.PatrolEndTime = now + int32(patrol.Time)
 	territory.AwardTime = awardTime
 
 	//! 随机武将碎片奖励
@@ -185,7 +184,7 @@ func (self *TTerritoryModule) PatrolTerritory(id int, heroID int, patrol *gameda
 		pieceNum = 1 + r.Intn(3)
 	}
 
-	var riotEndTime int64
+	var riotEndTime int32
 
 	//! 随机奖励列表
 	timeInterval := patrol.Time / awardTime
@@ -205,15 +204,15 @@ func (self *TTerritoryModule) PatrolTerritory(id int, heroID int, patrol *gameda
 
 		//! 随机暴动
 		randRiot := r.Intn(10000)
-		if randRiot < gamedata.RiotPro && int64(riotEndTime) < now+int64(i*awardTime) {
+		if randRiot < gamedata.RiotPro && riotEndTime < now+int32(i*awardTime) {
 			//! 发生暴动
 			var riot TTerritoryRiotData
-			riot.BeginTime = now + int64(i*awardTime)
+			riot.BeginTime = now + int32(i*awardTime)
 			riot.IsRoit = true
 			territory.RiotInfo = append(territory.RiotInfo, riot)
 			self.DB_DB_AddTerritoryRiotInfo(index, riot)
 
-			riotEndTime = now + int64(i*awardTime) + int64(gamedata.RiotTime)
+			riotEndTime = now + int32(i*awardTime) + int32(gamedata.RiotTime)
 		}
 
 	}
@@ -230,9 +229,9 @@ func (self *TTerritoryModule) IsRiot(id int) bool {
 	isRiot := false
 	for _, n := range territory.RiotInfo {
 		//! 判断暴动
-		if time.Now().Unix() >= n.BeginTime &&
-			time.Now().Unix() < n.BeginTime+int64(gamedata.RiotTime) &&
-			n.IsRoit == true && time.Now().Unix() < territory.PatrolEndTime {
+		if utility.GetCurTime() >= n.BeginTime &&
+			utility.GetCurTime() < n.BeginTime+int32(gamedata.RiotTime) &&
+			n.IsRoit == true && utility.GetCurTime() < territory.PatrolEndTime {
 			isRiot = true
 		}
 	}
@@ -289,7 +288,7 @@ func (self *TTerritoryModule) GetRiotTerritoryNum() []int {
 func (self *TTerritoryModule) GetPatrolNum() []int {
 	lst := []int{}
 	for _, v := range self.TerritoryLst {
-		if time.Now().Unix() < v.PatrolEndTime {
+		if utility.GetCurTime() < v.PatrolEndTime {
 			lst = append(lst, v.ID)
 		}
 	}

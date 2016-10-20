@@ -49,8 +49,8 @@ type TBagMoudle struct {
 	HeroSoulBag     TItemBag    //将灵背包
 	FashionBag      TFashionBag //时装背包
 	FashionPieceBag TItemBag    //时装碎片包
-	ColHeros        []int16     //收集过英雄列表
-	ColPets         []int16     //收集过的宠物
+	ColHeros        Int16Lst    //收集过英雄列表
+	ColPets         Int16Lst    //收集过的宠物
 
 	//以下属性非数据库属性
 	ownplayer *TPlayer //父player指针
@@ -145,14 +145,14 @@ func (self *TBagMoudle) AddAwardItem(itemid int, num int) bool {
 		return false
 	}
 
-	pItemInfo := gamedata.GetItemInfo(itemid)
-	if pItemInfo == nil {
-		gamelog.Error("AddAwardItem Error: Invalid itemid :%d", itemid)
+	if itemid <= 0 || num <= 0 {
+		gamelog.Error("AddAwardItem Error: Invalid Param itemid:%d, num:%d", itemid, num)
 		return false
 	}
 
-	if num <= 0 {
-		gamelog.Error("AddAwardItem Error: Invalid num :%d", num)
+	pItemInfo := gamedata.GetItemInfo(itemid)
+	if pItemInfo == nil {
+		gamelog.Error("AddAwardItem Error: Invalid itemid :%d", itemid)
 		return false
 	}
 
@@ -167,27 +167,15 @@ func (self *TBagMoudle) AddAwardItem(itemid int, num int) bool {
 		}
 	case gamedata.TYPE_HERO:
 		{
-			if num == 1 {
-				self.AddHeroByID(pItemInfo.Data1, pItemInfo.Data2)
-			} else {
-				self.AddHeros(pItemInfo.Data1, pItemInfo.Data2, num)
-			}
+			self.AddHeroByID(pItemInfo.Data1, pItemInfo.Data2, num)
 		}
 	case gamedata.TYPE_EQUIPMENT:
 		{
-			if num == 1 {
-				self.AddEqiupByID(pItemInfo.Data1)
-			} else {
-				self.AddEqiups(pItemInfo.Data1, num)
-			}
+			self.AddEqiups(pItemInfo.Data1, num)
 		}
 	case gamedata.TYPE_GEM:
 		{
-			if num == 1 {
-				self.AddGemByID(pItemInfo.Data1)
-			} else {
-				self.AddGems(pItemInfo.Data1, num)
-			}
+			self.AddGems(pItemInfo.Data1, num)
 		}
 	case gamedata.TYPE_HERO_PIECE:
 		{
@@ -211,11 +199,7 @@ func (self *TBagMoudle) AddAwardItem(itemid int, num int) bool {
 		}
 	case gamedata.TYPE_PET:
 		{
-			if num == 1 {
-				self.AddPetByID(pItemInfo.Data1)
-			} else {
-				self.AddPets(pItemInfo.Data1, num)
-			}
+			self.AddPets(pItemInfo.Data1, num)
 		}
 	case gamedata.TYPE_PET_PIECE:
 		{
@@ -227,11 +211,7 @@ func (self *TBagMoudle) AddAwardItem(itemid int, num int) bool {
 		}
 	case gamedata.TYPE_FASHION:
 		{
-			if num == 1 {
-				self.AddFashionByID(pItemInfo.Data1)
-			} else {
-				self.AddFashions(pItemInfo.Data1, num)
-			}
+			self.AddFashionByID(pItemInfo.Data1)
 		}
 	case gamedata.TYPE_FASHION_PIECE:
 		{
@@ -278,67 +258,59 @@ func (self *TBagMoudle) GetBagHeroCount() int {
 }
 
 //添加一个出生英雄到背包
-func (self *TBagMoudle) AddHeroByID(heroid int, level int) bool {
-	if heroid <= 0 {
-		gamelog.Error("AddHeroByID Error : Invalid heroid :%d", heroid)
+func (self *TBagMoudle) AddHeroByID(heroid int, level int, num int) bool {
+	if heroid <= 0 || num < 0 {
+		gamelog.Error("AddHeroByID Error : Invalid heroid :%d, Num:%d", heroid, num)
 		return false
 	}
 
-	var hero THeroData
-	hero.Init(heroid)
-	if level > 1 {
-		hero.Level = level
+	var heros []THeroData = make([]THeroData, num)
+	for i := 0; i < num; i++ {
+		heros[i].Init(heroid)
+		heros[i].Level = level
 	}
 
-	self.HeroBag.Heros = append(self.HeroBag.Heros, hero)
+	self.HeroBag.Heros = append(self.HeroBag.Heros, heros...)
 	pHeroInfo := gamedata.GetHeroInfo(heroid)
+	bCol := false
 	if pHeroInfo != nil && pHeroInfo.Quality >= 2 {
-		bCol := true
-		for i := 0; i < len(self.ColHeros); i++ {
-			if self.ColHeros[i] == int16(heroid) {
-				bCol = false
-				break
-			}
-		}
-
-		if bCol == true {
+		if self.ColHeros.IsExist(int16(heroid)) < 0 {
+			bCol = true
 			self.ColHeros = append(self.ColHeros, int16(heroid))
 		}
-
-		self.DB_AddHeroAtLast(bCol)
-	} else {
-		self.DB_AddHeroAtLast(false)
 	}
 
-	campHeroCountLst := IntLst{0, 0, 0, 0}
-	for i := 0; i < len(self.ColHeros); i++ {
-		pHeroInfo = gamedata.GetHeroInfo(int(self.ColHeros[i]))
-		if pHeroInfo != nil {
-			switch pHeroInfo.Camp {
-			case 1:
-				{
-					campHeroCountLst[0]++
-				}
-			case 2:
-				{
-					campHeroCountLst[1]++
-				}
-			case 3:
-				{
-					campHeroCountLst[2]++
-				}
-			case 4:
-				{
-					campHeroCountLst[3]++
+	self.DB_AddHeroList(heros, bCol)
+	if bCol == true {
+		var cnt [4]int
+		for i := 0; i < len(self.ColHeros); i++ {
+			pHeroInfo = gamedata.GetHeroInfo(int(self.ColHeros[i]))
+			if pHeroInfo != nil {
+				switch pHeroInfo.Camp {
+				case 1:
+					{
+						cnt[0]++
+					}
+				case 2:
+					{
+						cnt[1]++
+					}
+				case 3:
+					{
+						cnt[2]++
+					}
+				case 4:
+					{
+						cnt[3]++
+					}
 				}
 			}
 		}
-	}
 
-	fullCampHeroLst := gamedata.GetCampHeroCount()
-	for i := 0; i < 4; i++ {
-		if campHeroCountLst[i] == fullCampHeroLst[i] {
-			self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_CAMP_HERO_FULL_1+i, 1)
+		for i := 0; i < 4; i++ {
+			if cnt[i] == gamedata.G_Hero_Cmap_Cnt {
+				self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_CAMP_HERO_FULL_1+i, 1)
+			}
 		}
 	}
 
@@ -375,22 +347,14 @@ func (self *TBagMoudle) IsGembagFull() bool {
 	return false
 }
 
-//添加多个英雄到背包
-func (self *TBagMoudle) AddHeros(heroid int, level int, num int) bool {
-	if (num <= 0) || (heroid <= 0) {
-		gamelog.Error("AddHeros Invalid heroid: %d num:%d", heroid, num)
+//添加一个英雄到背包
+func (self *TBagMoudle) AddHeroData(pHeroData *THeroData) bool {
+	if pHeroData.ID <= 0 {
+		gamelog.Error("AddHeroData Error : Invalid ID", pHeroData.ID)
 		return false
 	}
-
-	var heros []THeroData = make([]THeroData, num)
-	for i := 0; i < num; i++ {
-		heros[i].Init(heroid)
-		heros[i].Level = level
-	}
-
-	self.HeroBag.Heros = append(self.HeroBag.Heros, heros...)
-	self.DB_AddHeroList(heros)
-
+	self.HeroBag.Heros = append(self.HeroBag.Heros, *pHeroData)
+	self.DB_AddHeroList(self.HeroBag.Heros[len(self.HeroBag.Heros)-1:], false)
 	return true
 }
 
@@ -440,23 +404,9 @@ func (self *TBagMoudle) GetEqiupCount() int {
 }
 
 //添加一个装备到背包
-func (self *TBagMoudle) AddEqiupByID(equipid int) bool {
-	if equipid <= 0 {
-		gamelog.Error("AddEqiupByID Error : Invalid equipid : %d", equipid)
-		return false
-	}
-
-	var equip TEquipData
-	equip.Init(equipid)
-	self.EquipBag.Equips = append(self.EquipBag.Equips, equip)
-	self.DB_AddEquipAtLast()
-	return true
-}
-
-//添加一个装备到背包
 func (self *TBagMoudle) AddEqiups(equipid int, num int) bool {
 	if (num <= 0) || (equipid <= 0) {
-		gamelog.Error("AddEqiup Error : Invalid equipid:%d, num:%d", equipid, num)
+		gamelog.Error("AddEqiup Error : Invalid param, equipid:%d, num:%d", equipid, num)
 		return false
 	}
 
@@ -477,7 +427,7 @@ func (self *TBagMoudle) AddEqiupData(pEquipData *TEquipData) bool {
 		return false
 	}
 	self.EquipBag.Equips = append(self.EquipBag.Equips, *pEquipData)
-	self.DB_AddEquipAtLast()
+	self.DB_AddEquipsList(self.EquipBag.Equips[len(self.EquipBag.Equips)-1:])
 	return true
 }
 
@@ -517,39 +467,6 @@ func (self *TBagMoudle) GetGemCount() int {
 	return len(self.GemBag.Gems)
 }
 
-//统计指定索引以外的，可用宝物的个数
-func (self *TBagMoudle) GetGemCountExcept(pos int, gemid int) (count int) {
-	count = 0
-	for i := 0; i < len(self.GemBag.Gems); i++ {
-		if self.GemBag.Gems[i].ID == gemid {
-			if i == pos {
-				continue
-			} else {
-				if self.GemBag.Gems[i].RefineLevel <= 0 {
-					count += 1
-				}
-			}
-		}
-	}
-
-	return count
-}
-
-//添加一个宝物到背包
-func (self *TBagMoudle) AddGemByID(gemid int) bool {
-	if gemid <= 0 {
-		gamelog.Error("AddGemByID Invalid gemid :%d", gemid)
-		return false
-	}
-
-	var gem TGemData
-	gem.Init(gemid)
-
-	self.GemBag.Gems = append(self.GemBag.Gems, gem)
-	self.DB_AddGemAtLast()
-	return true
-}
-
 //添加一个装备到背包
 func (self *TBagMoudle) AddGemData(pGemData *TGemData) bool {
 	if pGemData.ID <= 0 {
@@ -557,14 +474,14 @@ func (self *TBagMoudle) AddGemData(pGemData *TGemData) bool {
 		return false
 	}
 	self.GemBag.Gems = append(self.GemBag.Gems, *pGemData)
-	self.DB_AddGemAtLast()
+	self.DB_AddGemList(self.GemBag.Gems[len(self.GemBag.Gems)-1:])
 	return true
 }
 
 //添加一个宝物到背包
 func (self *TBagMoudle) AddGems(gemid int, num int) bool {
-	if gemid <= 0 {
-		gamelog.Error("AddGems Error: Invalid gemid:%d, num:%d", gemid, num)
+	if gemid <= 0 || num <= 0 {
+		gamelog.Error("AddGems Error: Invalid Param, gemid:%d, num:%d", gemid, num)
 		return false
 	}
 
@@ -608,8 +525,8 @@ func (self *TBagMoudle) GetEqiupPieceCount(itemid int) int {
 
 //添加装备碎片
 func (self *TBagMoudle) AddEqiupPiece(itemid int, count int) int {
-	if count <= 0 {
-		gamelog.Error("AddEqiupPiece Error : Invalid count :%d", count)
+	if count <= 0 || itemid <= 0 {
+		gamelog.Error("AddEqiupPiece Error : Invalid param, itemid:%d, count :%d", itemid, count)
 		return 0
 	}
 
@@ -628,7 +545,7 @@ func (self *TBagMoudle) AddEqiupPiece(itemid int, count int) int {
 //删除装备碎片
 func (self *TBagMoudle) RemoveEquipPiece(itemid int, count int) bool {
 	if count <= 0 || itemid <= 0 {
-		gamelog.Error("RemoveEqiupPiece Error : Invalid itemid :%d, count:%d", itemid, count)
+		gamelog.Error("RemoveEqiupPiece Error : Invalid param, itemid :%d, count:%d", itemid, count)
 		return false
 	}
 
@@ -918,54 +835,20 @@ func (self *TBagMoudle) IsItemEnough(itemid int, count int) bool {
 }
 
 //添加一个宠物到背包
-func (self *TBagMoudle) AddPetByID(petid int) bool {
-	if petid <= 0 {
-		gamelog.Error("AddPetByID Invalid petid :%d", petid)
-		return false
-	}
-
-	var pet TPetData
-	pet.Init(petid)
-
-	self.PetBag.Pets = append(self.PetBag.Pets, pet)
-
-	bCol := true
-	for i := 0; i < len(self.ColPets); i++ {
-		if self.ColPets[i] == int16(petid) {
-			bCol = false
-			break
-		}
-	}
-
-	if bCol == true {
-		self.ColPets = append(self.ColPets, int16(petid))
-	}
-
-	self.DB_AddPetAtLast(bCol)
-
-	pPetInfo := gamedata.GetPetInfo(petid)
-	if pPetInfo != nil {
-		self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PET_QUALITY, pPetInfo.Quality)
-	}
-
-	return true
-}
-
-//添加一个宠物到背包
 func (self *TBagMoudle) AddPetData(pPetData *TPetData) bool {
 	if pPetData.ID <= 0 {
 		gamelog.Error("AddPetData Error : Invalid PetID", pPetData.ID)
 		return false
 	}
 	self.PetBag.Pets = append(self.PetBag.Pets, *pPetData)
-	self.DB_AddPetAtLast(false)
+	self.DB_AddPetList(self.PetBag.Pets[len(self.PetBag.Pets)-1:], false)
 	return true
 }
 
 //添加宠物到背包
 func (self *TBagMoudle) AddPets(petid int, num int) bool {
-	if petid <= 0 {
-		gamelog.Error("AddPets Error: Invalid petid:%d, num:%d", petid, num)
+	if petid <= 0 || num <= 0 {
+		gamelog.Error("AddPets Error: Invalid param, petid:%d, num:%d", petid, num)
 		return false
 	}
 
@@ -973,9 +856,22 @@ func (self *TBagMoudle) AddPets(petid int, num int) bool {
 	for i := 0; i < num; i++ {
 		pets[i].Init(petid)
 	}
-
 	self.PetBag.Pets = append(self.PetBag.Pets, pets...)
-	self.DB_AddPetList(pets)
+
+	bCol := false
+	if self.ColPets.IsExist(int16(petid)) < 0 {
+		bCol = true
+		self.ColPets = append(self.ColPets, int16(petid))
+	}
+
+	self.DB_AddPetList(pets, bCol)
+
+	if bCol {
+		pPetInfo := gamedata.GetPetInfo(petid)
+		if pPetInfo != nil {
+			self.ownplayer.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_PET_QUALITY, pPetInfo.Quality)
+		}
+	}
 
 	return true
 }
@@ -1132,29 +1028,8 @@ func (self *TBagMoudle) AddFashionByID(id int) bool {
 
 	var fashion TFashionData
 	fashion.Init(id)
-
 	self.FashionBag.Fashions = append(self.FashionBag.Fashions, fashion)
-
 	self.DB_AddFashionAtLast()
-
-	return true
-}
-
-//添加宠物到背包
-func (self *TBagMoudle) AddFashions(id int, num int) bool {
-	if id <= 0 {
-		gamelog.Error("AddFashions Error: Invalid id:%d, num:%d", id, num)
-		return false
-	}
-
-	var fashions []TFashionData = make([]TFashionData, num)
-	for i := 0; i < num; i++ {
-		fashions[i].Init(id)
-	}
-
-	self.FashionBag.Fashions = append(self.FashionBag.Fashions, fashions...)
-	self.DB_AddFashionList(fashions)
-
 	return true
 }
 
@@ -1168,7 +1043,7 @@ func (self *TBagMoudle) RemoveFashionByID(id int) bool {
 	return true
 }
 
-//获取宠物碎片数
+//获取时装碎片数
 func (self *TBagMoudle) GetFashionPieceCount(itemid int) int {
 	for _, t := range self.FashionPieceBag.Items {
 		if t.ItemID == itemid {
@@ -1179,7 +1054,7 @@ func (self *TBagMoudle) GetFashionPieceCount(itemid int) int {
 	return 0
 }
 
-//添加宠物碎片数
+//添加时装碎片数
 func (self *TBagMoudle) AddFashionPiece(itemid int, count int) int {
 	if count <= 0 || itemid <= 0 {
 		gamelog.Error("AddFashionPiece Error :Invalid itemid :%d, count:%d", itemid, count)
@@ -1195,7 +1070,7 @@ func (self *TBagMoudle) AddFashionPiece(itemid int, count int) int {
 	}
 
 	self.FashionPieceBag.Items = append(self.FashionPieceBag.Items, TItemData{ItemID: itemid, ItemNum: count})
-	self.DB_SaveFashionPieceBagAt(len(self.PetPieceBag.Items) - 1)
+	self.DB_SaveFashionPieceBagAt(len(self.FashionPieceBag.Items) - 1)
 	return count
 }
 

@@ -37,22 +37,13 @@ func ServerRun(addr string, maxconn int) {
 		MsgDispatcher = DefalutDispatcher
 	}
 
-	G_Server.start()
-	G_Server.close()
+	G_Server.Init()
+	G_Server.Run()
+	G_Server.Close()
 	return
 }
 
-func CloseRun() {
-	G_Server.close()
-	return
-}
-
-func (server *TCPServer) start() {
-	server.init()
-	server.run()
-}
-
-func (server *TCPServer) init() bool {
+func (server *TCPServer) Init() bool {
 	ln, err := net.Listen("tcp", server.Addr)
 	if err != nil {
 		gamelog.Error("TCPServer Init failed  error :%s", err.Error())
@@ -74,7 +65,7 @@ func (server *TCPServer) init() bool {
 	return true
 }
 
-func (server *TCPServer) run() {
+func (server *TCPServer) Run() {
 	server.wgLn.Add(1)
 	defer server.wgLn.Done()
 	var tempDelay time.Duration
@@ -128,7 +119,7 @@ func (server *TCPServer) run() {
 	}
 }
 
-func (server *TCPServer) close() {
+func (server *TCPServer) Close() {
 	server.listener.Close()
 	server.wgLn.Wait()
 

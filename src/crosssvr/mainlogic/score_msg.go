@@ -9,48 +9,6 @@ import (
 	"time"
 )
 
-//! 玩家请求积分赛排行榜
-//cross_query_score_rank
-func Hand_GetScoreRank(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message: %s", r.URL.String())
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-	var req msg.MSG_CrossQueryScoreRank_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_GetScoreRank : Unmarshal fail, Error: %s", err.Error())
-		return
-	}
-	var response msg.MSG_CrossQueryScoreRank_Ack
-	response.RetCode = msg.RE_UNKNOWN_ERR
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-	}()
-
-	for i := 0; i < len(G_ScoreRanker.List); i++ {
-		if G_ScoreRanker.List[i].RankID <= 0 {
-			break
-		}
-
-		if len(response.ScoreRankList) >= G_ScoreRanker.ShowNum {
-			break
-		}
-
-		var info msg.MSG_ScoreRankInfo
-		info.FightValue = G_ScoreRanker.List[i].FightValue
-		info.HeroID = G_ScoreRanker.List[i].HeroID
-		info.Name = G_ScoreRanker.List[i].RoleName
-		info.Score = G_ScoreRanker.List[i].RankValue
-		info.SvrID = G_ScoreRanker.List[i].SvrID
-		info.SvrName = G_ScoreRanker.List[i].SvrName
-		info.Quality = G_ScoreRanker.List[i].Quality
-		response.ScoreRankList = append(response.ScoreRankList, info)
-	}
-
-	response.RetCode = msg.RE_SUCCESS
-}
-
 //! 玩家请求积分赛目标信息
 //cross_query_score_target
 func Hand_GetScoreTarget(w http.ResponseWriter, r *http.Request) {
@@ -71,8 +29,6 @@ func Hand_GetScoreTarget(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	response.NewRank = G_ScoreRanker.SetRankItem(req.PlayerID, req.Score, req.Level, req.FightValue, req.HeroID, req.SvrID, req.Quality, req.SvrName, req.PlayerName)
-	//var bOk bool
 	for i := 0; i < 3; i++ {
 		svrUrl := GetSelectSvrAddr()
 		if len(svrUrl) <= 0 {
@@ -96,11 +52,10 @@ func GetScoreTargetItem(addr string) (msg.MSG_Target, bool) {
 	}
 
 	buffer := make([]byte, httpret.ContentLength)
-	var GameSelectPlayerAck msg.MSG_GameSelectPlayer_Ack
-
 	httpret.Body.Read(buffer)
 	httpret.Body.Close()
 
+	var GameSelectPlayerAck msg.MSG_GameSelectPlayer_Ack
 	err = json.Unmarshal(buffer, &GameSelectPlayerAck)
 	if err != nil {
 		gamelog.Error("GetScoreTarget  Unmarshal fail, Error: %s", err.Error())

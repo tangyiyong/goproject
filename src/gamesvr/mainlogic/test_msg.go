@@ -267,7 +267,6 @@ func Hand_TestUplevel(w http.ResponseWriter, r *http.Request) {
 	player.CalcFightValue()
 
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_LEVEL_UP, 1)
-
 	player.ActivityModule.LevelGift.CheckLevelUp(response.RetLevel)
 	return
 
@@ -373,7 +372,7 @@ func Hand_TestPassCopy(w http.ResponseWriter, r *http.Request) {
 		}
 
 		player.CopyMoudle.Main.CurChapter = req.Chapter
-		player.CopyMoudle.Main.CurCopyID = chapterInfo.EndID
+		player.CopyMoudle.Main.CurID = chapterInfo.EndID
 		player.CopyMoudle.DB_UpdateMainCopyInfo()
 
 	} else if req.CopyType == gamedata.COPY_TYPE_Elite {
@@ -386,7 +385,7 @@ func Hand_TestPassCopy(w http.ResponseWriter, r *http.Request) {
 		}
 
 		player.CopyMoudle.Elite.CurChapter = req.Chapter
-		player.CopyMoudle.Elite.CurCopyID = chapterInfo.EndID
+		player.CopyMoudle.Elite.CurID = chapterInfo.EndID
 		player.CopyMoudle.DB_UpdateEliteCopyInfo()
 
 	}

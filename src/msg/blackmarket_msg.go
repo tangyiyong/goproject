@@ -20,8 +20,8 @@ type MSG_BlackMarketGoods struct {
 type MSG_GetBlackMarket_Ack struct {
 	RetCode     int
 	GoodsLst    []MSG_BlackMarketGoods //! 商品
-	OpenEndTime int64                  //! 结束时间戳
-	RefreshTime int64                  //! 刷新时间戳
+	OpenEndTime int32                  //! 结束时间戳
+	RefreshTime int32                  //! 刷新时间戳
 }
 
 //! 玩家查询黑市状态
@@ -33,7 +33,7 @@ type MSG_GetBlackMarketStatus_Req struct {
 
 type MSG_GetBlackMarketStatus_Ack struct {
 	RetCode     int
-	OpenEndTime int64
+	OpenEndTime int32
 }
 
 //! 玩家购买黑市商品

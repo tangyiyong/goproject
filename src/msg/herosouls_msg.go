@@ -20,14 +20,14 @@ type MSG_QueryHeroSoulsChapter_Req struct {
 	SessionKey string
 }
 
-type THeroSoulsLink struct {
+type MSG_HeroSoulsLink struct {
 	ID    int //! 将灵链接ID
 	Level int //! 将灵等级
 }
 
 type MSG_QueryHeroSoulsChapter_Ack struct {
 	RetCode       int
-	HeroSouls     []THeroSoulsLink
+	HeroSouls     []MSG_HeroSoulsLink
 	UnLockChapter int
 }
 

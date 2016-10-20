@@ -47,12 +47,32 @@ type MSG_RobTreasure_Req struct {
 
 type MSG_RobTreasure_Ack struct {
 	RetCode     int
-	RobSuccess  bool //! 返回抢劫是否成功
-	MoneyID     int  //! 获取货币
-	MoneyNum    int
+	GemChipID   int             //! 宝物碎片ID
+	MoneyID     int             //! 获取货币
+	MoneyNum    int             //! 获取的货币数量
 	Exp         int             //! 获取经验
 	DropItem    [3]MSG_ItemData //! 掉落物品
-	FreeWarTime int64
+	ActionValue int             //! 行动力值
+	ActionTime  int32           //! 行动力恢复起始时间
+}
+
+//! 玩家一键抢夺
+//! 消息: /rob_gem_onekey
+type MSG_RobGemOneKey_Req struct {
+	PlayerID   int32
+	SessionKey string
+	GemChipID  int //! 宝物碎片ID
+}
+
+type MSG_RobGemOneKey_Ack struct {
+	RetCode     int
+	GemChipID   int   //! 宝物碎片ID
+	MoneyID     int   //! 获取货币
+	MoneyNum    int   //! 获取的货币数量
+	Exp         int   //! 获取经验
+	ItemID      int   //! 掉落物品ID
+	ActionValue int   //! 行动力值
+	ActionTime  int32 //! 行动力恢复起始时间
 }
 
 //! 玩家请求免战时间
@@ -64,19 +84,19 @@ type MSG_FreeWarTime_Req struct {
 
 type MSG_FreeWarTime_Ack struct {
 	RetCode     int
-	FreeWarTime int64
+	FreeWarTime int32
 }
 
 //! 玩家请求宝物合成
-//! 消息: /treasure_composed
-type MSG_TreasureComposed_Req struct {
+//! 消息: /composed_gem
+type MSG_ComposedGem_Req struct {
 	PlayerID   int32
 	SessionKey string
 	GemID      int //! 合成的宝物ID
 	Num        int //! 合成宝物个数
 }
 
-type MSG_TreasureComposed_Ack struct {
+type MSG_ComposedGem_Ack struct {
 	RetCode int
 	GemID   int //! 需要合成的宝物ID
 	Num     int //! 需求合成宝物个数
@@ -108,24 +128,4 @@ type MSG_GetRobPlayerInfo_Req struct {
 type MSG_GetRobPlayerInfo_Ack struct {
 	RetCode    int
 	PlayerData MSG_PlayerData //! 玩家武将信息
-}
-
-//! 一键合成协议
-//! 消息: /one_key_composed
-type MSG_OneKeyRob_Req struct {
-	PlayerID   int32
-	SessionKey string
-	GemID      int //! 宝物ID
-	IsUseItem  int //! 0->未使用  1->已使用
-}
-
-type MSG_OneKeyRob_Ack struct {
-	RetCode    int
-	PieceID    int  //! 碎片ID
-	RobSuccess bool //! 返回抢劫是否成功
-	MoneyID    int  //! 获取货币
-	MoneyNum   int  //! 货币数量
-	Exp        int  //! 获取经验
-	ItemID     int  //! 掉落物品ID
-	ItemNum    int  //! 掉落物品数量
 }

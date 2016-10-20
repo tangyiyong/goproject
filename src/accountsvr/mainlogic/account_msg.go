@@ -3,12 +3,13 @@ package mainlogic
 import (
 	"encoding/json"
 	"gamelog"
-	"gopkg.in/mgo.v2/bson"
 	"math/rand"
 	"mongodb"
 	"msg"
 	"net/http"
 	"strconv"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 //处理登录请求
@@ -33,11 +34,13 @@ func Handle_Login(w http.ResponseWriter, r *http.Request) {
 
 	if !CheckAccountName(req.Name) {
 		response.RetCode = msg.RE_INVALID_NAME
+		gamelog.Error("Handle_Login : Invalid Account Name :%s!!!!", req.Name)
 		return
 	}
 
 	if !CheckPassword(req.Password) {
 		response.RetCode = msg.RE_INVALID_PASSWORD
+		gamelog.Error("Handle_Login : Invalid Password :%s!!!!", req.Password)
 		return
 	}
 
@@ -45,11 +48,11 @@ func Handle_Login(w http.ResponseWriter, r *http.Request) {
 	result, bret := G_AccountMgr.GetAccountByName(req.Name)
 	if !bret {
 		response.RetCode = msg.RE_ACCOUNT_NOT_EXIST
-	} else if result.Forbidden {
+	} else if result.Enable == 0 {
 		response.RetCode = msg.RE_FORBIDDED_ACCOUNT
-	} else if req.Password == result.Password {
+	} else if req.Password == result.Pwd {
 		response.RetCode = msg.RE_SUCCESS
-		response.AccountID = result.AccountID
+		response.AccountID = result.ID
 		response.LoginKey = bson.NewObjectId().Hex()
 		response.LastSvrID = result.LastSvrID
 		var pGameInfo *TGameServerInfo = nil
@@ -61,15 +64,12 @@ func Handle_Login(w http.ResponseWriter, r *http.Request) {
 
 		if pGameInfo != nil {
 			response.LastSvrName = pGameInfo.SvrName
-			response.LastSvrAddr = pGameInfo.svrOutAddr
+			response.LastSvrAddr = pGameInfo.SvrOutAddr
 		}
 		G_AccountMgr.AddLoginKey(response.AccountID, response.LoginKey)
 	} else {
 		response.RetCode = msg.RE_INVALID_PASSWORD
-	}
-
-	if response.RetCode == msg.RE_SUCCESS {
-		mongodb.UpdateToDB("Account", &bson.M{"_id": response.AccountID}, &bson.M{"$inc": bson.M{"logincount": 1}})
+		gamelog.Error("Handle_Login : Wrong Password :req.pwd:%s!!!!,local.pwd:%s", req.Password, result.Pwd)
 	}
 }
 
@@ -106,6 +106,7 @@ func Handle_Register(w http.ResponseWriter, r *http.Request) {
 	var pAccount *TAccount = nil
 	pAccount, response.RetCode = G_AccountMgr.AddNewAccount(req.Name, req.Password)
 	if response.RetCode == msg.RE_SUCCESS {
+		pAccount.Platform = req.Platform
 		mongodb.InsertToDB("Account", pAccount)
 	}
 }
@@ -135,6 +136,7 @@ func Handle_TouristRegister(w http.ResponseWriter, r *http.Request) {
 	var pAccount *TAccount = nil
 	pAccount, response.RetCode = G_AccountMgr.AddNewAccount(name, password)
 	if response.RetCode == msg.RE_SUCCESS {
+		pAccount.Platform = req.Platform
 		mongodb.InsertToDB("Account", pAccount)
 	}
 
@@ -192,6 +194,9 @@ func Handle_VerifyUserLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//这个方法里有好几件事需要做
+
+	//1. 登录过来的玩家，最合登录的服务器ID需要记录到账号中
 	var response msg.MSG_VerifyUserLogin_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	pServerInfo := GetGameSvrInfo(req.SvrID)
@@ -200,13 +205,13 @@ func Handle_VerifyUserLogin(w http.ResponseWriter, r *http.Request) {
 
 	if req.PlayerID <= 0 {
 		//这是要创建角色
-		if pServerInfo.SvrFlag&SFG_CREATE > 0 {
+		if pServerInfo.ControlFlag&SFG_CREATE > 0 {
 			bOK = true
 		}
 		response.RetCode = msg.RE_SERVER_LIMIT_NUM
 	} else {
 		//这是要登录
-		if pServerInfo.SvrFlag&SFG_LOGIN > 0 {
+		if pServerInfo.ControlFlag&SFG_LOGIN > 0 {
 			bOK = true
 		}
 		response.RetCode = msg.RE_SERVER_CANNT_LOGIN
@@ -218,16 +223,17 @@ func Handle_VerifyUserLogin(w http.ResponseWriter, r *http.Request) {
 
 	if G_AccountMgr.CheckLoginKey(req.AccountID, req.LoginKey) {
 		response.RetCode = msg.RE_SUCCESS
+		G_AccountMgr.ResetLastSvrID(req.AccountID, req.SvrID)
+		DB_UpdateLastSvrID(req.AccountID, req.SvrID)
 	}
 
 	b, _ := json.Marshal(&response)
 	w.Write(b)
 
-	DB_UpdateCountAndLastSvr(req.AccountID, req.SvrID)
 }
 
 //处理登录请求
-func Handle_ServerList(w http.ResponseWriter, r *http.Request) {
+func Handle_GetServerList(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
@@ -247,12 +253,19 @@ func Handle_ServerList(w http.ResponseWriter, r *http.Request) {
 
 	nCount := len(G_ServerList)
 	response.SvrList = make([]msg.ServerNode, 0, 10)
+	var state uint32
 	for i := 0; i < nCount; i++ {
-		if G_ServerList[i].SvrID != 0 && (G_ServerList[G_RecommendID].SvrFlag&SFG_VISIBLE > 0) {
+		if G_ServerList[i].SvrID != 0 && (G_ServerList[i].SvrState > SS_Ready) {
+			if G_ServerList[i].isSvrOK {
+				state = G_ServerList[i].SvrState
+			} else {
+				state = SS_Close
+			}
 			response.SvrList = append(response.SvrList, msg.ServerNode{G_ServerList[i].SvrID,
 				G_ServerList[i].SvrName,
-				G_ServerList[i].SvrFlag,
-				G_ServerList[i].svrOutAddr})
+				state,
+				G_ServerList[i].SvrDefault,
+				G_ServerList[i].SvrOutAddr})
 		}
 	}
 }

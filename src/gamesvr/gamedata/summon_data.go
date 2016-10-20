@@ -45,31 +45,35 @@ func GetSummonConfig(summonType int) *ST_SummonConifgInfo {
 	return &GT_Summon_Config_List[summonType]
 }
 
-func GetSummonInfoRandom(summonType int, number int) (heroLst []int) {
-	if number == 0 {
-		return heroLst
+func GetSummonInfoRandom(summonType int, number int) []ST_ItemData {
+	if number <= 0 {
+		gamelog.Error("GetSummonInfoRandom Error: Invalid Number:%d", number)
+		return nil
 	}
 
 	if summonType == Summon_Normal {
-		for i := 0; i < number; i++ {
-			normalHeroLst := GetItemsFromAwardID(NormalSummonAwardID)
-			heroLst = append(heroLst, normalHeroLst[0].ItemID)
+		normalHeroLst := GetItemsAwardIDTimes(NormalSummonAwardID, number)
+		if normalHeroLst == nil || len(normalHeroLst) <= 0 {
+			gamelog.Error("GetSummonInfoRandom Error: invalid NormalSummonAwardID :%d", NormalSummonAwardID)
 		}
+		return normalHeroLst
 	} else if summonType == Summon_Senior {
-		for i := 0; i < number; i++ {
-			seniorHeroLst := GetItemsFromAwardID(SeniorSummonAwardID)
-			heroLst = append(heroLst, seniorHeroLst[0].ItemID)
+		seniorHeroLst := GetItemsAwardIDTimes(SeniorSummonAwardID, number)
+		if seniorHeroLst == nil || len(seniorHeroLst) <= 0 {
+			gamelog.Error("GetSummonInfoRandom Error: invalid SeniorSummonAwardID :%d", SeniorSummonAwardID)
 		}
+		return seniorHeroLst
 	}
 
-	return heroLst
+	return nil
 }
 
 //! 橙将随机
 func GetSummonInfoOrangeRandom() int {
-
 	awardLst := GetItemsFromAwardID(OrangeSummonAwardID)
-	hero := awardLst[0]
-
-	return hero.ItemID
+	if awardLst == nil || len(awardLst) <= 0 {
+		gamelog.Error("GetSummonInfoOrangeRandom Error: invalid OrangeSummonAwardID :%d", OrangeSummonAwardID)
+		return 0
+	}
+	return awardLst[0].ItemID
 }

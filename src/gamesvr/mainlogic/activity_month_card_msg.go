@@ -44,19 +44,19 @@ func Hand_ReceiveMonthCard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.ActivityModule.MonthCard.CardDays[pMonthCard.ID] <= 0 {
+	if player.ActivityModule.MonthCard.CardDays[pMonthCard.ID-1] <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Hand_ReceiveMonthCard Error : can receive month card days: %v  req.ID: %d", player.ActivityModule.MonthCard.CardDays[pMonthCard.ID], req.CardID)
+		gamelog.Error("Hand_ReceiveMonthCard Error : can receive month card days: %v  req.ID: %d", player.ActivityModule.MonthCard.CardDays[pMonthCard.ID-1], req.CardID)
 		return
 	}
 
-	if player.ActivityModule.MonthCard.CardStatus[pMonthCard.ID] == true {
+	if player.ActivityModule.MonthCard.CardStatus[pMonthCard.ID-1] == true {
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		gamelog.Error("Hand_ReceiveMonthCard Error : can receive month card  status: %v  req.ID: %d", player.ActivityModule.MonthCard.CardStatus[pMonthCard.ID], req.CardID)
 		return
 	}
 
-	player.ActivityModule.MonthCard.CardStatus[pMonthCard.ID] = true
+	player.ActivityModule.MonthCard.CardStatus[pMonthCard.ID-1] = true
 	player.ActivityModule.MonthCard.DB_UpdateCardStatus()
 
 	player.RoleMoudle.AddMoney(gamedata.ChargeMoneyID, pMonthCard.ExtraAward)
@@ -100,7 +100,7 @@ func Hand_QueryActivityMonthCardDays(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
-	for i := 1; i < len(player.ActivityModule.MonthCard.CardDays); i++ {
+	for i := 0; i < 2; i++ {
 		response.Days = append(response.Days, player.ActivityModule.MonthCard.CardDays[i])
 		response.Status = append(response.Status, player.ActivityModule.MonthCard.CardStatus[i])
 	}

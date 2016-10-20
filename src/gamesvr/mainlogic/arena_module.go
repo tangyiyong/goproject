@@ -4,12 +4,11 @@ import (
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"math/rand"
 	"mongodb"
 	"sync"
 	"time"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
 type TArenaRankData struct {
@@ -19,10 +18,10 @@ type TArenaRankData struct {
 }
 
 type TArenaModule struct {
-	PlayerID    int32  `bson:"_id"` //! 唯一标识
-	StoreAward  IntLst //! 商店已购买奖励ID
-	CurrentRank int    //! 当前玩家排名
-	HistoryRank int    //! 历史最高排名
+	PlayerID    int32    `bson:"_id"` //! 唯一标识
+	StoreAward  Int32Lst //! 商店已购买奖励ID
+	CurrentRank int      //! 当前玩家排名
+	HistoryRank int      //! 历史最高排名
 	ownplayer   *TPlayer
 }
 
@@ -53,7 +52,7 @@ func (self *TArenaModule) RedTip() bool {
 		if gamedata.GT_ArenaStore_List[i].Type == 2 &&
 			self.HistoryRank >= gamedata.GT_ArenaStore_List[i].NeedRank &&
 			self.ownplayer.GetLevel() >= gamedata.GT_ArenaStore_List[i].NeedLevel &&
-			self.StoreAward.IsExist(gamedata.GT_ArenaStore_List[i].ID) == -1 {
+			self.StoreAward.IsExist(int32(gamedata.GT_ArenaStore_List[i].ID)) == -1 {
 			return true
 		}
 	}
@@ -140,7 +139,7 @@ func (self *TArenaModule) GetRankPlayerInfo() (playerInfo []TArenaRankData) {
 
 		}
 	} else if self.CurrentRank <= 50 && self.CurrentRank > 10 { //! 按照顺次抽取
-		for i := 7; i >= 0; i-- {
+		for i := 7; i > 0; i-- {
 			playerRankLst[7-i] = self.CurrentRank - i
 		}
 

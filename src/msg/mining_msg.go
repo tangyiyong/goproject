@@ -34,7 +34,7 @@ type MSG_GetMiningStatus_Ack struct {
 	Point       int            //! 玩家当前积分
 	StatusCode  int            //! 状态码
 	GuajiType   int            //! 挂机类型
-	GuajiTime   int64          //! 距离挂机结算剩余时间
+	GuajiTime   int32          //! 距离挂机结算剩余时间
 	ResetTimes  int            //! 重置次数
 	GuajiStatus bool           //! 0->未挂机  1->挂机中
 }
@@ -42,8 +42,8 @@ type MSG_GetMiningStatus_Ack struct {
 //! 玩家请求获取某个坐标点信息
 //! 消息: /mining_dig
 type MSG_Pos struct {
-	X int
-	Y int
+	X int32
+	Y int32
 }
 
 type MSG_MiningDig_Req struct {
@@ -53,10 +53,10 @@ type MSG_MiningDig_Req struct {
 }
 
 type MSG_MiningDigData struct {
-	IsDig       bool //! 是否已经被挖掘
-	Element     int  //! 元素
-	Monster     int  //! 元素类型为事件且事件类型为怪物,则Monster=怪物ID
-	MonsterLife int  //! 怪物当前剩余血量
+	IsDig       bool  //! 是否已经被挖掘
+	Element     int32 //! 元素
+	Monster     int   //! 元素类型为事件且事件类型为怪物,则Monster=怪物ID
+	MonsterLife int   //! 怪物当前剩余血量
 }
 
 type MSG_MiningDig_Ack struct {
@@ -81,7 +81,7 @@ type MSG_MiningEvent_ActionAward_Ack struct {
 	VisualPos    []MSG_MiningDigData //! 新可视区域
 	Point        int
 	ActionValue  int   //! 行动力值
-	ActionTime   int64 //! 行动力恢复起始时间
+	ActionTime   int32 //! 行动力恢复起始时间
 }
 
 //! 挖矿元素-精炼石
@@ -100,7 +100,7 @@ type MSG_MiningElement_GetStone_Ack struct {
 	StatusCode  int                 //! 状态码
 	VisualPos   []MSG_MiningDigData //! 新可视区域
 	ActionValue int                 //! 行动力值
-	ActionTime  int64               //! 行动力恢复起始时间
+	ActionTime  int32               //! 行动力恢复起始时间
 }
 
 //! 挖矿事件-黑市
@@ -117,7 +117,7 @@ type MSG_MiningEvent_GetBlackMarket_Ack struct {
 	StatusCode  int                 //! 状态码
 	VisualPos   []MSG_MiningDigData //! 新可视区域
 	ActionValue int                 //! 行动力值
-	ActionTime  int64               //! 行动力恢复起始时间
+	ActionTime  int32               //! 行动力恢复起始时间
 }
 
 //! 购买黑市商品
@@ -125,14 +125,14 @@ type MSG_MiningEvent_GetBlackMarket_Ack struct {
 type MSG_MiningEvent_BuyBlackMarket_Req struct {
 	PlayerID   int32
 	SessionKey string
-	ID         int
+	ID         int32
 }
 
 type MSG_MiningEvent_BuyBlackMarket_Ack struct {
 	RetCode     int
 	Point       int   //! 玩家当前积分
 	ActionValue int   //! 行动力值
-	ActionTime  int64 //! 行动力恢复起始时间
+	ActionTime  int32 //! 行动力恢复起始时间
 }
 
 //! 挖矿事件-查看怪物
@@ -149,7 +149,7 @@ type MSG_MiningEvent_Monster_Info_Ack struct {
 	Life        int
 	TotalLife   int
 	CopyID      int
-	MonsterType int
+	MonsterType int32
 }
 
 //! 挖矿事件-怪物
@@ -169,7 +169,7 @@ type MSG_MiningEvent_Monster_Ack struct {
 	StatusCode  int                 //! 状态码
 	VisualPos   []MSG_MiningDigData //! 新可视区域
 	ActionValue int                 //! 行动力值
-	ActionTime  int64               //! 行动力恢复起始时间
+	ActionTime  int32               //! 行动力恢复起始时间
 }
 
 //! 挖矿事件-宝箱
@@ -187,7 +187,7 @@ type MSG_MiningEvent_Treasure_Ack struct {
 	StatusCode  int                 //! 状态码
 	VisualPos   []MSG_MiningDigData //! 新可视区域
 	ActionValue int                 //! 行动力值
-	ActionTime  int64               //! 行动力恢复起始时间
+	ActionTime  int32               //! 行动力恢复起始时间
 }
 
 //! 挖矿事件-魔盒
@@ -204,7 +204,7 @@ type MSG_MiningEvent_Box_Ack struct {
 	StatusCode  int                 //! 状态码
 	VisualPos   []MSG_MiningDigData //! 新可视区域
 	ActionValue int                 //! 行动力值
-	ActionTime  int64               //! 行动力恢复起始时间
+	ActionTime  int32               //! 行动力恢复起始时间
 }
 
 //! 挖矿事件-扫描
@@ -221,11 +221,11 @@ type MSG_MiningEvent_Scan_Ack struct {
 	Point       int
 	VisualPos   []MSG_MiningDigData //! 新可视区域
 	ActionValue int                 //! 行动力值
-	ActionTime  int64               //! 行动力恢复起始时间
+	ActionTime  int32               //! 行动力恢复起始时间
 }
 
 type MSG_MiningMonster struct {
-	Index int
+	Index int32
 	ID    int
 	Life  int
 }
@@ -233,7 +233,7 @@ type MSG_MiningMonster struct {
 type MSG_MiningMapData struct {
 	DigStatus   [60]string
 	MonsterInfo []MSG_MiningMonster
-	Element     []int //! 前16位为index  后16位为值
+	Element     []int32 //! 前16位为index  后16位为值
 }
 
 //! 挖矿事件-答题
@@ -251,7 +251,7 @@ type MSG_MiningEvent_Question_Ack struct {
 	StatusCode  int                 //! 状态码
 	VisualPos   []MSG_MiningDigData //! 新可视区域
 	ActionValue int                 //! 行动力值
-	ActionTime  int64               //! 行动力恢复起始时间
+	ActionTime  int32               //! 行动力恢复起始时间
 }
 
 //! 挖矿事件-Buff
@@ -269,7 +269,7 @@ type MSG_MiningEvent_Buff_Ack struct {
 	VisualPos   []MSG_MiningDigData //! 新可视区域
 	Point       int
 	ActionValue int   //! 行动力值
-	ActionTime  int64 //! 行动力恢复起始时间
+	ActionTime  int32 //! 行动力恢复起始时间
 }
 
 //! 请求随机九种打完Boss翻牌奖励
@@ -315,9 +315,9 @@ type MSG_MiningGuaji_Req struct {
 
 type MSG_MiningGuaji_Ack struct {
 	RetCode       int
-	GuajiCalcTime int64 //! 距离挂机结算剩余时间
+	GuajiCalcTime int32 //! 距离挂机结算剩余时间
 	ActionValue   int   //! 行动力值
-	ActionTime    int64 //! 行动力恢复起始时间
+	ActionTime    int32 //! 行动力恢复起始时间
 }
 
 //! 玩家查询挂机倒计时
@@ -329,7 +329,7 @@ type MSG_MiningGuajiTime_Req struct {
 
 type MSG_MiningGuajiTime_Ack struct {
 	RetCode     int
-	GuajiTime   int64 //! 距离挂机结算剩余时间
+	GuajiTime   int32 //! 距离挂机结算剩余时间
 	GuajiStatus bool  //! 0->未挂机  1->挂机中  2->挂机结束未领取
 }
 

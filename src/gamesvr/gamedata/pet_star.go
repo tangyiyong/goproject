@@ -16,6 +16,7 @@ type ST_PetStarInfo struct {
 	NeedItemID    int
 	NeedItemNum   int
 	PieceNum      int
+	Inc_percent   int
 	PropertyTrans int
 	TotalItemNum  int
 	TotalPiece    int
@@ -47,6 +48,7 @@ func ParsePetStarRecord(rs *RecordSet) {
 	GT_PetStar_List[quality][star].TotalItemNum = rs.GetFieldInt("total_item_num")
 	GT_PetStar_List[quality][star].TotalPiece = rs.GetFieldInt("total_piece_num")
 	GT_PetStar_List[quality][star].TotalMoney = rs.GetFieldInt("total_money")
+	GT_PetStar_List[quality][star].Inc_percent = rs.GetFieldInt("inc_percent")
 }
 
 func GetPetStarInfo(quality int, star int) *ST_PetStarInfo {

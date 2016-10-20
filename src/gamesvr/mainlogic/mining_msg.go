@@ -8,7 +8,7 @@ import (
 	"math"
 	"msg"
 	"net/http"
-	"time"
+	"utility"
 )
 
 //! 玩家查询挖矿信息
@@ -45,7 +45,7 @@ func Hand_GetMiningInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 获取信息
-	for i, v := range player.MiningModule.MiningMap {
+	for i, v := range player.MiningModule.MapData {
 		response.MapData.DigStatus[i] = fmt.Sprintf("%v", v)
 	}
 
@@ -54,10 +54,7 @@ func Hand_GetMiningInfo(w http.ResponseWriter, r *http.Request) {
 		response.MapData.MonsterInfo = append(response.MapData.MonsterInfo, msg.MSG_MiningMonster{v.Index, v.ID, v.Life})
 	}
 
-	response.MapData.Element = []int{}
-	response.MapData.Element = append(response.MapData.Element, player.MiningModule.Element...)
-
-	//! 返回成功
+	response.MapData.Element = player.MiningModule.Element
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -110,16 +107,15 @@ func Hand_GetMiningStatusCode(w http.ResponseWriter, r *http.Request) {
 	response.Buff.BuffType = player.MiningModule.Buff.BuffType
 	response.Buff.Times = player.MiningModule.Buff.Times
 
-	if player.MiningModule.GuajiCalcTime == 0 {
+	if player.MiningModule.GuajiTime == 0 {
 		response.GuajiStatus = false
 	} else {
 		response.GuajiStatus = true
 	}
 
 	response.GuajiType = player.MiningModule.GuaJiType
-	response.GuajiTime = player.MiningModule.GuajiCalcTime
-
-	response.ResetTimes = player.MiningModule.MiningResetTimes
+	response.GuajiTime = player.MiningModule.GuajiTime
+	response.ResetTimes = player.MiningModule.ResetTimes
 
 	//! 返回成功
 	response.RetCode = msg.RE_SUCCESS
@@ -148,7 +144,6 @@ func Hand_MiningDig(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-
 	}()
 
 	//! 常规检测
@@ -163,8 +158,8 @@ func Hand_MiningDig(w http.ResponseWriter, r *http.Request) {
 	element := player.MiningModule.Element.Get(player.MiningModule.LastPos.Y*gamedata.MiningMapLength + player.MiningModule.LastPos.X)
 	if element == gamedata.MiningEvent_Scanning {
 		//! 若为扫描事件,可视区域为3*3
-		for x := 1; x <= 3; x++ {
-			for y := 1; y <= 3; y++ {
+		for x := int32(1); x <= 3; x++ {
+			for y := int32(1); y <= 3; y++ {
 				posLst = append(posLst, TMiningPos{player.MiningModule.LastPos.X + x, player.MiningModule.LastPos.Y + y})
 			}
 		}
@@ -175,8 +170,6 @@ func Hand_MiningDig(w http.ResponseWriter, r *http.Request) {
 		posLst = player.MiningModule.GetVisualPosArena(player.MiningModule.LastPos.X, player.MiningModule.LastPos.Y)
 
 	}
-
-	gamelog.Error("PosLst: %v    LastPos: %v", posLst, player.MiningModule.LastPos)
 
 	for _, v := range req.Pos {
 		isExist := false
@@ -253,11 +246,9 @@ func Hand_MiningEvent_ActionAward(w http.ResponseWriter, r *http.Request) {
 	//! 创建回复
 	var response msg.MSG_MiningEvent_ActionAward_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
-
 	defer func() {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
-
 	}()
 
 	//! 常规检测
@@ -268,17 +259,17 @@ func Hand_MiningEvent_ActionAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断坐标是否合法
-	if req.PlayerPos.X >= gamedata.MiningMapLength ||
-		req.PlayerPos.Y >= gamedata.MiningMapLength ||
-		req.PlayerPos.X < 0 ||
-		req.PlayerPos.Y < 0 {
+	if req.PlayerPos.X >= gamedata.MiningMapLength || req.PlayerPos.Y >= gamedata.MiningMapLength ||
+		req.PlayerPos.X < 0 || req.PlayerPos.Y < 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_MiningEvent_AwardAction Invalid PlayerPos X:%d-Y:%d", req.PlayerPos.X, req.PlayerPos.Y)
 		return
 	}
 
 	//! 检查行动力是否足够
 	if player.RoleMoudle.CheckActionEnough(gamedata.MiningCostActionID, gamedata.MiningCostActionNum) == false {
 		response.RetCode = msg.RE_NOT_ENOUGH_ACTION
+		gamelog.Error("Hand_MiningEvent_AwardAction Error: Not Enough Action")
 		return
 	}
 
@@ -287,7 +278,7 @@ func Hand_MiningEvent_ActionAward(w http.ResponseWriter, r *http.Request) {
 	if element != gamedata.MiningEvent_Action_Award {
 		//! 地图信息不匹配
 		response.RetCode = msg.RE_INVALID_EVENT
-		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
+		gamelog.Error("Hand_MiningEvent_AwardAction Error: Invalid Event :%d", element)
 		return
 	}
 
@@ -317,8 +308,8 @@ func Hand_MiningEvent_ActionAward(w http.ResponseWriter, r *http.Request) {
 	player.MiningModule.LastPos.X = req.PlayerPos.X
 	player.MiningModule.LastPos.Y = req.PlayerPos.Y
 	index := req.PlayerPos.Y*gamedata.MiningMapLength + req.PlayerPos.X
-	player.MiningModule.MiningMap.Set(index)
-	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MiningMap[req.PlayerPos.Y])
+	player.MiningModule.MapData.Set(index)
+	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MapData[req.PlayerPos.Y])
 
 	//! 删除事件
 	player.MiningModule.DeleteElement(index)
@@ -333,15 +324,14 @@ func Hand_MiningEvent_ActionAward(w http.ResponseWriter, r *http.Request) {
 		player.MiningModule.Buff.Times -= 1
 		if player.MiningModule.Buff.Times == 0 {
 			player.MiningModule.Buff = TMiningBuff{}
-			player.MiningModule.DB_SavePlayerBuff()
-		} else {
-			player.MiningModule.DB_SubMiningBuffTimes(1)
 		}
+
+		player.MiningModule.DB_SaveBuff()
 	}
 
 	//! 奖励玩家积分
 	player.MiningModule.Point += (eventInfo.Value1 * value)
-	player.MiningModule.DB_SavePlayerPoint()
+	player.MiningModule.DB_SavePoint()
 
 	response.Point = player.MiningModule.Point
 
@@ -471,14 +461,14 @@ func Hand_MiningEvent_BalckMarket(w http.ResponseWriter, r *http.Request) {
 	player.MiningModule.LastPos.X = req.PlayerPos.X
 	player.MiningModule.LastPos.Y = req.PlayerPos.Y
 	index := req.PlayerPos.Y*gamedata.MiningMapLength + req.PlayerPos.X
-	player.MiningModule.MiningMap.Set(index)
-	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MiningMap[req.PlayerPos.Y])
+	player.MiningModule.MapData.Set(index)
+	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MapData[req.PlayerPos.Y])
 
 	//! 删除事件
 	player.MiningModule.DeleteElement(index)
 
-	player.MiningModule.BlackMarketBuyMark = IntLst{}
-	player.MiningModule.DB_UpdateBlackMarketMark()
+	player.MiningModule.BuyRecord = Int32Lst{}
+	player.MiningModule.DB_UpdateBuyRecord()
 
 	//! 随机黑市商品
 	goodsLst := gamedata.RandBlackMarketGoosLst(2, player.GetLevel())
@@ -552,14 +542,14 @@ func Hand_MiningEvent_BuyBlackMarketItem(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if player.MiningModule.BlackMarketBuyMark.IsExist(req.ID) >= 0 {
+	if player.MiningModule.BuyRecord.IsExist(req.ID) >= 0 {
 		gamelog.Error("Hand_MiningEvent_BuyBlackMarketItem Error: Aleady <buy></buy>")
 		response.RetCode = msg.RE_INVALID_PARAM
 		return
 	}
 
 	//! 获取商品信息
-	goodsInfo := gamedata.GetMiningEventBlackMarketInfo(req.ID)
+	goodsInfo := gamedata.GetMiningEventBlackMarketInfo(int(req.ID))
 	if goodsInfo == nil {
 		gamelog.Error("Hand_MiningEvent_BuyBlackMarketItem Error: GetMiningEventBlackMarketInfo nil")
 		response.RetCode = msg.RE_INVALID_PARAM
@@ -594,15 +584,14 @@ func Hand_MiningEvent_BuyBlackMarketItem(w http.ResponseWriter, r *http.Request)
 		player.MiningModule.Buff.Times -= 1
 		if player.MiningModule.Buff.Times == 0 {
 			player.MiningModule.Buff = TMiningBuff{}
-			player.MiningModule.DB_SavePlayerBuff()
-		} else {
-			player.MiningModule.DB_SubMiningBuffTimes(1)
 		}
+
+		player.MiningModule.DB_SaveBuff()
 	}
 
 	//! 奖励玩家积分
 	player.MiningModule.Point += (goodsInfo.Point * value)
-	player.MiningModule.DB_SavePlayerPoint()
+	player.MiningModule.DB_SavePoint()
 
 	response.Point = player.MiningModule.Point
 	player.MiningModule.Point += eventInfo.Value1
@@ -614,8 +603,8 @@ func Hand_MiningEvent_BuyBlackMarketItem(w http.ResponseWriter, r *http.Request)
 	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(gamedata.MiningCostActionID)
 
 	//! 更改标记
-	player.MiningModule.BlackMarketBuyMark = append(player.MiningModule.BlackMarketBuyMark, req.ID)
-	player.MiningModule.DB_AddBlackMarketMark(req.ID)
+	player.MiningModule.BuyRecord = append(player.MiningModule.BuyRecord, req.ID)
+	player.MiningModule.DB_AddBuyRecord(req.ID)
 }
 
 //! 挖矿事件-怪物信息
@@ -698,9 +687,9 @@ func Hand_MiningEvent_MonsterInfo(w http.ResponseWriter, r *http.Request) {
 	monster := gamedata.GetMonsterEventInfo(monsterInfo.ID)
 
 	response.Life = monsterInfo.Life
-	response.Level = player.MiningModule.MiningResetTimes
+	response.Level = player.MiningModule.ResetTimes
 	response.CopyID = monster.CopyID
-	response.TotalLife = int(float64(monster.MonsterLife) * math.Pow(1.2, float64(player.MiningModule.MiningResetTimes)))
+	response.TotalLife = int(float64(monster.MonsterLife) * math.Pow(1.2, float64(player.MiningModule.ResetTimes)))
 	response.MonsterType = eventInfo.Event
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -713,11 +702,14 @@ func Hand_MiningEvent_Monster(w http.ResponseWriter, r *http.Request) {
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
-	//! 解析消息
+	if false == utility.MsgDataCheck(buffer, G_XorCode) {
+		//存在作弊的可能
+		gamelog.Error("Hand_miningEvent_Monster : Message Data Check Error!!!!")
+		return
+	}
 	var req msg.MSG_MiningEvent_Monster_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_miningEvent_Monster Unmarshal fail. Error: %s", err.Error())
+	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
+		gamelog.Error("Hand_miningEvent_Monster : Unmarshal error!!!!")
 		return
 	}
 
@@ -737,6 +729,12 @@ func Hand_MiningEvent_Monster(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	//! 判断坐标是否合法
 	if req.PlayerPos.X >= gamedata.MiningMapLength ||
@@ -812,17 +810,16 @@ func Hand_MiningEvent_Monster(w http.ResponseWriter, r *http.Request) {
 	//! 记录已挖掘状态
 	player.MiningModule.LastPos.X = req.PlayerPos.X
 	player.MiningModule.LastPos.Y = req.PlayerPos.Y
-	player.MiningModule.MiningMap.Set(index)
-	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MiningMap[req.PlayerPos.Y])
+	player.MiningModule.MapData.Set(index)
+	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MapData[req.PlayerPos.Y])
 
 	if player.MiningModule.Buff.BuffType == 3 {
 		player.MiningModule.Buff.Times -= 1
 		if player.MiningModule.Buff.Times == 0 {
 			player.MiningModule.Buff = TMiningBuff{}
-			player.MiningModule.DB_SavePlayerBuff()
-		} else {
-			player.MiningModule.DB_SubMiningBuffTimes(1)
 		}
+
+		player.MiningModule.DB_SaveBuff()
 	}
 
 	//! 给怪物造成伤害
@@ -855,10 +852,9 @@ func Hand_MiningEvent_Monster(w http.ResponseWriter, r *http.Request) {
 			player.MiningModule.Buff.Times -= 1
 			if player.MiningModule.Buff.Times == 0 {
 				player.MiningModule.Buff = TMiningBuff{}
-				player.MiningModule.DB_SavePlayerBuff()
-			} else {
-				player.MiningModule.DB_SubMiningBuffTimes(1)
 			}
+
+			player.MiningModule.DB_SaveBuff()
 		}
 
 		//! 奖励玩家积分
@@ -869,7 +865,7 @@ func Hand_MiningEvent_Monster(w http.ResponseWriter, r *http.Request) {
 		}
 
 		response.Point = player.MiningModule.Point
-		player.MiningModule.DB_SavePlayerPoint()
+		player.MiningModule.DB_SavePoint()
 
 	} else {
 		response.IsKill = false
@@ -1018,8 +1014,8 @@ func Hand_MiningEvent_Treasure(w http.ResponseWriter, r *http.Request) {
 	player.MiningModule.LastPos.X = req.PlayerPos.X
 	player.MiningModule.LastPos.Y = req.PlayerPos.Y
 	index := req.PlayerPos.Y*gamedata.MiningMapLength + req.PlayerPos.X
-	player.MiningModule.MiningMap.Set(index)
-	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MiningMap[req.PlayerPos.Y])
+	player.MiningModule.MapData.Set(index)
+	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MapData[req.PlayerPos.Y])
 
 	//! 删除事件
 	player.MiningModule.DeleteElement(index)
@@ -1043,15 +1039,14 @@ func Hand_MiningEvent_Treasure(w http.ResponseWriter, r *http.Request) {
 		player.MiningModule.Buff.Times -= 1
 		if player.MiningModule.Buff.Times == 0 {
 			player.MiningModule.Buff = TMiningBuff{}
-			player.MiningModule.DB_SavePlayerBuff()
-		} else {
-			player.MiningModule.DB_SubMiningBuffTimes(1)
 		}
+
+		player.MiningModule.DB_SaveBuff()
 	}
 
 	//! 奖励玩家积分
 	player.MiningModule.Point += (eventInfo.Value1 * value)
-	player.MiningModule.DB_SavePlayerPoint()
+	player.MiningModule.DB_SavePoint()
 
 	response.Point = player.MiningModule.Point
 
@@ -1164,8 +1159,8 @@ func Hand_MiningEvent_MagicBox(w http.ResponseWriter, r *http.Request) {
 	player.MiningModule.LastPos.X = req.PlayerPos.X
 	player.MiningModule.LastPos.Y = req.PlayerPos.Y
 	index := req.PlayerPos.Y*gamedata.MiningMapLength + req.PlayerPos.X
-	player.MiningModule.MiningMap.Set(index)
-	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MiningMap[req.PlayerPos.Y])
+	player.MiningModule.MapData.Set(index)
+	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MapData[req.PlayerPos.Y])
 
 	//! 删除事件
 	player.MiningModule.DeleteElement(index)
@@ -1181,16 +1176,15 @@ func Hand_MiningEvent_MagicBox(w http.ResponseWriter, r *http.Request) {
 		player.MiningModule.Buff.Times -= 1
 		if player.MiningModule.Buff.Times == 0 {
 			player.MiningModule.Buff = TMiningBuff{}
-			player.MiningModule.DB_SavePlayerBuff()
-		} else {
-			player.MiningModule.DB_SubMiningBuffTimes(1)
 		}
+
+		player.MiningModule.DB_SaveBuff()
 	}
 
 	//! 奖励玩家积分
 	player.MiningModule.Point += (response.RandPoint * value)
 	response.RandPoint *= value
-	player.MiningModule.DB_SavePlayerPoint()
+	player.MiningModule.DB_SavePoint()
 
 	player.MiningModule.AddMiningStatusCode()
 	response.StatusCode = player.MiningModule.StatusCode
@@ -1305,8 +1299,8 @@ func Hand_MiningEvent_Scan(w http.ResponseWriter, r *http.Request) {
 	player.MiningModule.LastPos.X = req.PlayerPos.X
 	player.MiningModule.LastPos.Y = req.PlayerPos.Y
 	index := req.PlayerPos.Y*gamedata.MiningMapLength + req.PlayerPos.X
-	player.MiningModule.MiningMap.Set(index)
-	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MiningMap[req.PlayerPos.Y])
+	player.MiningModule.MapData.Set(index)
+	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MapData[req.PlayerPos.Y])
 
 	//! 删除事件
 	player.MiningModule.DeleteElement(index)
@@ -1319,21 +1313,20 @@ func Hand_MiningEvent_Scan(w http.ResponseWriter, r *http.Request) {
 		player.MiningModule.Buff.Times -= 1
 		if player.MiningModule.Buff.Times == 0 {
 			player.MiningModule.Buff = TMiningBuff{}
-			player.MiningModule.DB_SavePlayerBuff()
-		} else {
-			player.MiningModule.DB_SubMiningBuffTimes(1)
 		}
+
+		player.MiningModule.DB_SaveBuff()
 	}
 
 	//! 奖励玩家积分
 	player.MiningModule.Point += (eventInfo.Value1 * value)
-	player.MiningModule.DB_SavePlayerPoint()
+	player.MiningModule.DB_SavePoint()
 
 	response.Point = player.MiningModule.Point
 
 	posLst := []TMiningPos{}
-	for x := -3; x <= 3; x++ {
-		for y := -3; y <= 3; y++ {
+	for x := int32(-3); x <= 3; x++ {
+		for y := int32(-3); y <= 3; y++ {
 			if req.PlayerPos.X+x >= 0 && req.PlayerPos.X+x < gamedata.MiningMapLength &&
 				req.PlayerPos.Y+y >= 0 && req.PlayerPos.Y+y < gamedata.MiningMapLength {
 				posLst = append(posLst, TMiningPos{req.PlayerPos.X + x, req.PlayerPos.Y + y})
@@ -1348,7 +1341,7 @@ func Hand_MiningEvent_Scan(w http.ResponseWriter, r *http.Request) {
 		index := v.Y*gamedata.MiningMapLength + v.X
 
 		//! 去除已挖掘
-		if player.MiningModule.MiningMap.Get(index) == true {
+		if player.MiningModule.MapData.Get(index) == true {
 			continue
 		}
 
@@ -1471,8 +1464,8 @@ func Hand_MiningEvent_Question(w http.ResponseWriter, r *http.Request) {
 	player.MiningModule.LastPos.X = req.PlayerPos.X
 	player.MiningModule.LastPos.Y = req.PlayerPos.Y
 	index := req.PlayerPos.Y*gamedata.MiningMapLength + req.PlayerPos.X
-	player.MiningModule.MiningMap.Set(index)
-	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MiningMap[req.PlayerPos.Y])
+	player.MiningModule.MapData.Set(index)
+	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MapData[req.PlayerPos.Y])
 
 	//! 删除事件
 	player.MiningModule.DeleteElement(index)
@@ -1486,15 +1479,14 @@ func Hand_MiningEvent_Question(w http.ResponseWriter, r *http.Request) {
 		player.MiningModule.Buff.Times -= 1
 		if player.MiningModule.Buff.Times == 0 {
 			player.MiningModule.Buff = TMiningBuff{}
-			player.MiningModule.DB_SavePlayerBuff()
-		} else {
-			player.MiningModule.DB_SubMiningBuffTimes(1)
 		}
+
+		player.MiningModule.DB_SaveBuff()
 	}
 
 	//! 奖励玩家积分
 	player.MiningModule.Point += (eventInfo.Value1 * value)
-	player.MiningModule.DB_SavePlayerPoint()
+	player.MiningModule.DB_SavePoint()
 
 	response.Point = player.MiningModule.Point
 
@@ -1607,8 +1599,8 @@ func Hand_MiningEvent_Buff(w http.ResponseWriter, r *http.Request) {
 	player.MiningModule.LastPos.X = req.PlayerPos.X
 	player.MiningModule.LastPos.Y = req.PlayerPos.Y
 	index := req.PlayerPos.Y*gamedata.MiningMapLength + req.PlayerPos.X
-	player.MiningModule.MiningMap.Set(index)
-	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MiningMap[req.PlayerPos.Y])
+	player.MiningModule.MapData.Set(index)
+	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MapData[req.PlayerPos.Y])
 
 	//! 删除事件
 	player.MiningModule.DeleteElement(index)
@@ -1638,7 +1630,7 @@ func Hand_MiningEvent_Buff(w http.ResponseWriter, r *http.Request) {
 
 	//! 奖励玩家积分
 	player.MiningModule.Point += eventInfo.Value1
-	player.MiningModule.DB_SavePlayerPoint()
+	player.MiningModule.DB_SavePoint()
 
 	response.Point = player.MiningModule.Point
 
@@ -1711,33 +1703,20 @@ func Hand_MiningElement_RefiningStone(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断坐标是否合法
-	if req.PlayerPos.X >= gamedata.MiningMapLength ||
-		req.PlayerPos.Y >= gamedata.MiningMapLength ||
-		req.PlayerPos.X < 0 ||
-		req.PlayerPos.Y < 0 {
+	if req.PlayerPos.X >= gamedata.MiningMapLength || req.PlayerPos.Y >= gamedata.MiningMapLength || req.PlayerPos.X < 0 || req.PlayerPos.Y < 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
-		gamelog.Error("Invalid Mining Pos : X: %d  Y: %d", req.PlayerPos.X, req.PlayerPos.Y)
+		gamelog.Error("Hand_MiningElement_RefiningStone Mining Pos : X: %d  Y: %d", req.PlayerPos.X, req.PlayerPos.Y)
 		return
 	}
 	//! 检查行动力是否足够
 	if player.RoleMoudle.CheckActionEnough(gamedata.MiningCostActionID, gamedata.MiningCostActionNum) == false {
 		response.RetCode = msg.RE_NOT_ENOUGH_ACTION
+		gamelog.Error("Hand_MiningElement_RefiningStone Error Not Enough Action")
 		return
 	}
 
 	//! 得到地图该点信息
 	isDig, element, errcode := player.MiningModule.GetMapPosData(req.PlayerPos.X, req.PlayerPos.Y, true)
-	if element != gamedata.MiningElement_Lower_Refining_Stone &&
-		element != gamedata.MiningElement_Intermediate_Refining_Stone &&
-		element != gamedata.MiningElement_Advanced_Refining_Stone &&
-		element != gamedata.MiningElement_Ultimate_Refining_Stone &&
-		element != gamedata.MinintElement_Can_Break_Obstacle {
-		//! 地图信息不匹配
-		response.RetCode = msg.RE_INVALID_EVENT
-		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
-		return
-	}
-
 	if errcode != msg.RE_SUCCESS {
 		response.RetCode = errcode
 		return
@@ -1746,6 +1725,17 @@ func Hand_MiningElement_RefiningStone(w http.ResponseWriter, r *http.Request) {
 	if isDig == true {
 		//! 已经触发过该元素
 		response.RetCode = msg.RE_ALREADY_DIG
+		return
+	}
+
+	if element != gamedata.MiningElement_Lower_Refining_Stone &&
+		element != gamedata.MiningElement_Intermediate_Refining_Stone &&
+		element != gamedata.MiningElement_Advanced_Refining_Stone &&
+		element != gamedata.MiningElement_Ultimate_Refining_Stone &&
+		element != gamedata.MinintElement_Can_Break_Obstacle {
+		//! 地图信息不匹配
+		response.RetCode = msg.RE_INVALID_EVENT
+		gamelog.Error("url: %s RE_INVALID_EVENT", r.URL.String())
 		return
 	}
 
@@ -1760,8 +1750,8 @@ func Hand_MiningElement_RefiningStone(w http.ResponseWriter, r *http.Request) {
 	player.MiningModule.LastPos.Y = req.PlayerPos.Y
 	index := req.PlayerPos.Y*gamedata.MiningMapLength + req.PlayerPos.X
 
-	player.MiningModule.MiningMap.Set(index)
-	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MiningMap[req.PlayerPos.Y])
+	player.MiningModule.MapData.Set(index)
+	player.MiningModule.DB_DigMining(req.PlayerPos.Y, player.MiningModule.MapData[req.PlayerPos.Y])
 
 	//! 删除事件
 	player.MiningModule.DeleteElement(index)
@@ -1772,15 +1762,14 @@ func Hand_MiningElement_RefiningStone(w http.ResponseWriter, r *http.Request) {
 		player.MiningModule.Buff.Times -= 1
 		if player.MiningModule.Buff.Times == 0 {
 			player.MiningModule.Buff = TMiningBuff{}
-			player.MiningModule.DB_SavePlayerBuff()
-		} else {
-			player.MiningModule.DB_SubMiningBuffTimes(1)
 		}
+
+		player.MiningModule.DB_SaveBuff()
 	}
 
 	if element != gamedata.MinintElement_Can_Break_Obstacle {
 		//! 奖励玩家物品
-		elementInfo := gamedata.GetMiningElementInfo(element)
+		elementInfo := gamedata.GetMiningElementInfo(int(element))
 
 		itemNum := gamedata.RandStoneNum(elementInfo.ItemID, player.GetLevel())
 		player.BagMoudle.AddAwardItem(elementInfo.ItemID, itemNum)
@@ -1793,15 +1782,13 @@ func Hand_MiningElement_RefiningStone(w http.ResponseWriter, r *http.Request) {
 			player.MiningModule.Buff.Times -= 1
 			if player.MiningModule.Buff.Times == 0 {
 				player.MiningModule.Buff = TMiningBuff{}
-				player.MiningModule.DB_SavePlayerBuff()
-			} else {
-				player.MiningModule.DB_SubMiningBuffTimes(1)
 			}
+			player.MiningModule.DB_SaveBuff()
 		}
 
 		//! 奖励玩家积分
 		player.MiningModule.Point += (1 * value)
-		player.MiningModule.DB_SavePlayerPoint()
+		player.MiningModule.DB_SavePoint()
 
 	}
 
@@ -1878,7 +1865,7 @@ func Hand_GetRandBossAward(w http.ResponseWriter, r *http.Request) {
 
 	needPoint := gamedata.MiningBossValue
 	if player.MiningModule.Point < needPoint {
-		response.RetCode = msg.RE_NOT_ENOUGH_POINT
+		response.RetCode = msg.RE_SCORE_NOT_ENOUGH
 		return
 	}
 
@@ -1938,7 +1925,7 @@ func Hand_SelectBossAward(w http.ResponseWriter, r *http.Request) {
 	//! 检测积分
 	needPoint := gamedata.MiningBossValue
 	if player.MiningModule.Point < needPoint {
-		response.RetCode = msg.RE_NOT_ENOUGH_POINT
+		response.RetCode = msg.RE_SCORE_NOT_ENOUGH
 		return
 	}
 
@@ -1980,7 +1967,7 @@ func Hand_SelectBossAward(w http.ResponseWriter, r *http.Request) {
 	player.MiningModule.AddMiningStatusCode()
 	response.IsEnd = false
 
-	player.MiningModule.DB_SavePlayerPoint()
+	player.MiningModule.DB_SavePoint()
 	player.MiningModule.DB_UpdateMiningStatusCode()
 
 	response.Point = player.MiningModule.Point
@@ -2034,7 +2021,7 @@ func Hand_MiningGuaji(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测当前是否正在挂机
-	if player.MiningModule.GuajiCalcTime != 0 {
+	if player.MiningModule.GuajiTime != 0 {
 		response.RetCode = msg.RE_REPEATED_GUAJI
 		return
 	}
@@ -2059,7 +2046,7 @@ func Hand_MiningGuaji(w http.ResponseWriter, r *http.Request) {
 	player.MiningModule.SetGuaji(req.ID, guajiInfo.Hour)
 
 	response.RetCode = msg.RE_SUCCESS
-	response.GuajiCalcTime = player.MiningModule.GuajiCalcTime
+	response.GuajiCalcTime = player.MiningModule.GuajiTime
 
 	//! 获取体力值与体力恢复时间
 	response.ActionValue, response.ActionTime = player.RoleMoudle.GetActionData(gamedata.MiningCostActionID)
@@ -2099,13 +2086,13 @@ func Hand_GetMiningGuajiTime(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.MiningModule.GuajiCalcTime == 0 {
+	if player.MiningModule.GuajiTime == 0 {
 		response.GuajiStatus = false
 	} else {
 		response.GuajiStatus = true
 	}
 
-	response.GuajiTime = player.MiningModule.GuajiCalcTime
+	response.GuajiTime = player.MiningModule.GuajiTime
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -2149,7 +2136,7 @@ func Hand_GetMiningGuajiAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if player.MiningModule.GuajiCalcTime > time.Now().Unix() {
+	if player.MiningModule.GuajiTime > utility.GetCurTime() {
 		//! 挂机时间未到
 		response.RetCode = msg.RE_NOT_ENOUGH_PATROL_TIME
 		return

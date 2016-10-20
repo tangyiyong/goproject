@@ -29,12 +29,10 @@ func InitBuyOpenFundNum() bool {
 
 //! 开服基金活动
 type TActivityOpenFund struct {
-	ActivityID int //! 活动ID
-
-	FundLevelMark Mark //! 等级奖励领取标记
-	FundCountMark Mark //! 购买基金人数奖励领取
-	IsBuyFund     bool //! 购买基金标记
-
+	ActivityID     int32            //! 活动ID
+	FundLevelMark  BitsType         //! 等级奖励领取标记
+	FundCountMark  BitsType         //! 购买基金人数奖励领取
+	IsBuyFund      bool             //! 购买基金标记
 	VersionCode    int32            //! 版本号
 	ResetCode      int32            //! 迭代号
 	activityModule *TActivityModule //! 指针
@@ -47,7 +45,7 @@ func (self *TActivityOpenFund) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityOpenFund) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityOpenFund) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -99,7 +97,7 @@ func (self *TActivityOpenFund) RedTip() bool {
 	}
 
 	for _, v := range tempLst {
-		if self.FundLevelMark.Get(uint32(v)) == false {
+		if self.FundLevelMark.Get(v) == false {
 			return true
 		}
 	}
@@ -112,7 +110,7 @@ func (self *TActivityOpenFund) RedTip() bool {
 	}
 
 	for _, v := range tempLst {
-		if self.FundCountMark.Get(uint32(v)) == false {
+		if self.FundCountMark.Get(v) == false {
 			return true
 		}
 	}

@@ -7,7 +7,6 @@ import (
 	"gamesvr/tcpclient"
 	"msg"
 	"net/http"
-	"time"
 	"utility"
 )
 
@@ -69,7 +68,6 @@ func Hand_SetBattleCamp(w http.ResponseWriter, r *http.Request) {
 	player.CamBattleModule.CheckReset()
 
 	if false == gamedata.IsFuncOpen(gamedata.FUNC_CAMPBAT, player.GetLevel(), player.GetVipLevel()) {
-		gamelog.Error("Hand_SetBattleCamp Error: Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -84,8 +82,8 @@ func Hand_SetBattleCamp(w http.ResponseWriter, r *http.Request) {
 		//玩家就是选择的我们推存的阵营
 		var award TAwardData
 		award.TextType = Text_Recommand_Camp
-		award.ItemLst = gamedata.GetItemsFromAwardIDEx(gamedata.CampBat_SelCampAward)
-		award.Time = time.Now().Unix()
+		award.ItemLst = gamedata.GetItemsFromAwardID(gamedata.CampBat_SelCampAward)
+		award.Time = utility.GetCurTime()
 		SendAwardToPlayer(player.playerid, &award)
 	}
 
@@ -124,7 +122,6 @@ func Hand_RecommandCamp(w http.ResponseWriter, r *http.Request) {
 	player.CamBattleModule.CheckReset()
 
 	if false == gamedata.IsFuncOpen(gamedata.FUNC_CAMPBAT, player.GetLevel(), player.GetVipLevel()) {
-		gamelog.Error("Hand_RecommandCamp Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -162,7 +159,6 @@ func Hand_EnterCampBattle(w http.ResponseWriter, r *http.Request) {
 	player.CamBattleModule.CheckReset()
 
 	if false == gamedata.IsFuncOpen(gamedata.FUNC_CAMPBAT, player.GetLevel(), player.GetVipLevel()) {
-		gamelog.Error("Hand_EnterCampBattle Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -274,7 +270,6 @@ func Hand_BuyCampbatStoreItem(w http.ResponseWriter, r *http.Request) {
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_CAMPBAT, player.GetLevel(), player.GetVipLevel())
 	if isFuncOpen == false {
-		gamelog.Error("Hand_BuyCampbatStoreItem Error : Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -287,7 +282,7 @@ func Hand_BuyCampbatStoreItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 获取购买物品信息
-	itemInfo := gamedata.GetCampBatStoreItem(req.StoreID)
+	itemInfo := gamedata.GetCampBatStoreItem(int(req.StoreID))
 	if itemInfo == nil {
 		gamelog.Error("Hand_BuyCampbatStoreItem Error: GetCampBatStoreItem nil ID: %d ", req.StoreID)
 		response.RetCode = msg.RE_INVALID_PARAM
@@ -309,7 +304,7 @@ func Hand_BuyCampbatStoreItem(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//! 判断是否已经购买
-		if player.CamBattleModule.StoreAward.IsExist(itemInfo.ID) >= 0 {
+		if player.CamBattleModule.StoreAward.IsExist(int32(itemInfo.ID)) >= 0 {
 			response.RetCode = msg.RE_NOT_ENOUGH_TIMES
 			return
 		}

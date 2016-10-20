@@ -37,8 +37,9 @@ type MSG_EnterGameSvr_Req struct {
 
 type MSG_EnterGameSvr_Ack struct {
 	RetCode     int    //返回码
+	XorCode     int    //异或字节
 	GuildID     int32  //工会ID
-	SvrTime     int64  //服务器时间
+	SvrTime     int32  //服务器时间
 	ChatSvrAddr string //聊天服的地址
 	PlayerName  string //玩家角色名
 	FightValue  int32  //战力
@@ -57,7 +58,7 @@ type MSG_GetRoleData_Ack struct {
 	VipExp     int     //VIP经验
 	BatCamp    int8    //阵营战阵营
 	Actions    []int   //行动力表
-	ActionTime []int64 //行动力时间
+	ActionTime []int32 //行动力时间
 	Moneys     []int   //货币表
 	NewWizard  string  //新手向导信息
 }
@@ -80,7 +81,7 @@ type MSG_QueryServerTime_Req struct {
 
 type MSG_QueryServerTime_Ack struct {
 	RetCode int
-	SvrTime int64 //服务器时间
+	SvrTime int32 //服务器时间
 }
 
 //玩家更换装备
@@ -134,6 +135,9 @@ type MSG_EquipRefine_Ack struct {
 	RetCode    int   //返回码
 	Exp        int   //新的经验
 	Level      int   //新的精炼等级
+	PosType    int   //位置类型 1:上阵  3:背包中
+	PosIndex   int   //位置索引
+	ItemID     int   //道具ID
 	FightValue int32 //新的战力
 }
 
@@ -485,7 +489,7 @@ type THisHang struct {
 	BossID  int //
 	ItemID  int
 	ItemNum int
-	Time    int64
+	Time    int32
 }
 
 type MSG_GetHangUp_Ack struct {
@@ -553,6 +557,7 @@ type MSG_PlayerInfo struct {
 	HeroID     int    //英雄ID
 	Name       string //名字
 	GuildName  string //工会名
+	GuildIcon  int    //工会图标
 	Level      int
 	FightValue int32
 	Quality    int8
@@ -842,7 +847,7 @@ type MSG_RegBattleSvr_Ack struct {
 type MSG_FashionSet_Req struct {
 	PlayerID   int32
 	SessionKey string
-	FashionID  int //时装ID
+	FashionID  int32 //时装ID
 }
 
 type MSG_FashionSet_Ack struct {
@@ -855,11 +860,14 @@ type MSG_FashionSet_Ack struct {
 type MSG_FashionStrength_Req struct {
 	PlayerID   int32
 	SessionKey string
-	FashionID  int //时装ID
+	FashionID  int32 //时装ID
 }
 
 type MSG_FashionStrength_Ack struct {
-	RetCode int
+	RetCode    int
+	FID        int32 //时装ID
+	FLevel     int32 //时装等级
+	FightValue int32 //战力
 }
 
 //! 玩家请求重铸时装
@@ -867,11 +875,18 @@ type MSG_FashionStrength_Ack struct {
 type MSG_FashionRecast_Req struct {
 	PlayerID   int32
 	SessionKey string
-	FashionID  int //时装ID
+	FashionID  int32 //时装ID
 }
 
 type MSG_FashionRecast_Ack struct {
-	RetCode int
+	RetCode    int
+	FID        int32 //时装ID
+	FLevel     int32 //时装等级
+	MoneyID    int   //钱ID
+	MoneyNum   int   //钱数
+	CostID     int   //道具ID
+	CostNum    int   //道具数
+	FightValue int32 //战力值
 }
 
 //! 玩家请求合成时装
@@ -879,12 +894,24 @@ type MSG_FashionRecast_Ack struct {
 type MSG_FashionCompose_Req struct {
 	PlayerID   int32
 	SessionKey string
-	FashionID  int //时装ID
+	FashionID  int32 //时装ID
 }
 
 type MSG_FashionCompose_Ack struct {
 	RetCode   int
-	FashionID int //合成后的时装ID
+	FashionID int32 //合成后的时装ID
+}
+
+//! 时装熔炼值
+//! 消息: /fashion_melt_value
+type MSG_FashionMeltValue_Req struct {
+	PlayerID   int32
+	SessionKey string
+}
+
+type MSG_FashionMeltValue_Ack struct {
+	RetCode int
+	Value   int32 //值
 }
 
 //! 时装熔炼
@@ -892,16 +919,58 @@ type MSG_FashionCompose_Ack struct {
 type MSG_FashionMelting_Req struct {
 	PlayerID   int32
 	SessionKey string
-	PieceIDs   []int //碎片ID
-	PieceNums  []int //碎片个数
+	PieceID    int //碎片ID
+	PieceNum   int //碎片个数
 }
 
 type MSG_FashionMelting_Ack struct {
+	RetCode int
+	Value   int32 //值
+}
+
+//! 时装熔炼奖励
+//! 消息: /fashion_melt_award
+type MSG_FashionMeltAward_Req struct {
+	PlayerID   int32
+	SessionKey string
+}
+
+type MSG_FashionMeltAward_Ack struct {
 	RetCode   int
-	FashionID int //合成后的时装ID
+	FashionID int32 //时装ID
+	PieceID   int   //碎片ID
+	PieceNum  int   // 碎片数量
 }
 
 //! 游戏服下发的主动通知
 type MSG_GameSvr_Notify struct {
 	FuncID int //需要加红点的应用
+}
+
+// //! 好友系统主动通知
+// type MSG_GameSvr_Nofity_Friend struct {
+// 	Action         int    //! 1->被申请添加好友  2->被同意添加好友
+// 	TargetPlayerID int32  //! 目标ID
+// 	TargetName     string //! 名称
+// 	HeroID         int32  //! 主英雄ID
+// 	Quality        int32  //! 品质
+// }
+
+// //! 公会系统主动通知
+// type MSG_GameSvr_Nofity_Gulid struct {
+// 	Action int //! 1->同意入会 2->有人申请公会
+// }
+
+//发送私人邮件
+//消息:/send_private_mail
+type MSG_SendPrivateMail_Req struct {
+	PlayerID   int32  //玩家ID
+	SessionKey string //Sessionkey
+	TargetID   int32  //目标玩家ID
+	Title      string //标题
+	Content    string //内容
+}
+
+type MSG_SendPrivateMail_Ack struct {
+	RetCode int //返回码
 }

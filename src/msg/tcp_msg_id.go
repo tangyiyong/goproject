@@ -45,7 +45,7 @@ const (
 	MSG_FINISH_CARRY_REQ  = 26 //玩家完成搬运水晶请求
 	MSG_FINISH_CARRY_ACK  = 27 //玩家完成搬运水晶回复
 	MSG_NEW_SKILL_NTY     = 28 //服务器更新技能通知
-	MSG_REVIVE_NTY        = 29 //玩家复活的通知消息
+	MSG_XXXXXXXXXX        = 29 //XXXXXXXXXXXXXX
 	MSG_PLAYER_QUERY_REQ  = 30 //玩家查询水晶品质
 	MSG_PLAYER_QUERY_ACK  = 31 //玩家查询水晶品质回复
 	MSG_PLAYER_CHANGE_REQ = 32 //玩家请求置换水晶

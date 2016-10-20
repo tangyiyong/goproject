@@ -7,7 +7,7 @@ type MSG_GetCopyData_Req struct {
 	SessionKey string
 }
 
-type TFamousInfo struct {
+type MSG_FamousInfo struct {
 	CurCopyID   int //! 名将副本
 	CurChapter  int //! 名将当前章节
 	BattleTimes int //! 名将总共挑战次数
@@ -15,9 +15,9 @@ type TFamousInfo struct {
 
 type MSG_GetCopyData_Ack struct {
 	RetCode        int
-	CopyMainInfo   TMainInfo       //! 主线
-	CopyEliteInfo  TEliteCopyData  //! 精英
-	CopyFamousInfo TFamousInfo     //! 名将
+	CopyMainInfo   MSG_MainData    //! 主线
+	CopyEliteInfo  MSG_EliteData   //! 精英
+	CopyFamousInfo MSG_FamousInfo  //! 名将
 	CopyDailyInfo  []MSG_DailyCopy //! 日常副本
 }
 
@@ -56,10 +56,10 @@ type MSG_BattleResult_Ack struct {
 	ItemLst     []MSG_ItemData
 	FirstItem   []MSG_ItemData //! 首胜奖励 目前只对应名将副本
 	IsFindRebel bool           //! 是否发现叛军 目前只对应主线副本 发现后发送get_rebel_find_info获取叛军信息
-	OpenEndTime int64          //! 是否发现黑市
+	OpenEndTime int32          //! 是否发现黑市
 	Exp         int            //! 获取经验
 	ActionValue int            //! 行动力值
-	ActionTime  int64          //! 行动力恢复起始时间
+	ActionTime  int32          //! 行动力恢复起始时间
 }
 
 //! 请求叛军信息
@@ -85,12 +85,12 @@ type MSG_ChallenGuaJi_Req struct {
 }
 
 type MSG_ChallenGuaJi_Ack struct {
-	RetCode    int   //! 返回码
-	CurCopyID  int   //! 已通过关卡ID
-	CurChapter int   //! 当前的章节
-	NextTime   int64 //! 挑战Boss时间
-	MoneyTime  int64 //! 货币挂机时间
-	ExpTime    int64 //! 经验挂机时间
+	RetCode    int    //! 返回码
+	CurCopyID  int    //! 已通过关卡ID
+	CurChapter int    //! 当前的章节
+	NextTime   uint32 //! 挑战Boss时间
+	MoneyTime  uint32 //! 货币挂机时间
+	ExpTime    uint32 //! 经验挂机时间
 }
 
 //! 玩家请求查询主线副本信息
@@ -100,30 +100,29 @@ type MSG_GetMainChapterInfo_Req struct {
 	SessionKey string //! Session Key
 }
 
-type TMainCopy struct {
+type MSG_MainCopy struct {
 	CopyID      int //! 副本ID
 	BattleTimes int //! 战斗次数
 	ResetCount  int //! 当天刷新次数
 	StarNum     int //! 星数
 }
 
-type TMainChapter struct {
+type MSG_MainChapter struct {
 	Chapter    int
 	StarAward  [3]bool //! 6 12 15星 额外星级宝箱
 	SceneAward [3]bool //! 1 3 5关卡 场景宝箱
 }
 
-type TMainInfo struct {
+type MSG_MainData struct {
 	CurCopyID  int //! 当前副本ID
 	CurChapter int //! 当前章节ID
-
-	CopyInfo []TMainCopy
-	Chapter  []TMainChapter
+	CopyInfo   []MSG_MainCopy
+	Chapter    []MSG_MainChapter
 }
 
 type MSG_GetMainChapterInfo_Ack struct {
 	RetCode int
-	Info    TMainInfo
+	Info    MSG_MainData
 }
 
 //! 玩家请求查询精英副本信息
@@ -133,30 +132,30 @@ type MSG_GetEliteChapterInfo_Req struct {
 	SessionKey string
 }
 
-type TEliteCopy struct {
+type MSG_EliteCopy struct {
 	CopyID      int //! 副本ID
 	BattleTimes int //! 战斗次数
 	ResetCount  int //! 当天刷新次数
 	StarNum     int //! 星数
 }
 
-type TEliteChapter struct {
+type MSG_EliteChapter struct {
 	Chapter    int
 	StarAward  [3]bool //! 6 12 15星 额外星级宝箱
 	SceneAward bool    //! 场景宝箱领取标记
 	IsInvade   bool    //! 该章节是否遭遇入侵
 }
 
-type TEliteCopyData struct {
-	CurCopyID  int             //! 当前副本ID
-	CurChapter int             //! 当前章节ID
-	Chapter    []TEliteChapter //! 章节信息
-	CopyInfo   []TEliteCopy
+type MSG_EliteData struct {
+	CurCopyID  int                //! 当前副本ID
+	CurChapter int                //! 当前章节ID
+	Chapter    []MSG_EliteChapter //! 章节信息
+	CopyInfo   []MSG_EliteCopy
 }
 
 type MSG_GetEliteChapterInfo_Ack struct {
 	RetCode int
-	Info    TEliteCopyData
+	Info    MSG_EliteData
 }
 
 //! 玩家请求入侵信息
@@ -333,14 +332,14 @@ type MSG_GetFamousCopyDetailInfo_Req struct {
 	Chapter    int //! 章节
 }
 
-type MSG_FamousCopyDetailInfo struct {
+type MSG_FamousDetailInfo struct {
 	CopyID      int
 	BattleTimes int //! 每一个关卡的挑战次数
 }
 
 type MSG_GetFamousCopyDetailInfo_Ack struct {
 	RetCode int
-	CopyLst []MSG_FamousCopyDetailInfo
+	CopyLst []MSG_FamousDetailInfo
 }
 
 //! 玩家请求获取名将副本章节宝箱

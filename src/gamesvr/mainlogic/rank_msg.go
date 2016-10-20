@@ -55,6 +55,15 @@ func Hand_GetLevelRank(w http.ResponseWriter, r *http.Request) {
 			info.Name = pSimpleInfo.Name
 			info.Quality = pSimpleInfo.Quality
 			info.HeroID = pSimpleInfo.HeroID
+
+			if pSimpleInfo.GuildID != 0 {
+				pGuild := GetGuildByID(pSimpleInfo.GuildID)
+				if pGuild != nil {
+					info.GuildName = pGuild.Name
+					info.GuildIcon = pGuild.Icon
+				}
+			}
+
 			response.PlayerLst = append(response.PlayerLst, info)
 		}
 
@@ -96,7 +105,6 @@ func Hand_GetFightRank(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.PlayerLst = []msg.MSG_PlayerInfo{}
-
 	response.MyRank = -1
 	for i := 0; i < len(G_FightRanker.List); i++ {
 		if G_FightRanker.List[i].RankID <= 0 {
@@ -114,6 +122,15 @@ func Hand_GetFightRank(w http.ResponseWriter, r *http.Request) {
 			info.Name = pSimpleInfo.Name
 			info.Quality = pSimpleInfo.Quality
 			info.HeroID = pSimpleInfo.HeroID
+
+			if pSimpleInfo.GuildID != 0 {
+				pGuild := GetGuildByID(pSimpleInfo.GuildID)
+				if pGuild != nil {
+					info.GuildName = pGuild.Name
+					info.GuildIcon = pGuild.Icon
+				}
+			}
+
 			response.PlayerLst = append(response.PlayerLst, info)
 		}
 
@@ -220,7 +237,6 @@ func Hand_GetArenaRank(w http.ResponseWriter, r *http.Request) {
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_ARENA, player.GetLevel(), player.GetVipLevel())
 	if isFuncOpen == false {
-		gamelog.Error("Hand_GetArenaRank Function not open")
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return
 	}
@@ -396,9 +412,9 @@ func Hand_GetGuildLevelRank(w http.ResponseWriter, r *http.Request) {
 			info.CurNum = len(pGuildInfo.MemberList)
 			info.Level = pGuildInfo.Level
 			info.MaxNum = 30
-			info.Name = pGuildInfo.bossName
+			info.Name = pGuildInfo.boss
 			info.GuildName = pGuildInfo.Name
-			info.CopyChapter = pGuildInfo.HistoryPassChapter
+			info.CopyChapter = pGuildInfo.HisChapter
 			response.GuildList = append(response.GuildList, info)
 		}
 
@@ -451,9 +467,9 @@ func Hand_GetGuildCopyRank(w http.ResponseWriter, r *http.Request) {
 			info.CurNum = len(pGuildInfo.MemberList)
 			info.Level = pGuildInfo.Level
 			info.MaxNum = 30
-			info.Name = pGuildInfo.bossName
+			info.Name = pGuildInfo.boss
 			info.GuildName = pGuildInfo.Name
-			info.CopyChapter = pGuildInfo.HistoryPassChapter
+			info.CopyChapter = pGuildInfo.HisChapter
 			response.GuildList = append(response.GuildList, info)
 		}
 

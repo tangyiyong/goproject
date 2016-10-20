@@ -6,7 +6,7 @@ import (
 	"gamesvr/gamedata"
 	"msg"
 	"net/http"
-	"time"
+	"utility"
 )
 
 //! 玩家请求获取叛军信息
@@ -54,10 +54,10 @@ func Hand_GetRebelInfo(w http.ResponseWriter, r *http.Request) {
 		rebelInfo.FindName = player.RoleMoudle.Name
 		rebelInfo.CurLife = player.RebelModule.CurLife
 
-		if player.RebelModule.EscapeTime-time.Now().Unix() < 0 {
+		if player.RebelModule.EscapeTime-utility.GetCurTime() < 0 {
 			rebelInfo.EscapeTime = 0
 		} else {
-			rebelInfo.EscapeTime = player.RebelModule.EscapeTime - time.Now().Unix()
+			rebelInfo.EscapeTime = player.RebelModule.EscapeTime - utility.GetCurTime()
 		}
 
 		rebelInfo.IsShare = player.RebelModule.IsShare
@@ -76,7 +76,7 @@ func Hand_GetRebelInfo(w http.ResponseWriter, r *http.Request) {
 			rebelInfo.Level = rebelModulePtr.GetRebelLevel()
 			rebelInfo.FindName = playerName
 			rebelInfo.CurLife = rebelModulePtr.CurLife
-			rebelInfo.EscapeTime = time.Now().Unix() - rebelInfo.EscapeTime
+			rebelInfo.EscapeTime = utility.GetCurTime() - rebelInfo.EscapeTime
 			rebelInfo.IsShare = rebelModulePtr.IsShare
 
 			response.InfoLst = append(response.InfoLst, rebelInfo)
@@ -112,11 +112,15 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
-	//! 解析消息
+	//! MD5消息验证
+	if false == utility.MsgDataCheck(buffer, G_XorCode) {
+		//存在作弊的可能
+		gamelog.Error("Hand_AttackRebel : Message Data Check Error!!!!")
+		return
+	}
 	var req msg.MSG_Attack_Rebel_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_AttackRebel Unmarshal fail. Error: %s", err.Error())
+	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
+		gamelog.Error("Hand_AttackRebel : Unmarshal error!!!!")
 		return
 	}
 
@@ -136,6 +140,12 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	player.RebelModule.CheckEscapeTime()
 	player.RebelModule.CheckReset()
 
@@ -149,7 +159,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 	rebelModulePtr.CheckEscapeTime()
 
 	//! 检查叛军逃走时间
-	if rebelModulePtr.EscapeTime <= time.Now().Unix() {
+	if rebelModulePtr.EscapeTime <= utility.GetCurTime() {
 		response.RetCode = msg.RE_REBEL_ALEADY_ESCAPE
 		return
 	}
@@ -249,7 +259,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 		var award TAwardData
 		award.TextType = Text_Rebel_Find
 		award.ItemLst = []gamedata.ST_ItemData{*awardItem}
-		award.Time = time.Now().Unix()
+		award.Time = utility.GetCurTime()
 
 		rebelcopy := gamedata.GetCopyBaseInfo(rebelData.CopyID)
 
@@ -266,7 +276,7 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 
 		award.TextType = Text_Rebel_Killed
 		award.ItemLst = []gamedata.ST_ItemData{*awardItem}
-		award.Time = time.Now().Unix()
+		award.Time = utility.GetCurTime()
 
 		award.Value = []string{rebelcopy.Name}
 		SendAwardToPlayer(player.playerid, &award)

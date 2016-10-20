@@ -179,7 +179,7 @@ func Hand_GetLimitSaleAllAward(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
-	if player.ActivityModule.LimitSale.AwardMark.Get(uint32(req.ID)) == true {
+	if player.ActivityModule.LimitSale.AwardMark.Get(req.ID) == true {
 		gamelog.Error("Hand_GetLimitSaleAllAward Error: Aleady received. ID: %d", req.ID)
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
@@ -207,7 +207,7 @@ func Hand_GetLimitSaleAllAward(w http.ResponseWriter, r *http.Request) {
 		response.AwardLst = append(response.AwardLst, awardItem)
 	}
 
-	player.ActivityModule.LimitSale.AwardMark.Set(uint32(req.ID))
+	player.ActivityModule.LimitSale.AwardMark.Set(req.ID)
 	player.ActivityModule.LimitSale.DB_UpdateAwardMark()
 
 	response.AwardMark = int(player.ActivityModule.LimitSale.AwardMark)

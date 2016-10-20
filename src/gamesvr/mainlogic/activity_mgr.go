@@ -5,32 +5,32 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"mongodb"
-	"time"
 	"utility"
 )
 
 //! 活动刷新
-func ActivityTimerFunc(now int64) bool {
+func ActivityTimerFunc(now int32) bool {
 	gamelog.Info("Timer: ActivityTimerFunc")
 	//! 检测新启活动
 	for i := 0; i < len(G_GlobalVariables.ActivityLst); i++ {
-		if now >= G_GlobalVariables.ActivityLst[i].endTime && G_GlobalVariables.ActivityLst[i].endTime > 0 {
+		pActivity := gamedata.GetActivityInfo(G_GlobalVariables.ActivityLst[i].ActivityID)
+		if pActivity == nil {
+			gamelog.Error("ActivityTimerFunc Error: Invalid ActivityID %d", G_GlobalVariables.ActivityLst[i].ActivityID)
+			return false
+		}
+
+		if now < G_GlobalVariables.ActivityLst[i].endTime || pActivity.CycleType == gamedata.CyCle_All {
+			//! 没有到结束时间或者永久存在并正在运行的活动执行刷新
+			RefreshActivity(G_GlobalVariables.ActivityLst[i].activityType, G_GlobalVariables.ActivityLst[i].ActivityID)
+			G_GlobalVariables.ActivityLst[i].VersionCode += 1
+		} else if now >= G_GlobalVariables.ActivityLst[i].endTime {
 			//! 已经超过结束时间的非永久并正在运行的活动执行结束
 			EndActivity(G_GlobalVariables.ActivityLst[i].activityType, G_GlobalVariables.ActivityLst[i].ActivityID)
 			G_GlobalVariables.ActivityLst[i].ResetCode += 1
 			G_GlobalVariables.ActivityLst[i].VersionCode = 0
-
-			//! 计算下一次开始时间
-			beginTime, endTime := gamedata.GetActivityNextBeginTime(G_GlobalVariables.ActivityLst[i].ActivityID, GetOpenServerDay())
-			G_GlobalVariables.ActivityLst[i].beginTime, G_GlobalVariables.ActivityLst[i].endTime = beginTime, endTime
-		} else if now < G_GlobalVariables.ActivityLst[i].endTime ||
-			G_GlobalVariables.ActivityLst[i].endTime == 0 {
-			//! 没有到结束时间或者永久存在并正在运行的活动执行刷新
-			RefreshActivity(G_GlobalVariables.ActivityLst[i].activityType, G_GlobalVariables.ActivityLst[i].ActivityID)
-			G_GlobalVariables.ActivityLst[i].VersionCode += 1
+			G_GlobalVariables.ActivityLst[i].beginTime, G_GlobalVariables.ActivityLst[i].actEndTime, G_GlobalVariables.ActivityLst[i].endTime = CalcActivityTime(G_GlobalVariables.ActivityLst[i].ActivityID, GetOpenServerDay())
 		}
 	}
 
@@ -39,48 +39,7 @@ func ActivityTimerFunc(now int64) bool {
 	return true
 }
 
-func CheckActivityAdd() {
-	//! 获取今日开启活动
-	openDay := GetOpenServerDay()
-	for _, v := range gamedata.GT_ActivityLst {
-		if v.ID == 0 {
-			gamelog.Error("CheckActivityAdd Error: Invalid ActivityID:%d", v.ID)
-			continue
-		}
-
-		isExist := false
-		for _, n := range G_GlobalVariables.ActivityLst {
-			if n.ActivityID == v.ID {
-				isExist = true
-				break
-			}
-		}
-
-		if isExist == true {
-			continue
-		}
-
-		if v.ActivityType == gamedata.Activity_Seven {
-			seven := TSevenDayBuyInfo{}
-			seven.ActivityID = v.ID
-			G_GlobalVariables.SevenDayLimit = append(G_GlobalVariables.SevenDayLimit, seven)
-			G_GlobalVariables.DB_AddSevenDayBuyInfo(seven)
-		}
-
-		var activity TActivityData
-		activity.ActivityID = v.ID
-		activity.activityType = v.ActivityType
-		activity.award = v.AwardType
-		activity.beginTime, activity.endTime = gamedata.GetActivityEndTime(v.ID, openDay)
-		activity.VersionCode = 0
-		activity.Status = v.Status
-		activity.ResetCode = 0
-		G_GlobalVariables.ActivityLst = append(G_GlobalVariables.ActivityLst, activity)
-		G_GlobalVariables.DB_AddNewActivity(activity)
-	}
-}
-
-func EndActivity(activityType int, activityID int) bool {
+func EndActivity(activityType int, activityID int32) bool {
 	if activityType == gamedata.Activity_Hunt_Treasure {
 		G_HuntTreasureTodayRanker.Clear()
 		G_HuntTreasureTotalRanker.Clear()
@@ -133,7 +92,7 @@ func EndActivity(activityType int, activityID int) bool {
 			var awardData TAwardData
 			awardData.TextType = Text_CompetitionRankAward
 			awardData.ItemLst = gamedata.GetItemsFromAwardID(award)
-			awardData.Time = time.Now().Unix()
+			awardData.Time = utility.GetCurTime()
 			value := fmt.Sprintf("%d", i+1)
 			awardData.Value = []string{value}
 
@@ -178,7 +137,7 @@ func EndActivity(activityType int, activityID int) bool {
 				diffPrice = costMoney - costTimes*salePriceInfo.MoneyNum
 
 				awardData.TextType = Text_Group_Purchase
-				awardData.Time = time.Now().Unix()
+				awardData.Time = utility.GetCurTime()
 				awardData.ItemLst = append(awardData.ItemLst, gamedata.ST_ItemData{1, diffPrice})
 				SendAwardToPlayer(activity.PlayerID, &awardData)
 			}
@@ -193,7 +152,7 @@ func EndActivity(activityType int, activityID int) bool {
 }
 
 //! 刷新运营活动 每天整点刷新一次
-func RefreshActivity(activityType int, activityID int) bool {
+func RefreshActivity(activityType int, activityID int32) bool {
 	//gamelog.Info("Timer: RefreshActivity")
 	if activityType == gamedata.Activity_Moon_Card {
 	} else if activityType == gamedata.Activity_Singel_Recharge {
@@ -246,26 +205,4 @@ func RefreshActivity(activityType int, activityID int) bool {
 	}
 
 	return true
-}
-
-func ClearPlayerActData(dataName string, handler func(*TPlayer)) {
-	//! 清除玩家积分
-	rankLst := []TActivityModule{}
-	db_session := mongodb.GetDBSession()
-	defer db_session.Close()
-	collection := db_session.DB(appconfig.GameDbName).C("PlayerActivity")
-	err := collection.Find(bson.M{dataName: bson.M{"$gt": 0}}).All(&rankLst)
-	if err != mgo.ErrNotFound && err != nil {
-		gamelog.Error3("Find_Sort error: %v \r\ndbName: %s \r\ntable: %s \r\nfind: %s \r\n",
-			err.Error(), appconfig.GameDbName, "PlayerActivity", dataName)
-		return
-	}
-
-	for _, v := range rankLst {
-		//! 刷新玩家数据
-		player := GetPlayerByID(v.PlayerID)
-		if player != nil {
-			handler(player)
-		}
-	}
 }

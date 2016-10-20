@@ -1,6 +1,7 @@
 package appconfig
 
 import (
+	"fmt"
 	"strings"
 )
 
@@ -23,9 +24,9 @@ func ParseGmUser(uinfo string) {
 	}
 
 	var pGmUser *TGM_User = new(TGM_User)
-	pGmUser.SessionID = slice[0]
-	pGmUser.SessionKey = slice[1]
-	pGmUser.IpAddr = slice[2]
+	pGmUser.SessionID = strings.TrimSpace(slice[0])
+	pGmUser.SessionKey = strings.TrimSpace(slice[1])
+	pGmUser.IpAddr = strings.TrimSpace(slice[2])
 
 	G_Users[pGmUser.SessionID] = pGmUser
 }
@@ -34,16 +35,19 @@ func CheckGmRight(id string, key string, ip string) bool {
 	//GM ID是否存在
 	pUser, ok := G_Users[id]
 	if !ok || pUser == nil {
+		fmt.Println("CheckGmRight Error: ***ID", id)
 		return false
 	}
 
 	//SessionKey　是否对得上
 	if key != pUser.SessionKey {
+		fmt.Println("CheckGmRight Error: ***req.Key", key, "local.key", pUser.SessionKey)
 		return false
 	}
 
 	//GM来源的IP是否符合要求
 	if pUser.IpAddr != "0" && pUser.IpAddr != ip {
+		fmt.Println("CheckGmRight Error: ***req.ip", ip, "local.key", pUser.IpAddr)
 		return false
 	}
 

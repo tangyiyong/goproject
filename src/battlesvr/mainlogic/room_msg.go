@@ -4,7 +4,7 @@ import (
 	"battlesvr/gamedata"
 	"gamelog"
 	"msg"
-	"time"
+	"utility"
 )
 
 func (self *TBattleRoom) SendHeroStateToRoom(roomid int16, objectid int32) {
@@ -58,7 +58,7 @@ func (self *TBattleRoom) Hand_LeaveRoom(pdata []byte) {
 
 func (self *TBattleRoom) Hand_LeaveByDisconnect(pdata []byte) {
 	gamelog.Info("message: MSG_LEAVE_BY_DISCONNT")
-	var playerid = int32(pdata[3])<<24 | int32(pdata[3])<<16 | int32(pdata[1])<<8 | int32(pdata[0])
+	var playerid = int32(pdata[3])<<24 | int32(pdata[2])<<16 | int32(pdata[1])<<8 | int32(pdata[0])
 	var response msg.MSG_LeaveRoom_Notify
 	response.ObjectIDs = self.GetPlayerHeros(playerid)
 	SendMessageToRoom(playerid, self.RoomID, msg.MSG_LEAVE_ROOM_NTY, &response)
@@ -178,7 +178,7 @@ func (self *TBattleRoom) Hand_FinishCarryReq(pdata []byte) {
 		return
 	}
 
-	if int32(time.Now().Unix()) > pBattleObj.MoveEndTime {
+	if utility.GetCurTime() > pBattleObj.MoveEndTime {
 		gamelog.Error("Hand_FinishCarryReq Error: Too late:%d", req.PlayerID)
 		return
 	}
@@ -368,8 +368,8 @@ func (self *TBattleRoom) Hand_PlayerReviveAck(pdata []byte) {
 			pBattleObj.HeroObj[i].CurHp,
 			pBattleObj.HeroObj[i].Position})
 	}
-	response.Heros_Cnt = int32(len(response.Heros))
 
+	response.Heros_Cnt = int32(len(response.Heros))
 	var writer msg.PacketWriter
 	writer.BeginWrite(msg.MSG_PLAYER_REVIVE_ACK, 0)
 	response.Write(&writer)

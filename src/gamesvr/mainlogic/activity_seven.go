@@ -10,7 +10,7 @@ import (
 
 //! 七日活动表结构
 type TActivitySevenDay struct {
-	ActivityID int         //! 活动ID
+	ActivityID int32       //! 活动ID
 	TaskList   []TTaskInfo //! 任务列表
 	BuyLst     IntLst      //! 已购买限购商品列表
 
@@ -26,7 +26,7 @@ func (self *TActivitySevenDay) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivitySevenDay) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivitySevenDay) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.activityModule = mPtr
@@ -45,10 +45,10 @@ func (self *TActivitySevenDay) Init(activityID int, mPtr *TActivityModule, verco
 		if v.TaskID == 0 {
 			continue
 		}
-		info.TaskID = v.TaskID
-		info.TaskStatus = 0
-		info.TaskCount = 0
-		info.TaskType = v.TaskType
+		info.ID = v.TaskID
+		info.Status = 0
+		info.Count = 0
+		info.Type = v.TaskType
 		self.TaskList = append(self.TaskList, info)
 	}
 
@@ -145,7 +145,7 @@ func (self *TActivitySevenDay) DB_UpdatePlayerSevenTask(taskID int, count int, s
 
 	indexTask := -1
 	for i, v := range self.TaskList {
-		if v.TaskID == taskID {
+		if v.ID == taskID {
 			indexTask = i
 			break
 		}

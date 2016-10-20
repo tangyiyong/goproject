@@ -11,9 +11,9 @@ type MSG_TerritoryInfo struct {
 	ID              int                     //! 领地ID
 	HeroID          int                     //! 英雄ID
 	AwardItem       []MSG_ItemData          //! 获得奖励
-	PatrolBeginTime int64                   //! 巡逻开启时间
+	PatrolBeginTime int32                   //! 巡逻开启时间
 	PatrolType      int                     //! 巡逻类型
-	PatrolEndTime   int64                   //! 巡逻结束时间
+	PatrolEndTime   int32                   //! 巡逻结束时间
 	SkillLevel      int                     //! 领地技能等级
 	RiotInfo        []MSG_TerritoryRiotData //! 暴动信息
 }
@@ -50,7 +50,7 @@ type MSG_FriendTerritoryStatus struct {
 	Level         int                 //! 好友等级
 	Quality       int8                //! 好友品质
 	TerritoryLst  []MSG_TerritoryInfo //! 领地信息
-	LastLoginTime int64               //! 上次登录时间
+	LastLoginTime int32               //! 上次登录时间
 }
 
 type MSG_GetFriendTerritoryStatus_Ack struct {
@@ -69,8 +69,8 @@ type MSG_GetFriendTerritoryInfo_Req struct {
 
 //! 暴动信息
 type MSG_TerritoryRiotData struct {
-	BeginTime  int64  //! 开始时间
-	DealTime   int64  //! 处理时间
+	BeginTime  int32  //! 开始时间
+	DealTime   int32  //! 处理时间
 	HelperName string //! 帮忙处理好友姓名
 }
 
@@ -122,10 +122,10 @@ type MSG_PatrolTerritory_Req struct {
 type MSG_PatrolTerritory_Ack struct {
 	RetCode         int
 	AwardItem       []MSG_ItemData          //! 获得奖励
-	PatrolBeginTime int64                   //! 巡逻开启时间
+	PatrolBeginTime int32                   //! 巡逻开启时间
 	RiotInfo        []MSG_TerritoryRiotData //! 暴动信息
 	ActionValue     int                     //! 行动力值
-	ActionTime      int64                   //! 行动力恢复起始时间
+	ActionTime      int32                   //! 行动力恢复起始时间
 }
 
 //! 玩家请求升级领地技能

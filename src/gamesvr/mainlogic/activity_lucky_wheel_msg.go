@@ -47,8 +47,6 @@ func Hand_QueryLuckyWheel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, response.EndCountDown = G_GlobalVariables.IsActivityTime(player.ActivityModule.LuckyWheel.ActivityID)
-
 	indexToday := 0
 	if utility.GetCurDayMod() == 1 {
 		indexToday = 1
@@ -112,7 +110,7 @@ func Hand_QueryLuckyWheel(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	response.NormalFreeTimes = player.ActivityModule.LuckyWheel.NormalFreeTimes
+	response.NormalFreeTimes = player.ActivityModule.LuckyWheel.FreeTimes
 
 	response.RetCode = msg.RE_SUCCESS
 }
@@ -168,7 +166,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 		//! 普通转盘
 		if req.IsStartTenTimes == 0 {
 			//! 判断是否有免费次数
-			if player.ActivityModule.LuckyWheel.NormalFreeTimes < 1 {
+			if player.ActivityModule.LuckyWheel.FreeTimes < 1 {
 				//! 没有免费次数,判断道具
 				if player.BagMoudle.IsItemEnough(gamedata.LuckyWheelCostItemID, 1) == false {
 					//! 花费货币
@@ -190,7 +188,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 
 			} else {
 				//! 直接扣除免费次数
-				player.ActivityModule.LuckyWheel.NormalFreeTimes -= 1
+				player.ActivityModule.LuckyWheel.FreeTimes -= 1
 				player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelFreeTimes()
 				response.CostFreeTimes = 1
 			}
@@ -201,7 +199,7 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 			player.ActivityModule.LuckyWheel.TodayScore[indexToday] += 10
 			player.ActivityModule.LuckyWheel.TotalScore += 10
 		} else {
-			needItemNum := 10 - player.ActivityModule.LuckyWheel.NormalFreeTimes
+			needItemNum := 10 - player.ActivityModule.LuckyWheel.FreeTimes
 			if player.BagMoudle.IsItemEnough(gamedata.LuckyWheelCostItemID, needItemNum) == false {
 				//! 道具+免费次数不足十次, 则直接扣去钻石
 				if player.RoleMoudle.CheckMoneyEnough(gamedata.NormalWheelMoneyID, gamedata.NormalWheelMoneyNum*10) == false {
@@ -215,8 +213,8 @@ func Hand_RotatingWheel(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				//! 扣除免费次数
-				response.CostFreeTimes = player.ActivityModule.LuckyWheel.NormalFreeTimes
-				player.ActivityModule.LuckyWheel.NormalFreeTimes = 0
+				response.CostFreeTimes = player.ActivityModule.LuckyWheel.FreeTimes
+				player.ActivityModule.LuckyWheel.FreeTimes = 0
 				player.ActivityModule.LuckyWheel.DB_SaveLuckyWheelFreeTimes()
 
 				//! 扣除道具

@@ -20,48 +20,45 @@ type TLimitDailyTask struct {
 
 //! 限时日常
 type TActivityLimitDaily struct {
-	ActivityID     int               //! 活动ID
-	TaskLst        []TLimitDailyTask //! 任务链
-	VersionCode    int32             //! 版本号
-	ResetCode      int32             //! 迭代号
-	activityModule *TActivityModule  //! 活动模块指针
+	ActivityID  int32             //! 活动ID
+	TaskLst     []TLimitDailyTask //! 任务链
+	VersionCode int32             //! 版本号
+	ResetCode   int32             //! 迭代号
+	modulePtr   *TActivityModule  //! 活动模块指针
 }
 
 //! 赋值基础数据
 func (self *TActivityLimitDaily) SetModulePtr(mPtr *TActivityModule) {
-	self.activityModule = mPtr
-	self.activityModule.activityPtrs[self.ActivityID] = self
+	self.modulePtr = mPtr
+	self.modulePtr.activityPtrs[self.ActivityID] = self
 }
 
 //! 创建初始化
-func (self *TActivityLimitDaily) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityLimitDaily) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
-	self.activityModule = mPtr
-	self.activityModule.activityPtrs[self.ActivityID] = self
-	awardType := G_GlobalVariables.GetActivityAwardType(activityID)
-	taskLst := gamedata.GetActivityLimitDaily(awardType)
+	self.modulePtr = mPtr
+	self.modulePtr.activityPtrs[self.ActivityID] = self
 	self.VersionCode = vercode
 	self.ResetCode = resetcode
 
-	for _, n := range taskLst {
-
-		var task TLimitDailyTask
-		task.Count = 0
-		task.Need = n.Count
-		task.TaskType = n.TaskType
-		task.Status = 0
-		task.Award = n.Award
-		task.IsSelect = n.IsSelect
-
-		self.TaskLst = append(self.TaskLst, task)
+	awardType := G_GlobalVariables.GetActivityAwardType(activityID)
+	pTaskList := gamedata.GetActivityLimitDaily(awardType)
+	self.TaskLst = make([]TLimitDailyTask, len(pTaskList))
+	for i, n := range pTaskList {
+		self.TaskLst[i].Count = 0
+		self.TaskLst[i].Need = n.Count
+		self.TaskLst[i].TaskType = n.TaskType
+		self.TaskLst[i].Status = 0
+		self.TaskLst[i].Award = n.Award
+		self.TaskLst[i].IsSelect = n.IsSelect
 	}
 }
 
 //! 刷新数据
 func (self *TActivityLimitDaily) Refresh(versionCode int32) {
 	//! 清空限时任务
-	for j, _ := range self.TaskLst {
+	for j := 0; j < len(self.TaskLst); j++ {
 		if self.TaskLst[j].TaskType != gamedata.TASK_RECHARGE {
 			self.TaskLst[j].Count = 0
 			self.TaskLst[j].Status = 0
@@ -85,11 +82,11 @@ func (self *TActivityLimitDaily) End(versionCode int32, resetCode int32) {
 }
 
 func (self *TActivityLimitDaily) IsAllComplete() bool {
-	for _, v := range self.TaskLst {
-		if v.TaskType == gamedata.TASK_COMPLETE_ALL_TASK {
+	for j := 0; j < len(self.TaskLst); j++ {
+		if self.TaskLst[j].TaskType == gamedata.TASK_COMPLETE_ALL_TASK {
 			continue
 		}
-		if v.Status == 0 {
+		if self.TaskLst[j].Status == 0 {
 			return false
 		}
 	}
@@ -111,8 +108,7 @@ func (self *TActivityLimitDaily) RedTip() bool {
 		return false
 	}
 
-	length := len(self.TaskLst)
-	for i := 0; i < length; i++ {
+	for i := 0; i < len(self.TaskLst); i++ {
 		if self.TaskLst[i].Status == 1 {
 			return true
 		}
@@ -122,7 +118,7 @@ func (self *TActivityLimitDaily) RedTip() bool {
 
 func (self *TActivityLimitDaily) DB_Refresh() {
 	index := -1
-	for i, v := range self.activityModule.LimitDaily {
+	for i, v := range self.modulePtr.LimitDaily {
 		if v.ActivityID == self.ActivityID {
 			index = i
 			break
@@ -137,7 +133,7 @@ func (self *TActivityLimitDaily) DB_Refresh() {
 	filedName := fmt.Sprintf("limitdaily.%d.tasklst", index)
 	filedName2 := fmt.Sprintf("limitdaily.%d.versioncode", index)
 	filedName3 := fmt.Sprintf("limitdaily.%d.resetcode", index)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.TaskLst,
 		filedName2: self.VersionCode,
 		filedName3: self.ResetCode}})
@@ -145,7 +141,7 @@ func (self *TActivityLimitDaily) DB_Refresh() {
 
 func (self *TActivityLimitDaily) DB_Reset() {
 	index := -1
-	for i, v := range self.activityModule.LimitDaily {
+	for i, v := range self.modulePtr.LimitDaily {
 		if v.ActivityID == self.ActivityID {
 			index = i
 			break
@@ -160,30 +156,7 @@ func (self *TActivityLimitDaily) DB_Reset() {
 	filedName := fmt.Sprintf("limitdaily.%d.tasklst", index)
 	filedName2 := fmt.Sprintf("limitdaily.%d.versioncode", index)
 	filedName3 := fmt.Sprintf("limitdaily.%d.resetcode", index)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
-		filedName:  self.TaskLst,
-		filedName2: self.VersionCode,
-		filedName3: self.ResetCode}})
-}
-
-func (self *TActivityLimitDaily) DB_SaveTask() {
-	index := -1
-	for i, v := range self.activityModule.LimitDaily {
-		if v.ActivityID == self.ActivityID {
-			index = i
-			break
-		}
-	}
-
-	if index < 0 {
-		gamelog.Error("LimitDaily DB_SaveTask fail")
-		return
-	}
-
-	filedName := fmt.Sprintf("limitdaily.%d.tasklst", index)
-	filedName2 := fmt.Sprintf("limitdaily.%d.versioncode", index)
-	filedName3 := fmt.Sprintf("limitdaily.%d.resetcode", index)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		filedName:  self.TaskLst,
 		filedName2: self.VersionCode,
 		filedName3: self.ResetCode}})
@@ -191,6 +164,6 @@ func (self *TActivityLimitDaily) DB_SaveTask() {
 
 func (self *TActivityLimitDaily) DB_UpdateTaskStatus(activityIndex int, taskIndex int) {
 	filedName := fmt.Sprintf("limitdaily.%d.tasklst.%d.status", activityIndex, taskIndex)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		filedName: self.TaskLst[taskIndex].Status}})
 }

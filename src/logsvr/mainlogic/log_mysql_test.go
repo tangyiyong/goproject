@@ -27,8 +27,8 @@ func Test_MysqlLog_Insert(t *testing.T) {
 		gamelog.Error("MysqlLog::Prepare : %s", err.Error())
 		return
 	}
-	for i := 0; i < 1000; i++ {
 
+	for i := 0; i < 1000; i++ {
 		_, err = stmt.Exec(req.EventID, req.SrcID, req.TargetID, timeStr, req.Param[0], req.Param[1], req.Param[2], req.Param[3])
 		if err != nil {
 			gamelog.Error("MysqlLog::Exec : %s", err.Error())

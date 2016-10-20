@@ -24,8 +24,8 @@ func DB_GuildAddMember(guildID int32, member *TMember) {
 }
 
 //! 删除工会成员
-func DB_GuildRemoveMember(guildID int32, member *TMember) {
-	mongodb.UpdateToDB("Guild", &bson.M{"_id": guildID}, &bson.M{"$pull": bson.M{"memberlist": *member}})
+func DB_GuildRemoveMember(guildID int32, playerid int32) {
+	mongodb.UpdateToDB("Guild", &bson.M{"_id": guildID}, &bson.M{"$pull": bson.M{"memberlist": bson.M{"playerid": playerid}}})
 }
 
 //! 修改工会成员信息
@@ -68,42 +68,36 @@ func (self *TGuildModule) DB_RemoveApplyGuildList(guildID int32) {
 //! 更改祭天标记
 func (self *TGuildModule) DB_UpdateSacrifice() {
 	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"sacrificestatus": self.SacrificeStatus}})
+		"jitian": self.JiTian}})
 }
 
 //! 清空玩家申请列表
 func (self *TGuildModule) DB_CleanApplyList() {
 	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"applyguildlist":    []int32{},
-		"actionrecovertime": self.ActionRecoverTime}})
-}
-
-func (self *TGuildModule) DB_ResetApplyList() {
-	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"applyguildlist": []int32{}}})
+		"applyguildlist": self.ApplyGuildList,
+		"actrcrtime":     self.ActRcrTime}})
 }
 
 //! 退出帮派
 func (self *TGuildModule) DB_ExitGuild() {
 	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"actionrecovertime": self.ActionRecoverTime,
-		"exitguildtime":     self.ExitGuildTime}})
+		"actrcrtime": self.ActRcrTime,
+		"quittime":   self.QuitTime}})
 }
 
 //! 隔天刷新
 func (self *TGuildModule) DB_Reset() {
 	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"sacrificestatus":   self.SacrificeStatus,
-		"resetday":          self.ResetDay,
-		"actionbuytimes":    self.ActionBuyTimes,
-		"todaycontribution": self.TodayContribution,
-		"sacrificeawardlst": self.SacrificeAwardLst,
-		"shoppinglst":       self.ShoppingLst}})
+		"jitian":         self.JiTian,
+		"resetday":       self.ResetDay,
+		"actbuytimes":    self.ActBuyTimes,
+		"jitianawardlst": self.JiTianAwardLst,
+		"buyitems":       self.BuyItems}})
 }
 
 func (self *TGuildModule) DB_ResetBuyLst() {
 	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"shoppinglst": self.ShoppingLst}})
+		"buyitems": self.BuyItems}})
 }
 
 func (self *TGuild) DB_Reset() {
@@ -119,10 +113,9 @@ func (self *TGuild) DB_Reset() {
 }
 
 //! 更新公会贡献
-func (self *TGuildModule) DB_AddGuildContribution() {
+func (self *TGuildModule) DB_UpdateHisContribution() {
 	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"historycontribution": self.HistoryContribution,
-		"todaycontribution":   self.TodayContribution}})
+		"hiscontribute": self.HisContribute}})
 }
 
 //! 更新公会等级
@@ -145,34 +138,22 @@ func (self *TGuildModule) DB_AddSacrificeMark(awardID int) {
 }
 
 //! 增加购买次数
-func (self *TGuildModule) DB_AddShoppingTimes(id int, times int) {
-	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID, "shoppinglst.id": id}, &bson.M{"$set": bson.M{
-		"shoppinglst.$.buytimes": times}})
+func (self *TGuildModule) DB_UpdateBuyInfo(nIndex int) {
+	filedName := fmt.Sprintf("buyitems.%d", nIndex)
+	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{filedName: self.BuyItems[nIndex]}})
 }
 
 //! 增加购买信息
-func (self *TGuildModule) DB_AddShoppingInfo(info TGuildShopInfo) {
-	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"shoppinglst": info}})
-}
-
-//! 更新刷新标记
-func (self *TGuild) DB_UpdateRefreshMark(index int) {
-	filedName := fmt.Sprintf("isrefresh.%d", index)
-	mongodb.UpdateToDB("Guild", &bson.M{"_id": self.GuildID}, &bson.M{"$set": bson.M{filedName: true}})
-}
-
-//! 减少购买次数
-func (self *TGuildModule) DB_SubFlashSaleTimes(id int, times int) {
-	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID, "shoppinglst.id": id}, &bson.M{"$set": bson.M{
-		"flashsalelst.$.buytimes": times}})
+func (self *TGuildModule) DB_AddBuyInfoLast() {
+	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$push": bson.M{"buyitems": self.BuyItems[len(self.BuyItems)-1]}})
 }
 
 //! 更新行动力
-func (self *TGuildModule) DB_UpdateCopyAction() {
+func (self *TGuildModule) DB_UpdateBattleTimes() {
 	mongodb.UpdateToDB("PlayerGuild", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"actiontimes":       self.ActionTimes,
-		"actionbuytimes":    self.ActionBuyTimes,
-		"actionrecovertime": self.ActionRecoverTime}})
+		"acttimes":    self.ActTimes,
+		"actbuytimes": self.ActBuyTimes,
+		"actrcrtime":  self.ActRcrTime}})
 }
 
 //! 更新最高伤害与攻击次数
@@ -185,8 +166,7 @@ func (self *TGuild) DB_UpdateDamageAndTimes(playerid int32, battleTimes int, bat
 //! 扣除公会副本阵营血量
 func (self *TGuild) DB_CostCampLife(copyID int, life int64) {
 	filedName := fmt.Sprintf("camplife.$.life")
-	mongodb.UpdateToDB("Guild", &bson.M{"_id": self.GuildID, "camplife.copyid": copyID}, &bson.M{"$set": bson.M{
-		filedName: life}})
+	mongodb.UpdateToDB("Guild", &bson.M{"_id": self.GuildID, "camplife.copyid": copyID}, &bson.M{"$set": bson.M{filedName: life}})
 }
 
 //! 增加通关章节记录
@@ -197,9 +177,9 @@ func (self *TGuild) DB_AddPassChapter(chapter PassAwardChapter) {
 //! 下一章节
 func (self *TGuild) DB_UpdateChapter() {
 	mongodb.UpdateToDB("Guild", &bson.M{"_id": self.GuildID}, &bson.M{"$set": bson.M{
-		"passchapter":        self.PassChapter,
-		"historypasschapter": self.HistoryPassChapter,
-		"camplife":           self.CampLife}})
+		"passchapter": self.PassChapter,
+		"hischapter":  self.HisChapter,
+		"camplife":    self.CampLife}})
 
 }
 

@@ -122,7 +122,7 @@ func Hand_GetRechargeAward(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 判断是否有过领取
-	if totalRechargeInfo.AwardMark.Get(uint32(req.Index)) == true {
+	if totalRechargeInfo.AwardMark.Get(req.Index) == true {
 		gamelog.Error("Hand_GetRechargeAward Error: Aleady reveice")
 		response.RetCode = msg.RE_ALREADY_RECEIVED
 		return
@@ -142,7 +142,7 @@ func Hand_GetRechargeAward(w http.ResponseWriter, r *http.Request) {
 	player.BagMoudle.AddAwardItems(award)
 
 	//! 修改标记
-	totalRechargeInfo.AwardMark.Set(uint32(req.Index))
+	totalRechargeInfo.AwardMark.Set(req.Index)
 	totalRechargeInfo.DB_UpdateRechargeMark(activityIndex, int(totalRechargeInfo.AwardMark))
 
 	response.RetCode = msg.RE_SUCCESS

@@ -6,6 +6,7 @@ import (
 	"gamesvr/gamedata"
 	"msg"
 	"net/http"
+	"utility"
 )
 
 //! 获取三国无双星数信息
@@ -99,12 +100,18 @@ func Hand_GetSangokuMuSou_CopyInfo(w http.ResponseWriter, r *http.Request) {
 
 	player.SangokuMusouModule.CheckReset()
 
+	//! 获取信息
+	response.RetCode = msg.RE_SUCCESS
+	response.BattleTimes = player.SangokuMusouModule.BattleTimes
+	response.PassCopyID = player.SangokuMusouModule.PassCopyID
+
+	if player.SangokuMusouModule.PassCopyID == 0 {
+		return
+	}
+
 	chapter := gamedata.GetSangokuMusouChapterInfo(player.SangokuMusouModule.PassCopyID + 1)
 
 	if chapter != nil {
-		chapterInfo := gamedata.GetSGWSChapterCopyLst(chapter.ChapterID)
-
-		gamelog.Info("Chapter: %d CopyID: %d", chapter.ChapterID, player.SangokuMusouModule.PassCopyID+1)
 		if chapter.ChapterID == 1 { //! 第一章不存在上一章节奖励领取
 
 			response.IsRecvAward = 1
@@ -124,6 +131,14 @@ func Hand_GetSangokuMuSou_CopyInfo(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
+	} else {
+		response.IsRecvAward = 1
+		response.IsSelectBuff = 1
+	}
+
+	chapter = gamedata.GetSangokuMusouChapterInfo(player.SangokuMusouModule.PassCopyID + 1)
+	if chapter != nil {
+		chapterInfo := gamedata.GetSGWSChapterCopyLst(chapter.ChapterID)
 		for i, v := range chapterInfo {
 			for _, n := range player.SangokuMusouModule.CopyInfoLst {
 				if v == n.CopyID {
@@ -131,15 +146,7 @@ func Hand_GetSangokuMuSou_CopyInfo(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 		}
-	} else {
-		response.IsRecvAward = 1
-		response.IsSelectBuff = 1
 	}
-
-	//! 获取信息
-	response.RetCode = msg.RE_SUCCESS
-	response.BattleTimes = player.SangokuMusouModule.BattleTimes
-	response.PassCopyID = player.SangokuMusouModule.PassCopyID
 
 }
 
@@ -195,11 +202,15 @@ func Hand_PassSangokuMusou_Copy(w http.ResponseWriter, r *http.Request) {
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
-	//! 解析消息
+	//MD5消息验证
+	if false == utility.MsgDataCheck(buffer, G_XorCode) {
+		//存在作弊的可能
+		gamelog.Error("Hand_PassSangokuMusou_Copy : Message Data Check Error!!!!")
+		return
+	}
 	var req msg.MSG_PassSangokuMusouCopy_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_PassSangokuMusou_Copy Unmarshal fail, Error: %s", err.Error())
+	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
+		gamelog.Error("Hand_PassSangokuMusou_Copy : Unmarshal error!!!!")
 		return
 	}
 
@@ -218,6 +229,12 @@ func Hand_PassSangokuMusou_Copy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	if req.CopyID <= 0 {
 		gamelog.Error("Hand_PassSangokuMusou_Copy copyID is invaild. id: %d", req.CopyID)
 		response.RetCode = msg.RE_INVALID_PARAM
@@ -235,6 +252,7 @@ func Hand_PassSangokuMusou_Copy(w http.ResponseWriter, r *http.Request) {
 
 	if player.SangokuMusouModule.IsEnd == true {
 		//! 挑战已经结束
+		gamelog.Error("Hand_PassSangokuMusou_Copy Error: Challenge aleady ended.")
 		response.RetCode = msg.RE_CHALLENGE_ALEADY_END
 		return
 	}
@@ -289,11 +307,15 @@ func Hand_PassSangokuMusou_EliteCopy(w http.ResponseWriter, r *http.Request) {
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
-	//! 解析消息
+	//! MD5消息验证
+	if false == utility.MsgDataCheck(buffer, G_XorCode) {
+		//存在作弊的可能
+		gamelog.Error("Hand_PassSangokuMusou_EliteCopy : Message Data Check Error!!!!")
+		return
+	}
 	var req msg.MSG_PassSangokuMusouEliteCopy_Req
-	err := json.Unmarshal(buffer, &req)
-	if err != nil {
-		gamelog.Error("Hand_PassSangokuMusou_Copy Unmarshal fail, Error: %s", err.Error())
+	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
+		gamelog.Error("Hand_PassSangokuMusou_EliteCopy : Unmarshal error!!!!")
 		return
 	}
 
@@ -311,6 +333,12 @@ func Hand_PassSangokuMusou_EliteCopy(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	//! 检测功能是否开启
 	if gamedata.IsFuncOpen(gamedata.FUNC_SANGUOWUSHUANG, player.GetLevel(), player.GetVipLevel()) == false {
@@ -458,6 +486,11 @@ func Hand_GetSangokuMusou_ChapterAward(w http.ResponseWriter, r *http.Request) {
 	chapterAward := gamedata.GetSangokuMusouChapterAwardInfo(chapter, starNum)
 	awardLst := gamedata.GetItemsFromAwardID(chapterAward.Award)
 	player.BagMoudle.AddAwardItems(awardLst)
+
+	response.AwardLst = []msg.MSG_ItemData{}
+	for _, v := range awardLst {
+		response.AwardLst = append(response.AwardLst, msg.MSG_ItemData{v.ItemID, v.ItemNum})
+	}
 
 	//! 增加奖励领取记录
 	player.SangokuMusouModule.ChapterAwardMark.Add(chapter)
@@ -851,7 +884,7 @@ func Hand_SangokuMusou_ResetCopy(w http.ResponseWriter, r *http.Request) {
 	//! 检测重制次数是否足够
 	resetTimes := gamedata.GetFuncVipValue(gamedata.FUNC_SANGUOWUSHUANG_RESET, player.GetVipLevel())
 	if player.SangokuMusouModule.BattleTimes >= resetTimes {
-		response.RetCode = msg.RE_REFRESH_TIMES_NOT_ENOUGH
+		response.RetCode = msg.RE_NOT_ENOUGH_REFRESH_TIMES
 		return
 	}
 
@@ -970,7 +1003,7 @@ func Hand_SangokuMusou_AddEliteCopy(w http.ResponseWriter, r *http.Request) {
 	resetTimes := gamedata.GetFuncVipValue(gamedata.FUNC_BUY_SANGUOWUSHUANG_ELITE_TIMES, player.GetVipLevel())
 
 	if player.SangokuMusouModule.AddEliteBattleTimes >= resetTimes {
-		response.RetCode = msg.RE_REFRESH_TIMES_NOT_ENOUGH
+		response.RetCode = msg.RE_NOT_ENOUGH_REFRESH_TIMES
 		return
 	}
 
@@ -1081,7 +1114,7 @@ func Hand_GetSangokuMusou_StoreItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 获取商品信息
-	itemInfo := gamedata.GetSangokumusouStoreInfo(req.ID)
+	itemInfo := gamedata.GetSangokumusouStoreInfo(int(req.ID))
 	if itemInfo == nil {
 		gamelog.Error("Hand_GetSangokuMusou_StoreItem get item info fail. ID: %d", req.ID)
 		return
@@ -1125,14 +1158,14 @@ func Hand_GetSangokuMusou_StoreItem(w http.ResponseWriter, r *http.Request) {
 		if isExist == false {
 			//! 没有购买该物品记录则创建新的记录
 			var info msg.MSG_BuyData
-			info.ID = itemInfo.ID
+			info.ID = int32(itemInfo.ID)
 			info.Times = 0
 			player.SangokuMusouModule.BuyRecord = append(player.SangokuMusouModule.BuyRecord, info)
 			player.SangokuMusouModule.DB_AddStoreItemBuyInfo(info)
 		}
 
 		for i, v := range player.SangokuMusouModule.BuyRecord {
-			if req.ID == v.ID {
+			if req.ID == int(v.ID) {
 				isExist = true
 				if v.Times+req.Num > itemInfo.BuyTimes {
 					response.RetCode = msg.RE_NOT_ENOUGH_TIMES
@@ -1204,43 +1237,6 @@ func Hand_GetSanguowsStatus(w http.ResponseWriter, r *http.Request) {
 	response.CurStar = player.SangokuMusouModule.CurStar
 	response.HistoryStar = player.SangokuMusouModule.HistoryStar
 
-	//! 闯关信息
-	chapter := gamedata.GetSangokuMusouChapterInfo(player.SangokuMusouModule.PassCopyID + 1)
-
-	if chapter != nil {
-		chapterInfo := gamedata.GetSGWSChapterCopyLst(chapter.ChapterID)
-
-		if chapter.ChapterID == 1 { //! 第一章不存在上一章节奖励领取
-
-			response.IsRecvAward = 1
-			response.IsSelectBuff = 1
-
-		} else {
-			if player.SangokuMusouModule.ChapterAwardMark.IsExist(chapter.ChapterID-1) >= 0 {
-				response.IsRecvAward = 1
-			} else {
-				response.IsRecvAward = 0
-			}
-
-			if player.SangokuMusouModule.ChapterBuffMark.IsExist(chapter.ChapterID-1) >= 0 {
-				response.IsSelectBuff = 1
-			} else {
-				response.IsSelectBuff = 0
-			}
-		}
-
-		for i, v := range chapterInfo {
-			for _, n := range player.SangokuMusouModule.CopyInfoLst {
-				if v == n.CopyID {
-					response.CopyLst[i] = n.StarNum
-				}
-			}
-		}
-	} else {
-		response.IsRecvAward = 1
-		response.IsSelectBuff = 1
-	}
-
 	//! 获取信息
 	response.RetCode = msg.RE_SUCCESS
 	response.BattleTimes = player.SangokuMusouModule.BattleTimes
@@ -1262,4 +1258,49 @@ func Hand_GetSanguowsStatus(w http.ResponseWriter, r *http.Request) {
 	//! 商店
 	response.ItemLst = player.SangokuMusouModule.BuyRecord
 	response.IsBuyTreasure = player.SangokuMusouModule.IsBuyTreasure
+
+	if player.SangokuMusouModule.PassCopyID == 0 {
+		return
+	}
+
+	//! 闯关信息
+	chapter := gamedata.GetSangokuMusouChapterInfo(player.SangokuMusouModule.PassCopyID + 1)
+
+	if chapter != nil {
+		if chapter.ChapterID == 1 { //! 第一章不存在上一章节奖励领取
+
+			response.IsRecvAward = 1
+			response.IsSelectBuff = 1
+
+		} else {
+			if player.SangokuMusouModule.ChapterAwardMark.IsExist(chapter.ChapterID-1) >= 0 {
+				response.IsRecvAward = 1
+			} else {
+				response.IsRecvAward = 0
+			}
+
+			if player.SangokuMusouModule.ChapterBuffMark.IsExist(chapter.ChapterID-1) >= 0 {
+				response.IsSelectBuff = 1
+			} else {
+				response.IsSelectBuff = 0
+			}
+		}
+
+	} else {
+		response.IsRecvAward = 1
+		response.IsSelectBuff = 1
+	}
+
+	chapter = gamedata.GetSangokuMusouChapterInfo(player.SangokuMusouModule.PassCopyID)
+	if chapter != nil {
+		chapterInfo := gamedata.GetSGWSChapterCopyLst(chapter.ChapterID)
+		for i, v := range chapterInfo {
+			for _, n := range player.SangokuMusouModule.CopyInfoLst {
+				if v == n.CopyID {
+					response.CopyLst[i] = n.StarNum
+				}
+			}
+		}
+	}
+
 }

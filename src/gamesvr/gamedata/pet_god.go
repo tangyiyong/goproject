@@ -20,7 +20,8 @@ type ST_PetGodInfo struct {
 }
 
 var (
-	GT_PetGod_List []ST_PetGodInfo = nil
+	GT_PetGod_List   []ST_PetGodInfo = nil
+	GT_Max_God_Level                 = 0
 )
 
 func InitPetGodParser(total int) bool {
@@ -45,6 +46,10 @@ func ParsePetGodRecord(rs *RecordSet) {
 	GT_PetGod_List[id].Levels[godlvl].Propertys[2].Value = rs.GetFieldInt("value3")
 	GT_PetGod_List[id].Levels[godlvl].Propertys[2].IsPercent = rs.GetFieldInt("is_percent3") == 1
 	GT_PetGod_List[id].Levels[godlvl].TotalExp = rs.GetFieldInt("total_exp")
+
+	if godlvl > GT_Max_God_Level {
+		GT_Max_God_Level = godlvl
+	}
 }
 
 func GetPetGodInfo(petID int, level int) *Pet_God {

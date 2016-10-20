@@ -62,6 +62,5 @@ func IsFuncOpen(funcid int, level int, viplevel int8) bool {
 	} else {
 		gamelog.Error("IsFuncOpen Error: invalid Logic %d", pFuncOpen.Logic)
 	}
-
 	return false
 }

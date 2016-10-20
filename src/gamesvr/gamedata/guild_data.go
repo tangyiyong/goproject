@@ -69,14 +69,6 @@ func GetGuildLevelFromExp(exp int, oldlevel int) int {
 }
 
 //! 公会角色表
-/*
-const (
-	Pose_Boss  = 1 //军团长
-	Pose_Deputy = 2 //副手
-	Pose_Member = 3 //会员
-)
-*/
-
 const (
 	Permission_Income       = iota //! 收人权限
 	Permission_UpdateNotice        //! 改公告
@@ -86,7 +78,6 @@ const (
 	Permission_ResetCopy           //! 重置副本章节
 	Permission_Change              //! 修改职位
 	Permission_Dissolution         //! 解散公会
-
 	Permission_End
 )
 
@@ -112,9 +103,9 @@ func ParseGuildRoleRecord(rs *RecordSet) {
 	}
 }
 
-func GetGuildRoleLimit(role int) int {
+func GetMaxRoleNum(role int) int {
 	if role >= Permission_End {
-		gamelog.Error("GetGuildRoleLimit Error: Invalid role %d", role)
+		gamelog.Error("GetMaxRoleNum Error: Invalid role %d", role)
 		return 0
 	}
 

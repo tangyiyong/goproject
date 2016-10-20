@@ -4,12 +4,13 @@ import (
 	"gamelog"
 	"sync"
 	"time"
+	"utility"
 )
 
 type TGameServerInfo struct {
 	SvrDomainID   int32
 	SvrDomainName string
-	UpdateTime    int64
+	UpdateTime    int32
 	SvrOutAddr    string
 	SvrInnerAddr  string //内部地址
 	IsSvrOK       bool   //服务器是否正常
@@ -27,7 +28,7 @@ func InitGameSvrMgr() {
 		regtimer := time.Tick(10 * time.Second)
 		for {
 			ListLock.Lock()
-			curtime := time.Now().Unix()
+			curtime := utility.GetCurTime()
 			for i := 0; i < 10000; i++ {
 				if G_ServerList[i].SvrDomainID <= 0 {
 					continue
@@ -60,7 +61,7 @@ func UpdateGameSvrInfo(domainid int32, svrname string, outaddr string, inaddr st
 		G_ServerList[domainid].SvrInnerAddr = inaddr
 		G_ServerList[domainid].SvrOutAddr = outaddr
 		G_ServerList[domainid].IsSvrOK = true
-		G_ServerList[domainid].UpdateTime = time.Now().Unix()
+		G_ServerList[domainid].UpdateTime = utility.GetCurTime()
 	} else {
 		if G_ServerList[domainid].SvrDomainName != svrname {
 			gamelog.Error("UpdateGameSvrInfo Error : %d has two domainname:%s, %s", domainid, svrname, G_ServerList[domainid].SvrDomainName)
@@ -69,7 +70,7 @@ func UpdateGameSvrInfo(domainid int32, svrname string, outaddr string, inaddr st
 		G_ServerList[domainid].SvrInnerAddr = inaddr
 		G_ServerList[domainid].SvrOutAddr = outaddr
 		G_ServerList[domainid].IsSvrOK = true
-		G_ServerList[domainid].UpdateTime = time.Now().Unix()
+		G_ServerList[domainid].UpdateTime = utility.GetCurTime()
 	}
 
 }

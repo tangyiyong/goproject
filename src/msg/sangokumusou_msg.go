@@ -126,7 +126,8 @@ type MSG_GetSangokuMusouChapterAward_Req struct {
 }
 
 type MSG_GetSangokuMusouChapterAward_Ack struct {
-	RetCode int
+	RetCode  int
+	AwardLst []MSG_ItemData
 }
 
 //! 请求随机章节属性奖励
@@ -246,8 +247,8 @@ type MSG_GetSangokuMusouStoreAleadyBuy_Req struct {
 }
 
 type MSG_BuyData struct {
-	ID    int //! 物品ID
-	Times int //! 购买次数
+	ID    int32 //! 物品ID
+	Times int   //! 购买次数
 }
 
 type MSG_GetSangokuMusouStoreAleadyBuy_Ack struct {

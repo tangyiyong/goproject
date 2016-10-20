@@ -10,11 +10,10 @@ import (
 	"mongodb"
 	"msg"
 	"net/http"
-	"time"
 	"utility"
 )
 
-func Hand_PlayerLoginGame(w http.ResponseWriter, r *http.Request) {
+func Hand_LoginGame(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
@@ -37,7 +36,7 @@ func Hand_PlayerLoginGame(w http.ResponseWriter, r *http.Request) {
 
 	var playerid = GetPlayerIDByAccountID(req.AccountID)
 
-	bcheck := true //CheckUserIsLogin(req.AccountID, playerid, req.LoginKey)
+	bcheck := CheckUserIsLogin(req.AccountID, playerid, req.LoginKey)
 	if !bcheck {
 		response.RetCode = msg.RE_INVALID_LOGINKEY
 		gamelog.Error("Invalid Login key!!!!!")
@@ -49,37 +48,7 @@ func Hand_PlayerLoginGame(w http.ResponseWriter, r *http.Request) {
 	response.RetCode = msg.RE_SUCCESS
 }
 
-func Hand_GetLoginData(w http.ResponseWriter, r *http.Request) {
-	gamelog.Info("message: %s", r.URL.String())
-	buffer := make([]byte, r.ContentLength)
-	r.Body.Read(buffer)
-
-	var req msg.MSG_EnterGameSvr_Req
-	if json.Unmarshal(buffer, &req) != nil {
-		gamelog.Error("Hand_GetLoginData : Unmarshal error!!!!")
-		return
-	}
-
-	var response msg.MSG_EnterGameSvr_Ack
-	defer func() {
-		b, _ := json.Marshal(&response)
-		w.Write(b)
-	}()
-
-	if !sessionmgr.CheckSessionKey(req.PlayerID, req.SessionKey) {
-		response.RetCode = msg.RE_INVALID_SESSIONKEY
-		return
-	}
-
-	var player *TPlayer = GetPlayerByID(req.PlayerID)
-	if player == nil {
-		gamelog.Error("Hand_GetLoginData Error : Invalid Playerid :%d", req.PlayerID)
-		return
-	}
-
-}
-
-func Hand_PlayerEnterGame(w http.ResponseWriter, r *http.Request) {
+func Hand_EnterGame(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
@@ -107,13 +76,21 @@ func Hand_PlayerEnterGame(w http.ResponseWriter, r *http.Request) {
 		player = LoadPlayerFromDB(req.PlayerID)
 		if player == nil {
 			gamelog.Error("Hand_PlayerEnterGame Error : Invalid Playerid :%d", req.PlayerID)
+			response.RetCode = msg.RE_INVALID_PLAYERID
 			return
 		}
 	}
 
+	//! 还原XorCode
+	var xorCode uint
+	for i := 0; i < 4; i++ {
+		index := 8 * (3 - i)
+		left := uint(G_XorCode[i])
+		xorCode = uint(xorCode) + left<<uint(index)
+	}
+	response.XorCode = int(xorCode)
 	player.OnPlayerOnline(req.PlayerID)
-	response.SvrTime = time.Now().Unix()
-
+	response.SvrTime = utility.GetCurTime()
 	response.ChatSvrAddr = appconfig.ChatSvrAddr
 	response.PlayerName = player.RoleMoudle.Name
 	response.FightValue = G_SimpleMgr.Get_FightValue(req.PlayerID)
@@ -127,6 +104,12 @@ func Hand_PlayerEnterGame(w http.ResponseWriter, r *http.Request) {
 
 	gamelog.Info("message: user_enter_game : %s", response.PlayerName)
 
+	if player.pSimpleInfo.LoginDay == 0 {
+		SendLogNotify(req.PlayerID, EVENT_LOGIN_GAME, player.GetLevel(), player.GetVipLevel(), 1, 0)
+	} else {
+		SendLogNotify(req.PlayerID, EVENT_LOGIN_GAME, player.GetLevel(), player.GetVipLevel(), 0, 0)
+	}
+
 	//! 玩家登陆
 	if player.IsTodayLogin() == false {
 		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_USER_LOGIN, 1)
@@ -134,10 +117,10 @@ func Hand_PlayerEnterGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	G_SimpleMgr.Set_LoginDay(req.PlayerID, utility.GetCurDay())
-	SendLogNotify(req.PlayerID, 1, 0, 0, 0, 0)
+
 }
 
-func Hand_PlayerLeaveGame(w http.ResponseWriter, r *http.Request) {
+func Hand_LeaveGame(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
@@ -163,13 +146,12 @@ func Hand_PlayerLeaveGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	player.OnPlayerOffline(req.PlayerID)
-
 	response.RetCode = msg.RE_SUCCESS
 	return
 }
 
 //
-func Hand_CreateNewPlayer(w http.ResponseWriter, r *http.Request) {
+func Hand_CreatePlayer(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
@@ -227,7 +209,7 @@ func Hand_CreateNewPlayer(w http.ResponseWriter, r *http.Request) {
 	G_LevelRanker.SetRankItem(pSimpleInfo.PlayerID, pSimpleInfo.Level)
 	G_FightRanker.SetRankItemEx(pSimpleInfo.PlayerID, 0, int(pSimpleInfo.FightValue))
 	mongodb.InsertToDB("PlayerSimple", pSimpleInfo)
-	SendLogNotify(pSimpleInfo.PlayerID, 2, 0, 0, 0, 0)
+	IncRegisterCnt()
 	return
 }
 
@@ -249,13 +231,14 @@ func Hand_QueryServerTime(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	if !sessionmgr.CheckSessionKey(req.PlayerID, req.SessionKey) {
-		response.RetCode = msg.RE_INVALID_SESSIONKEY
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
 		return
 	}
 
 	response.RetCode = msg.RE_SUCCESS
-	response.SvrTime = time.Now().Unix()
+	response.SvrTime = utility.GetCurTime()
 }
 
 func CheckCreatePlayer(accountid int32, name string) (int, *TSimpleInfo) {
@@ -288,6 +271,10 @@ func CheckCreatePlayer(accountid int32, name string) (int, *TSimpleInfo) {
 
 func CheckPlayerName(name string) int {
 	if len(name) <= 0 {
+		return msg.RE_INVALID_NAME
+	}
+
+	if len(name) > 20 {
 		return msg.RE_INVALID_NAME
 	}
 

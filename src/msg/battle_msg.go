@@ -1,9 +1,9 @@
 package msg;
 type MSG_HeroObj struct {
-	HeroID int32
-	ObjectID int32
-	CurHp int32
-	Position[5] float32
+	HeroID int32		//英雄ID
+	ObjectID int32		//英雄实例ID
+	CurHp int32		//英雄血量
+	Position[5] float32		//x,y,z,v,d, x, y,z,速度，方向
 }
 
 func (self *MSG_HeroObj) Read(reader *PacketReader) bool {
@@ -47,9 +47,10 @@ func (self *MSG_BattleObj) Write(writer *PacketWriter) {
 	return
 }
 
+//进入阵营战消息(Client)
 type MSG_EnterRoom_Req struct {
 	PlayerID int32
-	EnterCode int32
+	EnterCode int32		//进入码
 	MsgNo int32
 }
 
@@ -69,14 +70,14 @@ func (self *MSG_EnterRoom_Req) Write(writer *PacketWriter) {
 
 type MSG_EnterRoom_Ack struct {
 	BatCamp int8
-	CurRank int32
-	KillNum int32
-	KillHonor int32
-	LeftTimes int32
-	MoveEndTime int32
-	BeginMsgNo int32
-	SkillID[4] int32
-	Heros[6] MSG_HeroObj
+	CurRank int32		//今日排名
+	KillNum int32		//今日击杀
+	KillHonor int32		//今日杀人荣誉
+	LeftTimes int32		//剩余搬动次数
+	MoveEndTime int32		//搬运结束时间
+	BeginMsgNo int32		//起始消息编号
+	SkillID[4] int32		//四个技能ID
+	Heros[6] MSG_HeroObj		//六个英雄
 }
 
 func (self *MSG_EnterRoom_Ack) Read(reader *PacketReader) bool {
@@ -135,6 +136,7 @@ func (self *MSG_EnterRoom_Notify) Write(writer *PacketWriter) {
 	return
 }
 
+//(Client)
 type MSG_LeaveRoom_Req struct {
 	MsgNo int32
 	PlayerID int32
@@ -212,6 +214,7 @@ func (self *MSG_Skill_Item) Write(writer *PacketWriter) {
 	return
 }
 
+//(Client)
 type MSG_Skill_Req struct {
 	MsgNo int32
 	PlayerID int32
@@ -272,8 +275,9 @@ func (self *MSG_Move_Item) Write(writer *PacketWriter) {
 	return
 }
 
+//(Client)
 type MSG_Move_Req struct {
-	MsgNo int32
+	MsgNo int32		//消息编号
 	PlayerID int32
 	MoveEvents_Cnt int32
 	MoveEvents[] MSG_Move_Item
@@ -339,8 +343,9 @@ func (self *MSG_HeroState_Nty) Write(writer *PacketWriter) {
 	return
 }
 
+//玩家查询当前的水晶品质//(Client)
 type MSG_PlayerQuery_Req struct {
-	MsgNo int32
+	MsgNo int32		//消息编号
 	PlayerID int32
 }
 
@@ -356,10 +361,11 @@ func (self *MSG_PlayerQuery_Req) Write(writer *PacketWriter) {
 	return
 }
 
+//玩家查询当前的水晶品质回复
 type MSG_PlayerQuery_Ack struct {
-	RetCode int32
-	PlayerID int32
-	Quality int32
+	RetCode int32		//返回码
+	PlayerID int32		//玩家的ID
+	Quality int32		//水晶品质
 }
 
 func (self *MSG_PlayerQuery_Ack) Read(reader *PacketReader) bool {
@@ -376,8 +382,9 @@ func (self *MSG_PlayerQuery_Ack) Write(writer *PacketWriter) {
 	return
 }
 
+//(Client)
 type MSG_StartCarry_Req struct {
-	MsgNo int32
+	MsgNo int32		//消息编号
 	PlayerID int32
 }
 
@@ -394,10 +401,10 @@ func (self *MSG_StartCarry_Req) Write(writer *PacketWriter) {
 }
 
 type MSG_StartCarry_Ack struct {
-	RetCode int32
-	PlayerID int32
-	EndTime int32
-	LeftTimes int32
+	RetCode int32		//返回码
+	PlayerID int32		//玩家的ID
+	EndTime int32		//搬运截止时间
+	LeftTimes int32		//剩余搬动次数
 }
 
 func (self *MSG_StartCarry_Ack) Read(reader *PacketReader) bool {
@@ -416,8 +423,9 @@ func (self *MSG_StartCarry_Ack) Write(writer *PacketWriter) {
 	return
 }
 
+//(Client)
 type MSG_FinishCarry_Req struct {
-	MsgNo int32
+	MsgNo int32		//消息编号
 	PlayerID int32
 }
 
@@ -434,10 +442,10 @@ func (self *MSG_FinishCarry_Req) Write(writer *PacketWriter) {
 }
 
 type MSG_FinishCarry_Ack struct {
-	RetCode int32
-	PlayerID int32
-	MoneyID[2] int32
-	MoneyNum[2] int32
+	RetCode int32		//返回码
+	PlayerID int32		//玩家的ID
+	MoneyID[2] int32		//货币ID
+	MoneyNum[2] int32		//货币数量
 }
 
 func (self *MSG_FinishCarry_Ack) Read(reader *PacketReader) bool {
@@ -464,10 +472,11 @@ func (self *MSG_FinishCarry_Ack) Write(writer *PacketWriter) {
 	return
 }
 
+//(Client)
 type MSG_PlayerChange_Req struct {
-	MsgNo int32
+	MsgNo int32		//消息编号
 	PlayerID int32
-	HighQuality int32
+	HighQuality int32		//直接选择最高品质
 }
 
 func (self *MSG_PlayerChange_Req) Read(reader *PacketReader) bool {
@@ -485,9 +494,9 @@ func (self *MSG_PlayerChange_Req) Write(writer *PacketWriter) {
 }
 
 type MSG_PlayerChange_Ack struct {
-	RetCode int32
-	PlayerID int32
-	NewQuality int32
+	RetCode int32		//返回码
+	PlayerID int32		//玩家ID
+	NewQuality int32		//新的品质
 }
 
 func (self *MSG_PlayerChange_Ack) Read(reader *PacketReader) bool {
@@ -504,10 +513,11 @@ func (self *MSG_PlayerChange_Ack) Write(writer *PacketWriter) {
 	return
 }
 
+//(Client)
 type MSG_PlayerRevive_Req struct {
 	MsgNo int32
 	PlayerID int32
-	ReviveOpt int8
+	ReviveOpt int8		//复活选项
 }
 
 func (self *MSG_PlayerRevive_Req) Read(reader *PacketReader) bool {
@@ -525,14 +535,14 @@ func (self *MSG_PlayerRevive_Req) Write(writer *PacketWriter) {
 }
 
 type MSG_ServerRevive_Ack struct {
-	RetCode int32
-	ReviveOpt int8
-	PlayerID int32
-	Stay int32
-	ProInc int32
-	BuffTime int32
-	MoneyID int32
-	MoneyNum int32
+	RetCode int32		//返回码 复活结果
+	ReviveOpt int8		//复活选项
+	PlayerID int32		//玩家ID
+	Stay int32		//是否原地复活
+	ProInc int32		//属性增加比例
+	BuffTime int32		//buff时长
+	MoneyID int32		//货币ID
+	MoneyNum int32		//货币数
 }
 
 func (self *MSG_ServerRevive_Ack) Read(reader *PacketReader) bool {
@@ -559,14 +569,15 @@ func (self *MSG_ServerRevive_Ack) Write(writer *PacketWriter) {
 	return
 }
 
+//客户收到和复法返回消息
 type MSG_PlayerRevive_Ack struct {
-	RetCode int32
-	PlayerID int32
-	MoneyID int32
-	MoneyNum int32
-	BatCamp int8
-	Heros_Cnt int32
-	Heros[] MSG_HeroObj
+	RetCode int32		//返回码 复活结果
+	PlayerID int32		//玩家ID
+	MoneyID int32		//货币ID
+	MoneyNum int32		//货币数
+	BatCamp int8		//角色阵营
+	Heros_Cnt int32		//英雄数
+	Heros[] MSG_HeroObj		//英雄数据
 }
 
 func (self *MSG_PlayerRevive_Ack) Read(reader *PacketReader) bool {
@@ -596,8 +607,9 @@ func (self *MSG_PlayerRevive_Ack) Write(writer *PacketWriter) {
 	return
 }
 
+//玩家复活的通知消息
 type MSG_Revive_Nty struct {
-	BattleCamp int8
+	BattleCamp int8		//角色阵营
 	Heros_Cnt int32
 	Heros[] MSG_HeroObj
 }
@@ -622,10 +634,10 @@ func (self *MSG_Revive_Nty) Write(writer *PacketWriter) {
 }
 
 type MSG_KillEvent_Req struct {
-	PlayerID int32
-	Kill int32
-	Destroy int32
-	SeriesKill int32
+	PlayerID int32		//杀手
+	Kill int32		//杀人数
+	Destroy int32		//团灭数
+	SeriesKill int32		//连杀人数
 }
 
 func (self *MSG_KillEvent_Req) Read(reader *PacketReader) bool {
@@ -645,10 +657,10 @@ func (self *MSG_KillEvent_Req) Write(writer *PacketWriter) {
 }
 
 type MSG_KillEvent_Ack struct {
-	PlayerID int32
-	KillHonor int32
-	KillNum int32
-	CurRank int32
+	PlayerID int32		//杀手
+	KillHonor int32		//杀人荣誉
+	KillNum int32		//杀人数
+	CurRank int32		//当前排名
 }
 
 func (self *MSG_KillEvent_Ack) Read(reader *PacketReader) bool {
@@ -667,9 +679,10 @@ func (self *MSG_KillEvent_Ack) Write(writer *PacketWriter) {
 	return
 }
 
+//阵营战服务器向游戏服务器加载数据
 type MSG_LoadCampBattle_Req struct {
 	PlayerID int32
-	EnterCode int32
+	EnterCode int32		//进入码
 }
 
 func (self *MSG_LoadCampBattle_Req) Read(reader *PacketReader) bool {
@@ -685,14 +698,14 @@ func (self *MSG_LoadCampBattle_Req) Write(writer *PacketWriter) {
 }
 
 type MSG_LoadObject struct {
-	HeroID int32
-	Camp int8
-	PropertyValue[11] int32
-	PropertyPercent[11] int32
-	CampDef[5] int32
-	CampKill[5] int32
-	SkillID int32
-	AttackID int32
+	HeroID int32		//英雄ID
+	Camp int8		//英雄阵营
+	PropertyValue[11] int32		//数值属性
+	PropertyPercent[11] int32		//百分比属性
+	CampDef[5] int32		//抗阵营属性
+	CampKill[5] int32		//灭阵营属性
+	SkillID int32		//英雄技能
+	AttackID int32		//攻击属性ID
 }
 
 func (self *MSG_LoadObject) Read(reader *PacketReader) bool {
@@ -736,17 +749,17 @@ func (self *MSG_LoadObject) Write(writer *PacketWriter) {
 }
 
 type MSG_LoadCampBattle_Ack struct {
-	RetCode int32
-	PlayerID int32
-	BattleCamp int8
-	RoomType int32
-	Level int32
-	LeftTimes int32
-	MoveEndTime int32
-	CurRank int32
-	KillNum int32
-	KillHonor int32
-	Heros[6] MSG_LoadObject
+	RetCode int32		//返回码
+	PlayerID int32		//角色ID
+	BattleCamp int8		//角色阵营
+	RoomType int32		//房间类型
+	Level int32		//主角等级
+	LeftTimes int32		//剩余的移动次数
+	MoveEndTime int32		//搬运结束时间
+	CurRank int32		//今日排名
+	KillNum int32		//今日击杀
+	KillHonor int32		//今日杀人荣誉
+	Heros[6] MSG_LoadObject		//英雄对象
 }
 
 func (self *MSG_LoadCampBattle_Ack) Read(reader *PacketReader) bool {
@@ -783,8 +796,9 @@ func (self *MSG_LoadCampBattle_Ack) Write(writer *PacketWriter) {
 	return
 }
 
+//阵营战服务器向玩家通知新的技能
 type MSG_NewSkill_Nty struct {
-	NewSkillID int32
+	NewSkillID int32		//新的技能ID
 }
 
 func (self *MSG_NewSkill_Nty) Read(reader *PacketReader) bool {
@@ -797,6 +811,7 @@ func (self *MSG_NewSkill_Nty) Write(writer *PacketWriter) {
 	return
 }
 
+//游戏战斗目标数据
 type MSG_HeroData struct {
 	HeroID int32
 	PropertyValue[11] int32
@@ -839,6 +854,7 @@ func (self *MSG_HeroData) Write(writer *PacketWriter) {
 	return
 }
 
+//游戏战斗目标数据
 type MSG_PlayerData struct {
 	PlayerID int32
 	Quality int8
@@ -866,20 +882,29 @@ func (self *MSG_PlayerData) Write(writer *PacketWriter) {
 	return
 }
 
+//游戏服务器的运营数据
 type MSG_SvrLogData struct {
-	SvrID int32
-	PlayerID int32
-	EventID int32
-	Time int32
-	Param[4] int32
+	SvrID int32		//服务器ID
+	PlatID int32		//渠道ID
+	PlayerID int32		//玩家角色ID
+	EventID int32		//事件ID
+	SrcID int32		//来源ID
+	Time int32		//事件发生时间
+	Level int32		//角色等级
+	VipLvl int8		//角色VIP等级
+	Param[2] int32		//事件的参数
 }
 
 func (self *MSG_SvrLogData) Read(reader *PacketReader) bool {
 	self.SvrID = reader.ReadInt32()
+	self.PlatID = reader.ReadInt32()
 	self.PlayerID = reader.ReadInt32()
 	self.EventID = reader.ReadInt32()
+	self.SrcID = reader.ReadInt32()
 	self.Time = reader.ReadInt32()
-	for i := 0; i < int(4); i++ {
+	self.Level = reader.ReadInt32()
+	self.VipLvl = reader.ReadInt8()
+	for i := 0; i < int(2); i++ {
 		self.Param[i] = reader.ReadInt32()
 	}
 	return true
@@ -887,19 +912,24 @@ func (self *MSG_SvrLogData) Read(reader *PacketReader) bool {
 
 func (self *MSG_SvrLogData) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.SvrID)
+	writer.WriteInt32(self.PlatID)
 	writer.WriteInt32(self.PlayerID)
 	writer.WriteInt32(self.EventID)
+	writer.WriteInt32(self.SrcID)
 	writer.WriteInt32(self.Time)
-	for i := 0; i < int(4); i++ {
+	writer.WriteInt32(self.Level)
+	writer.WriteInt8(self.VipLvl)
+	for i := 0; i < int(2); i++ {
 		writer.WriteInt32(self.Param[i]);
 	}
 	return
 }
 
+//游戏服务器的心跳消息//(Client)
 type MSG_HeartBeat_Req struct {
 	MsgNo int32
-	SendID int32
-	BeatCode int32
+	SendID int32		//客户端是玩家ID, 服务器是服务器ID
+	BeatCode int32		//心跳码
 }
 
 func (self *MSG_HeartBeat_Req) Read(reader *PacketReader) bool {
@@ -917,7 +947,7 @@ func (self *MSG_HeartBeat_Req) Write(writer *PacketWriter) {
 }
 
 type MSG_HeroAllDie_Nty struct {
-	NtyCode int32
+	NtyCode int32		//通知类型，暂不用
 }
 
 func (self *MSG_HeroAllDie_Nty) Read(reader *PacketReader) bool {
@@ -930,11 +960,12 @@ func (self *MSG_HeroAllDie_Nty) Write(writer *PacketWriter) {
 	return
 }
 
+//(Client)
 type MSG_CmapBatChat_Req struct {
-	MsgNo int32
-	PlayerID int32
-	Name string
-	Content string
+	MsgNo int32		//消息编号
+	PlayerID int32		//角色ID
+	Name string		//角色名
+	Content string		//消息内容
 }
 
 func (self *MSG_CmapBatChat_Req) Read(reader *PacketReader) bool {
@@ -954,7 +985,7 @@ func (self *MSG_CmapBatChat_Req) Write(writer *PacketWriter) {
 }
 
 type MSG_CmapBatChat_Ack struct {
-	RetCode int32
+	RetCode int32		//聊天请求返回码
 }
 
 func (self *MSG_CmapBatChat_Ack) Read(reader *PacketReader) bool {

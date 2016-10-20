@@ -7,53 +7,46 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"strconv"
-	"time"
+	"utility"
 )
 
-type TLevelGiftInfo struct {
-	GiftID   int   //! 礼包ID
+type TLevelGift struct {
+	GiftID   int32 //! 礼包ID
 	BuyTimes int   //! 当前可购买次数
-	DeadLine int64 //! 过期时间
+	DeadLine int32 //! 过期时间
 }
 
 //! 等级礼包
 type TActivityLevelGift struct {
-	ActivityID int //! 活动ID
-
-	GiftLst       []TLevelGiftInfo //! 等级礼包
-	IsHaveNewItem bool             //! 红点显示规则
-
-	VersionCode int32 //! 版本号
-	ResetCode   int32 //! 迭代号
-
-	activityModule *TActivityModule //! 指针
+	ActivityID  int32            //! 活动ID
+	GiftLst     []TLevelGift     //! 等级礼包
+	HaveNew     bool             //! 红点显示规则
+	VersionCode int32            //! 版本号
+	ResetCode   int32            //! 迭代号
+	modulePtr   *TActivityModule //! 指针
 }
 
 //! 赋值基础数据
 func (self *TActivityLevelGift) SetModulePtr(mPtr *TActivityModule) {
-	self.activityModule = mPtr
-	self.activityModule.activityPtrs[self.ActivityID] = self
+	self.modulePtr = mPtr
+	self.modulePtr.activityPtrs[self.ActivityID] = self
 }
 
 //! 创建初始化
-func (self *TActivityLevelGift) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityLevelGift) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
-	self.activityModule = mPtr
-
-	self.GiftLst = []TLevelGiftInfo{}
-	self.IsHaveNewItem = false
-
-	self.activityModule.activityPtrs[activityID] = self
+	self.modulePtr = mPtr
+	self.GiftLst = []TLevelGift{}
+	self.HaveNew = false
+	self.modulePtr.activityPtrs[activityID] = self
 	self.VersionCode = vercode
 	self.ResetCode = resetcode
 }
 
 //! 刷新数据
 func (self *TActivityLevelGift) Refresh(versionCode int32) {
-	//! 检测物品过期
 	self.CheckDeadLine()
-
 	self.VersionCode = versionCode
 	self.DB_Refresh()
 }
@@ -61,9 +54,8 @@ func (self *TActivityLevelGift) Refresh(versionCode int32) {
 func (self *TActivityLevelGift) End(versionCode int32, resetCode int32) {
 	self.VersionCode = versionCode
 	self.ResetCode = resetCode
-
-	self.GiftLst = []TLevelGiftInfo{}
-	self.IsHaveNewItem = false
+	self.GiftLst = []TLevelGift{}
+	self.HaveNew = false
 	self.DB_Reset()
 }
 
@@ -81,7 +73,7 @@ func (self *TActivityLevelGift) RedTip() bool {
 		return false
 	}
 
-	if self.IsHaveNewItem == true {
+	if self.HaveNew == true {
 		return true
 	}
 
@@ -89,10 +81,10 @@ func (self *TActivityLevelGift) RedTip() bool {
 }
 
 //! 获取等级礼包信息
-func (self *TActivityLevelGift) GetLevelGiftInfo(giftID int) *TLevelGiftInfo {
+func (self *TActivityLevelGift) GetLevelGift(id int32) *TLevelGift {
 	length := len(self.GiftLst)
 	for i := 0; i < length; i++ {
-		if self.GiftLst[i].GiftID == giftID {
+		if self.GiftLst[i].GiftID == id {
 			return &self.GiftLst[i]
 		}
 	}
@@ -110,8 +102,7 @@ func (self *TActivityLevelGift) CheckLevelUp(level int) {
 	giftLst := gamedata.GetLevelGiftLst(awardType)
 	length := len(giftLst)
 
-	now := time.Now().Unix()
-
+	now := utility.GetCurTime()
 	for i := 0; i < length; i++ {
 		needLevel, _ := strconv.Atoi(giftLst[i].Level)
 		if needLevel > level {
@@ -127,12 +118,12 @@ func (self *TActivityLevelGift) CheckLevelUp(level int) {
 		}
 
 		if isExist == false {
-			var gift TLevelGiftInfo
+			var gift TLevelGift
 			gift.GiftID = giftLst[i].ID
 			gift.BuyTimes = giftLst[i].BuyTimes
-			gift.DeadLine = now + int64(giftLst[i].DeadLine)
+			gift.DeadLine = now + giftLst[i].DeadLine
 			self.GiftLst = append(self.GiftLst, gift)
-			self.IsHaveNewItem = true
+			self.HaveNew = true
 			self.DB_AddGift(&gift)
 		}
 	}
@@ -140,7 +131,7 @@ func (self *TActivityLevelGift) CheckLevelUp(level int) {
 
 //! 检测过期时间
 func (self *TActivityLevelGift) CheckDeadLine() {
-	now := time.Now().Unix()
+	now := utility.GetCurTime()
 	length := len(self.GiftLst)
 	for i := 0; i < length; i++ {
 		if self.GiftLst[i].DeadLine <= now || self.GiftLst[i].BuyTimes == 0 { //! 过期或者可购买次数为零
@@ -161,36 +152,30 @@ func (self *TActivityLevelGift) CheckDeadLine() {
 }
 
 func (self *TActivityLevelGift) DB_Refresh() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
 		"levelgift.versioncode": self.VersionCode}})
 }
 
 func (self *TActivityLevelGift) DB_Reset() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
-		"levelgift.activityid":    self.ActivityID,
-		"levelgift.resetcode":     self.ResetCode,
-		"levelgift.ishavenewitem": self.IsHaveNewItem,
-		"levelgift.giftlst":       self.GiftLst,
-		"levelgift.versioncode":   self.VersionCode}})
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
+		"levelgift.activityid":  self.ActivityID,
+		"levelgift.resetcode":   self.ResetCode,
+		"levelgift.havenew":     self.HaveNew,
+		"levelgift.giftlst":     self.GiftLst,
+		"levelgift.versioncode": self.VersionCode}})
 }
 
-func (self *TActivityLevelGift) DB_RemoveDeadGift(gift *TLevelGiftInfo) {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$pull": bson.M{"levelgift.giftlst": *gift}})
+func (self *TActivityLevelGift) DB_RemoveDeadGift(gift *TLevelGift) {
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$pull": bson.M{"levelgift.giftlst": *gift}})
 }
 
-func (self *TActivityLevelGift) DB_AddGift(gift *TLevelGiftInfo) {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$push": bson.M{"levelgift.giftlst": *gift}})
-
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
-		"levelgift.ishavenewitem": self.IsHaveNewItem}})
+func (self *TActivityLevelGift) DB_AddGift(gift *TLevelGift) {
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$push": bson.M{"levelgift.giftlst": *gift}})
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{
+		"levelgift.havenew": self.HaveNew}})
 }
 
-func (self *TActivityLevelGift) DB_UpdateGiftLst() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID}, &bson.M{"$set": bson.M{
-		"levelgift.giftlst": self.GiftLst}})
-}
-
-func (self *TActivityLevelGift) DB_UpdateBuyTimes(id int, times int) {
+func (self *TActivityLevelGift) DB_UpdateBuyTimes(id int32, times int) {
 	index := -1
 	for i, v := range self.GiftLst {
 		if v.GiftID == id {
@@ -204,11 +189,9 @@ func (self *TActivityLevelGift) DB_UpdateBuyTimes(id int, times int) {
 	}
 
 	filedName := fmt.Sprintf("levelgift.giftlst.%d.buytimes", index)
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
-		&bson.M{"$set": bson.M{filedName: times}})
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{filedName: times}})
 }
 
 func (self *TActivityLevelGift) DB_UpdateNewItemMark() {
-	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.activityModule.PlayerID},
-		&bson.M{"$set": bson.M{"levelgift.ishavenewitem": self.IsHaveNewItem}})
+	mongodb.UpdateToDB("PlayerActivity", &bson.M{"_id": self.modulePtr.PlayerID}, &bson.M{"$set": bson.M{"levelgift.havenew": self.HaveNew}})
 }

@@ -6,7 +6,6 @@ import (
 	"gamesvr/gamedata"
 	"msg"
 	"net/http"
-	"time"
 	"utility"
 )
 
@@ -91,7 +90,7 @@ func Hand_SetBoss(w http.ResponseWriter, r *http.Request) {
 	if player.HangMoudle.CurBossID != 0 {
 		player.HangMoudle.ReceiveHangUpProduce()
 	}
-	player.HangMoudle.StartTime = time.Now().Unix()
+	player.HangMoudle.StartTime = utility.GetCurTime()
 	player.HangMoudle.CurBossID = req.BossID
 	player.HangMoudle.DB_SaveHangUpState()
 	response.CurBossID = req.BossID
@@ -138,7 +137,7 @@ func Hand_QuickFight(w http.ResponseWriter, r *http.Request) {
 
 	maxtime := gamedata.GetFuncVipValue(gamedata.FUNC_HANGUP_QUICKTIME, player.GetVipLevel())
 	if player.HangMoudle.QuickTime >= maxtime {
-		response.RetCode = msg.RE_REFRESH_TIMES_NOT_ENOUGH
+		response.RetCode = msg.RE_NOT_ENOUGH_REFRESH_TIMES
 		gamelog.Error("Hand_QuickFight : Time Limit:%d", maxtime)
 		return
 	}
@@ -151,10 +150,10 @@ func Hand_QuickFight(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			player.HangMoudle.History = append(player.HangMoudle.History, msg.THisHang{player.HangMoudle.CurBossID, pHangUpInfo.ProduceID,
-				pHangUpInfo.ProduceNum, time.Now().Unix()})
+				pHangUpInfo.ProduceNum, utility.GetCurTime()})
 		} else {
 			player.HangMoudle.History = append(player.HangMoudle.History, msg.THisHang{player.HangMoudle.CurBossID, pHangUpInfo.ProduceID,
-				0, time.Now().Unix()})
+				0, utility.GetCurTime()})
 		}
 	}
 	player.HangMoudle.QuickTime += 1

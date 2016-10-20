@@ -46,7 +46,9 @@ func Hand_GetBagData(w http.ResponseWriter, r *http.Request) {
 	response.WakeItems = player.BagMoudle.WakeItemBag.Items
 	response.Normals = player.BagMoudle.NormalItemBag.Items
 	response.HeroSouls = player.BagMoudle.HeroSoulBag.Items
-
+	response.Fashions = player.BagMoudle.FashionBag.Fashions
+	response.FasPieces = player.BagMoudle.FashionPieceBag.Items
+	response.ColPets = player.BagMoudle.ColPets
 	response.RetCode = msg.RE_SUCCESS
 
 	return
@@ -83,7 +85,7 @@ func Hand_GetBagHeros(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-//请求背包中的所有装备
+//0
 func Hand_GetBagEquips(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 	buffer := make([]byte, r.ContentLength)
@@ -348,10 +350,14 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 			moneyid = pHeroInfo.SellID
 			moneynum += pHeroInfo.SellPrice
 		}
+
+		var dels []int = make([]int, 0, 5)
 		for _, item := range req.Items {
 			player.BagMoudle.RemoveHeroAt(item.Pos)
+			dels = append(dels, item.Pos)
 		}
-		player.BagMoudle.DB_SaveHeroBag()
+
+		player.BagMoudle.DB_RemoveHeros(dels)
 	} else if req.ItemType == gamedata.TYPE_EQUIPMENT {
 		//进行参数检查
 		for _, item := range req.Items {
@@ -385,10 +391,12 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 			moneyid = pEquipInfo.SellID[0]
 			moneynum += pEquipInfo.SellPrice[0]
 		}
+		var dels []int = make([]int, 0, 5)
 		for _, item := range req.Items {
 			player.BagMoudle.RemoveEquipAt(item.Pos)
+			dels = append(dels, item.Pos)
 		}
-		player.BagMoudle.DB_SaveBagEquips()
+		player.BagMoudle.DB_RemoveEquips(dels)
 	} else if req.ItemType == gamedata.TYPE_GEM {
 		//进行参数检查
 		for _, item := range req.Items {
@@ -422,10 +430,12 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 			moneyid = pGemInfo.SellID
 			moneynum += pGemInfo.SellPrice
 		}
+		var dels []int = make([]int, 0, 5)
 		for _, item := range req.Items {
 			player.BagMoudle.RemoveGemAt(item.Pos)
+			dels = append(dels, item.Pos)
 		}
-		player.BagMoudle.DB_SaveGemBag()
+		player.BagMoudle.DB_RemoveGems(dels)
 	} else if req.ItemType == gamedata.TYPE_PET {
 		//进行参数检查
 		for _, item := range req.Items {
@@ -576,6 +586,8 @@ func Hand_UseItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	response.Items = make([]msg.MSG_ItemData, 0)
+
 	switch pItemInfo.SubType {
 	case gamedata.SUB_TYPE_MONEY: //货币道具，使用后直接增加货币
 		{
@@ -603,20 +615,23 @@ func Hand_UseItem(w http.ResponseWriter, r *http.Request) {
 				player.BagMoudle.AddAwardItem(item.ID, item.Num)
 				player.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
 			} else {
-				awardLst := gamedata.GetItemsFromAwardID(pItemInfo.Data1)
-				for _, v := range awardLst {
-					var item msg.MSG_ItemData
-					item.ID = v.ItemID
-					item.Num = v.ItemNum
-					response.Items = append(response.Items, item)
+				for j := 0; j < req.ItemNum; j++ {
+					awardLst := gamedata.GetItemsFromAwardID(pItemInfo.Data1)
+					for i := 0; i < len(awardLst); i++ {
+						var item msg.MSG_ItemData
+						item.ID = awardLst[i].ItemID
+						item.Num = awardLst[i].ItemNum
+						response.Items = append(response.Items, item)
+					}
+					player.BagMoudle.AddAwardItems(awardLst)
 				}
 				player.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
-				player.BagMoudle.AddAwardItems(awardLst)
 			}
 		}
-	case gamedata.SUB_TYPE_CHARGE: //礼包道具, 使用后获得礼包里的道具
+	case gamedata.SUB_TYPE_CHARGE: //
 		{
-
+			player.OnChargeMoney(pItemInfo.Data1*req.ItemNum, 0)
+			player.BagMoudle.RemoveNormalItem(req.ItemID, req.ItemNum)
 		}
 	default:
 		{

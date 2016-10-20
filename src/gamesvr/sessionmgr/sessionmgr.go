@@ -3,14 +3,14 @@ package sessionmgr
 import (
 	"fmt"
 	"sync"
-	"time"
+	"utility"
 
 	"gopkg.in/mgo.v2/bson"
 )
 
 var (
 	SessionKeyMap map[int32]string = make(map[int32]string, 1024)
-	LoginTimeMap  map[int32]int64  = make(map[int32]int64, 1024)
+	LoginTimeMap  map[int32]int32  = make(map[int32]int32, 1024)
 	SessionMutex  sync.Mutex
 )
 
@@ -19,7 +19,7 @@ func AddSessionKey(playerid int32, sessionkey string) {
 	defer SessionMutex.Unlock()
 
 	SessionKeyMap[playerid] = sessionkey
-	LoginTimeMap[playerid] = time.Now().Unix()
+	LoginTimeMap[playerid] = utility.GetCurTime()
 }
 
 func NewSessionKey() string {
@@ -34,7 +34,7 @@ func CheckLoginTime(playerid int32) bool {
 		return true
 	}
 
-	if (time.Now().Unix() - logintime) < 5 {
+	if (utility.GetCurTime() - logintime) < 5 {
 		return false
 	}
 

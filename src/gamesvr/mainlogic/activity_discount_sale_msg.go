@@ -40,7 +40,7 @@ func Hand_QueryActivityDiscountSaleInfo(w http.ResponseWriter, r *http.Request) 
 
 	player.ActivityModule.CheckReset()
 
-	var activity *TActivityDiscountSale
+	var activity *TActivityDiscount
 	for i, v := range player.ActivityModule.DiscountSale {
 		if v.ActivityID == req.ActivityID {
 			activity = &player.ActivityModule.DiscountSale[i]
@@ -104,7 +104,7 @@ func Hand_BuyDiscountSaleItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检测当前是否有此活动
-	var activity *TActivityDiscountSale
+	var activity *TActivityDiscount
 	var activityIndex int
 	for i, v := range player.ActivityModule.DiscountSale {
 		if v.ActivityID == req.ActivityID {
@@ -175,10 +175,8 @@ func Hand_BuyDiscountSaleItem(w http.ResponseWriter, r *http.Request) {
 
 	//! 扣除货币
 	player.RoleMoudle.CostMoney(goodsInfo.MoneyID, goodsInfo.MoneyNum*req.Count)
-
 	response.MoneyID = goodsInfo.MoneyID
 	response.MoneyNum = goodsInfo.MoneyNum * req.Count
-
 	awardLst := gamedata.GetItemsFromAwardID(goodsInfo.Award)
 
 	//! 判断是否为多选

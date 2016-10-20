@@ -2,25 +2,20 @@ package mainlogic
 
 import (
 	"appconfig"
+	"fmt"
 	"gamelog"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
+	"msg"
 	"sync"
 	"utility"
-
-	"gopkg.in/mgo.v2/bson"
 )
 
-//! 购物
-type TItemShoppingInfo struct {
-	ItemID   int //! 物品ID
-	ItemType int //! 购买物品类型
-	BuyTimes int //! 购物次数
-}
-
 type TMallModule struct {
-	PlayerID     int32 `bson:"_id"`
-	ShoppingInfo []TItemShoppingInfo
-	ResetDay     uint32 //! 重置时间
+	PlayerID     int32             `bson:"_id"`
+	NormalRecord []msg.MSG_BuyData //普通商品的次数
+	VipBagRecord Int32Lst          //VIP礼包商店的次数
+	ResetDay     uint32            //! 重置时间
 	ownplayer    *TPlayer
 }
 
@@ -35,9 +30,11 @@ func (self *TMallModule) OnCreate(playerid int32) {
 	self.PlayerID = playerid
 
 	self.ResetDay = utility.GetCurDay()
+	self.NormalRecord = []msg.MSG_BuyData{}
+	self.VipBagRecord = Int32Lst{}
 
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerMall", self)
+	mongodb.InsertToDB("PlayerMall", self)
 }
 
 //! 玩家销毁角色
@@ -81,58 +78,40 @@ func (self *TMallModule) CheckReset() {
 
 func (self *TMallModule) OnNewDay(newday uint32) {
 	self.ResetDay = newday
-	for i := 0; i < len(self.ShoppingInfo); i++ {
-		//! 普通商品购买次数刷新
-		if self.ShoppingInfo[i].ItemType == 0 {
-			self.ShoppingInfo[i].BuyTimes = 0
-		}
+	for i := 0; i < len(self.NormalRecord); i++ {
+		self.NormalRecord[i].Times = 0
 	}
 
-	self.UpdateResetShoppingInfo()
-}
-
-//! 获取用户已购买的VIP礼包
-func (self *TMallModule) GetUserAleadyShoppingGift(goodstype int) (itemLst IntLst) {
-	for _, v := range self.ShoppingInfo {
-		if v.ItemType == goodstype {
-			itemLst = append(itemLst, v.ItemID)
-		}
-	}
-
-	return itemLst
+	self.UpdateNormalRecord()
 }
 
 //! 获取购买次数
-func (self *TMallModule) GetItemShoppingInfo(id int) *TItemShoppingInfo {
-	for i, v := range self.ShoppingInfo {
-		if v.ItemID == id {
-			return &self.ShoppingInfo[i]
+func (self *TMallModule) GetItemBuyData(id int32) *msg.MSG_BuyData {
+	for i := 0; i < len(self.NormalRecord); i++ {
+		if self.NormalRecord[i].ID == id {
+			return &self.NormalRecord[i]
 		}
 	}
 	return nil
 }
 
-//! 增加购买次数
-func (self *TMallModule) AddItemShoppingTimes(id int, times int) {
-
-	for i := 0; i < len(self.ShoppingInfo); i++ {
-		if self.ShoppingInfo[i].ItemID == id {
-			self.ShoppingInfo[i].BuyTimes = self.ShoppingInfo[i].BuyTimes + times
-			self.UpdateShoppingInfo()
-		}
-	}
-
-}
-
 //! 数据库重置购买次数
-func (self *TMallModule) UpdateResetShoppingInfo() {
+func (self *TMallModule) UpdateNormalRecord() {
 	mongodb.UpdateToDB("PlayerMall", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"shoppinginfo": self.ShoppingInfo,
+		"normalrecord": self.NormalRecord,
 		"resetday":     self.ResetDay}})
 }
 
-//! 存储购买物品信息
-func (self *TMallModule) UpdateShoppingInfo() {
+//! 数据库重置购买次数
+func (self *TMallModule) UpdateVipBagRecord() {
 	mongodb.UpdateToDB("PlayerMall", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
-		"shoppinginfo": self.ShoppingInfo}})
+		"vipbagrecord": self.VipBagRecord}})
 }
+
+//! 数据库重置购买次数
+func (self *TMallModule) UpdateNormalRecordAt(nIndex int) {
+	filedName := fmt.Sprintf("normalrecord.%d", nIndex)
+	mongodb.UpdateToDB("PlayerMall", &bson.M{"_id": self.PlayerID}, &bson.M{"$set": bson.M{
+		filedName: self.NormalRecord[nIndex]}})
+}
+

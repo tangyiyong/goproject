@@ -22,6 +22,7 @@ var (
 	G_FoodWarRanker      utility.TRanker //夺粮战排行榜
 	G_WanderRanker       utility.TRanker //云游排行榜
 	G_HeroSoulsRanker    utility.TRanker //将灵排行榜
+	G_ScoreRaceRanker    utility.TRanker //积分赛排行榜
 
 	G_HuntTreasureTodayRanker     utility.TRanker //巡回探宝今日排行榜
 	G_HuntTreasureYesterdayRanker utility.TRanker //巡回探宝昨日排行榜
@@ -100,6 +101,9 @@ func InitRankMgr() {
 
 	//阵营战排行榜
 	InitCampBattleRanker()
+
+	//阵营战排行榜
+	InitScoreRaceRanker()
 }
 
 //公会副本排行榜
@@ -109,15 +113,18 @@ func InitGuildCopyRanker() bool {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	var guilds []TGuild
-	err := s.DB(appconfig.GameDbName).C("Guild").Find(nil).Sort("-historypasschapter").Limit(50).All(&guilds)
+	var results []struct {
+		GuildID    int32 `bson:"_id"` //! 军团ID
+		HisChapter int32 //! 公会副本历史通关
+	}
+	err := s.DB(appconfig.GameDbName).C("Guild").Find(nil).Sort("-hischapter").Limit(50).All(&results)
 	if err != nil && err != mgo.ErrNotFound {
 		gamelog.Error("InitGuildCopyRanker DB Error!!!")
 		return false
 	}
 
-	for i := 0; i < len(guilds); i++ {
-		G_GuildCopyRanker.SetRankItem(guilds[i].GuildID, int(guilds[i].HistoryPassChapter))
+	for i := 0; i < len(results); i++ {
+		G_GuildCopyRanker.SetRankItem(results[i].GuildID, int(results[i].HisChapter))
 	}
 
 	return true
@@ -130,15 +137,18 @@ func InitGuildLevelRanker() bool {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	var guilds []TGuild
-	err := s.DB(appconfig.GameDbName).C("Guild").Find(nil).Sort("-level").Limit(50).All(&guilds)
+	var results []struct {
+		GuildID int32 `bson:"_id"` //! 军团ID
+		Level   int   //! 军团等级
+	}
+	err := s.DB(appconfig.GameDbName).C("Guild").Find(nil).Sort("-level").Limit(50).All(&results)
 	if err != nil && err != mgo.ErrNotFound {
 		gamelog.Error("InitGuildLevelRanker DB Error!!!")
 		return false
 	}
 
-	for i := 0; i < len(guilds); i++ {
-		G_GuildLevelRanker.SetRankItem(guilds[i].GuildID, guilds[i].Level)
+	for i := 0; i < len(results); i++ {
+		G_GuildLevelRanker.SetRankItem(results[i].GuildID, results[i].Level)
 	}
 
 	return true
@@ -151,15 +161,18 @@ func InitLevelRanker() bool {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	var simplevec []TSimpleInfo
-	err := s.DB(appconfig.GameDbName).C("PlayerSimple").Find(nil).Sort("-level").Limit(200).All(&simplevec)
+	var results []struct {
+		PlayerID int32 `bson:"_id"` //! 角色ID
+		Level    int   //! 军团等级
+	}
+	err := s.DB(appconfig.GameDbName).C("PlayerSimple").Find(nil).Sort("-level").Limit(200).All(&results)
 	if err != nil && err != mgo.ErrNotFound {
 		gamelog.Error("InitLevelRanker DB Error!!!")
 		return false
 	}
 
-	for i := 0; i < len(simplevec); i++ {
-		G_LevelRanker.SetRankItem(simplevec[i].PlayerID, simplevec[i].Level)
+	for i := 0; i < len(results); i++ {
+		G_LevelRanker.SetRankItem(results[i].PlayerID, results[i].Level)
 	}
 
 	return true
@@ -168,19 +181,42 @@ func InitLevelRanker() bool {
 //战力排行榜
 func InitFightRanker() bool {
 	G_FightRanker.InitRanker(50, 200)
-
 	s := mongodb.GetDBSession()
 	defer s.Close()
-
-	var simplevec []TSimpleInfo
-	err := s.DB(appconfig.GameDbName).C("PlayerSimple").Find(nil).Sort("-fightvalue").Limit(200).All(&simplevec)
+	var results []struct {
+		PlayerID   int32 `bson:"_id"` //! 角色ID
+		FightValue int32 //! 战力
+	}
+	err := s.DB(appconfig.GameDbName).C("PlayerSimple").Find(nil).Sort("-fightvalue").Limit(200).All(&results)
 	if err != nil && err != mgo.ErrNotFound {
 		gamelog.Error("InitFightRanker DB Error!!!")
 		return false
 	}
 
-	for i := 0; i < len(simplevec); i++ {
-		G_FightRanker.SetRankItem(simplevec[i].PlayerID, int(simplevec[i].FightValue))
+	for i := 0; i < len(results); i++ {
+		G_FightRanker.SetRankItem(results[i].PlayerID, int(results[i].FightValue))
+	}
+
+	return true
+}
+
+//积分赛排行榜
+func InitScoreRaceRanker() bool {
+	G_ScoreRaceRanker.InitRanker(50, 200)
+	s := mongodb.GetDBSession()
+	defer s.Close()
+	var results []struct {
+		PlayerID int32 `bson:"_id"` //! 角色ID
+		Score    int   //! 积分
+	}
+	err := s.DB(appconfig.GameDbName).C("PlayerScore").Find(nil).Sort("-score").Limit(200).All(&results)
+	if err != nil && err != mgo.ErrNotFound {
+		gamelog.Error("InitScoreRaceRanker DB Error!!!")
+		return false
+	}
+
+	for i := 0; i < len(results); i++ {
+		G_ScoreRaceRanker.SetRankItem(results[i].PlayerID, results[i].Score)
 	}
 
 	return true
@@ -189,11 +225,14 @@ func InitFightRanker() bool {
 //叛军功勋排行榜
 func InitRebelExploitRanker() bool {
 	G_RebelExploitRanker.InitRanker(5, 200)
-	rankLst := []TRebelModule{}
-	mongodb.Find_Sort(appconfig.GameDbName, "PlayerRebel", "exploit", -1, 200, &rankLst)
+	var results []struct {
+		PlayerID int32 `bson:"_id"` //! 角色ID
+		Exploit  int   //! 功勋
+	}
+	mongodb.Find_Sort(appconfig.GameDbName, "PlayerRebel", "exploit", -1, 200, &results)
 
-	for _, v := range rankLst {
-		G_RebelExploitRanker.SetRankItem(v.PlayerID, v.Exploit)
+	for i := 0; i < len(results); i++ {
+		G_RebelExploitRanker.SetRankItem(results[i].PlayerID, results[i].Exploit)
 	}
 
 	return true
@@ -202,11 +241,14 @@ func InitRebelExploitRanker() bool {
 //叛军伤害排行榜
 func InitRebelDamageRanker() bool {
 	G_RebelDamageRanker.InitRanker(5, 200)
-	rankLst := []TRebelModule{}
-	mongodb.Find_Sort(appconfig.GameDbName, "PlayerRebel", "damage", -1, 200, &rankLst)
+	var results []struct {
+		PlayerID int32 `bson:"_id"` //! 角色ID
+		Damage   int   //! 功勋
+	}
 
-	for _, v := range rankLst {
-		G_RebelDamageRanker.SetRankItem(v.PlayerID, int(v.Damage))
+	mongodb.Find_Sort(appconfig.GameDbName, "PlayerRebel", "damage", -1, 200, &results)
+	for i := 0; i < len(results); i++ {
+		G_RebelDamageRanker.SetRankItem(results[i].PlayerID, results[i].Damage)
 	}
 
 	return true
@@ -215,10 +257,13 @@ func InitRebelDamageRanker() bool {
 //三国无双排行榜
 func InitSgwsRanker() bool {
 	G_SgwsStarRanker.InitRanker(5, 200)
-	playerLst := []TSangokuMusouModule{}
-	mongodb.Find_Sort(appconfig.GameDbName, "PlayerSangokuMusou", "historystar", -1, 200, &playerLst)
-	for _, v := range playerLst {
-		G_SgwsStarRanker.SetRankItem(v.PlayerID, v.HistoryStar)
+	var results []struct {
+		PlayerID    int32 `bson:"_id"` //! 角色ID
+		HistoryStar int   //! 功勋
+	}
+	mongodb.Find_Sort(appconfig.GameDbName, "PlayerSangokuMusou", "historystar", -1, 200, &results)
+	for i := 0; i < len(results); i++ {
+		G_SgwsStarRanker.SetRankItem(results[i].PlayerID, results[i].HistoryStar)
 	}
 
 	return true
@@ -227,10 +272,13 @@ func InitSgwsRanker() bool {
 //夺粮战排行榜
 func InitFoodWarRanker() bool {
 	G_FoodWarRanker.InitRanker(5, 200)
-	rankLst := []TFoodWarModule{}
-	mongodb.Find_Sort(appconfig.GameDbName, "PlayerFoodWar", "totalfood", -1, 200, &rankLst)
-	for _, v := range rankLst {
-		G_FoodWarRanker.SetRankItem(v.PlayerID, v.TotalFood)
+	var results []struct {
+		PlayerID  int32 `bson:"_id"` //! 角色ID
+		TotalFood int   //! 功勋
+	}
+	mongodb.Find_Sort(appconfig.GameDbName, "PlayerFoodWar", "totalfood", -1, 200, &results)
+	for i := 0; i < len(results); i++ {
+		G_FoodWarRanker.SetRankItem(results[i].PlayerID, results[i].TotalFood)
 	}
 
 	return true
@@ -239,19 +287,20 @@ func InitFoodWarRanker() bool {
 //云游排行榜
 func InitWanderRanker() bool {
 	G_WanderRanker.InitRanker(10, 50)
-
 	s := mongodb.GetDBSession()
 	defer s.Close()
-
-	var wandervec []TWanderModule
-	err := s.DB(appconfig.GameDbName).C("PlayerWander").Find(nil).Sort("-maxcopyid").Limit(50).All(&wandervec)
+	var results []struct {
+		PlayerID  int32 `bson:"_id"` //! 角色ID
+		MaxCopyID int   //! 功勋
+	}
+	err := s.DB(appconfig.GameDbName).C("PlayerWander").Find(nil).Sort("-maxcopyid").Limit(50).All(&results)
 	if err != nil && err != mgo.ErrNotFound {
 		gamelog.Error("InitLevelRanker DB Error!!!")
 		return false
 	}
 
-	for i := 0; i < len(wandervec); i++ {
-		G_WanderRanker.SetRankItem(wandervec[i].PlayerID, wandervec[i].MaxCopyID)
+	for i := 0; i < len(results); i++ {
+		G_WanderRanker.SetRankItem(results[i].PlayerID, results[i].MaxCopyID)
 	}
 
 	return true
@@ -261,7 +310,6 @@ func InitWanderRanker() bool {
 func InitHeroSoulsRanker() bool {
 	//! 初始化参数
 	G_HeroSoulsRanker.InitRanker(20, 200)
-
 	rankLst := []THeroSoulsModule{}
 	mongodb.Find_Sort(appconfig.GameDbName, "PlayerHeroSouls", "soulmapvalue", -1, 200, &rankLst)
 	for _, v := range rankLst {
@@ -284,7 +332,6 @@ func InitHuntTreasureRanker() bool {
 
 	G_HuntTreasureTodayRanker.InitRanker(20, 50)
 	rankLst = []TActivityModule{}
-
 	filedName := fmt.Sprintf("hunttreasure.todayscore.%d", utility.GetCurDayMod())
 	mongodb.Find_Sort(appconfig.GameDbName, "PlayerActivity", filedName, -1, 50, &rankLst)
 	for _, v := range rankLst {
@@ -419,10 +466,8 @@ func InitCampBattleRanker() bool {
 	G_CampBat_CampDestroy[2].InitRanker(20, 50)
 	G_CampBat_KillSum.InitRanker(20, 50)
 	G_CampBat_DestroySum.InitRanker(20, 50)
-
 	s := mongodb.GetDBSession()
 	defer s.Close()
-
 	var result []TCampBattleModule
 	err := s.DB(appconfig.GameDbName).C("PlayerCampBat").Find(bson.M{"battlecamp": bson.M{"$gt": 0}}).Sort("-kill").Limit(50).All(&result)
 	if err != nil && err != mgo.ErrNotFound {

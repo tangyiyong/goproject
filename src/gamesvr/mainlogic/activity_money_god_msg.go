@@ -8,6 +8,7 @@ import (
 	"msg"
 	"net/http"
 	"time"
+	"utility"
 )
 
 //! 查询迎财神活动信息
@@ -54,7 +55,7 @@ func Hand_QueryActivityMoneyGodInfo(w http.ResponseWriter, r *http.Request) {
 	response.CurrentTimes = player.ActivityModule.MoneyGod.CurrentTimes
 	response.TotalMoney = player.ActivityModule.MoneyGod.TotalMoney
 
-	response.NextTime = player.ActivityModule.MoneyGod.NextTime - time.Now().Unix()
+	response.NextTime = player.ActivityModule.MoneyGod.NextTime - utility.GetCurTime()
 	if response.NextTime < 0 {
 		response.NextTime = 0
 	}
@@ -136,13 +137,13 @@ func Hand_WelcomeMoneyGold(w http.ResponseWriter, r *http.Request) {
 	response.MoneyNum = moneyInfo.MoneyNum * player.GetLevel()
 
 	//! 设置时间
-	player.ActivityModule.MoneyGod.NextTime = time.Now().Unix() + int64(moneyInfo.CDTime)
+	player.ActivityModule.MoneyGod.NextTime = utility.GetCurTime() + int32(moneyInfo.CDTime)
 	player.ActivityModule.MoneyGod.CurrentTimes -= 1
 	player.ActivityModule.MoneyGod.CumulativeTimes += 1
 	player.ActivityModule.MoneyGod.TotalMoney += response.MoneyNum
 
 	response.TotalMoney = player.ActivityModule.MoneyGod.TotalMoney
-	response.NextTime = player.ActivityModule.MoneyGod.NextTime - time.Now().Unix()
+	response.NextTime = player.ActivityModule.MoneyGod.NextTime - utility.GetCurTime()
 	if response.NextTime < 0 {
 		response.NextTime = 0
 	}

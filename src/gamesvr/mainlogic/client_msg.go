@@ -5,7 +5,7 @@ import (
 	"gamelog"
 	"gamesvr/tcpclient"
 	"msg"
-	"time"
+	"utility"
 )
 
 func Hand_Connect(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
@@ -66,10 +66,18 @@ func Hand_OnlineNotify(pTcpConn *tcpclient.TCPConn, extra int16, pdata []byte) {
 		return
 	}
 
+	if pSimple.isOnline != req.Online {
+		if req.Online == true {
+			IncOnlineCnt()
+		} else {
+			DecOnlineCnt()
+		}
+	}
+
 	pSimple.isOnline = req.Online
 
 	if req.Online == false {
-		pSimple.LogoffTime = time.Now().Unix()
+		pSimple.LogoffTime = utility.GetCurTime()
 		G_SimpleMgr.DB_SetLogoffTime(req.PlayerID, pSimple.LogoffTime)
 	}
 

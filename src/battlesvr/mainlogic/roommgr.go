@@ -27,47 +27,47 @@ var (
 
 func InitRoomMgr() bool {
 	for i := int16(0); i < 1000; i++ {
-		G_RoomMgr.LowRooms[i].Init(i+1, Room_Type_Low)
-		G_RoomMgr.HighRooms[i].Init(i+HighRooM_StartID, Room_Type_High)
+		G_RoomMgr.LowRooms[i].Init(i + 1)
+		G_RoomMgr.HighRooms[i].Init(i + HighRooM_StartID)
 	}
 	return true
 }
 
-func (mgr *TRoomMgr) GetRoomByID(roomid int16) *TBattleRoom {
+func (self *TRoomMgr) GetRoomByID(roomid int16) *TBattleRoom {
 	if roomid <= 0 {
 		gamelog.Error("GetRoomByID Error : Invalid roomid :%d", roomid)
 		return nil
 	}
 
 	if roomid < HighRooM_StartID {
-		return &mgr.LowRooms[roomid-1]
+		return &self.LowRooms[roomid-1]
 	} else {
-		return &mgr.HighRooms[roomid-HighRooM_StartID]
+		return &self.HighRooms[roomid-HighRooM_StartID]
 	}
 
 	return nil
 }
 
-func (mgr *TRoomMgr) AddPlayerToRoom(roomtype int32, batcamp int8, pBattleObj *TBattleObj) int16 {
-	mgr.Lock()
-	defer mgr.Unlock()
+func (self *TRoomMgr) AddPlayerToRoom(roomtype int32, batcamp int8, pBattleObj *TBattleObj) int16 {
+	self.Lock()
+	defer self.Unlock()
 
 	if roomtype == Room_Type_Low {
-		for i := 0; i < len(mgr.LowRooms); i++ {
-			if mgr.LowRooms[i].CampNum[batcamp-1] >= max_one_camp_player {
+		for i := 0; i < len(self.LowRooms); i++ {
+			if self.LowRooms[i].CampNum[batcamp-1] >= camp_player_num {
 				continue
 			} else {
-				mgr.LowRooms[i].AddPlayer(pBattleObj)
-				return mgr.LowRooms[i].RoomID
+				self.LowRooms[i].AddPlayer(pBattleObj)
+				return self.LowRooms[i].RoomID
 			}
 		}
 	} else if roomtype == Room_Type_High {
-		for i := 0; i < len(mgr.HighRooms); i++ {
-			if mgr.HighRooms[i].CampNum[batcamp-1] >= max_one_camp_player {
+		for i := 0; i < len(self.HighRooms); i++ {
+			if self.HighRooms[i].CampNum[batcamp-1] >= camp_player_num {
 				continue
 			} else {
-				mgr.HighRooms[i].AddPlayer(pBattleObj)
-				return mgr.HighRooms[i].RoomID
+				self.HighRooms[i].AddPlayer(pBattleObj)
+				return self.HighRooms[i].RoomID
 			}
 		}
 	} else {
@@ -77,20 +77,20 @@ func (mgr *TRoomMgr) AddPlayerToRoom(roomtype int32, batcamp int8, pBattleObj *T
 	return 0
 }
 
-func (mgr *TRoomMgr) RemovePlayerFromRoom(roomid int16, playerid int32) bool {
+func (self *TRoomMgr) RemovePlayerFromRoom(roomid int16, playerid int32) bool {
 	if roomid <= 0 || playerid <= 0 {
 		gamelog.Error("GetPlayerHeroIDs Error : Invalid roomid :%d and playerid:%d", roomid, playerid)
 		return false
 	}
 
-	mgr.Lock()
-	defer mgr.Unlock()
+	self.Lock()
+	defer self.Unlock()
 
 	var pRoom *TBattleRoom = nil
 	if roomid < HighRooM_StartID {
-		pRoom = &mgr.LowRooms[roomid-1]
+		pRoom = &self.LowRooms[roomid-1]
 	} else {
-		pRoom = &mgr.HighRooms[roomid-HighRooM_StartID]
+		pRoom = &self.HighRooms[roomid-HighRooM_StartID]
 	}
 
 	pRoom.RemovePlayer(playerid)

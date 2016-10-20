@@ -4,12 +4,12 @@ import (
 	"appconfig"
 	"gamelog"
 	"gamesvr/gamedata"
+	"gopkg.in/mgo.v2/bson"
 	"math/rand"
 	"mongodb"
 	"sync"
 	"time"
-
-	"gopkg.in/mgo.v2/bson"
+	"utility"
 )
 
 var G_GemPlayersIndex int
@@ -24,7 +24,7 @@ type RobPlayerInfo struct {
 
 type TRobModule struct {
 	PlayerID    int32 `bson:"_id"`
-	FreeWarTime int64 //! 免战时间
+	FreeWarTime int32 //! 免战时间
 	ownplayer   *TPlayer
 }
 
@@ -38,7 +38,7 @@ func (self *TRobModule) OnCreate(playerid int32) {
 	self.FreeWarTime = 0
 
 	//! 插入数据库
-	mongodb.InsertToDB( "PlayerRob", self)
+	mongodb.InsertToDB("PlayerRob", self)
 }
 
 func (self *TRobModule) OnDestroy(playerid int32) {
@@ -71,10 +71,10 @@ func (self *TRobModule) OnPlayerLoad(playerid int32, wg *sync.WaitGroup) {
 //! 使用物品免战牌接口
 func (self *TRobModule) AddFreeWarTime(freeTime int) {
 	if self.FreeWarTime == 0 {
-		self.FreeWarTime = time.Now().Unix() + int64(freeTime)
+		self.FreeWarTime = utility.GetCurTime() + int32(freeTime)
 	} else {
 		//! 若已处于免战时间,则累加时间
-		self.FreeWarTime = self.FreeWarTime + int64(freeTime)
+		self.FreeWarTime = self.FreeWarTime + int32(freeTime)
 	}
 
 	self.UpdateFreeWarTime()
@@ -82,7 +82,7 @@ func (self *TRobModule) AddFreeWarTime(freeTime int) {
 
 //! 刷新免战时间
 func (self *TRobModule) RefreshFreeWarTime() {
-	now := time.Now().Unix()
+	now := utility.GetCurTime()
 	if now >= self.FreeWarTime { //! 免战时间结束
 		self.FreeWarTime = 0
 		self.UpdateFreeWarTime()
@@ -98,7 +98,7 @@ func (self *TRobModule) GetRobList(itemID int, exclude Int32Lst) (robPlayerLst [
 
 	for i := G_GemPlayersIndex; i < len(G_SelectPlayers); i++ {
 		//! 检查是否处于免战时间
-		if time.Now().Unix() < G_SelectPlayers[i].RobModule.FreeWarTime {
+		if utility.GetCurTime() < G_SelectPlayers[i].RobModule.FreeWarTime {
 			continue
 		}
 		if G_SelectPlayers[i].BagMoudle.GetGemPieceCount(itemID) > 0 {

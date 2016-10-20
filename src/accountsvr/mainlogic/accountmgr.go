@@ -6,7 +6,7 @@ import (
 	"mongodb"
 	"msg"
 	"sync"
-	"time"
+	"utility"
 
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -16,14 +16,13 @@ const Start_Account_ID = 10000 //10000以下的ID留给服务器使用。
 
 //账号表结构
 type TAccount struct {
-	AccountID  int32  `bson:"_id"` //账号ID
+	ID         int32  `bson:"_id"` //账号ID
 	Name       string //账户名
-	Password   string //密码
-	CreateTime int64  //创建时间
-	LastLgTime int64  //上次登录时间
-	LoginCount int    //登录次数
-	DeviceID   int    //设备ID
-	Forbidden  bool   //是否禁用
+	Pwd        string //密码
+	CreateTime int32  //创建时间
+	LastTime   int32  //上次登录时间
+	Platform   int32  //平台ID
+	Enable     int32  //是否禁用
 	LastSvrID  int32  //上次登录的GameSvrID
 }
 
@@ -31,7 +30,7 @@ type TAccountMgr struct {
 	accmutex       sync.Mutex
 	curAccountID   int32
 	accountNameMap map[string]int32
-	accountMap     map[int32]TAccount
+	accountMap     map[int32]*TAccount
 	loginKeyMap    map[int32]string
 }
 
@@ -39,86 +38,108 @@ var (
 	G_AccountMgr TAccountMgr
 )
 
-func (accountmgr *TAccountMgr) GetAccountByName(name string) (TAccount, bool) {
-	accountmgr.accmutex.Lock()
-	defer accountmgr.accmutex.Unlock()
-	id, ok := accountmgr.accountNameMap[name]
+func (self *TAccountMgr) GetAccountByName(name string) (*TAccount, bool) {
+	self.accmutex.Lock()
+	defer self.accmutex.Unlock()
+	id, ok := self.accountNameMap[name]
 	if ok && (id > 0) {
-		return accountmgr.accountMap[id], true
+		return self.accountMap[id], true
 	}
 
-	return TAccount{}, false
+	return nil, false
 }
 
-func (accountmgr *TAccountMgr) ResetAccount(name string, password string, newname string, newpassword string) bool {
-	accountmgr.accmutex.Lock()
-	accountid, ok := accountmgr.accountNameMap[name]
+func (self *TAccountMgr) GetAccountByID(id int32) (*TAccount, bool) {
+	self.accmutex.Lock()
+	defer self.accmutex.Unlock()
+	pAccount, ok := self.accountMap[id]
+	if ok && (pAccount != nil) {
+		return pAccount, true
+	}
+
+	return nil, false
+}
+
+func (self *TAccountMgr) ResetAccount(name string, password string, newname string, newpassword string) bool {
+	self.accmutex.Lock()
+	accountid, ok := self.accountNameMap[name]
 	if ok != true || accountid <= 0 {
-		accountmgr.accmutex.Unlock()
+		self.accmutex.Unlock()
 		return false
 	}
 
-	_, ok = accountmgr.accountNameMap[newname]
+	_, ok = self.accountNameMap[newname]
 	if ok == true {
 		//新的账号己被人使用
-		accountmgr.accmutex.Unlock()
+		self.accmutex.Unlock()
 		return false
 	}
 
-	var account TAccount = accountmgr.accountMap[accountid]
-	account.Name = newname
-	account.Password = newpassword
-	accountmgr.accountMap[accountid] = account
-	accountmgr.accountNameMap[newname] = account.AccountID
-	delete(accountmgr.accountNameMap, name)
-	accountmgr.accmutex.Unlock()
+	var pAccount *TAccount = self.accountMap[accountid]
+	pAccount.Name = newname
+	pAccount.Pwd = newpassword
+	self.accountNameMap[newname] = pAccount.ID
+	delete(self.accountNameMap, name)
+	self.accmutex.Unlock()
 	mongodb.UpdateToDB("Account", &bson.M{"_id": accountid}, &bson.M{"$set": bson.M{
 		"name":     newname,
 		"password": newpassword}})
 	return true
 }
 
-func (accountmgr *TAccountMgr) AddNewAccount(name string, password string) (*TAccount, int) {
-	accountmgr.accmutex.Lock()
-	_, ok := accountmgr.accountNameMap[name]
+func (self *TAccountMgr) AddNewAccount(name string, password string) (*TAccount, int) {
+	self.accmutex.Lock()
+	_, ok := self.accountNameMap[name]
 	if ok == true {
-		accountmgr.accmutex.Unlock()
+		self.accmutex.Unlock()
 		return nil, msg.RE_ACCOUNT_EXIST
 	}
 
 	var account TAccount
-	account.CreateTime = time.Now().Unix()
-	account.DeviceID = 1
-	account.Forbidden = false
-	account.LoginCount = 1
+	account.CreateTime = utility.GetCurTime()
+	account.Enable = 1
 	account.Name = name
-	account.Password = password
+	account.Pwd = password
 	account.LastSvrID = 0
-	account.AccountID = accountmgr.GetNextAccountID()
-	accountmgr.accountMap[account.AccountID] = account
-	accountmgr.accountNameMap[name] = account.AccountID
-	accountmgr.accmutex.Unlock()
+	account.ID = self.GetNextAccountID()
+	self.accountMap[account.ID] = &account
+	self.accountNameMap[name] = account.ID
+	self.accmutex.Unlock()
 	return &account, msg.RE_SUCCESS
 }
 
-func (accountmgr *TAccountMgr) GetNextAccountID() (ret int32) {
-	ret = accountmgr.curAccountID
-	accountmgr.curAccountID += 1
+func (self *TAccountMgr) GetNextAccountID() (ret int32) {
+	ret = self.curAccountID
+	self.curAccountID += 1
 	return
 }
 
-func (accountmgr *TAccountMgr) AddLoginKey(accountid int32, loginkey string) {
-	accountmgr.accmutex.Lock()
-	defer accountmgr.accmutex.Unlock()
-	accountmgr.loginKeyMap[accountid] = loginkey
+func (self *TAccountMgr) AddLoginKey(accountid int32, loginkey string) {
+	self.accmutex.Lock()
+	defer self.accmutex.Unlock()
+	self.loginKeyMap[accountid] = loginkey
 	return
 }
 
-func (accountmgr *TAccountMgr) CheckLoginKey(accountid int32, loginkey string) bool {
-	accountmgr.accmutex.Lock()
-	defer accountmgr.accmutex.Unlock()
+func (self *TAccountMgr) ResetLastSvrID(accountid int32, svrid int32) {
+	self.accmutex.Lock()
+	defer self.accmutex.Unlock()
+	pAccount, ok := self.accountMap[accountid]
+	if pAccount == nil || ok == false {
+		gamelog.Error("ResetLastSvrID Error!!!, invalid accountid:%d", accountid)
+		return
+	}
 
-	key, ok := accountmgr.loginKeyMap[accountid]
+	pAccount.LastSvrID = svrid
+
+	return
+}
+
+func (self *TAccountMgr) CheckLoginKey(accountid int32, loginkey string) bool {
+	self.accmutex.Lock()
+	defer self.accmutex.Unlock()
+
+	key, ok := self.loginKeyMap[accountid]
 	if ok {
 		if key == loginkey {
 			return true
@@ -141,17 +162,16 @@ func InitAccountMgr() bool {
 	if len(accountset) <= 0 {
 		G_AccountMgr.curAccountID = Start_Account_ID
 	} else {
-		G_AccountMgr.curAccountID = accountset[len(accountset)-1].AccountID + 1
+		G_AccountMgr.curAccountID = accountset[len(accountset)-1].ID + 1
 	}
 
 	G_AccountMgr.accountNameMap = make(map[string]int32, 1024)
-	G_AccountMgr.accountMap = make(map[int32]TAccount, 1024)
+	G_AccountMgr.accountMap = make(map[int32]*TAccount, 1024)
 	G_AccountMgr.loginKeyMap = make(map[int32]string, 1024)
 
-	var acc TAccount
-	for _, acc = range accountset {
-		G_AccountMgr.accountNameMap[acc.Name] = acc.AccountID
-		G_AccountMgr.accountMap[acc.AccountID] = acc
+	for i := 0; i < len(accountset); i++ {
+		G_AccountMgr.accountNameMap[accountset[i].Name] = accountset[i].ID
+		G_AccountMgr.accountMap[accountset[i].ID] = &accountset[i]
 	}
 	return true
 }

@@ -4,15 +4,15 @@ import (
 	"gamesvr/gamedata"
 	"gopkg.in/mgo.v2/bson"
 	"mongodb"
-	"time"
+	"utility"
 )
 
 type TActivityMoneyGod struct {
-	ActivityID      int              //! 活动ID
+	ActivityID      int32            //! 活动ID
 	CurrentTimes    int              //! 当前剩余领取次数
 	CumulativeTimes int              //! 当前累积次数
 	TotalMoney      int              //! 累积银币
-	NextTime        int64            //! 下次迎财神时间
+	NextTime        int32            //! 下次迎财神时间
 	VersionCode     int32            //! 版本号
 	ResetCode       int32            //! 迭代号
 	activityModule  *TActivityModule //! 活动模块指针
@@ -25,7 +25,7 @@ func (self *TActivityMoneyGod) SetModulePtr(mPtr *TActivityModule) {
 }
 
 //! 创建初始化
-func (self *TActivityMoneyGod) Init(activityID int, mPtr *TActivityModule, vercode int32, resetcode int32) {
+func (self *TActivityMoneyGod) Init(activityID int32, mPtr *TActivityModule, vercode int32, resetcode int32) {
 	delete(mPtr.activityPtrs, self.ActivityID)
 	self.ActivityID = activityID
 	self.CurrentTimes = 3
@@ -72,7 +72,7 @@ func (self *TActivityMoneyGod) RedTip() bool {
 	}
 
 	self.CheckMoneyGod()
-	now := time.Now().Unix()
+	now := utility.GetCurTime()
 	//! 可迎财神
 	if now >= self.NextTime && self.CurrentTimes > 0 {
 		return true
@@ -90,7 +90,7 @@ func (self *TActivityMoneyGod) RedTip() bool {
 
 //! 迎财神时间检测
 func (self *TActivityMoneyGod) CheckMoneyGod() {
-	now := time.Now().Unix()
+	now := utility.GetCurTime()
 	if now < self.NextTime || self.CurrentTimes == 0 || self.NextTime == 0 {
 		return
 	}

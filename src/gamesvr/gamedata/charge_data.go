@@ -46,15 +46,6 @@ func GetChargeItem(id int) *ST_ChargeItem {
 func GetChargeItemCount() int {
 	return len(GT_ChargeItemList)
 }
-func GetMonthCardCount() (ret int) {
-	for _, v := range GT_ChargeItemList {
-		if v.Type == 1 {
-			ret = v.ID + 1
-		}
-	}
-	gamelog.Info("GetMonthCardCount: %d", ret)
-	return
-}
 
 //! 获取优惠充值取值区间
 func GetDiscountChargeIDSection() (int, int) {

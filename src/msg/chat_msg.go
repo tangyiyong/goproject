@@ -16,14 +16,14 @@ type MSG_CheckIn_Req struct {
 
 //MSG_CHATMSG_REQ
 type MSG_Chat_Req struct {
-	SourceName     string
-	TargetChannel  int
-	TargetGuildID  int32
-	TargetName     string
-	TargetPlayerID int32
-	MsgContent     string
-	HeroID         int
-	Quality        int8
+	SrcName string
+	Channel int
+	GuildID int32
+	DstName string
+	DstID   int32
+	Content string
+	HeroID  int
+	Quality int8
 }
 
 //MSG_CHATMSG_ACK
@@ -34,13 +34,13 @@ type MSG_Chat_Ack struct {
 //聊天服向客户端发的消息
 //MSG_CHATMSG_NOTIFY
 type MSG_Chat_Msg_Notify struct {
-	SourcePlayerID int32
-	SourceName     string
-	TargetChannel  int
-	TargetGuildID  int32
-	MsgContent     string
-	HeroID         int
-	Quality        int8
+	SrcID   int32
+	SrcName string
+	Channel int
+	GuildID int32
+	Content string
+	HeroID  int
+	Quality int8
 }
 
 type MSG_CheckIn_Ack struct {
