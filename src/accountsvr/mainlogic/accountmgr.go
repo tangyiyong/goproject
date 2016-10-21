@@ -100,6 +100,7 @@ func (self *TAccountMgr) AddNewAccount(name string, password string) (*TAccount,
 	account.Enable = 1
 	account.Name = name
 	account.Pwd = password
+	account.LastTime = utility.GetCurTime()
 	account.LastSvrID = 0
 	account.ID = self.GetNextAccountID()
 	self.accountMap[account.ID] = &account
@@ -133,6 +134,18 @@ func (self *TAccountMgr) ResetLastSvrID(accountid int32, svrid int32) {
 	pAccount.LastSvrID = svrid
 
 	return
+}
+
+func (self *TAccountMgr) ResetLastLoginTime(accountID int32, loginTime int32) {
+	self.accmutex.Lock()
+	defer self.accmutex.Unlock()
+	pAccount, ok := self.accountMap[accountID]
+	if pAccount == nil || ok == false {
+		gamelog.Error("ResetLastSvrID Error!!!, invalid accountid:%d", accountID)
+		return
+	}
+
+	pAccount.LastTime = loginTime
 }
 
 func (self *TAccountMgr) CheckLoginKey(accountid int32, loginkey string) bool {

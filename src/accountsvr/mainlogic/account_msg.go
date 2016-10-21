@@ -8,6 +8,7 @@ import (
 	"msg"
 	"net/http"
 	"strconv"
+	"utility"
 
 	"gopkg.in/mgo.v2/bson"
 )
@@ -66,6 +67,10 @@ func Handle_Login(w http.ResponseWriter, r *http.Request) {
 			response.LastSvrName = pGameInfo.SvrName
 			response.LastSvrAddr = pGameInfo.SvrOutAddr
 		}
+
+		result.LastTime = utility.GetCurTime()
+		DB_UpdateLoginTime(response.AccountID, result.LastTime)
+
 		G_AccountMgr.AddLoginKey(response.AccountID, response.LoginKey)
 	} else {
 		response.RetCode = msg.RE_INVALID_PASSWORD
@@ -201,30 +206,21 @@ func Handle_VerifyUserLogin(w http.ResponseWriter, r *http.Request) {
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	pServerInfo := GetGameSvrInfo(req.SvrID)
 
-	bOK := false
-
 	if req.PlayerID <= 0 {
 		//这是要创建角色
-		if pServerInfo.ControlFlag&SFG_CREATE > 0 {
-			bOK = true
+		if pServerInfo.SvrState == 6 {
+			response.RetCode = msg.RE_SERVER_LIMIT_NUM
+			return
 		}
-		response.RetCode = msg.RE_SERVER_LIMIT_NUM
-	} else {
-		//这是要登录
-		if pServerInfo.ControlFlag&SFG_LOGIN > 0 {
-			bOK = true
-		}
-		response.RetCode = msg.RE_SERVER_CANNT_LOGIN
-	}
-
-	if bOK == false {
-		return
 	}
 
 	if G_AccountMgr.CheckLoginKey(req.AccountID, req.LoginKey) {
 		response.RetCode = msg.RE_SUCCESS
 		G_AccountMgr.ResetLastSvrID(req.AccountID, req.SvrID)
 		DB_UpdateLastSvrID(req.AccountID, req.SvrID)
+
+		G_AccountMgr.ResetLastLoginTime(req.AccountID, utility.GetCurTime())
+		DB_UpdateLoginTime(req.AccountID, utility.GetCurTime())
 	}
 
 	b, _ := json.Marshal(&response)

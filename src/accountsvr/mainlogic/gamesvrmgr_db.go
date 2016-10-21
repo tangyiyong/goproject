@@ -12,3 +12,8 @@ func DB_UpdateSvrInfo(svrid int32, svrinfo TGameServerInfo) {
 func DB_UpdateLastSvrID(accountid int32, svrid int32) {
 	mongodb.UpdateToDB("Account", &bson.M{"_id": accountid}, &bson.M{"$set": bson.M{"lastsvrid": svrid}})
 }
+
+func DB_UpdateLoginTime(accountID int32, lastTime int32) {
+	mongodb.UpdateToDB("Account", &bson.M{"_id": accountID}, &bson.M{"$set": bson.M{
+		"lasttime": lastTime}})
+}

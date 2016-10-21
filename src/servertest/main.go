@@ -17,7 +17,7 @@ func main() {
 	RegTcpMsgHandler()
 
 	InitPlayerMgr()
-	for i := 199; i < 200; i++ {
+	for i := 1; i < 200; i++ {
 		CreatePlayer(i)
 	}
 

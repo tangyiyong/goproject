@@ -130,10 +130,9 @@ func Hand_UpdateGameData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, _ := utility.UnCompressData(buffer[4+msglen:])
-
-	file := utility.GetCurrCsvPath() + req.TbName + ".csv"
-	ioutil.WriteFile(file, b, 777)
-	gamedata.ReloadOneFile(req.TbName)
+	fileN := utility.GetCurrCsvPath() + req.TbName + ".csv"
+	ioutil.WriteFile(fileN, b, 777)
+	gamedata.ReloadOneFile(fileN)
 	OnConfigChange(req.TbName)
 	var response msg.MSG_UpdateGameData_Ack
 	response.RetCode = msg.RE_SUCCESS
@@ -268,5 +267,6 @@ func Hand_QueryPlayerInfo(w http.ResponseWriter, r *http.Request) {
 	response.Strength = player.RoleMoudle.GetAction(1)
 	response.Action = player.RoleMoudle.GetAction(2)
 	response.AttackTimes = player.RoleMoudle.GetAction(3)
+	response.LastLoginIP = simpleInfo.LoginIP
 	response.RetCode = msg.RE_SUCCESS
 }

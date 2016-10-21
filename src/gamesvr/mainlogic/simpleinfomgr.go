@@ -23,6 +23,7 @@ type TSimpleInfo struct {
 	AwardCenterID int    //奖励中心ID
 	BatCamp       int8   //阵营战阵营
 	LoginDay      uint32 //登录日期
+	LoginIP       string //登录IP
 	isOnline      bool   //是否在线
 }
 
@@ -273,4 +274,15 @@ func (mgr *TSimpleInfoMgr) Get_GuildID(playerid int32) int32 {
 		return pInfo.GuildID
 	}
 	return 0
+}
+
+func (mgr *TSimpleInfoMgr) Set_LoginIP(playerid int32, ip string) {
+	mgr.SimpleLock.Lock()
+	pInfo, ok := G_SimpleMgr.SimpleList[playerid]
+	mgr.SimpleLock.Unlock()
+	if ok && pInfo != nil && pInfo.LoginIP != ip {
+		pInfo.LoginIP = ip
+		G_SimpleMgr.DB_SetLoginIp(playerid, ip)
+		return
+	}
 }

@@ -281,7 +281,7 @@ struct MSG_PlayerData  {
 //游戏服务器的运营数据
 struct MSG_SvrLogData  {
 	INT32 SvrID     //服务器ID
-	INT32 PlatID    //渠道ID
+	INT32 ChnlID    //渠道ID
 	INT32 PlayerID  //玩家角色ID
 	INT32 EventID; 	//事件ID
 	INT32 SrcID;    //来源ID

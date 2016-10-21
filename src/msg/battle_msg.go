@@ -885,7 +885,7 @@ func (self *MSG_PlayerData) Write(writer *PacketWriter) {
 //游戏服务器的运营数据
 type MSG_SvrLogData struct {
 	SvrID int32		//服务器ID
-	PlatID int32		//渠道ID
+	ChnlID int32		//渠道ID
 	PlayerID int32		//玩家角色ID
 	EventID int32		//事件ID
 	SrcID int32		//来源ID
@@ -897,7 +897,7 @@ type MSG_SvrLogData struct {
 
 func (self *MSG_SvrLogData) Read(reader *PacketReader) bool {
 	self.SvrID = reader.ReadInt32()
-	self.PlatID = reader.ReadInt32()
+	self.ChnlID = reader.ReadInt32()
 	self.PlayerID = reader.ReadInt32()
 	self.EventID = reader.ReadInt32()
 	self.SrcID = reader.ReadInt32()
@@ -912,7 +912,7 @@ func (self *MSG_SvrLogData) Read(reader *PacketReader) bool {
 
 func (self *MSG_SvrLogData) Write(writer *PacketWriter) {
 	writer.WriteInt32(self.SvrID)
-	writer.WriteInt32(self.PlatID)
+	writer.WriteInt32(self.ChnlID)
 	writer.WriteInt32(self.PlayerID)
 	writer.WriteInt32(self.EventID)
 	writer.WriteInt32(self.SrcID)

@@ -117,7 +117,7 @@ func Hand_EnterGame(w http.ResponseWriter, r *http.Request) {
 	}
 
 	G_SimpleMgr.Set_LoginDay(req.PlayerID, utility.GetCurDay())
-
+	G_SimpleMgr.DB_SetLoginIp(req.PlayerID, r.Host)
 }
 
 func Hand_LeaveGame(w http.ResponseWriter, r *http.Request) {

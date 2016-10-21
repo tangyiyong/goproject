@@ -186,7 +186,6 @@ type MSG_QueryAccountInfo_Ack struct {
 	LastLoginTime int32  //! 上次登录时间
 	Platform      int32  //! 平台
 	Enable        int32  //! 封号状态 0: 表示禁用  1: 表示启用
-	LastLoginIP   string //! 上次登录IP
 }
 
 //! 查询玩家信息-GameSvr
@@ -216,4 +215,5 @@ type MSG_QueryPlayerInfo_Ack struct {
 	System         string  //! 手机系统
 	LastLogoffTime int32   //! 上次登出时间
 	IsOnline       bool    //! 是否在线
+	LastLoginIP    string  //! 上次登录IP
 }

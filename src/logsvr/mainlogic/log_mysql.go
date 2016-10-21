@@ -22,7 +22,7 @@ func (self *TMysqlLog) CreateLogTable(svrid int32) bool {
 	sql := `CREATE TABLE if not exists gamelog(
 			eventid int not null,
 			srcid int not null,
-			platid int not null,
+			chnlid int not null,
 			svrid int not null,
 			playerid int not null,
 			level int not null,
@@ -60,7 +60,7 @@ func (self *TMysqlLog) Start(filename string, svrid int32) bool {
 	self.CreateLogTable(svrid)
 
 	self.tx, _ = self.db.Begin()
-	self.query = `INSERT INTO gamelog (eventid,	srcid,svrid,platid,playerid,level,viplvl,time,param1,param2)VALUES(?,?,?,?,?,?,?,?,?,?);`
+	self.query = `INSERT INTO gamelog (eventid,	srcid,svrid,chnlid,playerid,level,viplvl,time,param1,param2)VALUES(?,?,?,?,?,?,?,?,?,?);`
 	self.stmt, err = self.tx.Prepare(self.query)
 	if err != nil {
 		gamelog.Error("Start Error : self.tx.Prepare: %s", err.Error())
@@ -76,7 +76,7 @@ func (self *TMysqlLog) WriteLog(pdata []byte) {
 		return
 	}
 
-	self.stmt.Exec(req.EventID, req.SrcID, req.SvrID, req.PlatID, req.PlayerID, req.Level, req.VipLvl, req.Time, req.Param[0], req.Param[1])
+	self.stmt.Exec(req.EventID, req.SrcID, req.SvrID, req.ChnlID, req.PlayerID, req.Level, req.VipLvl, req.Time, req.Param[0], req.Param[1])
 	self.writeCnt++
 	if self.writeCnt >= self.flushCnt {
 		self.Flush()
@@ -91,6 +91,7 @@ func (self *TMysqlLog) Close() {
 
 func (self *TMysqlLog) Flush() {
 	self.tx.Commit()
+	self.stmt.Close()
 	self.tx, _ = self.db.Begin()
 	var err error
 	self.stmt, err = self.tx.Prepare(self.query)

@@ -192,9 +192,8 @@ func LoadAllFiles() {
 	}
 }
 
-func ReloadOneFile(tbname string) bool {
-	fn := utility.GetCurrCsvPath() + tbname + ".csv"
-	file, err := os.Open(fn)
+func ReloadOneFile(filename string) bool {
+	file, err := os.Open(filename)
 	if err != nil {
 		gamelog.Error("ReloadOneFile error : %s", err.Error())
 		return false
@@ -204,16 +203,16 @@ func ReloadOneFile(tbname string) bool {
 	return true
 }
 
-func LoadOneFile(file *os.File) {
+func LoadOneFile(file *os.File) bool {
 	// 处理表名
 	fstate, err := file.Stat()
 	if err != nil {
 		gamelog.Error("LoadOneFile error : %s", err.Error())
-		return
+		return false
 	}
 
 	if fstate.IsDir() == true {
-		return
+		return false
 	}
 
 	tblname := strings.TrimSuffix(fstate.Name(), path.Ext(file.Name()))
@@ -221,33 +220,33 @@ func LoadOneFile(file *os.File) {
 	DataParser, ok := G_DataParserMap[tblname]
 	if !ok {
 		gamelog.Error("table: %-30s need a parser!!", tblname)
-		return
+		return false
 	}
 
 	//明确表示不需要解析的表
 	if DataParser.OnInit == nil {
-		return
+		return false
 	}
 
 	csv_reader := csv.NewReader(file)
 	records, err := csv_reader.ReadAll()
 	if err != nil {
 		gamelog.Error("LoadOneFile %s error : %s", fstate.Name(), err.Error())
-		return
+		return false
 	}
 	if len(records) == 0 {
 		gamelog.Error("LoadOneFile %s empty csv file ", fstate.Name())
-		return
+		return false
 	}
 
-	ParserDataCsv(tblname, records, &DataParser)
+	return ParserDataCsv(tblname, records, &DataParser)
 }
 
-func ParserDataCsv(tblname string, records [][]string, parser *TDataParser) {
+func ParserDataCsv(tblname string, records [][]string, parser *TDataParser) bool {
 	nCount := len(records) - 1 //实际有效数据的长度
 	if false == parser.OnInit(nCount) {
 		gamelog.Error("table: %-30s OnInitParser error!!", tblname)
-		return
+		return false
 	}
 
 	// 解析列
@@ -277,4 +276,6 @@ func ParserDataCsv(tblname string, records [][]string, parser *TDataParser) {
 	}
 
 	ColMap = nil
+
+	return true
 }
