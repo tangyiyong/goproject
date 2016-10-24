@@ -108,6 +108,12 @@ func Hand_DailySign(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	player.ActivityModule.CheckReset()
 
 	//! 检测时间
@@ -159,6 +165,12 @@ func Hand_SignPlus(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	player.ActivityModule.CheckReset()
 

@@ -1160,6 +1160,12 @@ func Hand_GetSacrificeAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
@@ -1451,7 +1457,7 @@ func Hand_GetGuildCopyStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 //! 玩家请求攻击公会副本
-func Hand_AttackGuildCopy(w http.ResponseWriter, r *http.Request) {
+func Hand_GuildCopyResult(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接受消息
@@ -1460,12 +1466,12 @@ func Hand_AttackGuildCopy(w http.ResponseWriter, r *http.Request) {
 
 	if false == utility.MsgDataCheck(buffer, G_XorCode) {
 		//存在作弊的可能
-		gamelog.Error("Hand_AttackGuildCopy : Message Data Check Error!!!!")
+		gamelog.Error("Hand_GuildCopyResult : Message Data Check Error!!!!")
 		return
 	}
 	var req msg.MSG_AttackGuildCopy_Req
 	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
-		gamelog.Error("Hand_AttackGuildCopy : Unmarshal error!!!!")
+		gamelog.Error("Hand_GuildCopyResult : Unmarshal error!!!!")
 		return
 	}
 
@@ -1488,6 +1494,13 @@ func Hand_AttackGuildCopy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer player.FinishMsgProcess()
+
+	//检查英雄数据是否一致
+	if !player.CheckHeroData(req.HeroCkD) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_GuildCopyResult : CheckHeroData Error!!!!")
+		return
+	}
 
 	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD

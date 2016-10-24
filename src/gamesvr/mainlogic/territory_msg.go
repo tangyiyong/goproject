@@ -115,6 +115,13 @@ func Hand_ChallengeTerritory(w http.ResponseWriter, r *http.Request) {
 
 	defer player.FinishMsgProcess()
 
+	//检查英雄数据是否一致
+	if !player.CheckHeroData(req.HeroCkD) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_MiningEvent_Monster : CheckHeroData Error!!!!")
+		return
+	}
+
 	if gamedata.IsFuncOpen(gamedata.FUNC_TERRITORY, player.GetLevel(), player.GetVipLevel()) == false {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
 		return

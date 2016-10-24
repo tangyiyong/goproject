@@ -809,6 +809,8 @@ type MSG_WanderResult_Req struct {
 	SessionKey   string
 	TargetCopyID int //副本ID
 	Win          int //战斗结果 0: 失败 ,1 胜利
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_WanderResult_Ack struct {

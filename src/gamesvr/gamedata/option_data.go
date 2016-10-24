@@ -1240,6 +1240,12 @@ func ParseOptionRecord(rs *RecordSet) {
 		{
 			ArenaBattleVictoryPercent = CheckAtoiName(rs.Values[2], "arena_battle_victory_percent")
 		}
+	case "campbat_double_start":
+		{
+		}
+	case "campbat_double_end":
+		{
+		}
 	default:
 		{
 			panic(fmt.Sprintf("[%s] not processed !!!", rs.Values[0]))

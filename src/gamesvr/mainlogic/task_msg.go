@@ -169,6 +169,12 @@ func Hand_RecvTaskScoreAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	player.TaskMoudle.CheckReset()
 
 	//! 检测参数
@@ -252,6 +258,12 @@ func Hand_RecvAchievementAward(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	player.TaskMoudle.CheckReset()
 

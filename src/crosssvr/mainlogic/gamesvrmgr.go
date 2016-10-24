@@ -3,7 +3,7 @@ package mainlogic
 import (
 	"gamelog"
 	"sync"
-	"time"
+	//"time"
 	"utility"
 )
 
@@ -24,24 +24,24 @@ var (
 )
 
 func InitGameSvrMgr() {
-	go func() {
-		regtimer := time.Tick(10 * time.Second)
-		for {
-			ListLock.Lock()
-			curtime := utility.GetCurTime()
-			for i := 0; i < 10000; i++ {
-				if G_ServerList[i].SvrDomainID <= 0 {
-					continue
-				}
-
-				if (curtime - G_ServerList[i].UpdateTime) > (70) {
-					G_ServerList[i].IsSvrOK = false
-				}
-			}
-			ListLock.Unlock()
-			<-regtimer
-		}
-	}()
+	//go func() {
+	//	regtimer := time.Tick(10 * time.Second)
+	//	for {
+	//		ListLock.Lock()
+	//		curtime := utility.GetCurTime()
+	//		for i := 0; i < 10000; i++ {
+	//			if G_ServerList[i].SvrDomainID <= 0 {
+	//				continue
+	//			}
+	//
+	//			if (curtime - G_ServerList[i].UpdateTime) > (70) {
+	//				G_ServerList[i].IsSvrOK = false
+	//			}
+	//		}
+	//		ListLock.Unlock()
+	//		<-regtimer
+	//	}
+	//}()
 
 	return
 }

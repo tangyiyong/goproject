@@ -75,6 +75,12 @@ func Hand_UpgradeHero(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	if req.TargetHero.PosType == POSTYPE_BATTLE && req.TargetHero.HeroPos == 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
 		gamelog.Error("Hand_UpgradeHero error : Main Hero Can't Upgrade!")
@@ -613,6 +619,12 @@ func Hand_UpWakeLevel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	pTargetHeroData := player.GetHeroByPos(req.TargetHero.PosType, req.TargetHero.HeroPos)
 	if (pTargetHeroData == nil) || pTargetHeroData.ID != req.TargetHero.HeroID {
 		response.RetCode = msg.RE_INVALID_PARAM
@@ -778,6 +790,12 @@ func Hand_UpgodHero(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	if false == gamedata.IsFuncOpen(gamedata.FUNC_HEROGOD, player.GetLevel(), player.GetVipLevel()) {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
@@ -1142,6 +1160,12 @@ func Hand_CultureHero(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	pHeroData := player.GetHeroByPos(req.TargetHero.PosType, req.TargetHero.HeroPos)
 	if (pHeroData == nil) || pHeroData.ID != req.TargetHero.HeroID {
 		response.RetCode = msg.RE_INVALID_PARAM
@@ -1216,6 +1240,12 @@ func Hand_BreakOutHero(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	pTargetHeroData := player.GetHeroByPos(req.TargetHero.PosType, req.TargetHero.HeroPos)
 	if (pTargetHeroData == nil) || pTargetHeroData.ID != req.TargetHero.HeroID {
@@ -1482,6 +1512,12 @@ func Hand_EquipStrengthen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	var pEquipData *TEquipData = nil
 	if req.PosType == POSTYPE_BATTLE {
 		if req.PosIndex < 0 || req.PosIndex >= EQUIP_NUM {
@@ -1677,6 +1713,12 @@ func Hand_EquipRiseStar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	var pEquipData *TEquipData = nil
 	if req.PosType == POSTYPE_BATTLE {
 		if req.PosIndex < 0 || req.PosIndex >= EQUIP_NUM {
@@ -1815,6 +1857,12 @@ func Hand_EquipRefine(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	bEnough := player.BagMoudle.IsItemEnough(req.ItemID, req.ItemNum)
 	if !bEnough {
@@ -2043,6 +2091,12 @@ func Hand_GemStrengthen(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	if len(req.CostGems) <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
 		gamelog.Error("Hand_GemStrengthen Error : Invalid CostGems Len:%d", len(req.CostGems))
@@ -2192,6 +2246,12 @@ func Hand_GemRefine(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	var pGemData *TGemData = nil
 	if req.GemPosType == POSTYPE_BATTLE {
@@ -4481,6 +4541,12 @@ func Hand_FashionStrength(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	nIndex := -1
 	//先检测是否存在时装

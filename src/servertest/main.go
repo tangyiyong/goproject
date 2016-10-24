@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	accountip string = "http://192.168.0.222:8081"
+	accountip string = "http://121.40.207.78:8081"
 )
 
 func main() {

@@ -365,6 +365,51 @@ func (player *TPlayer) FinishMsgProcess() {
 	return
 }
 
+func (self *TPlayer) CheckHeroData(herodata []msg.MSG_HeroCheckData) bool {
+	herocnt := len(herodata)
+	if herocnt > BATTLE_NUM || herocnt <= 0 {
+		gamelog.Error("CheckHeroData Error: Invalid HeroCnt:%d", herocnt)
+		return false
+	}
+
+	checkRet := true
+
+	var HeroResults = make([]THeroResult, BATTLE_NUM)
+	self.HeroMoudle.CalcFightValue(HeroResults)
+
+	for i := 0; i < herocnt; i++ {
+		if herodata[i].HeroID != HeroResults[i].HeroID {
+			gamelog.Error("CheckHeroData Error: HeroID does not match:%d,%d,%d", i, herodata[i].HeroID, HeroResults[i].HeroID)
+			return false
+		}
+
+		for j := 0; j < 11; j++ {
+			if herodata[i].PropertyValue[j] > (HeroResults[i].PropertyValues[j] + 2) {
+				gamelog.Error("CheckHeroData Error: Property does not match hero:%d, pid:%d, v1:%d, v2:%d", i, j+1, herodata[i].PropertyValue[j], HeroResults[i].PropertyValues[j])
+				checkRet = false
+			}
+		}
+
+		for k := 0; k < 5; k++ {
+			if herodata[i].CampDef[k] != (HeroResults[i].CampDef[k]) {
+				gamelog.Error("CheckHeroData Error: CampDef does not match hero:%d, pid:%d, v1:%d, v2:%d", i, k+1, herodata[i].CampDef[k], HeroResults[i].CampDef[k])
+				checkRet = false
+			}
+
+			if herodata[i].CampKill[k] != (HeroResults[i].CampKill[k]) {
+				gamelog.Error("CheckHeroData Error: CampKill does not match hero:%d, pid:%d, v1:%d, v2:%d", i, k+1, herodata[i].CampKill[k], HeroResults[i].CampKill[k])
+				checkRet = false
+			}
+		}
+	}
+
+	if checkRet == true {
+		gamelog.Error("CheckHeroData Success!!!")
+	}
+
+	return true
+}
+
 //计算战力
 func (player *TPlayer) CalcFightValue() int32 {
 	oldValue := player.pSimpleInfo.FightValue

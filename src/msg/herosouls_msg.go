@@ -75,6 +75,8 @@ type MSG_RefreshHeroSoulsLst_Ack struct {
 type MSG_ChallengeHeroSouls_Req struct {
 	PlayerID   int32
 	SessionKey string
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_ChallengeHeroSouls_Ack struct {

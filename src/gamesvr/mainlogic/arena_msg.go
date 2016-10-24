@@ -327,7 +327,7 @@ func Hand_ArenaBattle(w http.ResponseWriter, r *http.Request) {
 }
 
 //! 玩家反馈挑战竞技场结果
-func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
+func Hand_ArenaBattleResult(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收信息
@@ -337,12 +337,12 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 	//MD5消息验证
 	if false == utility.MsgDataCheck(buffer, G_XorCode) {
 		//存在作弊的可能
-		gamelog.Error("Hand_ChallengeArenaResult : Message Data Check Error!!!!")
+		gamelog.Error("Hand_ArenaBattleResult : Message Data Check Error!!!!")
 		return
 	}
 	var req msg.MSG_ArenaResult_Req
 	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
-		gamelog.Error("Hand_ChallengeArenaResult : Unmarshal error!!!!")
+		gamelog.Error("Hand_ArenaBattleResult : Unmarshal error!!!!")
 		return
 	}
 
@@ -367,6 +367,13 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 
 	defer player.FinishMsgProcess()
 
+	//检查英雄数据是否一致
+	if !player.CheckHeroData(req.HeroCkD) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_ArenaBattleResult : CheckHeroData Error!!!!")
+		return
+	}
+
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_ARENA, player.GetLevel(), player.GetVipLevel())
 	if isFuncOpen == false {
@@ -377,12 +384,12 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 	//! 检测玩家行动力是否足够
 	arenaConfig := gamedata.GetArenaConfig()
 	if arenaConfig == nil {
-		gamelog.Error("GetArenaConfig Fail")
+		gamelog.Error("Hand_ArenaBattleResult Error:gamedata.GetArenaConfigFail")
 	}
 
 	copyInfo := gamedata.GetCopyBaseInfo(arenaConfig.CopyID)
 	if copyInfo == nil {
-		gamelog.Error("GetCopyBaseInfo fail. CopyID: %d", arenaConfig.CopyID)
+		gamelog.Error("Hand_ArenaBattleResult fail. CopyID: %d", arenaConfig.CopyID)
 		return
 	}
 
@@ -440,7 +447,7 @@ func Hand_ChallengeArenaResult(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if len(response.DropItem) != 3 {
-			gamelog.Error("Hand_ChallengeArenaResult error: rand drop item fail")
+			gamelog.Error("Hand_ArenaBattleResult error: rand drop item fail")
 			return
 		}
 
@@ -602,6 +609,12 @@ func Hand_BuyArenaStoreItem(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_ARENA, player.GetLevel(), player.GetVipLevel())

@@ -134,14 +134,14 @@ type MSG_AddGiftAward_Ack struct {
 
 //消息:/gm_make_giftcode
 type MSG_MakeGiftCode_Req struct {
-	SessionID   string //GM SessionID
-	SessionKey  string //GM SessionKey
-	Platform    int32  //平台ID
-	SvrID       int32  //服务器ID
-	EndTime     int32  //结束时间
-	GiftAwardID int32  //奖励ID
-	GiftCodeNum int    //激活码数量
-	IsAll       bool   //是否为全服发放
+	SessionID   string  //GM SessionID
+	SessionKey  string  //GM SessionKey
+	Platform    []int32 //平台ID
+	SvrID       []int32 //服务器ID
+	EndTime     int32   //结束时间
+	GiftAwardID int32   //奖励ID
+	GiftCodeNum int     //激活码数量
+	IsAll       bool    //是否为全服发放
 }
 
 type MSG_MakeGiftCode_Ack struct {
@@ -216,4 +216,16 @@ type MSG_QueryPlayerInfo_Ack struct {
 	LastLogoffTime int32   //! 上次登出时间
 	IsOnline       bool    //! 是否在线
 	LastLoginIP    string  //! 上次登录IP
+}
+
+//! 剔除竞技场排行榜
+//! 消息: /kick_cheat_ranker
+type MSG_KickCheatRanker_Req struct {
+	SessionID  string //GM SessionID
+	SessionKey string //GM SessionKey
+	PlayerID   int32
+}
+
+type MSG_KickCheatRanker_Ack struct {
+	RetCode int
 }

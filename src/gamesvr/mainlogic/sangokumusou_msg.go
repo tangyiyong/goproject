@@ -197,8 +197,6 @@ func Hand_GetSangokuMusou_EliteCopy(w http.ResponseWriter, r *http.Request) {
 //! 通关三国无双
 func Hand_PassSangokuMusou_Copy(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
-
-	//! 接收消息
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
@@ -238,6 +236,13 @@ func Hand_PassSangokuMusou_Copy(w http.ResponseWriter, r *http.Request) {
 	if req.CopyID <= 0 {
 		gamelog.Error("Hand_PassSangokuMusou_Copy copyID is invaild. id: %d", req.CopyID)
 		response.RetCode = msg.RE_INVALID_PARAM
+		return
+	}
+
+	//检查英雄数据是否一致
+	if !player.CheckHeroData(req.HeroCkD) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_PassSangokuMusou_Copy : CheckHeroData Error!!!!")
 		return
 	}
 
@@ -339,6 +344,13 @@ func Hand_PassSangokuMusou_EliteCopy(w http.ResponseWriter, r *http.Request) {
 	}
 
 	defer player.FinishMsgProcess()
+
+	//检查英雄数据是否一致
+	if !player.CheckHeroData(req.HeroCkD) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_PassSangokuMusou_EliteCopy : CheckHeroData Error!!!!")
+		return
+	}
 
 	//! 检测功能是否开启
 	if gamedata.IsFuncOpen(gamedata.FUNC_SANGUOWUSHUANG, player.GetLevel(), player.GetVipLevel()) == false {

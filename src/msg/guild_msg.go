@@ -292,6 +292,8 @@ type MSG_AttackGuildCopy_Req struct {
 	Chapter    int32
 	CopyID     int   //! 攻击某个阵营 0 1 2 3
 	Damage     int64 //! 造成伤害
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_AttackGuildCopy_Ack struct {

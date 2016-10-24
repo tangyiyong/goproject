@@ -159,6 +159,8 @@ type MSG_MiningEvent_Monster_Req struct {
 	SessionKey string
 	PlayerPos  MSG_Pos
 	Damage     int //! 对怪物造成伤害
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_MiningEvent_Monster_Ack struct {

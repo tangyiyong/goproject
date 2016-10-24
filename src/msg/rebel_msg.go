@@ -34,6 +34,8 @@ type MSG_Attack_Rebel_Req struct {
 	TargetPlayerID int32
 	Damage         int //! 伤害
 	AttackType     int //! 1->普通攻击 2->全力一击
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_Attack_Rebel_Ack struct {

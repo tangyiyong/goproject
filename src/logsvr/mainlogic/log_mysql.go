@@ -70,6 +70,10 @@ func (self *TMysqlLog) Start(filename string, svrid int32) bool {
 }
 
 func (self *TMysqlLog) WriteLog(pdata []byte) {
+	if pdata == nil {
+		self.Flush()
+		return
+	}
 	var req msg.MSG_SvrLogData
 	if req.Read(new(msg.PacketReader).BeginRead(pdata, 0)) == false {
 		gamelog.Error("MysqlLog::WriteLog : Message Reader Error!!!!")

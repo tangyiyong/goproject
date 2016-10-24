@@ -190,6 +190,11 @@ func ParseConfigValue(key string, value string) {
 }
 
 func initGlobalVar() bool {
+	//游戏服端口号
+	GameSvrPort += GameSvrID
+	ChatSvrPort += GameSvrID
+	BattleSvrPort += GameSvrID
+
 	VerifyUserLoginUrl = "http://" + AccountSvrInnerIp + ":" + strconv.Itoa(AccountSvrPort) + "/verifyuserlogin"
 	ChatSvrAddr = ChatSvrOuterIp + ":" + strconv.Itoa(ChatSvrPort)
 	RegToAccountSvrUrl = "http://" + AccountSvrInnerIp + ":" + strconv.Itoa(AccountSvrPort) + "/reggameserver"
@@ -200,6 +205,9 @@ func initGlobalVar() bool {
 	CrossQueryScoreRank = "http://" + CrossSvrInnerIp + ":" + strconv.Itoa(CrossSvrHttpPort) + "/cross_query_score_rank"
 	CrossGetFightTarget = "http://" + CrossSvrInnerIp + ":" + strconv.Itoa(CrossSvrHttpPort) + "/cross_get_fight_target"
 	GiftCodeSvrUrl = "http://" + AccountSvrOuterIp + ":" + strconv.Itoa(AccountSvrPort) + "/gamesvr_giftcode"
+
+	//游戏DB N
+	GameDbName += strconv.Itoa(GameSvrID)
 
 	return true
 }

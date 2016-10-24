@@ -79,6 +79,8 @@ type MSG_PassSangokuMusouCopy_Req struct {
 	CopyID     int
 	StarNum    int //! 获得星数
 	IsVictory  int //! 是否胜利
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_SangokuMusouDropItem struct {
@@ -98,11 +100,14 @@ type MSG_PassSangokuMusouEliteCopy_Req struct {
 	PlayerID   int32
 	SessionKey string
 	CopyID     int
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_PassSangokuMusouEliteCopy_Ack struct {
 	RetCode        int
 	IsFirstVictory int //! 是否为首胜
+
 }
 
 //! 请求扫荡该章节

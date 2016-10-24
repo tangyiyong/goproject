@@ -77,6 +77,13 @@ func Handle_SetGameSvrState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//检查是否具有GM操作权限
+	if false == appconfig.CheckGmRight(req.SessionID, req.SessionKey, r.RemoteAddr[:strings.IndexRune(r.RemoteAddr, ':')]) {
+		gamelog.Error("Handle_GmLogin Error Invalid Gm request!!!")
+		response.RetCode = msg.RE_INVALID_NAME
+		return
+	}
+
 	G_ServerList[req.SvrID].SvrState = req.SvrState
 	G_ServerList[req.SvrID].SvrDefault = req.SvrDefault
 	DB_UpdateSvrInfo(req.SvrID, G_ServerList[req.SvrID])
@@ -112,6 +119,13 @@ func Handle_GmServerList(w http.ResponseWriter, r *http.Request) {
 		b, _ := json.Marshal(&response)
 		w.Write(b)
 	}()
+
+	//检查是否具有GM操作权限
+	if false == appconfig.CheckGmRight(req.SessionID, req.SessionKey, r.RemoteAddr[:strings.IndexRune(r.RemoteAddr, ':')]) {
+		gamelog.Error("Handle_GmLogin Error Invalid Gm request!!!")
+		response.RetCode = msg.RE_INVALID_NAME
+		return
+	}
 
 	nCount := len(G_ServerList)
 	response.SvrList = make([]msg.ServerNode, 0, 10)

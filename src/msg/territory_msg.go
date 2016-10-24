@@ -32,6 +32,8 @@ type MSG_ChallengeTerritory_Req struct {
 	PlayerID    int32
 	SessionKey  string
 	TerritoryID int
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_ChallengeTerritory_Ack struct {

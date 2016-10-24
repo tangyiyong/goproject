@@ -321,6 +321,13 @@ func Hand_WanderResult(w http.ResponseWriter, r *http.Request) {
 
 	defer player.FinishMsgProcess()
 
+	//检查英雄数据是否一致
+	if !player.CheckHeroData(req.HeroCkD) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_WanderResult : CheckHeroData Error!!!!")
+		return
+	}
+
 	if player.WanderMoudle.CanBattle == 0 {
 		response.RetCode = msg.RE_INVALID_PARAM
 		gamelog.Error("Hand_WanderResult Error: you can't battle unless you reset")

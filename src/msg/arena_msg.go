@@ -7,6 +7,8 @@ type MSG_ArenaResult_Req struct {
 	SessionKey string
 	Rank       int //! 挑战的玩家排名
 	IsVictory  int //! 是否胜利
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_ArenaResult_Ack struct {

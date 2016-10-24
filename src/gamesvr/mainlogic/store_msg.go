@@ -362,6 +362,12 @@ func Hand_Store_Buy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	//! 检测功能是否开启
 	if gamedata.IsFuncOpen(gamedata.FUNC_HERO_STORE, player.GetLevel(), player.GetVipLevel()) == false {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN

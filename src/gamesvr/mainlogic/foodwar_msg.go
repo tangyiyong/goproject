@@ -601,6 +601,12 @@ func Hand_FoodWar_BuyTimes(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	//! 检测活动开启
 	if player.FoodWarModule.IsActivityOpen() == false {
 		gamelog.Error("Hand_FoodWar_BuyTimes Error: Activity not open")

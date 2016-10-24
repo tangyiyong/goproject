@@ -228,6 +228,13 @@ func Hand_BattleResult(w http.ResponseWriter, r *http.Request) {
 
 	defer player.FinishMsgProcess()
 
+	//检查英雄数据是否一致
+	if !player.CheckHeroData(req.HeroCkD) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_BattleResult : CheckHeroData Error!!!!")
+		return
+	}
+
 	player.CopyMoudle.CheckReset()
 
 	pCopyInfo := gamedata.GetCopyBaseInfo(req.CopyID)
@@ -410,19 +417,13 @@ func Hand_SweepCopy(w http.ResponseWriter, r *http.Request) {
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
-	//MD5消息验证
-	if false == utility.MsgDataCheck(buffer, G_XorCode) {
-		//存在作弊的可能
-		gamelog.Error("Hand_SweepCopy : Message Data Check Error!!!!")
-		return
-	}
-	var req msg.MSG_BattleResult_Req
-	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
+	var req msg.MSG_SweepCopy_Req
+	if json.Unmarshal(buffer, &req) != nil {
 		gamelog.Error("Hand_SweepCopy : Unmarshal error!!!!")
 		return
 	}
 
-	var response msg.MSG_BattleResult_Ack
+	var response msg.MSG_SweepCopy_Ack
 	response.RetCode = msg.RE_UNKNOWN_ERR
 	defer func() {
 		b, _ := json.Marshal(&response)
@@ -1381,7 +1382,7 @@ func Hand_GetFamousCopyDetailInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 //! 玩家请求攻击精英副本入侵
-func Hand_AttackInvade(w http.ResponseWriter, r *http.Request) {
+func Hand_EliteInvadeResult(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
 	//! 接收消息
@@ -1390,12 +1391,12 @@ func Hand_AttackInvade(w http.ResponseWriter, r *http.Request) {
 
 	if false == utility.MsgDataCheck(buffer, G_XorCode) {
 		//存在作弊的可能
-		gamelog.Error("MSG_AttackEliteInvade_Req : Message Data Check Error!!!!")
+		gamelog.Error("Hand_EliteInvadeResult : Message Data Check Error!!!!")
 		return
 	}
 	var req msg.MSG_AttackEliteInvade_Req
 	if json.Unmarshal(buffer[:len(buffer)-16], &req) != nil {
-		gamelog.Error("MSG_AttackEliteInvade_Req : Unmarshal error!!!!")
+		gamelog.Error("Hand_EliteInvadeResult : Unmarshal error!!!!")
 		return
 	}
 
@@ -1419,6 +1420,13 @@ func Hand_AttackInvade(w http.ResponseWriter, r *http.Request) {
 
 	defer player.FinishMsgProcess()
 
+	//检查英雄数据是否一致
+	if !player.CheckHeroData(req.HeroCkD) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_EliteInvadeResult : CheckHeroData Error!!!!")
+		return
+	}
+
 	//! 检测该章节是否有入侵
 	if player.CopyMoudle.IsHaveInvade(req.Chapter) == false {
 		response.RetCode = msg.RE_INVADE_ALEADY_ESCAPE
@@ -1428,18 +1436,18 @@ func Hand_AttackInvade(w http.ResponseWriter, r *http.Request) {
 	//! 获得掉落奖励
 	chapterInfo := gamedata.GetEliteChapterInfo(req.Chapter)
 	if chapterInfo == nil {
-		gamelog.Error("Hand_AttackInvade GetEliteChapterInfo fail. Chapter: %d", req.Chapter)
+		gamelog.Error("Hand_EliteInvadeResult GetEliteChapterInfo fail. Chapter: %d", req.Chapter)
 		return
 	}
 
 	copyInfo := gamedata.GetCopyBaseInfo(chapterInfo.InvadeID)
 	if copyInfo == nil {
-		gamelog.Error("Hand_AttackInvade GetCopyBaseInfo fail. InvadeID: %d", chapterInfo.InvadeID)
+		gamelog.Error("Hand_EliteInvadeResult GetCopyBaseInfo fail. InvadeID: %d", chapterInfo.InvadeID)
 		return
 	}
 
 	if player.RoleMoudle.CheckActionEnough(copyInfo.ActionType, copyInfo.ActionValue) == false {
-		gamelog.Error("Hand_AttackInvade CheckActionEnough fail.")
+		gamelog.Error("Hand_EliteInvadeResult CheckActionEnough fail.")
 		response.RetCode = msg.RE_NOT_ENOUGH_ACTION
 		return
 	}

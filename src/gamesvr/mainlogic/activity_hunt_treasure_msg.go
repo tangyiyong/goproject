@@ -636,6 +636,12 @@ func Hand_BuyHuntTreasureStroreItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	player.ActivityModule.CheckReset()
 
 	activityID := player.ActivityModule.HuntTreasure.ActivityID

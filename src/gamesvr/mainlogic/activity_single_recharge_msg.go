@@ -126,6 +126,12 @@ func Hand_GetSingleRechargeAward(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	//! 检测当前是否有此活动
 	var singleRecharge *TActivitySingleRecharge
 	var activityIndex int

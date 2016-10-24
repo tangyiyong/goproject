@@ -146,6 +146,13 @@ func Hand_AttackRebel(w http.ResponseWriter, r *http.Request) {
 
 	defer player.FinishMsgProcess()
 
+	//检查英雄数据是否一致
+	if !player.CheckHeroData(req.HeroCkD) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_PassSangokuMusou_EliteCopy : CheckHeroData Error!!!!")
+		return
+	}
+
 	player.RebelModule.CheckEscapeTime()
 	player.RebelModule.CheckReset()
 

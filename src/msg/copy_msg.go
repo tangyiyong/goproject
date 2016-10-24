@@ -31,6 +31,13 @@ type MSG_BattleCheck_Req struct {
 	Chapter    int //副本章节
 }
 
+type MSG_HeroCheckData struct {
+	HeroID        int
+	PropertyValue [11]int32
+	CampDef       [5]int32
+	CampKill      [5]int32
+}
+
 type MSG_BattleCheck_Ack struct {
 	RetCode int
 }
@@ -44,6 +51,8 @@ type MSG_BattleResult_Req struct {
 	CopyID     int //副本ID
 	Chapter    int //副本章节
 	StarNum    int //战斗星数
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_ItemData struct {
@@ -60,6 +69,27 @@ type MSG_BattleResult_Ack struct {
 	Exp         int            //! 获取经验
 	ActionValue int            //! 行动力值
 	ActionTime  int32          //! 行动力恢复起始时间
+}
+
+//玩家扫荡结果
+//消息:/sweep_copy
+type MSG_SweepCopy_Req struct {
+	PlayerID   int32
+	SessionKey string
+	CopyType   int //副本类型
+	CopyID     int //副本ID
+	Chapter    int //副本章节
+	StarNum    int //战斗星数
+}
+
+type MSG_SweepCopy_Ack struct {
+	RetCode     int
+	ItemLst     []MSG_ItemData
+	IsFindRebel bool  //! 是否发现叛军 目前只对应主线副本 发现后发送get_rebel_find_info获取叛军信息
+	OpenEndTime int32 //! 是否发现黑市
+	Exp         int   //! 获取经验
+	ActionValue int   //! 行动力值
+	ActionTime  int32 //! 行动力恢复起始时间
 }
 
 //! 请求叛军信息
@@ -285,6 +315,8 @@ type MSG_AttackEliteInvade_Req struct {
 	PlayerID   int32
 	SessionKey string
 	Chapter    int
+	//英雄核查数据
+	HeroCkD []MSG_HeroCheckData
 }
 
 type MSG_AttackEliteInvade_Ack struct {

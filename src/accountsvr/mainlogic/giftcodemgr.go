@@ -15,13 +15,13 @@ import (
 
 //礼品码表结构
 type TGiftCode struct {
-	ID          string `bson:"_id"` //礼包ID
-	SvrID       int32  //分区ID
-	Platform    int32  //平台ID
-	GiftAwardID int32  //礼包码奖励ID
-	EndTime     int32  //截止时间
-	IsRecv      bool   //是否己领取
-	IsAll       bool   //是否为全服可领
+	ID          string  `bson:"_id"` //礼包ID
+	SvrID       []int32 //分区ID
+	Platform    []int32 //平台ID
+	GiftAwardID int32   //礼包码奖励ID
+	EndTime     int32   //截止时间
+	IsRecv      bool    //是否己领取
+	IsAll       bool    //是否为全服可领
 }
 
 type TGiftAward struct {
@@ -215,11 +215,38 @@ func Handle_GameSvrGiftCode(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//! 检查平台与服务器对应
-	if accountInfo.Platform != gift.Platform ||
-		(accountInfo.Platform == gift.Platform && req.SvrID != gift.SvrID) {
+	isExist = false
+	for _, v := range gift.Platform {
+		if v == 0 { //! 全服
+			isExist = true
+			break
+		}
+		if accountInfo.Platform == v {
+			isExist = true
+			break
+		}
+	}
+
+	if isExist == false {
 		gamelog.Error("Handle_GameSvrGiftCode Error: Non-matched Platform or SvrID code: %s", req.ID)
 		response.RetCode = msg.RE_NON_MATCHED_PLATFORM_SVRID
-		return
+	}
+
+	isExist = false
+	for _, v := range gift.SvrID {
+		if v == 0 { //! 全服
+			isExist = true
+			break
+		}
+		if req.SvrID == v {
+			isExist = true
+			break
+		}
+	}
+
+	if isExist == false {
+		gamelog.Error("Handle_GameSvrGiftCode Error: Non-matched Platform or SvrID code: %s", req.ID)
+		response.RetCode = msg.RE_NON_MATCHED_PLATFORM_SVRID
 	}
 
 	var giftAward TGiftAward

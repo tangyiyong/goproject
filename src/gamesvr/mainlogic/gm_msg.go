@@ -270,3 +270,82 @@ func Hand_QueryPlayerInfo(w http.ResponseWriter, r *http.Request) {
 	response.LastLoginIP = simpleInfo.LoginIP
 	response.RetCode = msg.RE_SUCCESS
 }
+
+//! 剔除作弊玩家
+func Hand_KickArenaRanker(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接收信息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.MSG_KickCheatRanker_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_KickArenaRanker Unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_KickCheatRanker_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	// //检查是否具有GM操作权限
+	// if false == appconfig.CheckGmRight(req.SessionID, req.SessionKey, r.RemoteAddr[:strings.IndexRune(r.RemoteAddr, ':')]) {
+	// 	gamelog.Error("Hand_KickArenaRanker Error Invalid Gm request!!!")
+	// 	return
+	// }
+
+	//! 获取排名玩家信息
+	index := -1
+	for i := 0; i < len(G_Rank_List); i++ {
+		if G_Rank_List[i].PlayerID == req.PlayerID {
+			index = i
+			break
+		}
+	}
+
+	if index <= 0 {
+		gamelog.Error("Hand_KickArenaRanker Error: Player not exist.")
+		response.RetCode = msg.RE_ACCOUNT_NOT_EXIST
+		return
+	}
+
+	var tempLst3 []TArenaRankInfo
+	tempLst := G_Rank_List[index+1:]
+	tempLst2 := G_Rank_List[:index]
+	tempLst3 = append(tempLst3, tempLst2...)
+	tempLst3 = append(tempLst3, tempLst...)
+
+	robot := gamedata.RandRobot(0)
+	if robot == nil {
+		gamelog.Error("Rand Robot Error: robot is nil")
+		return
+	}
+
+	var rankerInfo TArenaRankInfo
+	rankerInfo.IsRobot = true
+	rankerInfo.PlayerID = robot.RobotID
+	tempLst3 = append(tempLst3, rankerInfo)
+
+	for i := 0; i < len(G_Rank_List); i++ {
+		G_Rank_List[i].PlayerID = tempLst3[i].PlayerID
+		G_Rank_List[i].IsRobot = tempLst3[i].IsRobot
+	}
+
+	player := GetPlayerByID(req.PlayerID)
+	if player == nil {
+		player = LoadPlayerFromDB(req.PlayerID)
+	}
+
+	player.ArenaModule.CurrentRank = 5001
+	player.ArenaModule.HistoryRank = 5001
+	player.ArenaModule.DB_UpdateRankToDatabase()
+
+	response.RetCode = msg.RE_SUCCESS
+}

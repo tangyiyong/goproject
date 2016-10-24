@@ -63,7 +63,7 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/get_elite_scene_award", mainlogic.Hand_GetEliteSceneAward)       //! 获取精英关卡场景奖励
 	http.HandleFunc("/get_elite_reset_times", mainlogic.Hand_GetEliteResetTimes)       //! 获取精英关卡重置次数
 	http.HandleFunc("/reset_elite_battletimes", mainlogic.Hand_ResetEliteBattleTimes)  //! 重置精英关卡挑战
-	http.HandleFunc("/attack_elite_invade", mainlogic.Hand_AttackInvade)               //! 请求攻击精英关卡入侵
+	http.HandleFunc("/attack_elite_invade", mainlogic.Hand_EliteInvadeResult)          //! 请求攻击精英关卡入侵
 	http.HandleFunc("/get_elite_invade_status", mainlogic.Hand_GetEliteCopyInvadeInfo) //! 请求入侵消息
 	http.HandleFunc("/get_copy_data", mainlogic.Hand_GetCopyData)                      //! 获取副本数据
 
@@ -72,7 +72,7 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/set_sanguozhi", mainlogic.Hand_SetSanGuoZhi)       //! 玩家请求三国志命星
 
 	//! 竞技场消息处理
-	http.HandleFunc("/arena_result", mainlogic.Hand_ChallengeArenaResult)                      //! 玩家反馈挑战竞技场结果
+	http.HandleFunc("/arena_result", mainlogic.Hand_ArenaBattleResult)                         //! 玩家反馈挑战竞技场结果
 	http.HandleFunc("/get_arena_info", mainlogic.Hand_GetArenaInfo)                            //! 玩家请求竞技场可挑战玩家信息
 	http.HandleFunc("/arena_check", mainlogic.Hand_ArenaCheck)                                 //! 玩家请求挑战排位检测
 	http.HandleFunc("/arena_store_buy_item", mainlogic.Hand_BuyArenaStoreItem)                 //! 玩家请求购买声望商店物品
@@ -258,7 +258,7 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/get_sacrifice_award", mainlogic.Hand_GetSacrificeAward)
 	http.HandleFunc("/query_guild_store", mainlogic.Hand_GetGuildStoreInfo)
 	http.HandleFunc("/buy_guild_store", mainlogic.Hand_BuyGuildItem)
-	http.HandleFunc("/attack_guild_copy", mainlogic.Hand_AttackGuildCopy)
+	http.HandleFunc("/attack_guild_copy", mainlogic.Hand_GuildCopyResult)
 	http.HandleFunc("/get_guild_copy_status", mainlogic.Hand_GetGuildCopyStatus)
 	http.HandleFunc("/get_guild_copy_award", mainlogic.Hand_GetGuildCopyTreasure)
 	http.HandleFunc("/query_recv_copy_award", mainlogic.Hand_QueryGuildCopyTreasure)
@@ -547,6 +547,7 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/save_client_info", mainlogic.Hand_SaveClientInfo)
 	http.HandleFunc("/query_account_id", mainlogic.Hand_QueryAccountID)
 	http.HandleFunc("/query_player_info", mainlogic.Hand_QueryPlayerInfo)
+	http.HandleFunc("/kick_cheat_ranker", mainlogic.Hand_KickArenaRanker)
 	//★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
 	// SDK

@@ -383,6 +383,13 @@ func Hand_ChallengeHeroSouls(w http.ResponseWriter, r *http.Request) {
 
 	defer player.FinishMsgProcess()
 
+	//检查英雄数据是否一致
+	if !player.CheckHeroData(req.HeroCkD) {
+		response.RetCode = msg.RE_INVALID_PARAM
+		gamelog.Error("Hand_ChallengeHeroSouls : CheckHeroData Error!!!!")
+		return
+	}
+
 	player.HeroSoulsModule.CheckReset()
 
 	//! 检测当前指向将灵是否存在

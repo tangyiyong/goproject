@@ -94,6 +94,12 @@ func Hand_BuyLevelGift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	player.ActivityModule.CheckReset()
 	player.ActivityModule.LevelGift.CheckDeadLine()
 

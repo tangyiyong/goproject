@@ -25,6 +25,7 @@ func InitLogMgr() bool {
 
 	G_LogChan = make(chan []byte, 10240)
 	go LogRoutine()
+	//go TimerRoutine()
 	return true
 }
 
@@ -32,6 +33,10 @@ func LogRoutine() {
 	for logdata := range G_LogChan {
 		G_LogFile.WriteLog(logdata)
 	}
+}
+
+func TimerRoutine() {
+
 }
 
 type TLog interface {
