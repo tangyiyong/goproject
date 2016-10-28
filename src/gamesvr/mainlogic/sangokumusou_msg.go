@@ -421,6 +421,12 @@ func Hand_SangokuMusou_Sweep(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	//! 检测功能是否开启
 	if gamedata.IsFuncOpen(gamedata.FUNC_SANGUOWUSHUANG, player.GetLevel(), player.GetVipLevel()) == false {
 		response.RetCode = msg.RE_FUNC_NOT_OPEN
@@ -1111,6 +1117,12 @@ func Hand_GetSangokuMusou_StoreItem(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	//! 参数检查
 	if req.Num <= 0 {

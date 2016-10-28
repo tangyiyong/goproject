@@ -191,6 +191,12 @@ func Hand_UseExpItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	for j := 0; j < len(player.HangMoudle.ExpItems); j++ {
 		pItemInfo := gamedata.GetItemInfo(player.HangMoudle.ExpItems[j])
 		if pItemInfo == nil {

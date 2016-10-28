@@ -3,6 +3,7 @@ package mainlogic
 import (
 	"appconfig"
 	"gamelog"
+	"time"
 )
 
 var (
@@ -25,7 +26,7 @@ func InitLogMgr() bool {
 
 	G_LogChan = make(chan []byte, 10240)
 	go LogRoutine()
-	//go TimerRoutine()
+	go TimerRoutine()
 	return true
 }
 
@@ -36,7 +37,11 @@ func LogRoutine() {
 }
 
 func TimerRoutine() {
-
+	regtimer := time.Tick(60 * time.Second)
+	for {
+		G_LogFile.WriteLog(nil)
+		<-regtimer
+	}
 }
 
 type TLog interface {

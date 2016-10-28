@@ -267,6 +267,12 @@ func Hand_BuyCampbatStoreItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	//! 检测功能是否开启
 	isFuncOpen := gamedata.IsFuncOpen(gamedata.FUNC_CAMPBAT, player.GetLevel(), player.GetVipLevel())
 	if isFuncOpen == false {

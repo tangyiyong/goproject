@@ -557,13 +557,13 @@ func (self *TGlobalVariables) DelSvrAward(id int) {
 	}
 }
 func (self *TGlobalVariables) DB_AddAward(pAwardData *TAwardData) {
-	mongodb.UpdateToDB("SvrAwardCenter", &bson.M{"_id": 0}, &bson.M{"$push": bson.M{"svrawardlist": *pAwardData}})
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$push": bson.M{"svrawardlist": *pAwardData}})
 }
 func (self *TGlobalVariables) DB_DelAward(id int) {
-	mongodb.UpdateToDB("SvrAwardCenter", &bson.M{"_id": 0}, &bson.M{"$pull": bson.M{"svrawardlist": bson.M{"id": id}}})
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$pull": bson.M{"svrawardlist": bson.M{"id": id}}})
 }
 func (self *TGlobalVariables) DB_SaveIncrementID() {
-	mongodb.UpdateToDB("SvrAwardCenter", &bson.M{"_id": 0}, &bson.M{"$set": bson.M{"svrawardincid": self.SvrAwardIncID}})
+	mongodb.UpdateToDB("GlobalVariables", &bson.M{"_id": 1}, &bson.M{"$set": bson.M{"svrawardincid": self.SvrAwardIncID}})
 }
 
 func (self *TGlobalVariables) DB_UpdateLimitSaleNum() {

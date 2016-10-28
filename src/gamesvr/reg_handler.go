@@ -119,6 +119,7 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/patrol_territory", mainlogic.Hand_PatrolTerritory)                     //! 玩家请求领地放置武将巡逻
 	http.HandleFunc("/territory_skill_up", mainlogic.Hand_TerritorySkillLevelUp)             //! 玩家请求提升领地技能等级
 	http.HandleFunc("/query_territory_riot", mainlogic.Hand_GetTerritoryRiotInfo)            //! 玩家请求查询领地暴动信息
+	http.HandleFunc("/one_key_territory_award", mainlogic.Hand_OneKeyTerritoryAward)         //! 一键领取领地奖励
 
 	//! 围剿叛军消息处理
 	http.HandleFunc("/get_rebel_info", mainlogic.Hand_GetRebelInfo)                    //! 玩家请求获取叛军
@@ -548,11 +549,10 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/query_account_id", mainlogic.Hand_QueryAccountID)
 	http.HandleFunc("/query_player_info", mainlogic.Hand_QueryPlayerInfo)
 	http.HandleFunc("/kick_cheat_ranker", mainlogic.Hand_KickArenaRanker)
+	http.HandleFunc("/update_activity_list", mainlogic.Hand_UpdateActivityList)
 	//★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
-	// SDK
-	http.HandleFunc("/create_recharge_order", mainlogic.Handle_Create_Recharge_Order)
-	http.HandleFunc("/sdk_recharge_success", mainlogic.Handle_Recharge_Success)
+	http.HandleFunc("/recharge_notify", mainlogic.Handle_Recharge_Notify)
 }
 
 func RegTcpMsgHandler() {

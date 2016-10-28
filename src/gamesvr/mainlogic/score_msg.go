@@ -445,6 +445,12 @@ func Hand_BuyScoreStoreItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	//! 获取购买物品信息
 	itemInfo := gamedata.GetScoreStoreItem(int(req.StoreItemID))
 	if itemInfo == nil {
@@ -536,6 +542,12 @@ func Hand_BuyScoreFightTime(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	maxTime := gamedata.GetFuncVipValue(gamedata.FUNC_SCORE_FIGHT_TIME, player.GetVipLevel())
 	if player.ScoreMoudle.BuyTime >= maxTime {

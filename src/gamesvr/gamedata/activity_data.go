@@ -66,10 +66,10 @@ type ST_ActivityInfo struct {
 	Days      int    //! 临时存在天数
 }
 
-var GT_ActivityLst map[int32]ST_ActivityInfo
+var GT_ActivityLst map[int32]*ST_ActivityInfo
 
 func InitActivityParser(total int) bool {
-	GT_ActivityLst = make(map[int32]ST_ActivityInfo)
+	GT_ActivityLst = make(map[int32]*ST_ActivityInfo)
 	return true
 }
 
@@ -80,7 +80,7 @@ func ParseActivityRecord(rs *RecordSet) {
 		return
 	}
 
-	data := ST_ActivityInfo{}
+	data := new(ST_ActivityInfo)
 	data.ID = id
 	data.Name = rs.GetFieldString("name")
 	data.TimeType = rs.GetFieldInt("timetype")
@@ -109,7 +109,7 @@ func GetActivityInfo(id int32) *ST_ActivityInfo {
 		return nil
 	}
 
-	return &data
+	return data
 }
 
 //! 开服竞赛配置表

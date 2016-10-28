@@ -4,6 +4,12 @@ import (
 	"gamelog"
 )
 
+const (
+	CHARGE_MON_CARD = 1
+	CHARGE_NORMAL   = 2
+	CHARGE_
+)
+
 type ST_ChargeItem struct {
 	ID           int //充值ID
 	Type         int //类型 1->月卡 2->普通充值 3->优惠充值

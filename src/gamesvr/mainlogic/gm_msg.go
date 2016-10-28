@@ -2,14 +2,17 @@ package mainlogic
 
 import (
 	"appconfig"
+	"bufio"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
 	"io/ioutil"
 	"msg"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"utility"
 )
@@ -76,7 +79,7 @@ func Hand_AddSvrAward(w http.ResponseWriter, r *http.Request) {
 
 	var data TAwardData
 	data.TextType = Text_GM_Mail
-	data.Value = req.Value
+	data.Value = append(data.Value, req.Value)
 	for _, v := range req.ItemLst {
 		data.ItemLst = append(data.ItemLst, gamedata.ST_ItemData{v.ID, v.Num})
 	}
@@ -295,11 +298,11 @@ func Hand_KickArenaRanker(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
-	// //检查是否具有GM操作权限
-	// if false == appconfig.CheckGmRight(req.SessionID, req.SessionKey, r.RemoteAddr[:strings.IndexRune(r.RemoteAddr, ':')]) {
-	// 	gamelog.Error("Hand_KickArenaRanker Error Invalid Gm request!!!")
-	// 	return
-	// }
+	//检查是否具有GM操作权限
+	if false == appconfig.CheckGmRight(req.SessionID, req.SessionKey, r.RemoteAddr[:strings.IndexRune(r.RemoteAddr, ':')]) {
+		gamelog.Error("Hand_KickArenaRanker Error Invalid Gm request!!!")
+		return
+	}
 
 	//! 获取排名玩家信息
 	index := -1
@@ -348,4 +351,157 @@ func Hand_KickArenaRanker(w http.ResponseWriter, r *http.Request) {
 	player.ArenaModule.DB_UpdateRankToDatabase()
 
 	response.RetCode = msg.RE_SUCCESS
+}
+
+//! 修改活动表数据
+func Hand_UpdateActivityList(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接收信息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.MSG_UpdateActivityList_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_UpdateActivityList Unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_UpdateActivityList_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	response.RetCode = msg.RE_SUCCESS
+
+	var newActivity []string
+	var updateActivity map[int32]string
+	updateActivity = make(map[int32]string)
+
+	for _, v := range req.ActivityLst {
+		if v.Change == 2 { //! 新加活动
+			//! 检测存在
+			if gamedata.GetActivityInfo(v.ID) != nil {
+				gamelog.Error("Hand_UpdateActivityList Error: Activity ID aleady exist.%d", v.ID)
+				response.RetCode = msg.RE_INVALID_PARAM
+				return
+			}
+
+			//! 修改内存
+			data := new(gamedata.ST_ActivityInfo)
+			data.ID = v.ID
+			data.Name = v.Name
+			data.TimeType = v.TimeType
+			data.CycleType = v.CycleType
+			data.BeginTime = v.BeginTime
+			data.EndTime = v.EndTime
+			data.AwardTime = v.AwardTime
+			data.ActType = v.Type
+			data.AwardType = v.AwardType
+			data.Status = v.Status
+			data.Icon = v.Icon
+			data.Inside = v.Inside
+			data.Days = v.Days
+			gamedata.GT_ActivityLst[v.ID] = data
+
+			str := fmt.Sprintf("%d,%s,%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+				data.ID, data.Name, v.Desc, v.Ad, v.CycleType, v.TimeType, v.BeginTime, v.EndTime,
+				v.AwardTime, v.Type, v.AwardType, v.Status, v.Icon, v.Inside, v.Days)
+			newActivity = append(newActivity, str)
+		} else if v.Change == 1 { //! 修改活动
+			//! 检测存在
+			data := gamedata.GetActivityInfo(v.ID)
+			if data == nil {
+				gamelog.Error("Hand_UpdateActivityList Error: Activity ID not exist.")
+				response.RetCode = msg.RE_INVALID_PARAM
+				return
+			}
+
+			//! 修改内存中静态表数据
+			data.Name = v.Name
+			data.TimeType = v.TimeType
+			data.CycleType = v.CycleType
+			data.BeginTime = v.BeginTime
+			data.EndTime = v.EndTime
+			data.AwardTime = v.AwardTime
+			data.ActType = v.Type
+			data.AwardType = v.AwardType
+			data.Status = v.Status
+			data.Icon = v.Icon
+			data.Inside = v.Inside
+			data.Days = v.Days
+
+			//! 修改内存中动态数据
+			for i := 0; i < len(G_GlobalVariables.ActivityLst); i++ {
+				if G_GlobalVariables.ActivityLst[i].ActivityID == v.ID {
+					G_GlobalVariables.ActivityLst[i].Status = v.Status
+					G_GlobalVariables.ActivityLst[i].award = v.AwardType
+					G_GlobalVariables.DB_UpdateActivityStatus(i)
+					break
+				}
+			}
+
+			str := fmt.Sprintf("%d,%s,%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
+				data.ID, data.Name, v.Desc, v.Ad, v.CycleType, v.TimeType, v.BeginTime, v.EndTime,
+				v.AwardTime, v.Type, v.AwardType, v.Status, v.Icon, v.Inside, v.Days)
+
+			updateActivity[v.ID] = str
+		}
+	}
+
+	csv, err := ioutil.ReadFile("csv/type_activity.csv")
+	if err != nil {
+		gamelog.Error("ReadFile Fail: %s", err.Error())
+		return
+	}
+
+	os.Remove("csv/type_activity.csv")
+
+	strLst := strings.Split(string(csv), "\r\n")
+
+	for i, v := range strLst {
+		paramLst := strings.Split(string(v), ",")
+		if len(paramLst) < 1 {
+			continue
+		}
+
+		id, _ := strconv.Atoi(paramLst[0])
+
+		str, isExist := updateActivity[int32(id)]
+		if isExist == true {
+			strLst[i] = str
+		}
+	}
+
+	file, err := os.OpenFile("csv/type_activity.csv", os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		gamelog.Error("OpenFile Error: %s", err.Error())
+		return
+	}
+
+	defer file.Close()
+
+	write := bufio.NewWriter(file)
+	for _, v := range strLst {
+		write.WriteString(v + "\r\n")
+	}
+
+	//! 增加新活动
+	for _, v := range newActivity {
+		write.WriteString(v + "\r\n")
+	}
+
+	write.Flush()
+
+	G_GlobalVariables.CheckActivityNew()
+
+	G_GlobalVariables.UpdateActivity()
+
+	response.RetCode = msg.RE_SUCCESS
+
 }

@@ -17,4 +17,7 @@ func Init() {
 
 	//初始化礼包码管理器
 	InitGiftCodeMgr()
+
+	//初始化黑白名单管理器
+	InitNetMgr()
 }

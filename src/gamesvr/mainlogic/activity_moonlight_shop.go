@@ -29,6 +29,7 @@ type TMoonlightShopData struct {
 	BuyTimes      int
 	ScoreAward    BitsType64
 }
+
 type TMoonlightGoods struct {
 	ID            int
 	BuyTimes      byte
@@ -167,7 +168,7 @@ func (self *TMoonShop) ReduceDiscount(player *TPlayer, goodsID int) (bool, byte)
 	for i := 0; i < MoonShop_Num; i++ {
 		goods := &self.Goods[i]
 		if goods.ID == goodsID {
-			csv := gamedata.GetMoonGoodsInfo(goodsID) // 经过上面的判断，此指针不会为nil
+			csv := gamedata.GetMoonGoodsInfo(goodsID)
 			if goods.Discount > csv.MinDiscount && player.BagMoudle.RemoveNormalItem(gamedata.MoonShop_Money_ID, goods.getDiscountCost()) {
 				goods.reduceDiscount(csv.MinDiscount)
 				self.DB_SaveGoods(i)

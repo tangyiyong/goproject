@@ -22,6 +22,7 @@ type MSG_MoonlightShop_RefreshShop_Auto_Ack struct {
 	Goods   [MoonShop_Num]TMoonlightGoods
 }
 
+//! 获取月光集市商品信息
 func Hand_GetMoonhopData(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
@@ -67,6 +68,8 @@ func Hand_GetMoonhopData(w http.ResponseWriter, r *http.Request) {
 	response.Shop = *info.GetShopDtad()
 	response.RetCode = msg.RE_SUCCESS
 }
+
+//! 月光集市兑换
 func Hand_MoonShop_Exchange(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
@@ -109,6 +112,8 @@ func Hand_MoonShop_Exchange(w http.ResponseWriter, r *http.Request) {
 		response.RetCode = msg.RE_SUCCESS
 	}
 }
+
+//! 商品打折
 func Hand_MoonShop_ReduceDiscount(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
@@ -155,6 +160,8 @@ func Hand_MoonShop_ReduceDiscount(w http.ResponseWriter, r *http.Request) {
 		response.RetCode = msg.RE_SUCCESS
 	}
 }
+
+//! 购买刷新
 func Hand_MoonShop_RefreshShop_Buy(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
@@ -202,6 +209,8 @@ func Hand_MoonShop_RefreshShop_Buy(w http.ResponseWriter, r *http.Request) {
 	}
 	response.Goods = shop.Goods
 }
+
+//! 自动刷新
 func Hand_MoonShop_RefreshShop(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
@@ -247,6 +256,8 @@ func Hand_MoonShop_RefreshShop(w http.ResponseWriter, r *http.Request) {
 	}
 	response.Goods = shop.Goods
 }
+
+//! 购买商品
 func Hand_MoonShop_BuyGoods(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
@@ -291,6 +302,8 @@ func Hand_MoonShop_BuyGoods(w http.ResponseWriter, r *http.Request) {
 		response.RetCode = msg.RE_SUCCESS
 	}
 }
+
+//! 获取积分奖励
 func Hand_MoonShop_GetScoreAward(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 

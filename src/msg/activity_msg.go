@@ -515,14 +515,18 @@ type MSG_MoonlightShop_ReduceDiscount_Ack struct {
 	RetCode  int
 	Discount byte
 }
-type MSG_MoonlightShop_RefreshShop_Buy_Req struct { // 消息：/act_moonlight_shop_refreshshop_buy
+
+// 消息：/act_moonlight_shop_refreshshop_buy
+type MSG_MoonlightShop_RefreshShop_Buy_Req struct {
 	PlayerID   int32
 	SessionKey string
 }
+
 type MSG_MoonlightShop_RefreshShop_Auto_Req struct { // 消息：/act_moonlight_shop_refreshshop_auto
 	PlayerID   int32
 	SessionKey string
 }
+
 type MSG_MoonlightShop_BuyGoods_Req struct { // 消息：/act_moonlight_shop_buygoods
 	PlayerID   int32
 	SessionKey string
@@ -531,6 +535,7 @@ type MSG_MoonlightShop_BuyGoods_Req struct { // 消息：/act_moonlight_shop_buy
 type MSG_MoonlightShop_BuyGoods_Ack struct {
 	RetCode int
 }
+
 type MSG_MoonlightShop_GetScoreAward_Req struct { // 消息：/act_moonlight_shop_getscoreaward
 	PlayerID   int32
 	SessionKey string
@@ -550,6 +555,7 @@ type MSG_BeachBaby_OpenGoods_Req struct { // 消息：/act_beach_baby_open_goods
 	SessionKey string
 	Index      int
 }
+
 type MSG_BeachBaby_OpenGoods_Ack struct {
 	RetCode   int
 	Item      MSG_ItemData
@@ -559,6 +565,7 @@ type MSG_BeachBaby_OpenAllGoods_Req struct { // 消息：/act_beach_baby_open_al
 	PlayerID   int32
 	SessionKey string
 }
+
 type MSG_BeachBaby_Refresh_Auto_Req struct { // 消息：/act_beach_baby_refresh_auto
 	PlayerID   int32
 	SessionKey string

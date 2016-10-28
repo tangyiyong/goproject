@@ -165,7 +165,7 @@ func GetRecommendSvrID() *TGameServerInfo {
 	}
 
 	for i := 9999; i > 0; i-- {
-		if G_ServerList[i].SvrID != 0 && G_ServerList[i].isSvrOK == true && G_ServerList[i].SvrDefault > SS_Ready {
+		if G_ServerList[i].SvrID != 0 && G_ServerList[i].isSvrOK == true && G_ServerList[i].SvrState > SS_Ready {
 			return &G_ServerList[i]
 		}
 	}

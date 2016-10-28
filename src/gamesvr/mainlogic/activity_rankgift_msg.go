@@ -93,6 +93,12 @@ func Hand_BuyRankGift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	player.ActivityModule.CheckReset()
 
 	if G_GlobalVariables.IsActivityOpen(player.ActivityModule.RankGift.ActivityID) == false {

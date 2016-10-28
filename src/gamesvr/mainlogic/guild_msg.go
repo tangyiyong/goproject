@@ -1287,6 +1287,12 @@ func Hand_BuyGuildItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD
 		return
@@ -2598,6 +2604,12 @@ func Hand_BuyCopyBattleTimes(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	if player.pSimpleInfo.GuildID == 0 {
 		response.RetCode = msg.RE_HAVE_NOT_GUILD

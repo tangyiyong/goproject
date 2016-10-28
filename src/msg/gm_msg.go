@@ -17,7 +17,7 @@ type MSG_UpdateGameData_Ack struct {
 type MSG_SvrAward_Add_Req struct {
 	SessionID  string         //GM SessionID
 	SessionKey string         //GM SessionKey
-	Value      []string       //! 参数
+	Value      string         //! 参数
 	ItemLst    []MSG_ItemData //! 奖励内容
 }
 
@@ -228,4 +228,90 @@ type MSG_KickCheatRanker_Req struct {
 
 type MSG_KickCheatRanker_Ack struct {
 	RetCode int
+}
+
+type MSG_ActivityUpdate struct {
+	ID        int32
+	Name      string
+	Desc      string
+	Ad        string
+	CycleType int
+	TimeType  int
+	BeginTime int
+	EndTime   int
+	AwardTime int
+	Type      int
+	AwardType int
+	Status    int
+	Icon      int
+	Inside    int
+	Days      int
+	Change    int //! 修改标记  0->无修改   1->修改   2->添加
+}
+
+//! 更新活动表
+//! 消息: /update_activity_list
+type MSG_UpdateActivityList_Req struct {
+	SessioniD   string
+	SessionKey  string
+	ActivityLst []MSG_ActivityUpdate
+}
+
+type MSG_UpdateActivityList_Ack struct {
+	RetCode int
+}
+
+//! 获取服务器IP黑白名单
+//! 消息: /get_net_list
+type MSG_GetNetList_Req struct {
+	SessionID  string
+	SessionKey string
+	SvrID      int32
+}
+
+type MSG_GetNetList_Ack struct {
+	RetCode   int
+	WhiteList []string //! 白名单
+	BlackList []string //! 黑名单
+}
+
+//! 增加服务器IP名单
+//! 消息: /add_net_list
+type MSG_AddNetList_Req struct {
+	SessionID  string
+	SessionKey string
+	SvrID      int32
+	ListType   int    //! 1->白名单 2->黑名单
+	IP         string //! IP
+}
+
+type MSG_AddNetList_Ack struct {
+	RetCode int
+}
+
+//! 删除服务器IP名单
+//! 消息: /del_net_list
+type MSG_DelNetList_Req struct {
+	SessionID  string
+	SessionKey string
+	SvrID      int32
+	ListType   int    //! 1->白名单 2->黑名单
+	IP         string //! IP
+}
+
+type MSG_DelNetList_Ack struct {
+	RetCode int
+}
+
+//! 查询游戏服ip
+//! 消息: /gm_query_svrip
+type MSG_QuerySvrIp_Req struct {
+	SessionID  string
+	SessionKey string
+	SvrID      int32
+}
+
+type MSG_QuerySvrIp_Ack struct {
+	RetCode int
+	SvrIp   string
 }

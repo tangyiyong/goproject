@@ -93,6 +93,12 @@ func Hand_BuyVipGift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	//! 检查是否重复购买
 	if player.MallModule.VipBagRecord.IsExist(req.ID) >= 0 {
 		response.RetCode = msg.RE_NOT_ENOUGH_TIMES

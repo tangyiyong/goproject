@@ -105,9 +105,9 @@ func Hand_EnterGame(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: user_enter_game : %s", response.PlayerName)
 
 	if player.pSimpleInfo.LoginDay == 0 {
-		SendLogNotify(req.PlayerID, EVENT_LOGIN_GAME, player.GetLevel(), player.GetVipLevel(), 1, 0)
+		SendLogNotify(req.PlayerID, EVENT_LOGIN_GAME, 0, player.GetLevel(), player.GetVipLevel(), 1, 0)
 	} else {
-		SendLogNotify(req.PlayerID, EVENT_LOGIN_GAME, player.GetLevel(), player.GetVipLevel(), 0, 0)
+		SendLogNotify(req.PlayerID, EVENT_LOGIN_GAME, 0, player.GetLevel(), player.GetVipLevel(), 0, 0)
 	}
 
 	//! 玩家登陆

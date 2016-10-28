@@ -37,6 +37,12 @@ func Hand_ReceiveMonthCard(w http.ResponseWriter, r *http.Request) {
 
 	player.ActivityModule.CheckReset()
 
+	if G_GlobalVariables.IsActivityOpen(player.ActivityModule.MonthCard.ActivityID) == false {
+		gamelog.Error("Hand_ReceiveMonthCard Error : Activity not open")
+		response.RetCode = msg.RE_ACTIVITY_NOT_OPEN
+		return
+	}
+
 	pMonthCard := gamedata.GetChargeItem(req.CardID)
 	if pMonthCard == nil {
 		response.RetCode = msg.RE_INVALID_PARAM
@@ -99,6 +105,12 @@ func Hand_QueryActivityMonthCardDays(w http.ResponseWriter, r *http.Request) {
 	}
 
 	player.ActivityModule.CheckReset()
+
+	if G_GlobalVariables.IsActivityOpen(player.ActivityModule.MonthCard.ActivityID) == false {
+		gamelog.Error("Hand_ReceiveMonthCard Error : Activity not open")
+		response.RetCode = msg.RE_ACTIVITY_NOT_OPEN
+		return
+	}
 
 	for i := 0; i < 2; i++ {
 		response.Days = append(response.Days, player.ActivityModule.MonthCard.CardDays[i])

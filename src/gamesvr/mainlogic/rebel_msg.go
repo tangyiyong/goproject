@@ -489,6 +489,12 @@ func Hand_BuyRebelStore(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	//! 检测参数
 	if req.Num <= 0 {
 		response.RetCode = msg.RE_INVALID_PARAM

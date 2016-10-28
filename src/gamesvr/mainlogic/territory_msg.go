@@ -56,6 +56,7 @@ func Hand_GetTerritoryStatus(w http.ResponseWriter, r *http.Request) {
 		territory.HeroID = v.HeroID
 		territory.PatrolType = v.AwardTime
 
+		territory.RiotInfo = []msg.MSG_TerritoryRiotData{}
 		for _, b := range v.RiotInfo {
 			var riotInfo msg.MSG_TerritoryRiotData
 			riotInfo.BeginTime = b.BeginTime
@@ -64,6 +65,7 @@ func Hand_GetTerritoryStatus(w http.ResponseWriter, r *http.Request) {
 			territory.RiotInfo = append(territory.RiotInfo, riotInfo)
 		}
 
+		territory.AwardItem = []msg.MSG_ItemData{}
 		for _, n := range v.AwardItem {
 			var award msg.MSG_ItemData
 			award.ID = n.ItemID
@@ -414,6 +416,62 @@ func Hand_TerritorySkillLevelUp(w http.ResponseWriter, r *http.Request) {
 	player.TerritoryModule.TerritorySkillLevelUp(req.TerritoryID)
 
 	//! 返回成功
+	response.RetCode = msg.RE_SUCCESS
+}
+
+//! 请求一键领取领地奖励
+func Hand_OneKeyTerritoryAward(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接收消息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.MSG_OneKeyTerritoryAward_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_OneKeyTerritoryAward Unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_OneKeyTerritoryAward_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	//! 常规检测
+	var player *TPlayer = nil
+	player, response.RetCode = GetPlayerAndCheck(req.PlayerID, req.SessionKey, r.URL.String())
+	if player == nil {
+		return
+	}
+
+	response.AwardInfo = []msg.MSG_ItemData{}
+	for _, v := range player.TerritoryModule.TerritoryLst {
+
+		if v.PatrolEndTime > utility.GetCurTime() {
+			//! 尚未结束
+			response.RetCode = msg.RE_PATROL_NOT_END
+			return
+		}
+
+		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_TERRITORY_PATROLTIME, v.PatrolTime/3600)
+
+		//! 获取奖励
+		player.TerritoryModule.GetTerritoryAward(v.ID)
+
+		for _, n := range v.AwardItem {
+			var award msg.MSG_ItemData
+			award.ID = n.ItemID
+			award.Num = n.ItemNum
+			response.AwardInfo = append(response.AwardInfo, award)
+		}
+	}
+
 	response.RetCode = msg.RE_SUCCESS
 }
 

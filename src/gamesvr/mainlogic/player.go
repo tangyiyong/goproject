@@ -351,6 +351,10 @@ func (player *TPlayer) BeginMsgProcess() int {
 		return msg.RE_REQUEST_TOO_FAST
 	}
 
+	if player.msgTime > 0 {
+		gamelog.Error("BeginMsgProcess error : Some Message does't  finished!")
+	}
+
 	player.msgTime = utility.GetCurTime()
 
 	return msg.RE_UNKNOWN_ERR
@@ -519,7 +523,7 @@ func (player *TPlayer) GetHeroByPos(postype int, pos int) *THeroData {
 }
 
 //响应充值人民币
-func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
+func (player *TPlayer) HandChargeRenMinBi(rmb int, chargeid int) bool {
 	var getDiamond = 0
 	pChargeInfo := gamedata.GetChargeItem(chargeid)
 	if pChargeInfo == nil {
@@ -529,8 +533,8 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 
 	//普通充值
 	if pChargeInfo.Type == 2 || pChargeInfo.Type == 3 { //! 普通充值或优惠充值
-		if RenMinBi < pChargeInfo.RenMinBi {
-			gamelog.Error("OnChargeMoney RMB not enough: Chargeid(%d), RMB(%d)", chargeid, RenMinBi)
+		if rmb < pChargeInfo.RenMinBi {
+			gamelog.Error("OnChargeMoney RMB not enough: Chargeid(%d), RMB(%d)", chargeid, rmb)
 			return false
 		}
 
@@ -560,13 +564,13 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 		}
 
 		//! 发放通知邮件
-		SendRechargeMail(player.playerid, RenMinBi)
+		SendRechargeMail(player.playerid, rmb)
 
 	} else if pChargeInfo.Type == 1 { //! 月卡
 		player.ActivityModule.CheckReset()
 
-		if RenMinBi < pChargeInfo.RenMinBi {
-			gamelog.Error("OnChargeMoney RMB not enough: ChargeID(%d), RMB(%d)", pChargeInfo.ID, RenMinBi)
+		if rmb < pChargeInfo.RenMinBi {
+			gamelog.Error("OnChargeMoney RMB not enough: ChargeID(%d), RMB(%d)", pChargeInfo.ID, rmb)
 			return false
 		}
 
@@ -582,12 +586,14 @@ func (player *TPlayer) HandChargeRenMinBi(RenMinBi int, chargeid int) bool {
 
 	player.RoleMoudle.AddVipExp(getDiamond)
 
-	player.OnChargeMoney(RenMinBi, getDiamond)
+	player.OnChargeMoney(rmb, getDiamond)
+
+	EventCharge(player, int32(rmb), int32(chargeid))
 
 	return true
 }
 
-func (player *TPlayer) OnChargeMoney(rmb, diamond int) {
+func (player *TPlayer) OnChargeMoney(rmb int, diamond int) {
 	//! 增加任务/七天/限时完成进度
 	player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_RECHARGE, diamond)
 

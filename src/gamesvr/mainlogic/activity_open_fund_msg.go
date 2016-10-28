@@ -88,6 +88,12 @@ func Hand_BuyOpenFund(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	//! 检查是否已经购买
 	if player.ActivityModule.OpenFund.IsBuyFund == true {
 		gamelog.Error("Hand_BuyOpenFund error: repeat purchase. PlayerID: %v", req.PlayerID)

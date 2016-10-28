@@ -95,6 +95,12 @@ func Hand_BuyBlackMarketGoods(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	if gamedata.IsFuncOpen(gamedata.FUNC_BLACK_STORE, player.GetLevel(), player.GetVipLevel()) == false {
 		response.RetCode = msg.RE_BLACK_MARKET_NOT_OPEN
 		return

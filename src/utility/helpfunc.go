@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -95,7 +96,7 @@ func LoadCsv(path string) ([][]string, error) {
 	return records, nil
 }
 
-func UpdateCsv(path string, records [][]string) error {
+func UpdateCsv(path string, destid int, newfields []string) error {
 	file, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY, os.ModePerm)
 	defer file.Close()
 	if err != nil {
@@ -106,8 +107,22 @@ func UpdateCsv(path string, records [][]string) error {
 	if err != nil {
 		return err
 	}
+
 	if fstate.IsDir() == true {
 		return &StrError{"UpdateCsv is dir!", nil}
+	}
+
+	csvReader := csv.NewReader(file)
+	records, err := csvReader.ReadAll()
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(records); i++ {
+		id, _ := strconv.Atoi(records[i][0])
+		if id == destid {
+			records[i] = newfields
+		}
 	}
 
 	csvWriter := csv.NewWriter(file)

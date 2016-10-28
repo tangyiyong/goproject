@@ -313,6 +313,12 @@ func Hand_SellItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
+
 	var moneyid int = 0
 	var moneynum int = 0
 
@@ -572,6 +578,12 @@ func Hand_UseItem(w http.ResponseWriter, r *http.Request) {
 	if player == nil {
 		return
 	}
+
+	if response.RetCode = player.BeginMsgProcess(); response.RetCode != msg.RE_UNKNOWN_ERR {
+		return
+	}
+
+	defer player.FinishMsgProcess()
 
 	pItemInfo := gamedata.GetItemInfo(req.ItemID)
 	if pItemInfo == nil {

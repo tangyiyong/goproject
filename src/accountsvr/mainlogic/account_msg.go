@@ -8,6 +8,7 @@ import (
 	"msg"
 	"net/http"
 	"strconv"
+	"strings"
 	"utility"
 
 	"gopkg.in/mgo.v2/bson"
@@ -61,6 +62,9 @@ func Handle_Login(w http.ResponseWriter, r *http.Request) {
 			pGameInfo = GetRecommendSvrID()
 		} else {
 			pGameInfo = GetGameSvrInfo(result.LastSvrID)
+			if pGameInfo != nil && pGameInfo.SvrState <= SS_Ready {
+				pGameInfo = GetRecommendSvrID()
+			}
 		}
 
 		if pGameInfo != nil {
@@ -231,6 +235,7 @@ func Handle_VerifyUserLogin(w http.ResponseWriter, r *http.Request) {
 //处理登录请求
 func Handle_GetServerList(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
+
 	buffer := make([]byte, r.ContentLength)
 	r.Body.Read(buffer)
 
@@ -247,21 +252,34 @@ func Handle_GetServerList(w http.ResponseWriter, r *http.Request) {
 		w.Write(b)
 	}()
 
+	//! 提取IP
+	strIp := r.RemoteAddr[:strings.IndexRune(r.RemoteAddr, ':')]
+
 	nCount := len(G_ServerList)
 	response.SvrList = make([]msg.ServerNode, 0, 10)
 	var state uint32
 	for i := 0; i < nCount; i++ {
-		if G_ServerList[i].SvrID != 0 && (G_ServerList[i].SvrState > SS_Ready) {
-			if G_ServerList[i].isSvrOK {
-				state = G_ServerList[i].SvrState
-			} else {
-				state = SS_Close
+		if G_ServerList[i].SvrID != 0 {
+
+			if G_ServerList[i].SvrState > SS_Ready ||
+				G_NetMgr.IsInWhiteList(G_ServerList[i].SvrID, strIp) {
+
+				if G_NetMgr.IsInBlackList(G_ServerList[i].SvrID, strIp) {
+					//! 黑名单禁用功能
+					continue
+				}
+
+				if G_ServerList[i].isSvrOK {
+					state = G_ServerList[i].SvrState
+				} else {
+					state = SS_Close
+				}
+				response.SvrList = append(response.SvrList, msg.ServerNode{G_ServerList[i].SvrID,
+					G_ServerList[i].SvrName,
+					state,
+					G_ServerList[i].SvrDefault,
+					G_ServerList[i].SvrOutAddr})
 			}
-			response.SvrList = append(response.SvrList, msg.ServerNode{G_ServerList[i].SvrID,
-				G_ServerList[i].SvrName,
-				state,
-				G_ServerList[i].SvrDefault,
-				G_ServerList[i].SvrOutAddr})
 		}
 	}
 }

@@ -154,3 +154,15 @@ type MSG_GetTerritoryRiot_Ack struct {
 	RetCode  int
 	RiotInfo []MSG_TerritoryRiotData //! 暴动信息
 }
+
+//! 玩家请求一键领取领地奖励
+//! 消息: /one_key_territory_award
+type MSG_OneKeyTerritoryAward_Req struct {
+	PlayerID   int32
+	SessionKey string
+}
+
+type MSG_OneKeyTerritoryAward_Ack struct {
+	RetCode   int
+	AwardInfo []MSG_ItemData //! 领地奖励
+}

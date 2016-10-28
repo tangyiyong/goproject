@@ -52,6 +52,7 @@ func consoleroutine() {
 			runtime.GC()
 			fmt.Println("gc finished")
 		case "lscmd":
+			fmt.Println("cmd count:", len(HandlerMap))
 			for key, _ := range HandlerMap {
 				fmt.Println(key)
 			}

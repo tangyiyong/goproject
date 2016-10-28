@@ -24,16 +24,74 @@ const (
 	EVENT_LOSE_ITEM    = 14 //失去道具
 )
 
-const (
-	SOURCE_BUY_ITEM = 1
-)
+const ()
 
-func EventCharge(player *TPlayer, realmoney int32, charid int32) {
-	SendLogNotify(player.playerid, EVENT_CHARGE_MONEY, player.GetLevel(), player.GetVipLevel(), realmoney, charid)
-
+//充值事件
+func EventCharge(player *TPlayer, realmoney int32, chargeid int32) {
+	SendLogNotify(player.playerid, EVENT_CHARGE_MONEY, 0, player.GetLevel(), player.GetVipLevel(), realmoney, chargeid)
 }
 
-func SendLogNotify(playerid int32, eventid int32, level int, viplvl int8, param1, param2 int32) bool {
+//获取钻石事件
+func EventGetDiamond(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_GET_DIAMOND, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//失去钻石事件
+func EventLoseDiamond(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_LOSE_DIAMOND, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//获取金币事件
+func EventGetGold(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_GET_GOLD, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//失去金币事件
+func EventLoseGold(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_LOSE_GOLD, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//获取体力事件
+func EventGetAct(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_GET_ACT, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//失去体力事件
+func EventLoseAct(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_LOSE_ACT, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//获取英雄事件
+func EventGetHero(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_GET_HERO, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//失去英雄事件
+func EventLoseHero(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_LOSE_HERO, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//获取装备事件
+func EventGetEquip(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_GET_EQUIP, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//失去装备事件
+func EventLoseEquip(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_LOSE_EQUIP, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//获取道具事件
+func EventGetItem(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_GET_ITEM, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+//失去道具事件
+func EventLoseItem(player *TPlayer, srcid int32, num int32) {
+	SendLogNotify(player.playerid, EVENT_LOSE_ITEM, srcid, player.GetLevel(), player.GetVipLevel(), num, 0)
+}
+
+func SendLogNotify(playerid int32, eventid int32, srcid int32, level int, viplvl int8, param1, param2 int32) bool {
 	if G_LogClient.TcpConn == nil {
 		gamelog.Error("SendLogNotify Error: G_LogClient.TcpConn is nullptr!!!")
 		return false
@@ -41,7 +99,9 @@ func SendLogNotify(playerid int32, eventid int32, level int, viplvl int8, param1
 
 	var req msg.MSG_SvrLogData
 	req.SvrID = int32(appconfig.GameSvrID)
+	req.ChnlID = 0
 	req.EventID = eventid
+	req.SrcID = srcid
 	req.PlayerID = playerid
 	req.Level = int32(level)
 	req.VipLvl = viplvl
