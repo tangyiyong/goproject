@@ -115,7 +115,7 @@ func Handle_Register(w http.ResponseWriter, r *http.Request) {
 	var pAccount *TAccount = nil
 	pAccount, response.RetCode = G_AccountMgr.AddNewAccount(req.Name, req.Password)
 	if response.RetCode == msg.RE_SUCCESS {
-		pAccount.Platform = req.Platform
+		pAccount.Channel = req.ChannelID
 		mongodb.InsertToDB("Account", pAccount)
 	}
 }
@@ -145,7 +145,7 @@ func Handle_TouristRegister(w http.ResponseWriter, r *http.Request) {
 	var pAccount *TAccount = nil
 	pAccount, response.RetCode = G_AccountMgr.AddNewAccount(name, password)
 	if response.RetCode == msg.RE_SUCCESS {
-		pAccount.Platform = req.Platform
+		pAccount.Channel = req.ChannelID
 		mongodb.InsertToDB("Account", pAccount)
 	}
 
@@ -262,7 +262,8 @@ func Handle_GetServerList(w http.ResponseWriter, r *http.Request) {
 		if G_ServerList[i].SvrID != 0 {
 
 			if G_ServerList[i].SvrState > SS_Ready ||
-				G_NetMgr.IsInWhiteList(G_ServerList[i].SvrID, strIp) {
+				G_NetMgr.IsInWhiteList(G_ServerList[i].SvrID, strIp) ||
+				G_NetMgr.IsInChannelList(G_ServerList[i].SvrID, req.ChannelID) {
 
 				if G_NetMgr.IsInBlackList(G_ServerList[i].SvrID, strIp) {
 					//! 黑名单禁用功能
@@ -278,7 +279,8 @@ func Handle_GetServerList(w http.ResponseWriter, r *http.Request) {
 					G_ServerList[i].SvrName,
 					state,
 					G_ServerList[i].SvrDefault,
-					G_ServerList[i].SvrOutAddr})
+					G_ServerList[i].SvrOutAddr,
+					G_ServerList[i].SvrOpenTime})
 			}
 		}
 	}

@@ -20,12 +20,14 @@ type TBattleRoom struct {
 	RoomID  int16                        //房间ID
 	Players [room_player_num]*TBattleObj //三个阵营的人员
 	CampNum [room_camp_num]int32         //各个阵营人数
+	LastTick int32                       //上一次tick时间
 	MsgList chan TMessage                //消息队列
 }
 
 func (self *TBattleRoom) Init(id int16) bool {
 	self.RoomID = id
 	self.MsgList = make(chan TMessage, 100)
+	self.LastTick = utility.GetCurTime();
 	go self.MsgProcess()
 	return true
 }
@@ -67,6 +69,21 @@ func (self *TBattleRoom) MsgProcess() {
 			self.Hand_LeaveByDisconnect(msgItem.MsgData)
 		}
 	}
+	
+	if((utility.GetCurTime()-self.LastTick) <25)
+	{
+		return ;
+	}
+	
+	self.LastTick = utility.GetCurTime();
+	
+	self.Update();
+}
+
+func (self *TBattleRoom) Update() bool {
+	
+	
+	return true;
 }
 
 //由于客户端原因，index_player需要从2开始计

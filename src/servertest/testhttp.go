@@ -118,7 +118,7 @@ func TestGetAction(playerid int32, sessionkey string) {
 func TestAddSvrAward(playerid int32, sessionkey string) {
 	reqUrl := "http://127.0.0.1:8082/add_svr_award"
 	var req msg.MSG_SvrAward_Add_Req
-	req.Value = []string{"渣渣"}
+	//	req.Value = []string{"渣渣"}
 	req.ItemLst = []msg.MSG_ItemData{{1, 1}}
 	PostMsg(reqUrl, req)
 }

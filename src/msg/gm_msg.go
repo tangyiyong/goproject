@@ -68,14 +68,29 @@ type MSG_GetServerInfo_Ack struct {
 	RegisterCnt  int    //总注册人数
 }
 
+//! 设置当前游戏服信息
+//! 消息: /set_server_info
+type MSG_SetServerInfo_Req struct {
+	SessionID  string
+	SessionKey string
+	SvrID      int32
+	SvrName    string
+}
+
+type MSG_SetServerInfo_Ack struct {
+	RetCode int
+}
+
 //验证玩家登录请求
 //消息:/gm_set_svrstate
 type MSG_SetGameSvrState_Req struct {
-	SessionID  string //GM SessionID
-	SessionKey string //GM SessionKey
-	SvrID      int32  //服务器ID
-	SvrState   uint32 //服务器标记
-	SvrDefault uint32 //是否默认
+	SessionID   string //GM SessionID
+	SessionKey  string //GM SessionKey
+	SvrID       int32  //服务器ID
+	SvrName     string //服务器名字
+	SvrState    uint32 //服务器标记
+	SvrDefault  uint32 //是否默认
+	SvrOpenTime int32  //开服时间 若为0则忽视
 }
 
 type MSG_SetGameSvrState_Ack struct {
@@ -105,6 +120,32 @@ type MSG_GmLogin_Ack struct {
 	RetCode int
 }
 
+//! 查询被封禁的玩家列表
+//! 消息: /gm_get_enablelst
+type MSG_GmGetEnableLst_Req struct {
+	SessionID  string //GM SessionID
+	SessionKey string //GM SessionKey
+	Type       int    //! 0->所有玩家 1->根据SvrID 2->根据PlayerInfo
+	SvrID      int32
+	PlayerID   int32
+	PlayerName string
+}
+
+type MSG_GmEnablePlayerInfo struct {
+	PlayerID   int32
+	PlayerName string
+	SvrID      int32
+	Level      int
+	VipLevel   int
+	Day        int32
+	DisableDay int32
+}
+
+type MSG_GmGetEnableLst_Ack struct {
+	RetCode    int
+	PlayerInfo []MSG_GmEnablePlayerInfo
+}
+
 //消息:/gm_enable_account
 type MSG_GmEnableAccount_Req struct {
 	SessionID  string //GM SessionID
@@ -113,6 +154,7 @@ type MSG_GmEnableAccount_Req struct {
 	SvrID      int32  //分区ID
 	RoleName   string //角色名字
 	Enable     int32  //0:表示禁用, 1:表示启用
+	DisableDay int32  //封禁天数
 }
 
 type MSG_GmEnableAccount_Ack struct {
@@ -123,13 +165,43 @@ type MSG_GmEnableAccount_Ack struct {
 type MSG_AddGiftAward_Req struct {
 	SessionID  string
 	SessionKey string
-	ItemID     []int //物品ID
-	ItemNum    []int //物品数量
+	Name       string //奖励模板
+	ItemID     []int  //物品ID
+	ItemNum    []int  //物品数量
 }
 
 type MSG_AddGiftAward_Ack struct {
 	RetCode int
 	AwardID int
+}
+
+//消息: /gm_get_giftaward
+type MSG_GetGiftAward_Req struct {
+	SessionID  string
+	SessionKey string
+}
+
+type MSG_GiftAward struct {
+	ID      int
+	Name    string
+	ItemID  []int
+	ItemNum []int
+}
+
+type MSG_GetGiftAward_Ack struct {
+	RetCode  int
+	AwardLst []MSG_GiftAward
+}
+
+//消息: /gm_del_giftaward
+type MSG_Del_giftaward_Req struct {
+	SessionID  string
+	SessionKey string
+	AwardID    []int
+}
+
+type MSG_Del_giftaward_Ack struct {
+	RetCode int
 }
 
 //消息:/gm_make_giftcode
@@ -252,12 +324,52 @@ type MSG_ActivityUpdate struct {
 //! 更新活动表
 //! 消息: /update_activity_list
 type MSG_UpdateActivityList_Req struct {
-	SessioniD   string
+	SessionID   string
 	SessionKey  string
 	ActivityLst []MSG_ActivityUpdate
 }
 
 type MSG_UpdateActivityList_Ack struct {
+	RetCode int
+}
+
+type MSG_AwardUpdate struct {
+	ID         int
+	Name       string
+	Fix_Item   string
+	Ratio_Num  int
+	Ratio_Item string
+	Distinct   int
+	Change     int
+}
+
+//! 更新奖励表
+//! 消息: /update_award_list
+type MSG_UpdateAwardList_Req struct {
+	SessionID  string
+	SessionKey string
+	AwardLst   []MSG_AwardUpdate
+}
+
+type MSG_UpdateAwardList_Ack struct {
+	RetCode int
+}
+
+type MSG_DropItem struct {
+	ItemID  int
+	ItemNum [2]int
+	Ratio   int
+}
+
+//! 增加奖励表
+//! 消息: /add_award_list
+type MSG_AddAwardList_Req struct {
+	SessionID  string
+	SessionKey string
+	AwardLst   []MSG_AwardUpdate
+}
+
+type MSG_AddAwardList_Ack struct {
 	RetCode int
 }
 
@@ -270,9 +382,10 @@ type MSG_GetNetList_Req struct {
 }
 
 type MSG_GetNetList_Ack struct {
-	RetCode   int
-	WhiteList []string //! 白名单
-	BlackList []string //! 黑名单
+	RetCode     int
+	WhiteList   []string //! 白名单
+	BlackList   []string //! 黑名单
+	ChannelList []int    //! 可见渠道
 }
 
 //! 增加服务器IP名单
@@ -281,7 +394,8 @@ type MSG_AddNetList_Req struct {
 	SessionID  string
 	SessionKey string
 	SvrID      int32
-	ListType   int    //! 1->白名单 2->黑名单
+	ListType   int //! 1->白名单 2->黑名单 3->可见渠道
+	ChannelID  []int
 	IP         string //! IP
 }
 
@@ -295,7 +409,8 @@ type MSG_DelNetList_Req struct {
 	SessionID  string
 	SessionKey string
 	SvrID      int32
-	ListType   int    //! 1->白名单 2->黑名单
+	ListType   int //! 1->白名单 2->黑名单 3->可见渠道
+	ChannelID  []int
 	IP         string //! IP
 }
 
@@ -314,4 +429,34 @@ type MSG_QuerySvrIp_Req struct {
 type MSG_QuerySvrIp_Ack struct {
 	RetCode int
 	SvrIp   string
+}
+
+//! 查询游戏服活动列表
+//! 消息: /gm_query_activity
+type MSG_QueryGameActivity_Req struct {
+	SessionID  string
+	SessionKey string
+}
+
+type MSG_GameActivityInfo struct {
+	ID        int32  //! 活动ID
+	Name      string //! 活动名字
+	AD        string //! 广告
+	Desc      string //! 描述
+	TimeType  int    //! 1->新服 2->公服 3->全期存在
+	CycleType int    //! 活动时间 1->月 2->周 3->开服 4->指定日期
+	BeginTime int    //! 活动开始时间
+	EndTime   int    //! 活动结束时间
+	AwardTime int    //! 活动奖励时间
+	ActType   int    //! 活动套用模板
+	AwardType int    //! 活动奖励索引
+	Status    int    //! 开启状态
+	Icon      int    //! ICON
+	Inside    int    //! 1->里面 2->外面 3->同时存在(需判断持续days)
+	Days      int    //! 临时存在天数
+}
+
+type MSG_QueryGameActivity_Ack struct {
+	RetCode     int
+	ActivityLst []MSG_GameActivityInfo
 }

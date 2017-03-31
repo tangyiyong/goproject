@@ -145,6 +145,25 @@ func Hand_UpdateGameData(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func Hand_SetServerInfo(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+	var req msg.MSG_SetServerInfo_Req
+	if json.Unmarshal(buffer, &req) != nil {
+		gamelog.Error("Hand_SetServerInfo : Unmarshal error!!!!")
+		return
+	}
+
+	appconfig.GameSvrName = req.SvrName
+
+	var response msg.MSG_SetServerInfo_Ack
+	response.RetCode = msg.RE_SUCCESS
+	ret, _ := json.Marshal(&response)
+	w.Write(ret)
+}
+
 func Hand_GetServerInfo(w http.ResponseWriter, r *http.Request) {
 	gamelog.Info("message: %s", r.URL.String())
 
@@ -211,6 +230,49 @@ func Hand_QueryAccountID(w http.ResponseWriter, r *http.Request) {
 	response.AccountID = G_SimpleMgr.GetPlayerIDByName(req.Name)
 
 	return
+}
+
+func Hand_QueryGameActivity(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	var req msg.MSG_QueryGameActivity_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_QueryPlayerInfo unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_QueryGameActivity_Ack
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+		gamelog.Info("Return: %s", b)
+	}()
+
+	for _, v := range gamedata.GT_ActivityLst {
+		var info msg.MSG_GameActivityInfo
+		info.ID = v.ID
+		info.Name = v.Name
+		info.AD = v.AD
+		info.Desc = v.Desc
+		info.TimeType = v.TimeType
+		info.CycleType = v.CycleType
+		info.BeginTime = v.BeginTime
+		info.EndTime = v.EndTime
+		info.AwardTime = v.AwardTime
+		info.ActType = v.ActType
+		info.AwardType = v.AwardType
+		info.Status = v.Status
+		info.Icon = v.Icon
+		info.Inside = v.Inside
+		info.Days = v.Days
+		response.ActivityLst = append(response.ActivityLst, info)
+	}
+
+	response.RetCode = msg.RE_SUCCESS
 }
 
 func Hand_QueryPlayerInfo(w http.ResponseWriter, r *http.Request) {
@@ -351,6 +413,278 @@ func Hand_KickArenaRanker(w http.ResponseWriter, r *http.Request) {
 	player.ArenaModule.DB_UpdateRankToDatabase()
 
 	response.RetCode = msg.RE_SUCCESS
+}
+
+//! 增加奖励静态表数据
+func Hand_AddAwardList(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接收消息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.MSG_AddAwardList_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_AddAwardList Unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_AddAwardList_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	response.RetCode = msg.RE_SUCCESS
+
+	var newAward []string
+	var updateAward map[int]string
+	updateAward = make(map[int]string)
+	var bOk bool
+
+	//! 修改内存
+	for _, v := range req.AwardLst {
+		award, isExist := gamedata.GT_AwardList[v.ID]
+		if isExist == false {
+			gamelog.Error("Hand_UpdateAwardTable Error : award not exist %d", v.ID)
+			return
+		}
+
+		award.Distinct = v.Distinct
+		award.RatioCount = v.Ratio_Num
+
+		fixItems := []gamedata.ST_DropItem{}
+		if v.Fix_Item != "NULL" {
+			sFix := strings.Trim(v.Fix_Item, "()")
+			slice := strings.Split(sFix, ")(")
+			itemCount := len(slice)
+			fixItems = make([]gamedata.ST_DropItem, itemCount)
+			for i, V := range slice {
+				fixItems[i], bOk = gamedata.ParseToDropItem(V)
+				if bOk == false {
+					gamelog.Error("field fix_item is wrong :s" + V)
+					return
+				}
+			}
+
+			award.FixItems = fixItems
+		}
+
+		ratioItems := []gamedata.ST_DropItem{}
+		if v.Ratio_Item != "NULL" {
+			var RatioBegin = 1
+			var tempvalue = 0
+			sFix := strings.Trim(v.Ratio_Item, "()")
+			slice := strings.Split(sFix, ")(")
+			ratioItems = make([]gamedata.ST_DropItem, len(slice)+1)
+			for i, V := range slice {
+				ratioItems[i], bOk = gamedata.ParseToDropItem(V)
+				if bOk == false {
+					gamelog.Error("field ratio_item is wrong" + V)
+					return
+				}
+				tempvalue = ratioItems[i].Ratio
+				ratioItems[i].Ratio = RatioBegin
+				RatioBegin += tempvalue
+			}
+
+			ratioItems[len(slice)].ItemID = 0
+			ratioItems[len(slice)].Ratio = 10000
+			award.RatioItems = ratioItems
+		}
+
+		gamelog.Info("Award Update: %v", award)
+
+		str := fmt.Sprintf("%d,%s,%s,%d,%s,%d",
+			v.ID, v.Name, v.Fix_Item, v.Ratio_Num, v.Ratio_Item, v.Distinct)
+
+		if v.Change == 1 {
+			updateAward[v.ID] = str
+		} else if v.Change == 2 {
+			newAward = append(newAward, str)
+		}
+
+	}
+
+	//! 修改CSV
+	csv, err := ioutil.ReadFile("csv/type_award.csv")
+	if err != nil {
+		gamelog.Error("ReadFile Fail: %s", err.Error())
+		return
+	}
+
+	os.Remove("csv/type_award.csv")
+
+	strLst := strings.Split(string(csv), "\r\n")
+
+	for i, v := range strLst {
+		paramLst := strings.Split(string(v), ",")
+		if len(paramLst) < 1 {
+			continue
+		}
+
+		id, _ := strconv.Atoi(paramLst[0])
+
+		str, isExist := updateAward[id]
+		if isExist == true {
+			strLst[i] = str
+		}
+	}
+
+	file, err := os.OpenFile("csv/type_award.csv", os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		gamelog.Error("OpenFile Error: %s", err.Error())
+		return
+	}
+
+	defer file.Close()
+
+	write := bufio.NewWriter(file)
+	for _, v := range strLst {
+		write.WriteString(v + "\r\n")
+	}
+
+	for _, v := range newAward {
+		write.WriteString(v + "\r\n")
+	}
+
+	write.Flush()
+	response.RetCode = msg.RE_SUCCESS
+}
+
+//! 修改奖励表数据
+func Hand_UpdateAwardTable(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+
+	//! 接受信息
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	//! 解析消息
+	var req msg.MSG_UpdateAwardList_Req
+	err := json.Unmarshal(buffer, &req)
+	if err != nil {
+		gamelog.Error("Hand_UpdateAwardTable Unmarshal fail. Error: %s", err.Error())
+		return
+	}
+
+	//! 创建回复
+	var response msg.MSG_UpdateAwardList_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	response.RetCode = msg.RE_SUCCESS
+
+	var updateAward map[int]string
+	updateAward = make(map[int]string)
+	var bOk bool
+
+	//! 修改内存
+	for _, v := range req.AwardLst {
+		award, isExist := gamedata.GT_AwardList[v.ID]
+		if isExist == false {
+			gamelog.Error("Hand_UpdateAwardTable Error : award not exist %d", v.ID)
+			return
+		}
+
+		award.Distinct = v.Distinct
+		award.RatioCount = v.Ratio_Num
+
+		fixItems := []gamedata.ST_DropItem{}
+		if v.Fix_Item != "NULL" {
+			sFix := strings.Trim(v.Fix_Item, "()")
+			slice := strings.Split(sFix, ")(")
+			itemCount := len(slice)
+			fixItems = make([]gamedata.ST_DropItem, itemCount)
+			for i, V := range slice {
+				fixItems[i], bOk = gamedata.ParseToDropItem(V)
+				if bOk == false {
+					gamelog.Error("field fix_item is wrong :s" + V)
+					return
+				}
+			}
+
+			award.FixItems = fixItems
+		}
+
+		ratioItems := []gamedata.ST_DropItem{}
+		if v.Ratio_Item != "NULL" {
+			var RatioBegin = 1
+			var tempvalue = 0
+			sFix := strings.Trim(v.Ratio_Item, "()")
+			slice := strings.Split(sFix, ")(")
+			ratioItems = make([]gamedata.ST_DropItem, len(slice)+1)
+			for i, V := range slice {
+				ratioItems[i], bOk = gamedata.ParseToDropItem(V)
+				if bOk == false {
+					gamelog.Error("field ratio_item is wrong" + V)
+					return
+				}
+				tempvalue = ratioItems[i].Ratio
+				ratioItems[i].Ratio = RatioBegin
+				RatioBegin += tempvalue
+			}
+
+			ratioItems[len(slice)].ItemID = 0
+			ratioItems[len(slice)].Ratio = 10000
+			award.RatioItems = ratioItems
+		}
+
+		gamelog.Info("Award Update: %v", award)
+
+		str := fmt.Sprintf("%d,%s,%s,%d,%s,%d",
+			v.ID, v.Name, v.Fix_Item, v.Ratio_Num, v.Ratio_Item, v.Distinct)
+
+		updateAward[v.ID] = str
+	}
+
+	//! 修改CSV
+	csv, err := ioutil.ReadFile("csv/type_award.csv")
+	if err != nil {
+		gamelog.Error("ReadFile Fail: %s", err.Error())
+		return
+	}
+
+	os.Remove("csv/type_award.csv")
+
+	strLst := strings.Split(string(csv), "\r\n")
+
+	for i, v := range strLst {
+		paramLst := strings.Split(string(v), ",")
+		if len(paramLst) < 1 {
+			continue
+		}
+
+		id, _ := strconv.Atoi(paramLst[0])
+
+		str, isExist := updateAward[id]
+		if isExist == true {
+			strLst[i] = str
+		}
+	}
+
+	file, err := os.OpenFile("csv/type_award.csv", os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		gamelog.Error("OpenFile Error: %s", err.Error())
+		return
+	}
+
+	defer file.Close()
+
+	write := bufio.NewWriter(file)
+	for _, v := range strLst {
+		write.WriteString(v + "\r\n")
+	}
+
+	write.Flush()
+
 }
 
 //! 修改活动表数据

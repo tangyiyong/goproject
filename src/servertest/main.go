@@ -2,27 +2,180 @@ package main
 
 import (
 	// "appconfig"
+	"fmt"
 	"gamelog"
 	"gamesvr/tcpclient"
+	//"io"
+	"bufio"
+	"io/ioutil"
 	"msg"
-	"utility"
+	"os"
+	"strconv"
+	"strings"
 )
 
 var (
-	accountip string = "http://121.40.207.78:8081"
+	accountip string = "http://192.168.0.222:8081/"
+	gamesvrip string = "http://172.17.2.249:8082/"
 )
 
-func main() {
-	gamelog.InitLogger("httptest", 10)
-	RegTcpMsgHandler()
+//消息:/gm_add_giftaward
+type MSG_AddGiftAward_Req struct {
+	SessionID  string
+	SessionKey string
+	ItemID     []int //物品ID
+	ItemNum    []int //物品数量
+}
 
-	InitPlayerMgr()
-	for i := 1; i < 200; i++ {
-		CreatePlayer(i)
+type MSG_AddGiftAward_Ack struct {
+	RetCode int
+}
+
+//消息:/gm_make_giftcode
+type MSG_MakeGiftCode_Req struct {
+	SessionID   string //GM SessionID
+	SessionKey  string //GM SessionKey
+	Platform    int32  //平台ID
+	SvrID       int32  //服务器ID
+	EndTime     int32  //结束时间
+	GiftAwardID int32  //奖励ID
+	GiftCodeNum int    //激活码数量
+	IsAll       bool   //是否为全服发放
+}
+
+type MSG_MakeGiftCode_Ack struct {
+	RetCode   int
+	GiftCodes []string //激活码
+}
+
+type t_struct struct {
+	player string
+	id     int
+}
+
+func test() (str string, err error) {
+	return
+}
+
+func main() {
+
+	str, err := test()
+	fmt.Println(str, " 111 ", err)
+
+	return
+	sFix := strings.Trim("(2|130000&130000|0)(110|13&13|0)(116|10&10|0)(117|12&12|0)", "()")
+	fmt.Println(sFix)
+	return
+
+	buffer, err := ioutil.ReadFile("../bin/csv/type_activity.csv")
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 
-	StartTest()
-	utility.StartConsoleWait()
+	strLst := strings.Split(string(buffer), "\r\n")
+
+	for i, v := range strLst {
+		paramLst := strings.Split(string(v), ",")
+		if len(paramLst) < 1 {
+			continue
+		}
+
+		id, _ := strconv.Atoi(paramLst[0])
+		fmt.Printf("%d   %s\r\n", id, paramLst[0])
+		if id == 89 {
+			strLst[i] = "88,异域Shit商人,异域,快点来充钱,3,1,11,14,1,16,1,1,11,2,0"
+		}
+	}
+
+	os.Remove("../bin/csv/type_activity.csv")
+	f, err := os.OpenFile("../bin/csv/type_activity.csv", os.O_RDWR|os.O_CREATE, 0660)
+	if err == nil {
+		w := bufio.NewWriter(f)
+
+		for _, v := range strLst {
+			fmt.Printf("%s\r\n", v)
+			w.WriteString(v + "\r\n")
+		}
+
+		w.Flush()
+
+		f.Close()
+	}
+
+	// f, err := os.OpenFile("../bin/csv/type_activity.csv", os.O_RDWR, 0660)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
+	// defer f.Close()
+
+	// var offset int64
+	// r := bufio.NewReader(f)
+	// for {
+	// 	line, _, err := r.ReadLine()
+	// 	if err == io.EOF {
+	// 		break
+	// 	}
+
+	// 	strLst := strings.Split(string(line), ",")
+	// 	id, _ := strconv.Atoi(strLst[0])
+
+	// 	if id == 89 {
+	// 		//! 删去该行
+	// 		fs, _ := f.Stat()
+	// 		size := fs.Size()
+	// 		begin := make([]byte, offset)
+	// 		f.Seek(0, os.SEEK_SET)
+	// 		f.Read(begin)
+
+	// 		offset += int64(len(line) + 2)
+	// 		end := make([]byte, size-offset)
+	// 		f.Seek(offset, 0)
+	// 		f.Read(end)
+
+	// newFile, err := os.OpenFile("../bin/csv/type_activity.csv.temp", os.O_RDWR|os.O_CREATE, 0666)
+	// if err != nil {
+	// 	fmt.Println(err.Error())
+	// }
+
+	//			defer newFile.Close()
+	// w := bufio.NewWriter(f)
+	// w.Write(begin)
+	// w.Write([]byte("88,异域商人,异域商人(新）,快点来充钱,3,1,11,14,1,16,1,1,11,2,0\r\n"))
+	// w.Write(end)
+	// w.Flush()
+
+	// f.Seek(0, 0)
+
+	// f.Seek(offset, 0)
+	// w = bufio.NewWriter(f)
+	// w.WriteString(string("89,1111,11111111111111111111111111111111111,2222,5,3,0,0,0,4,1,1,28,1,0"))
+	// w.Flush()
+
+	// 		break
+	// 	}
+
+	// 	offset += (int64(len(line) + 2))
+	// }
+
+	// f.Close()
+	// newFile.Close()
+
+	// os.Remove("../bin/csv/type_activity.csv")
+	// os.Rename("../bin/csv/type_activity.csv.temp", "../bin/csv/type_activity.csv")
+
+	// r := csv.NewReader(file)
+	// csvStr, _ := r.ReadAll()
+	// fmt.Println(csvStr)
+
+	// RegTcpMsgHandler()
+
+	// InitPlayerMgr()
+	// for i := 2; i < 3; i++ {
+	// 	CreatePlayer(i)
+	// }
+
+	// StartTest()
+	// utility.StartConsoleWait()
 }
 
 func RegTcpMsgHandler() {

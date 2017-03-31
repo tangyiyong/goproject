@@ -21,6 +21,7 @@ type MSG_CreateNewPlayerReq struct {
 	SessionKey string //玩家角色ID
 	PlayerName string //玩家角色名
 	HeroID     int    //英雄ID
+	ChannelID  int32  //渠道ID
 }
 
 type MSG_CreateNewPlayerAck struct {

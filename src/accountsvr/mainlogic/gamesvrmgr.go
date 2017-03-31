@@ -10,13 +10,14 @@ import (
 )
 
 const (
-	SS_Ready    = 1 //未开放
-	SS_NewSvr   = 2 //新服
-	SS_Good     = 3 //流畅
-	SS_Busy     = 4 //拥挤
-	SS_Maintain = 5 //维护
-	SS_Full     = 6 //爆满
-	SS_Close    = 7 //关闭
+	SS_Ready     = 1 //未开放
+	SS_NewSvr    = 2 //新服
+	SS_Good      = 3 //流畅
+	SS_Busy      = 4 //拥挤
+	SS_Maintain  = 5 //维护
+	SS_Full      = 6 //爆满
+	SS_Recommend = 7 //推荐
+	SS_Close     = 8 //关闭
 )
 
 type TGameServerInfo struct {
@@ -27,6 +28,7 @@ type TGameServerInfo struct {
 	SvrDefault   uint32 //是否默认
 	SvrOutAddr   string //外部地址
 	SvrInnerAddr string //内部地址
+	SvrOpenTime  int32  //服务器开服时间
 
 	//以下的变量不是存数据库
 	isSvrOK    bool  //服务器是否正常
@@ -56,6 +58,7 @@ func InitGameSvrMgr() {
 		G_ServerList[tempList[i].SvrID].SvrInnerAddr = tempList[i].SvrInnerAddr
 		G_ServerList[tempList[i].SvrID].SvrOutAddr = tempList[i].SvrOutAddr
 		G_ServerList[tempList[i].SvrID].SvrDefault = tempList[i].SvrDefault
+		G_ServerList[tempList[i].SvrID].SvrOpenTime = tempList[i].SvrOpenTime
 		G_ServerList[tempList[i].SvrID].isSvrOK = false
 
 		if G_ServerList[tempList[i].SvrID].SvrDefault == 1 {
@@ -89,34 +92,36 @@ func CheckGameStateRoutine() {
 }
 */
 
-func UpdateGameSvrInfo(svrid int32, svrname string, outaddr string, inaddr string) {
+func UpdateGameSvrInfo(svrid int32, outaddr string, inaddr string, opentime int32) string {
 	if svrid <= 0 || svrid >= 10000 {
 		gamelog.Error("UpdateGameSvrInfo Error : Invalid svrid:%d", svrid)
-		return
+		return "Error"
 	}
 
 	if G_ServerList[svrid].SvrID == 0 {
 		G_ServerList[svrid].SvrID = svrid
-		G_ServerList[svrid].SvrName = svrname
+		G_ServerList[svrid].SvrName = "UNKNOW"
 		G_ServerList[svrid].SvrInnerAddr = inaddr
 		G_ServerList[svrid].SvrOutAddr = outaddr
 		G_ServerList[svrid].isSvrOK = true
 		G_ServerList[svrid].SvrState = SS_Ready
 		G_ServerList[svrid].SvrDefault = 0
+		G_ServerList[svrid].SvrOpenTime = 0
 		G_ServerList[svrid].updateTime = utility.GetCurTime()
 		mongodb.InsertToDB("GameSvrList", &G_ServerList[svrid])
 	} else {
-		if G_ServerList[svrid].SvrName != svrname {
-			gamelog.Error("UpdateGameSvrInfo Error : **************** Server:%s and %s has same svrid:%d*********", svrname, G_ServerList[svrid].SvrName, svrid)
+		if G_ServerList[svrid].SvrOutAddr != outaddr {
+			gamelog.Error("UpdateGameSvrInfo Error : **************** Server:%d has two addr:[%s]-[%s]*********", svrid, G_ServerList[svrid].SvrOutAddr, outaddr)
 		}
-		G_ServerList[svrid].SvrName = svrname
 		G_ServerList[svrid].SvrInnerAddr = inaddr
 		G_ServerList[svrid].SvrOutAddr = outaddr
 		G_ServerList[svrid].isSvrOK = true
+		G_ServerList[svrid].SvrOpenTime = opentime
 		G_ServerList[svrid].updateTime = utility.GetCurTime()
 		DB_UpdateSvrInfo(svrid, G_ServerList[svrid])
 	}
 
+	return G_ServerList[svrid].SvrName
 }
 
 func GetGameSvrName(svrid int32) string {

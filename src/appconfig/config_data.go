@@ -89,7 +89,6 @@ func ParseConfigValue(key string, value string) {
 	case "version":
 		Version = value
 	case "domain":
-		GameSvrName = value
 	case "domainid":
 		GameSvrID, _ = strconv.Atoi(value)
 	case "account_svr_inner_ip":

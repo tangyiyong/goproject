@@ -25,19 +25,21 @@ type TGiftCode struct {
 }
 
 type TGiftAward struct {
-	ID      int   `bson:"_id"` //奖励ID
+	ID      int `bson:"_id"` //奖励ID
+	Name    string
 	ItemID  []int //物品ID
 	ItemNum []int //物品数量
 }
 
 var G_GiftAwardID = 0
+var G_GiftAwardLst = []TGiftAward{}
 
 func InitGiftCodeMgr() {
 	s := mongodb.GetDBSession()
 	defer s.Close()
 
-	awardLst := []TGiftAward{}
-	err := s.DB(appconfig.AccountDbName).C("GiftCodeAward").Find(nil).Sort("+_id").All(&awardLst)
+	G_GiftAwardLst = []TGiftAward{}
+	err := s.DB(appconfig.AccountDbName).C("GiftAward").Find(nil).Sort("+_id").All(&G_GiftAwardLst)
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			G_GiftAwardID = 1
@@ -47,11 +49,11 @@ func InitGiftCodeMgr() {
 		}
 	}
 
-	if len(awardLst) <= 0 {
+	if len(G_GiftAwardLst) <= 0 {
 		G_GiftAwardID = 1
 	} else {
-		lastIndex := len(awardLst) - 1
-		G_GiftAwardID = int(awardLst[lastIndex].ID) + 1
+		lastIndex := len(G_GiftAwardLst) - 1
+		G_GiftAwardID = int(G_GiftAwardLst[lastIndex].ID) + 1
 	}
 }
 
@@ -75,12 +77,76 @@ func Handle_AddGiftAward(w http.ResponseWriter, r *http.Request) {
 
 	var giftAward TGiftAward
 	giftAward.ID = G_GiftAwardID
+	giftAward.Name = req.Name
 	giftAward.ItemID = req.ItemID
 	giftAward.ItemNum = req.ItemNum
 	mongodb.InsertToDB("GiftAward", giftAward)
 	response.AwardID = giftAward.ID
+	G_GiftAwardLst = append(G_GiftAwardLst, giftAward)
 	G_GiftAwardID += 1
 	response.RetCode = msg.RE_SUCCESS
+}
+
+func Handle_GetGiftAward(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	var req msg.MSG_GetGiftAward_Req
+	if json.Unmarshal(buffer, &req) != nil {
+		gamelog.Error("Handle_GetGiftAward : Unmarshal error!!!!")
+		return
+	}
+
+	var response msg.MSG_GetGiftAward_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	for _, v := range G_GiftAwardLst {
+		var award msg.MSG_GiftAward
+		award.ID = v.ID
+		award.Name = v.Name
+		award.ItemID = v.ItemID
+		award.ItemNum = v.ItemNum
+		response.AwardLst = append(response.AwardLst, award)
+	}
+
+	response.RetCode = msg.RE_SUCCESS
+}
+
+func Handle_DelGiftAward(w http.ResponseWriter, r *http.Request) {
+	gamelog.Info("message: %s", r.URL.String())
+	buffer := make([]byte, r.ContentLength)
+	r.Body.Read(buffer)
+
+	var req msg.MSG_Del_giftaward_Req
+	if json.Unmarshal(buffer, &req) != nil {
+		gamelog.Error("Handle_DelGiftAward : Unmarshal error!!!!")
+		return
+	}
+
+	var response msg.MSG_Del_giftaward_Ack
+	response.RetCode = msg.RE_UNKNOWN_ERR
+	defer func() {
+		b, _ := json.Marshal(&response)
+		w.Write(b)
+	}()
+
+	for _, n := range req.AwardID {
+		for i, v := range G_GiftAwardLst {
+			if v.ID == n {
+				G_GiftAwardLst = append(G_GiftAwardLst[:i], G_GiftAwardLst[i+1:]...)
+				mongodb.RemoveFromDB(appconfig.AccountDbName, "GiftAward", &bson.M{"_id": n})
+
+				response.RetCode = msg.RE_SUCCESS
+				break
+			}
+		}
+	}
+
 }
 
 func Handle_MakeGiftCode(w http.ResponseWriter, r *http.Request) {
@@ -150,7 +216,7 @@ func Handle_GetPlayerInfo(w http.ResponseWriter, r *http.Request) {
 	response.CreateTime = accountInfo.CreateTime
 	response.Enable = accountInfo.Enable
 	response.LastLoginTime = accountInfo.LastTime
-	response.Platform = accountInfo.Platform
+	response.Platform = accountInfo.Channel
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -221,7 +287,7 @@ func Handle_GameSvrGiftCode(w http.ResponseWriter, r *http.Request) {
 			isExist = true
 			break
 		}
-		if accountInfo.Platform == v {
+		if accountInfo.Channel == v {
 			isExist = true
 			break
 		}

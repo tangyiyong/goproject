@@ -19,9 +19,9 @@ type MSG_Login_Ack struct {
 //注册账号请求
 //消息:/register
 type MSG_RegAccount_Req struct {
-	Name     string //账户名
-	Password string //密码
-	Platform int32  //平台ID
+	Name      string //账户名
+	Password  string //密码
+	ChannelID int32  //渠道ID
 }
 
 type MSG_RegAccount_Ack struct {
@@ -34,14 +34,16 @@ type MSG_ServerList_Req struct {
 	AccountID   int32  //账号ID
 	AccountName string //账户名
 	LoginKey    string //登录key
+	ChannelID   int    //! 渠道ID
 }
 
 type ServerNode struct {
-	SvrID      int32
-	SvrName    string
-	SvrState   uint32
-	SvrDefault uint32
-	SvrOutAddr string
+	SvrID       int32
+	SvrName     string
+	SvrState    uint32
+	SvrDefault  uint32
+	SvrOutAddr  string
+	SvrOpenTime int32
 }
 
 type MSG_ServerList_Ack struct {
@@ -65,9 +67,9 @@ type MSG_VerifyUserLogin_Ack struct {
 //游客玩家注册
 //消息:/tourist_register
 type MSG_TourRegAccount_Req struct {
-	Name     string //账户名
-	Password string //密码
-	Platform int32  //平台ID
+	Name      string //账户名
+	Password  string //密码
+	ChannelID int32  //平台ID
 }
 
 type MSG_TourRegAccount_Ack struct {

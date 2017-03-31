@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"gamelog"
 	"gamesvr/gamedata"
-	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"utility"
+
+	"gopkg.in/mgo.v2/bson"
 )
 
 //! 活动刷新
@@ -153,7 +154,7 @@ func EndActivity(activityType int, activityID int32) bool {
 
 //! 刷新运营活动 每天整点刷新一次
 func RefreshActivity(activityType int, activityID int32) bool {
-	//gamelog.Info("Timer: RefreshActivity")
+	gamelog.Info("Timer: RefreshActivity")
 	if activityType == gamedata.Activity_Moon_Card {
 	} else if activityType == gamedata.Activity_Singel_Recharge {
 	} else if activityType == gamedata.Activity_Limit_Daily_Task {

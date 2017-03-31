@@ -7,6 +7,7 @@ import (
 	"encoding/csv"
 	"encoding/hex"
 	"io"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -253,4 +254,26 @@ func GetGuid() string {
 	}
 
 	return GetMd5String(base64.URLEncoding.EncodeToString(b))
+}
+
+//只运行一个进程
+func RunOnlyOne() bool {
+	filePath := os.TempDir() + "pro.pid"
+	file, err := os.Open(filePath)
+	if err == nil {
+		buf, _ := ioutil.ReadAll(file)
+		pid, _ := strconv.Atoi(string(buf))
+		_, err = os.FindProcess(pid)
+		if err == nil {
+			file.Close()
+			return false
+		}
+	}
+
+	file.Close()
+	file, _ = os.Create(filePath)
+	spid := strconv.Itoa(os.Getpid())
+	file.WriteString(spid)
+	file.Close()
+	return true
 }

@@ -21,6 +21,12 @@ func main() {
 	//TestMutiArray()
 	//TestOther2()
 
+	if utility.RunOnlyOne() {
+		fmt.Println("true-true-true-true-true-true-true-true")
+	} else {
+		fmt.Println("false-false-false-false-false-false-false-false")
+	}
+
 	var buf []byte = make([]byte, 10)
 	var code [4]byte
 

@@ -1,11 +1,13 @@
 package mainlogic
 
 import (
+	"bytes"
 	"encoding/json"
 	"gamelog"
 	"gamesvr/gamedata"
 	"msg"
 	"net/http"
+	"time"
 	"utility"
 )
 
@@ -104,6 +106,51 @@ func Hand_TestGetMoney(w http.ResponseWriter, r *http.Request) {
 
 	response.RetCode = msg.RE_SUCCESS
 	response.Moneys = player.RoleMoudle.Moneys
+
+	//! 玩家领取激活码
+	//! 消息: /recv_gift_code
+	type MSG_RecvGiftCode_Req struct {
+		PlayerID   int32
+		SessionKey string
+		GiftCode   string //激活码
+	}
+
+	type MSG_RecvGiftCode_Ack struct {
+		RetCode   int                //返回码
+		AwardItem []msg.MSG_ItemData //! 奖励
+	}
+
+	var createGift_req MSG_RecvGiftCode_Req
+	createGift_req.PlayerID = req.PlayerID
+	createGift_req.SessionKey = req.SessionKey
+	createGift_req.GiftCode = "2389b788d779a87dc5dec98da"
+
+	b, _ := json.Marshal(createGift_req)
+	http.DefaultClient.Timeout = time.Second * 3
+	url := "http://192.168.0.167:8082/recv_gift_code"
+	httpRet, err := http.Post(url, "text/HTML", bytes.NewReader(b))
+	if err != nil {
+		gamelog.Error("err : %s !!!!", err.Error())
+		return
+	}
+
+	httpRetBuf := make([]byte, httpRet.ContentLength)
+	httpRet.Body.Read(httpRetBuf)
+	httpRet.Body.Close()
+
+	var createGift_ack msg.MSG_RecvGiftCode_Ack
+	err = json.Unmarshal(httpRetBuf, &createGift_ack)
+	if err != nil {
+		gamelog.Error("Hand_RecvGiftCode Unmarshal createGift_ack fail, Error: %s", err.Error())
+		return
+	}
+
+	if createGift_ack.RetCode != msg.RE_SUCCESS {
+		gamelog.Error("Hand_RecvGiftCode Error, createGift_ack.RetCode:%d", createGift_ack.RetCode)
+		return
+	}
+
+	gamelog.Info("Get Award: %v", createGift_ack.AwardItem)
 
 	return
 }

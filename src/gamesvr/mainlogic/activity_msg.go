@@ -38,7 +38,7 @@ func Hand_GetActivity(w http.ResponseWriter, r *http.Request) {
 	player.ActivityModule.CheckReset()
 
 	response.RetCode = msg.RE_SUCCESS
-	openday := GetOpenServerDay()
+
 	for _, v := range G_GlobalVariables.ActivityLst {
 		var activity msg.MSG_ActivityInfo
 		if G_GlobalVariables.IsActivityOpen(v.ActivityID) == false {
@@ -81,7 +81,11 @@ func Hand_GetActivity(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		if activityInfo.Inside == 3 && openday > activityInfo.Days {
+		now := utility.GetCurTime()
+		insaideTime := now - v.beginTime
+		insaideDay := insaideTime / (24 * 60 * 60)
+
+		if activityInfo.Inside == 3 && insaideDay > int32(activityInfo.Days) {
 			response.RemoveActivityIcon = append(response.RemoveActivityIcon, v.ActivityID)
 			response.ActivityLst = append(response.ActivityLst, activity)
 			continue

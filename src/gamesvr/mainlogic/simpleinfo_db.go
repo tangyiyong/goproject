@@ -56,3 +56,7 @@ func (simple *TSimpleInfoMgr) DB_SetGuildID(playerid int32, guildid int32) {
 func (simple *TSimpleInfoMgr) DB_SetLoginIp(playerid int32, ip string) {
 	mongodb.UpdateToDB("PlayerSimple", &bson.M{"_id": playerid}, &bson.M{"$set": bson.M{"loginip": ip}})
 }
+
+func (simple *TSimpleInfoMgr) DB_SetChannelID(playerid int32, id int32) {
+	mongodb.UpdateToDB("PlayerSimple", &bson.M{"_id": playerid}, &bson.M{"$set": bson.M{"channelid": id}})
+}

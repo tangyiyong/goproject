@@ -21,7 +21,7 @@ type TAccount struct {
 	Pwd        string //密码
 	CreateTime int32  //创建时间
 	LastTime   int32  //上次登录时间
-	Platform   int32  //平台ID
+	Channel    int32  //渠道ID
 	Enable     int32  //是否禁用
 	LastSvrID  int32  //上次登录的GameSvrID
 }

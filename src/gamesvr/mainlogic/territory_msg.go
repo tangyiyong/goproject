@@ -455,8 +455,7 @@ func Hand_OneKeyTerritoryAward(w http.ResponseWriter, r *http.Request) {
 
 		if v.PatrolEndTime > utility.GetCurTime() {
 			//! 尚未结束
-			response.RetCode = msg.RE_PATROL_NOT_END
-			return
+			continue
 		}
 
 		player.TaskMoudle.AddPlayerTaskSchedule(gamedata.TASK_TERRITORY_PATROLTIME, v.PatrolTime/3600)

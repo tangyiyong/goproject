@@ -64,6 +64,8 @@ type ST_ActivityInfo struct {
 	Icon      int    //! ICON
 	Inside    int    //! 1->里面 2->外面 3->同时存在(需判断持续days)
 	Days      int    //! 临时存在天数
+	AD        string //! 广告
+	Desc      string //! 描述
 }
 
 var GT_ActivityLst map[int32]*ST_ActivityInfo
@@ -94,6 +96,9 @@ func ParseActivityRecord(rs *RecordSet) {
 	data.Icon = rs.GetFieldInt("icon")
 	data.Inside = rs.GetFieldInt("inside")
 	data.Days = rs.GetFieldInt("days")
+	data.AD = rs.GetFieldString("ad")
+	data.Desc = rs.GetFieldString("desc")
+
 	GT_ActivityLst[id] = data
 
 	if data.TimeType <= 0 || data.CycleType <= 0 {

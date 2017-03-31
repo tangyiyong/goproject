@@ -4,21 +4,21 @@ import (
 	"appconfig"
 	"encoding/json"
 	"gamelog"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"mongodb"
 	"msg"
 	"net/http"
 	"strings"
-
-	"gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 )
 
 var G_NetMgr TNetMgr
 
 type TNetInfo struct {
-	SvrID     int32    `bson:"_id"` //! 分区ID
-	WhiteList []string //! 白名单
-	BlackList []string //! 黑名单
+	SvrID       int32    `bson:"_id"` //! 分区ID
+	WhiteList   []string //! 白名单
+	BlackList   []string //! 黑名单
+	ChannelList []int    //! 渠道可见
 }
 
 //! 协议管理器
@@ -75,11 +75,47 @@ func (self *TNetMgr) GetSvrNetBlackList(svrID int32) []string {
 	return netInfo.BlackList
 }
 
+//! 获得服务器可见渠道
+func (self *TNetMgr) GetSvrNetChannel(svrID int32) []int {
+	netInfo := self.GetSvrNetInfo(svrID)
+	return netInfo.ChannelList
+}
+
 //! 添加网络白名单
 func (self *TNetMgr) AddSvrWhiteList(svrID int32, ip string) {
 	netInfo := self.GetSvrNetInfo(svrID)
 	netInfo.WhiteList = append(netInfo.WhiteList, ip)
 	G_NetMgr.DB_AddSvrWhiteList(svrID, ip)
+}
+
+//! 添加可见渠道
+func (self *TNetMgr) AddSvrChannelList(svrID int32, id int) {
+	netInfo := self.GetSvrNetInfo(svrID)
+	netInfo.ChannelList = append(netInfo.ChannelList, id)
+	G_NetMgr.DB_AddSvrChannelList(svrID, id)
+}
+
+//! 删除可见渠道
+func (self *TNetMgr) DelSvrChannelList(svrID int32, id int) bool {
+	netInfo := self.GetSvrNetInfo(svrID)
+	index := -1
+	for i, v := range netInfo.ChannelList {
+		if v == id {
+			index = i
+			break
+		}
+	}
+
+	if index < 0 {
+		return false
+	}
+
+	newArray := netInfo.ChannelList[:index]
+	newArray = append(newArray, netInfo.ChannelList[index+1:]...)
+	netInfo.ChannelList = newArray
+
+	G_NetMgr.DB_DelSvrChannelList(svrID, id)
+	return true
 }
 
 //! 删除网络白名单
@@ -149,6 +185,18 @@ func (self *TNetMgr) IsInWhiteList(svrID int32, ip string) bool {
 	return false
 }
 
+//! 判断是否在可见渠道中
+func (self *TNetMgr) IsInChannelList(svrID int32, channelid int) bool {
+	channelList := self.GetSvrNetChannel(svrID)
+
+	for _, v := range channelList {
+		if v == channelid {
+			return true
+		}
+	}
+	return false
+}
+
 //! 判断是否在黑名单
 func (self *TNetMgr) IsInBlackList(svrID int32, ip string) bool {
 	whiteList := self.GetSvrNetBlackList(svrID)
@@ -171,6 +219,14 @@ func (self *TNetMgr) DB_DelSvrBlackList(svrID int32, ip string) {
 
 func (self *TNetMgr) DB_AddSvrWhiteList(svrID int32, ip string) {
 	mongodb.UpdateToDB("NetManagement", &bson.M{"_id": svrID}, &bson.M{"$push": bson.M{"whitelist": ip}})
+}
+
+func (self *TNetMgr) DB_AddSvrChannelList(svrID int32, id int) {
+	mongodb.UpdateToDB("NetManagement", &bson.M{"_id": svrID}, &bson.M{"$push": bson.M{"channellist": id}})
+}
+
+func (self *TNetMgr) DB_DelSvrChannelList(svrID int32, id int) {
+	mongodb.UpdateToDB("NetManagement", &bson.M{"_id": svrID}, &bson.M{"$pull": bson.M{"channellist": id}})
 }
 
 func (self *TNetMgr) DB_DelSvrWhiteList(svrID int32, ip string) {
@@ -205,7 +261,7 @@ func Handle_GetNetList(w http.ResponseWriter, r *http.Request) {
 
 	response.BlackList = netInfo.BlackList
 	response.WhiteList = netInfo.WhiteList
-
+	response.ChannelList = netInfo.ChannelList
 	response.RetCode = msg.RE_SUCCESS
 }
 
@@ -236,8 +292,12 @@ func Handle_AddNetList(w http.ResponseWriter, r *http.Request) {
 
 	if req.ListType == 1 {
 		G_NetMgr.AddSvrWhiteList(req.SvrID, req.IP)
-	} else {
+	} else if req.ListType == 2 {
 		G_NetMgr.AddSvrBlackList(req.SvrID, req.IP)
+	} else if req.ListType == 3 {
+		for _, v := range req.ChannelID {
+			G_NetMgr.AddSvrChannelList(req.SvrID, v)
+		}
 	}
 
 	response.RetCode = msg.RE_SUCCESS
@@ -270,8 +330,12 @@ func Handle_DelNetList(w http.ResponseWriter, r *http.Request) {
 
 	if req.ListType == 1 {
 		G_NetMgr.DelSvrWhiteList(req.SvrID, req.IP)
-	} else {
+	} else if req.ListType == 2 {
 		G_NetMgr.DelSvrBlackList(req.SvrID, req.IP)
+	} else if req.ListType == 3 {
+		for _, v := range req.ChannelID {
+			G_NetMgr.DelSvrChannelList(req.SvrID, v)
+		}
 	}
 
 	response.RetCode = msg.RE_SUCCESS

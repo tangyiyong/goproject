@@ -45,6 +45,9 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/add_net_list", mainlogic.Handle_AddNetList)
 	http.HandleFunc("/del_net_list", mainlogic.Handle_DelNetList)
 	http.HandleFunc("/gm_query_svrip", mainlogic.Handle_QuerySvrIp)
+	http.HandleFunc("/gm_get_giftaward", mainlogic.Handle_GetGiftAward)
+	http.HandleFunc("/gm_del_giftaward", mainlogic.Handle_DelGiftAward)
+	http.HandleFunc("/gm_get_enablelst", mainlogic.Handle_GmGetEnableLst)
 }
 
 //注册TCP处理消息

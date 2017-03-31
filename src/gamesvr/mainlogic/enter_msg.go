@@ -204,6 +204,7 @@ func Hand_CreatePlayer(w http.ResponseWriter, r *http.Request) {
 	pSimpleInfo.Name = req.PlayerName
 	pSimpleInfo.HeroID = req.HeroID
 	pSimpleInfo.FightValue = player.HeroMoudle.CalcFightValue(nil)
+	pSimpleInfo.ChannelID = req.ChannelID
 	response.PlayerID = pSimpleInfo.PlayerID
 	response.RetCode = msg.RE_SUCCESS
 	G_LevelRanker.SetRankItem(pSimpleInfo.PlayerID, pSimpleInfo.Level)

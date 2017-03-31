@@ -20,4 +20,7 @@ func Init() {
 
 	//初始化黑白名单管理器
 	InitNetMgr()
+
+	//初始化封禁账户管理器
+	InitDisableMgr()
 }

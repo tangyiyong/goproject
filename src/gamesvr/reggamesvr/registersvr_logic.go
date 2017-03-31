@@ -26,7 +26,7 @@ func RegisterToSvr() {
 func RegisterToAccountSvr() {
 	var registerReq msg.MSG_RegToAccountSvr_Req
 	registerReq.SvrID = int32(appconfig.GameSvrID)
-	registerReq.SvrName = appconfig.GameSvrName
+	registerReq.SvrOpenTime = int32(appconfig.GameOpenSvrTime)
 	registerReq.SvrOuterAddr = appconfig.GameSvrOuterIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
 	registerReq.SvrInnerAddr = appconfig.GameSvrInnerIp + ":" + strconv.Itoa(appconfig.GameSvrPort)
 	b, _ := json.Marshal(registerReq)
@@ -40,6 +40,12 @@ func RegisterToAccountSvr() {
 			continue
 		}
 
+		buffer := make([]byte, response.ContentLength)
+		response.Body.Read(buffer)
+		response.Body.Close()
+		var ack msg.MSG_RegToAccountSvr_Ack
+		err = json.Unmarshal(buffer, &ack)
+		appconfig.GameSvrName = ack.SvrName
 		response.Body.Close()
 		return
 	}

@@ -545,11 +545,14 @@ func RegHttpMsgHandler() {
 	http.HandleFunc("/del_svr_award", mainlogic.Hand_DelSvrAward)
 	http.HandleFunc("/send_award_to_player", mainlogic.Hand_SendAwardToPlayer)
 	http.HandleFunc("/get_server_info", mainlogic.Hand_GetServerInfo)
+	http.HandleFunc("/set_server_info", mainlogic.Hand_SetServerInfo)
 	http.HandleFunc("/save_client_info", mainlogic.Hand_SaveClientInfo)
 	http.HandleFunc("/query_account_id", mainlogic.Hand_QueryAccountID)
 	http.HandleFunc("/query_player_info", mainlogic.Hand_QueryPlayerInfo)
 	http.HandleFunc("/kick_cheat_ranker", mainlogic.Hand_KickArenaRanker)
 	http.HandleFunc("/update_activity_list", mainlogic.Hand_UpdateActivityList)
+	http.HandleFunc("/add_award_list", mainlogic.Hand_AddAwardList)
+	http.HandleFunc("/gm_query_activity", mainlogic.Hand_QueryGameActivity)
 	//★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
 	http.HandleFunc("/recharge_notify", mainlogic.Handle_Recharge_Notify)
